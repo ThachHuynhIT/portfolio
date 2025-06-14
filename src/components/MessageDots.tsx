@@ -370,15 +370,22 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
       dotsRef.current.forEach((dot) => {
         dot.glowIntensity = 0;
       });
-      updateGeometry();
-      // Bắt đầu transition nhưng không gọi startTransition() để tránh hiệu ứng glow
+      updateGeometry(); // Bắt đầu transition nhưng không gọi startTransition() để tránh hiệu ứng glow
       transitionStartTimeRef.current = performance.now();
       isTransitioningRef.current = true;
-      setTimeout(() => {
-        isTransitioningRef.current = false;
-      }, 1000);
-      // Không gọi enableGlow để tránh hiệu ứng glow trên số 1
-      flyingDotsRef.current = flyDots;
+      isTransitioningRef.current = false;
+      // Chỉnh lại các flying dots trước khi hiển thị
+      flyingDotsRef.current = flyDots.map((dot) => {
+        // Đảm bảo flying dots được khởi động ngay lập tức và có vận tốc
+        return {
+          ...dot,
+          started: true,
+          // Đảm bảo luôn có vận tốc để di chuyển
+          vx: dot.vx || (Math.random() - 0.5) * 1.5,
+          vy: dot.vy || (Math.random() - 0.5) * 1.5,
+        };
+      });
+
       return;
     } else if (prevText === "1" && messages.length > 0 && newText === messages[0]) {
       const keepRatio = 0.8;
@@ -680,6 +687,9 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
             dot.delayStart -= 16.67 * deltaTime;
             if (dot.delayStart <= 0) {
               dot.started = true;
+              // Thêm một vận tốc nhỏ cho các điểm mới bắt đầu
+              if (Math.abs(dot.vx) < 0.1) dot.vx = (Math.random() - 0.5) * 0.5;
+              if (Math.abs(dot.vy) < 0.1) dot.vy = (Math.random() - 0.5) * 0.5;
             } else {
               dot.x += (Math.random() - 0.5) * 0.2 * deltaTime;
               dot.y += (Math.random() - 0.5) * 0.2 * deltaTime;
@@ -687,9 +697,16 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
             }
           }
           if (dot.gathering) {
-            const factor = 0.05 * deltaTime;
-            dot.x += (dot.tx - dot.x) * factor;
-            dot.y += (dot.ty - dot.y) * factor;
+            // Tăng tốc độ hội tụ khi gần đến điểm đích
+            const distance = Math.sqrt(Math.pow(dot.tx - dot.x, 2) + Math.pow(dot.ty - dot.y, 2));
+            // Tăng tốc độ hội tụ khi gần đến điểm đích
+            const speedFactor = Math.max(0.05, Math.min(0.2, 20 / (distance + 20))) * deltaTime;
+
+            // Thêm hiệu ứng nhẹ "elastic" khi đến gần điểm đích
+            dot.x += (dot.tx - dot.x) * speedFactor;
+            dot.y += (dot.ty - dot.y) * speedFactor;
+
+            // Khi đến gần điểm đích, hợp nhất với thông điệp
             if (Math.abs(dot.x - dot.tx) < 2 && Math.abs(dot.y - dot.ty) < 2) {
               const addToDots = {
                 x: dot.tx,
@@ -708,18 +725,27 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
               dotsRef.current = [...dotsRef.current, addToDots];
               updateGeometry();
               dot.opacity = 0;
-            } else {
-              dot.opacity = Math.min(dot.opacity + 0.01 * deltaTime, 1.0);
             }
           } else {
             if (dot.started !== false) {
               dot.x += dot.vx * deltaTime;
               dot.y += dot.vy * deltaTime;
+
+              // Thêm hiệu ứng rung nhẹ và chuyển động tự nhiên hơn
+              dot.vx += (Math.random() - 0.5) * 0.03 * deltaTime;
+              dot.vy += (Math.random() - 0.5) * 0.03 * deltaTime;
+
+              // Giới hạn tốc độ tối đa
+              const maxSpeed = 2.5;
+              const currentSpeed = Math.sqrt(dot.vx * dot.vx + dot.vy * dot.vy);
+              if (currentSpeed > maxSpeed) {
+                dot.vx = (dot.vx / currentSpeed) * maxSpeed;
+                dot.vy = (dot.vy / currentSpeed) * maxSpeed;
+              }
             }
-            dot.opacity *= Math.pow(0.9995, deltaTime);
-            const bound = 500;
-            if (dot.x < -bound || dot.x > bound) dot.vx *= -0.95;
-            if (dot.y < -bound || dot.y > bound) dot.vy *= -0.95;
+
+            // Làm cho opacity giảm chậm hơn để chấm bay hiển thị lâu hơn
+            dot.opacity *= Math.pow(0.9998, deltaTime);
           }
           dot.glowIntensity *= Math.pow(0.9995, deltaTime);
         });
@@ -926,14 +952,16 @@ function getOutlinePoints(text: string, dotGap: number, sampleCount: number = 12
       }
     }
   }
+  let result = outline;
   if (outline.length > sampleCount) {
     const step = Math.floor(outline.length / sampleCount);
-    return outline
-      .filter((_, i) => i % step === 0)
-      .map((pt) => ({
-        x: pt.x - w / 2,
-        y: -(pt.y - h / 2),
-      }));
+    result = outline.filter((_, i) => i % step === 0);
   }
-  return outline.map((pt) => ({ x: pt.x - w / 2, y: -(pt.y - h / 2) }));
+  // Thêm thuộc tính opacityDelay cho mỗi điểm
+  // 100ms đầu opacity = 0, sau đó mới hiện như bình thường
+  // Trả về thêm thuộc tính delayStart = 100 cho mỗi điểm
+  return result.map((pt) => ({
+    x: pt.x - w / 2,
+    y: -(pt.y - h / 2),
+  }));
 }
