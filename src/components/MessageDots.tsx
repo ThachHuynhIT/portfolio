@@ -622,7 +622,10 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
       scene.add(blurPoints);
       dotsBlurRef.current = blurPoints;
     }
+    let animationFrameId: number | null = null;
+    let finished = false;
     const animate = (time: number) => {
+      if (finished) return;
       const now = performance.now();
       const deltaTime = Math.min(1, (now - (lastTimeRef.current || now)) / 16.67); // Normalize to 60 FPS
       lastTimeRef.current = now;
@@ -697,12 +700,9 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
             }
           }
           if (dot.gathering) {
-            // Tăng tốc độ hội tụ khi gần đến điểm đích
+            // Tăng tốc độ hội tụ khi gần đến điểm đích (nhanh hơn)
             const distance = Math.sqrt(Math.pow(dot.tx - dot.x, 2) + Math.pow(dot.ty - dot.y, 2));
-            // Tăng tốc độ hội tụ khi gần đến điểm đích
-            const speedFactor = Math.max(0.05, Math.min(0.2, 20 / (distance + 20))) * deltaTime;
-
-            // Thêm hiệu ứng nhẹ "elastic" khi đến gần điểm đích
+            const speedFactor = Math.max(0.1, Math.min(0.2, 20 / (distance + 20))) * deltaTime;
             dot.x += (dot.tx - dot.x) * speedFactor;
             dot.y += (dot.ty - dot.y) * speedFactor;
 
@@ -718,7 +718,7 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
                 vz: 0,
                 exploded: false,
                 opacity: 1,
-                glowIntensity: dot.glowIntensity,
+                glowIntensity: dot.glowIntensity, 
                 isExtra: false,
                 gathering: false,
               };
@@ -794,7 +794,40 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
       alphas.needsUpdate = true;
       glows.needsUpdate = true;
       renderer.render(scene, camera);
-      requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate);
+    };
+    const cleanupAll = () => {
+      finished = true;
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      dotsRef.current = [];
+      flyingDotsRef.current = [];
+      if (container) {
+        container.removeChild(renderer.domElement);
+      }
+      renderer.dispose();
+      if (dotsBlurRef.current) scene.remove(dotsBlurRef.current);
+      if (pointsRef.current) scene.remove(pointsRef.current);
+      // Dispose all geometries/materials
+      scene.traverse((obj: THREE.Object3D) => {
+        // Dispose geometry if present
+        if ("geometry" in obj && (obj as THREE.Mesh).geometry && typeof (obj as THREE.Mesh).geometry.dispose === "function") {
+          (obj as THREE.Mesh).geometry.dispose();
+        }
+        // Dispose material if present
+        if ("material" in obj && (obj as THREE.Mesh).material) {
+          const material = (obj as THREE.Mesh).material;
+          if (Array.isArray(material)) {
+            material.forEach((mat) => {
+              if (mat && typeof mat.dispose === "function") {
+                mat.dispose();
+              }
+            });
+          } else if (typeof material.dispose === "function") {
+            material.dispose();
+          }
+        }
+      });
     };
     const next = async () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -824,7 +857,10 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
         indexRef.current++;
         if (indexRef.current >= messages.length) {
           explodeDots(1.2);
-          onComplete?.();
+          setTimeout(() => {
+            cleanupAll();
+            onComplete?.();
+          }, 1200);
           return;
         }
         const currentMessage = messages[indexRef.current];
@@ -838,14 +874,9 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
     indexRef.current = 0;
     setText(COUNTDOWN[0]);
     timeoutRef.current = setTimeout(next, COUNTDOWN_DELAY);
-    requestAnimationFrame(animate);
+    animationFrameId = requestAnimationFrame(animate);
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      renderer.dispose();
-      if (container) {
-        container.removeChild(renderer.domElement);
-      }
-      if (dotsBlurRef.current) scene.remove(dotsBlurRef.current);
+      cleanupAll();
     };
   }, [messages, dotSize, dotGap, quality, setText, transitionToText, explodeDots, onComplete]);
 
@@ -952,16 +983,14 @@ function getOutlinePoints(text: string, dotGap: number, sampleCount: number = 12
       }
     }
   }
-  let result = outline;
   if (outline.length > sampleCount) {
     const step = Math.floor(outline.length / sampleCount);
-    result = outline.filter((_, i) => i % step === 0);
+    return outline
+      .filter((_, i) => i % step === 0)
+      .map((pt) => ({
+        x: pt.x - w / 2,
+        y: -(pt.y - h / 2),
+      }));
   }
-  // Thêm thuộc tính opacityDelay cho mỗi điểm
-  // 100ms đầu opacity = 0, sau đó mới hiện như bình thường
-  // Trả về thêm thuộc tính delayStart = 100 cho mỗi điểm
-  return result.map((pt) => ({
-    x: pt.x - w / 2,
-    y: -(pt.y - h / 2),
-  }));
+  return outline.map((pt) => ({ x: pt.x - w / 2, y: -(pt.y - h / 2) }));
 }
