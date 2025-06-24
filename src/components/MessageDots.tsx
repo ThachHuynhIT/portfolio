@@ -23,13 +23,13 @@ const QUALITY_SETTINGS = {
   },
   medium: {
     dotGapMultiplier: 1.2,
-    effectIntensity: 0.85,
+    effectIntensity: 0.8,
     blurEnabled: true,
     maxFlyingDots: 387,
   },
   high: {
     dotGapMultiplier: 1.0, // Standard quality
-    effectIntensity: 1.0,
+    effectIntensity: 0.8,
     blurEnabled: true,
     maxFlyingDots: 850,
   },
@@ -392,13 +392,13 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
       // Reduce the kept ratio for lower quality settings
       const keepRatioByQuality = {
         low: 0.5,
-        medium: 0.9,
-        high: 0.85,
+        medium: 0.8,
+        high: 0.8,
       };
       const currentQuality = qualityOverride || quality;
       const keepRatio = keepRatioByQuality[currentQuality];
       const total = newDots.length;
-      const keepCount = Math.floor(total * keepRatio);
+      const keepCount = Math.floor(total * (keepRatio + 0.11));
       const indicesArr = Array.from({ length: total }, (_, i) => i);
       for (let i = indicesArr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
