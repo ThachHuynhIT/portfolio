@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useEffect, useRef } from "react";
@@ -5,12 +6,12 @@ import * as THREE from "three";
 
 const COUNTDOWN = ["3", "2", "1"];
 const COUNTDOWN_DELAY = 1300;
-const MESSAGE_DELAY = 3000;
+const MESSAGE_DELAY = 2800;
 
 const DEFAULT_DOT_SIZE = 6;
 const DEFAULT_DOT_GAP = 4;
-const MOBILE_DOT_SIZE = 3;
-const MOBILE_DOT_GAP = 4;
+const MOBILE_DOT_SIZE = 6;
+const MOBILE_DOT_GAP = 3;
 
 // Quality settings configuration
 const QUALITY_SETTINGS = {
@@ -18,16 +19,19 @@ const QUALITY_SETTINGS = {
     dotGapMultiplier: 1.5, // More space between dots = fewer dots
     effectIntensity: 0.7, // Reduce visual effects
     blurEnabled: false, // Disable blur effect for performance
+    maxFlyingDots: 180, // Limit number of flying dots
   },
   medium: {
     dotGapMultiplier: 1.2,
     effectIntensity: 0.85,
     blurEnabled: true,
+    maxFlyingDots: 387,
   },
   high: {
     dotGapMultiplier: 1.0, // Standard quality
     effectIntensity: 1.0,
     blurEnabled: true,
+    maxFlyingDots: 850,
   },
 };
 
@@ -46,6 +50,7 @@ interface Dot {
   gathering?: boolean;
   delayStart?: number;
   started?: boolean;
+  isIndependence?: boolean;
 }
 
 interface CountdownProps {
@@ -90,30 +95,25 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
           return;
         }
       }
-
       // If no saved preference, use quality override if provided
       if (qualityOverride) {
         setQuality(qualityOverride);
       } else {
         // Automatic performance detection as last resort
         let detectedQuality: "low" | "medium" | "high" = "medium"; // Default
-
         // Try to detect device performance using navigator information
         if ("deviceMemory" in navigator || "hardwareConcurrency" in navigator) {
           const navigatorWithMemory = navigator as unknown as { deviceMemory?: number };
           const memory = navigatorWithMemory.deviceMemory || 4; // Default to 4GB if not available
           const cores = navigator.hardwareConcurrency || 4; // Default to 4 cores
-
           if (memory <= 2 || cores <= 2) {
             detectedQuality = "low";
           } else if (memory >= 8 && cores >= 6) {
             detectedQuality = "high";
           }
         }
-
         setQuality(detectedQuality);
       }
-
       setQualityInitialized(true);
     }
   }, [qualityOverride, qualityInitialized]);
@@ -163,7 +163,15 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
     ctx.textBaseline = "middle";
     const maxWidth = w * 0.9;
     let fontSize = 150;
-    ctx.font = `bold ${fontSize}px sans-serif`;
+    // Dùng font hệ thống và Arial để đồng nhất trên mọi nền tảng
+    ctx.font = `bold ${fontSize}px system-ui, Arial, sans-serif`;
+    // Đảm bảo font đã load xong (Firefox cần)
+    if (document.fonts && document.fonts.check && !document.fonts.check(ctx.font)) {
+      setTimeout(() => {
+        setText(text);
+      }, 50);
+      return [];
+    }
     const words = text.split(" ");
     const lines: string[] = [];
     let currentLine = words[0];
@@ -189,16 +197,16 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
     });
     const imageData = ctx.getImageData(0, 0, w, h).data;
     const dots: Dot[] = [];
-    const isCountdown = text === "3" || text === "2" || text === "1" || text === messages[0];
-    const isFinalOne = text === "1";
-    for (let y = 0; y < h; y += dotGap) {
-      for (let x = 0; x < w; x += dotGap) {
+    const isCountdown = text === "3" || text === "2" || text === COUNTDOWN[2] || text === messages[0];
+    const isFinalOne = text === COUNTDOWN[2];
+    for (let y = 0; y < h; y += Math.round(dotGap)) {
+      for (let x = 0; x < w; x += Math.round(dotGap)) {
         const i = (y * w + x) * 4;
         if (imageData[i + 3] > 128) {
           const tx = x - w / 2;
           const ty = -(y - h / 2);
           const visible = !isFinalOne || Math.random() < 0.3;
-          const initialOpacity = text === "1" ? 0 : visible ? 1 : 0;
+          const initialOpacity = text === COUNTDOWN[2] ? 0 : visible ? 1 : 0;
           dots.push({
             x: isCountdown ? 0 : Math.random() * 400 - 200,
             y: isCountdown ? 0 : Math.random() * 400 - 200,
@@ -217,37 +225,11 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
     return dots;
   };
 
-  const enableGlow = (intensity = 1.0, duration = 800) => {
-    glowStartTimeRef.current = performance.now();
-    // Apply quality setting to glow intensity
-    glowIntensityRef.current = intensity * QUALITY_SETTINGS[quality].effectIntensity;
-    isGlowingRef.current = true;
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => {
-      isGlowingRef.current = false;
-    }, duration);
-  };
-
-  const startTransition = () => {
-    transitionStartTimeRef.current = performance.now();
-    isTransitioningRef.current = true;
-    dotsRef.current.forEach((dot) => {
-      dot.glowIntensity = 2.0;
-    });
-    setTimeout(() => {
-      isTransitioningRef.current = false;
-    }, 1000);
-  };
-
   const setText = (text: string) => {
-    startTransition();
     const extraDots = dotsRef.current.filter((d) => d.isExtra);
     const mainDots = generateDots(text);
     dotsRef.current = mainDots.concat(extraDots);
     updateGeometry();
-    enableGlow(2.0, 1000);
   };
 
   const updateGeometry = () => {
@@ -294,7 +276,6 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
   };
 
   const explodeDots = (speed = 0.4) => {
-    enableGlow(3.0, 1200);
     dotsRef.current.forEach((d) => {
       d.vx = (Math.random() - 0.5) * speed;
       d.vy = (Math.random() - 0.5) * speed;
@@ -309,11 +290,18 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
 
   const transitionToText = async (newText: string, prevText?: string) => {
     const newDots = generateDots(newText);
-    if (newText === "1") {
-      const oneDots = generateDots("1");
+    if (newText === COUNTDOWN[2]) {
+      // Tạo outline dot từ viền số 1, đồng thời cho hiệu ứng bay vào như flydot
       const message0Dots = generateDots(messages[0]);
-      const flyDotCount = Math.floor(message0Dots.length * 0.35);
-      const outlinePoints = getOutlinePoints("1", dotGap, flyDotCount);
+      // Limit the number of flying dots based on quality settings
+      const maxFlyDots = QUALITY_SETTINGS[qualityOverride || quality].maxFlyingDots;
+      const flyDotCount = Math.min(maxFlyDots, Math.floor(message0Dots.length * 0.12));
+      const outlinePoints = getOutlinePoints(COUNTDOWN[2], dotGap, flyDotCount);
+      if (!outlinePoints || outlinePoints.length === 0) {
+        console.warn("[transitionToText] outlinePoints is empty! Skipping flyDots for 1.");
+        // Optionally: fallback to a default effect or just skip
+        return;
+      }
       const flyDots: Dot[] = [];
       const totalGroups = 5;
       for (let i = 0; i < flyDotCount; i++) {
@@ -337,58 +325,78 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
           delayStart: group * 120,
           started: false,
         };
-        let angle: number;
         let speed: number;
         switch (group) {
           case 0:
-            angle = Math.random() * Math.PI * 2;
             speed = Math.random() * 1.2 + 1.8;
             break;
           case 1:
-            angle = (Math.random() * Math.PI) / 2 - Math.PI / 4;
             speed = Math.random() * 1.8 + 1.2;
             break;
           case 2:
-            angle = Math.PI + (Math.random() * Math.PI) / 2 - Math.PI / 4;
             speed = Math.random() * 1.5 + 1.8;
             break;
           case 3:
-            angle = (Math.random() * Math.PI) / 2 + Math.PI / 4;
             speed = Math.random() * 1.5 + 1.5;
             break;
           default:
-            angle = Math.PI + (Math.random() * Math.PI) / 2 + Math.PI / 4;
             speed = Math.random() * 1.8 + 1.0;
         }
-        dot.vx = Math.cos(angle) * speed + Math.random() * 0.1 - 0.25;
-        dot.vy = Math.sin(angle) * speed + Math.random() * 0.1 - 0.25;
+        // Generate fully random movement angles instead of just outward angles
+        const randomAngle = Math.random() * Math.PI * 2; // Random angle in all directions
+        dot.vx = Math.cos(randomAngle) * speed * (0.5 + Math.random());
+        dot.vy = Math.sin(randomAngle) * speed * (0.5 + Math.random());
+        // Add more dynamic movement with varied speeds
+        dot.opacity = Math.random() * 0.7 + 0.3;
+        dot.glowIntensity = Math.random() * 2.0 + 0.5;
+        // Random speed multipliers for unpredictable motion
+        dot.vx += (Math.random() - 0.5) * 1.5;
+        dot.vy += (Math.random() - 0.5) * 1.5;
+        // Add a small z-velocity component for depth variation
+        dot.vz = (Math.random() - 0.5) * 0.3;
         flyDots.push(dot);
-      } // Gán các dots cho số 1 mà không áp dụng hiệu ứng glow
-      dotsRef.current = oneDots;
+      }
 
-      // Đảm bảo không có glowing cho số 1
-      dotsRef.current.forEach((dot) => {
-        dot.glowIntensity = 0;
+      const oldDots = dotsRef.current;
+      const indices = Array.from({ length: newDots.length }, (_, i) => i);
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+      newDots.forEach((d, i) => {
+        const fromIdx = indices[i % indices.length];
+        if (oldDots[fromIdx]) {
+          d.x = oldDots[fromIdx].x;
+          d.y = oldDots[fromIdx].y;
+        }
       });
-      updateGeometry(); // Bắt đầu transition nhưng không gọi startTransition() để tránh hiệu ứng glow
+      dotsRef.current = newDots;
+      updateGeometry();
       transitionStartTimeRef.current = performance.now();
       isTransitioningRef.current = true;
       isTransitioningRef.current = false;
-      // Chỉnh lại các flying dots trước khi hiển thị
-      flyingDotsRef.current = flyDots.map((dot) => {
-        // Đảm bảo flying dots được khởi động ngay lập tức và có vận tốc
-        return {
+      // Đảm bảo flying dots được khởi động ngay lập tức và có vận tốc
+      setTimeout(() => {
+        flyingDotsRef.current = flyDots.map((dot) => ({
           ...dot,
           started: true,
-          // Đảm bảo luôn có vận tốc để di chuyển
           vx: dot.vx || (Math.random() - 0.5) * 1.5,
           vy: dot.vy || (Math.random() - 0.5) * 1.5,
-        };
-      });
-
+        }));
+      }, 1600);
+      // Đảm bảo update geometry để dot outline xuất hiện ngay khi chuyển sang 1
+      updateGeometry();
       return;
-    } else if (prevText === "1" && messages.length > 0 && newText === messages[0]) {
-      const keepRatio = 0.8;
+    } else if (prevText === COUNTDOWN[2] && messages.length > 0 && newText === messages[0]) {
+      // Optimize the transition from "1" to first message
+      // Reduce the kept ratio for lower quality settings
+      const keepRatioByQuality = {
+        low: 0.5,
+        medium: 0.9,
+        high: 0.85,
+      };
+      const currentQuality = qualityOverride || quality;
+      const keepRatio = keepRatioByQuality[currentQuality];
       const total = newDots.length;
       const keepCount = Math.floor(total * keepRatio);
       const indicesArr = Array.from({ length: total }, (_, i) => i);
@@ -397,97 +405,112 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
         [indicesArr[i], indicesArr[j]] = [indicesArr[j], indicesArr[i]];
       }
       const keepIndicesSet = new Set(indicesArr.slice(0, keepCount));
-      const missingIndices = indicesArr.slice(keepCount);
+      // Limit missing indices based on quality setting
+      const maxMissingDots = QUALITY_SETTINGS[currentQuality].maxFlyingDots;
+      const missingIndices = indicesArr.slice(keepCount, keepCount + maxMissingDots);
+
+      // Áp dụng hiệu ứng chuyển động từ dot cũ sang dot mới cho dots được giữ lại
+      const oldDots = dotsRef.current;
+      const indices = Array.from({ length: keepCount }, (_, i) => i);
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+      newDots.forEach((d, i) => {
+        if (keepIndicesSet.has(i)) {
+          const fromIdx = indices[i % indices.length];
+          if (oldDots[fromIdx]) {
+            d.x = oldDots[fromIdx].x;
+            d.y = oldDots[fromIdx].y;
+          }
+        }
+      });
+
+      // Giữ lại dot dựa theo keepRatio, lưu missingIndices để sử dụng tiếp
       dotsRef.current = newDots.filter((_, i) => keepIndicesSet.has(i));
       updateGeometry();
       setTimeout(() => {
+        // Clear any existing flying dots that are no longer relevant
+        flyingDotsRef.current = flyingDotsRef.current.filter((dot) => dot.gathering || dot.opacity > 0.4 || dot.isIndependence);
+
         const flyingDots = flyingDotsRef.current;
-        for (let i = 0; i < flyingDots.length; i++) {
-          if (i < missingIndices.length) {
-            const targetIdx = missingIndices[i];
-            flyingDots[i].tx = newDots[targetIdx].tx;
-            flyingDots[i].ty = newDots[targetIdx].ty;
-            flyingDots[i].gathering = true;
-            flyingDots[i].opacity = Math.min(flyingDots[i].opacity + 0.3, 1.0);
-          } else {
-            const randomTargetIdx = Math.floor(Math.random() * total);
-            flyingDots[i].tx = newDots[randomTargetIdx].tx;
-            flyingDots[i].ty = newDots[randomTargetIdx].ty;
-            flyingDots[i].gathering = true;
-            flyingDots[i].opacity = Math.min(flyingDots[i].opacity + 0.3, 1.0);
-          }
+        for (let i = 0; i < Math.min(flyingDots.length, missingIndices.length); i++) {
+          const targetIdx = missingIndices[i];
+          flyingDots[i].tx = newDots[targetIdx].tx;
+          flyingDots[i].ty = newDots[targetIdx].ty;
+          flyingDots[i].gathering = true;
+          flyingDots[i].opacity = Math.min(flyingDots[i].opacity + 0.3, 1.0);
         }
         setTimeout(() => {
           const allDots: Dot[] = [];
           dotsRef.current.forEach((dot) => {
-            allDots.push(dot);
+            if (!dot.isIndependence) {
+              allDots.push(dot);
+            }
           });
+
+          // Track filled positions more efficiently with a Set
           const filledPositions = new Set<string>();
           dotsRef.current.forEach((dot) => {
-            filledPositions.add(`${dot.tx},${dot.ty}`);
-          });
-          flyingDotsRef.current.forEach((dot) => {
-            if (dot.gathering && dot.opacity > 0.2) {
+            if (!dot.isIndependence) {
               filledPositions.add(`${dot.tx},${dot.ty}`);
             }
           });
-          for (let i = 0; i < newDots.length; i++) {
+
+          // Only consider flying dots that are actually gathering and visible
+          flyingDotsRef.current.forEach((dot) => {
+            if (!dot.isIndependence && dot.gathering && dot.opacity > 0.2) {
+              filledPositions.add(`${dot.tx},${dot.ty}`);
+            }
+          });
+
+          // Limit the number of additional dots to add based on quality setting
+          const qualitySetting = QUALITY_SETTINGS[qualityOverride || quality];
+          const maxMissingDots = Math.min(qualitySetting.maxFlyingDots, Math.floor(newDots.length * 0.3));
+
+          // Find missing positions (limit by quality)
+          const missingPositions = [];
+          for (let i = 0; i < newDots.length && missingPositions.length < maxMissingDots; i++) {
             const posKey = `${newDots[i].tx},${newDots[i].ty}`;
             if (!filledPositions.has(posKey)) {
-              const edge = Math.floor(Math.random() * 4);
-              let x = 0,
-                y = 0;
-              const margin = 100;
-              const w = 800,
-                h = 300;
-              if (edge === 0) {
-                x = Math.random() * w - w / 2;
-                y = h / 2 + margin;
-              } else if (edge === 1) {
-                x = Math.random() * w - w / 2;
-                y = -h / 2 - margin;
-              } else if (edge === 2) {
-                x = -w / 2 - margin;
-                y = Math.random() * h - h / 2;
-              } else {
-                x = w / 2 + margin;
-                y = Math.random() * h - h / 2;
-              }
-              allDots.push({
-                x,
-                y,
-                tx: newDots[i].tx,
-                ty: newDots[i].ty,
-                vx: 0,
-                vy: 0,
-                vz: 0,
-                exploded: false,
-                opacity: 1,
-                glowIntensity: 0,
-                isExtra: false,
-                gathering: true,
-              });
-              filledPositions.add(posKey);
+              missingPositions.push(i);
             }
           }
+
+          // Update dots array one time instead of in a loop
           dotsRef.current = allDots;
           updateGeometry();
-          setTimeout(() => {
-            const remainingFlyingDots = flyingDotsRef.current;
-            for (let i = 0; i < remainingFlyingDots.length; i++) {
-              if (!remainingFlyingDots[i].gathering) {
-                remainingFlyingDots[i].gathering = false;
-                remainingFlyingDots[i].isExtra = true;
-                if (Math.random() > 0.7) {
-                  const randIdx = Math.floor(Math.random() * newDots.length);
-                  remainingFlyingDots[i].tx = newDots[randIdx].tx;
-                  remainingFlyingDots[i].ty = newDots[randIdx].ty;
-                  remainingFlyingDots[i].gathering = true;
+
+          // Only launch additional cleanup for flying dots if needed
+          if (flyingDotsRef.current.length > 0) {
+            setTimeout(() => {
+              // Only keep flying dots that are visible and independent
+              const remainingFlyingDots = flyingDotsRef.current.filter((d) => !d.isIndependence && d.opacity > 0.2);
+
+              // Limit the number of remaining dots that get repurposed
+              const maxRemainingToConvert = Math.min(remainingFlyingDots.length, qualitySetting.maxFlyingDots / 2);
+
+              for (let i = 0; i < maxRemainingToConvert; i++) {
+                if (!remainingFlyingDots[i].gathering && Math.random() > 0.6) {
+                  remainingFlyingDots[i].isExtra = true;
+
+                  // Only convert some dots to gathering mode
+                  if (Math.random() > 0.5 && newDots.length > 0) {
+                    const randIdx = Math.floor(Math.random() * newDots.length);
+                    remainingFlyingDots[i].tx = newDots[randIdx].tx;
+                    remainingFlyingDots[i].ty = newDots[randIdx].ty;
+                    remainingFlyingDots[i].gathering = true;
+                  }
                 }
               }
-            }
-          }, 4000);
-        }, 400);
+
+              // For low quality, remove more flying dots to improve performance
+              if (quality === "low") {
+                flyingDotsRef.current = flyingDotsRef.current.filter((d) => d.gathering || d.opacity > 0.6 || d.isIndependence);
+              }
+            }, 1000); // Reduced from 4000ms to 1000ms for faster cleanup
+          }
+        }, 200); // Reduced from 400ms to 200ms for snappier response
       }, 1500);
     } else {
       const oldDots = dotsRef.current;
@@ -503,13 +526,13 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
           d.y = oldDots[fromIdx].y;
         }
       });
-      if (messages.length > 0 && newText === messages[messages.length - 1]) {
-        const extraDotsCount = Math.max(10, Math.floor(newDots.length * 0.08));
-        const extraDots = [];
-        for (let i = 0; i < extraDotsCount; i++) {
+      if (messages.length > 0 && newText === messages[messages.length - 2]) {
+        const flyDotsCount = Math.max(10, Math.floor(newDots.length * 0.08));
+        const flyDots = [];
+        for (let i = 0; i < flyDotsCount; i++) {
           const angle = Math.random() * Math.PI * 2;
           const r = Math.random() * 350 + 100;
-          extraDots.push({
+          flyDots.push({
             x: Math.cos(angle) * r,
             y: Math.sin(angle) * r,
             tx: 0,
@@ -519,20 +542,18 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
             vz: (Math.random() - 0.5) * 0.3,
             exploded: true,
             opacity: Math.random() * 0.7 + 0.3,
-            glowIntensity: 2.5,
+            glowIntensity: 1.5,
             isExtra: true,
-            delayStart: i * 80,
-            started: false,
+            isIndependence: true,
           });
         }
-        dotsRef.current = newDots.concat(extraDots);
+        flyingDotsRef.current = flyDots;
+        dotsRef.current = newDots;
       } else {
         dotsRef.current = newDots;
+        // flyingDotsRef.current = [];
       }
-      flyingDotsRef.current = [];
       updateGeometry();
-      startTransition();
-      enableGlow(2.0, 800);
       return;
     }
   };
@@ -542,6 +563,8 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
     scene.background = null;
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
     camera.position.z = 260;
+    try {
+    } catch (error) {}
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
@@ -610,7 +633,7 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
         },
         vertexShader: vertexShader.replace(
           /gl_PointSize = ([^;]+);/,
-          `gl_PointSize = (${dotSize * 2.5}.0) * (300.0 / -mvPosition.z) * (1.0 + glow * 0.3);`
+          `gl_PointSize = (${(dotSize * 2.5).toFixed(1)}) * (300.0 / -mvPosition.z) * (1.0 + glow * 0.3);`
         ),
         fragmentShader,
         transparent: true,
@@ -622,12 +645,16 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
       scene.add(blurPoints);
       dotsBlurRef.current = blurPoints;
     }
-    let animationFrameId: number | null = null;
-    let finished = false;
     const animate = (time: number) => {
-      if (finished) return;
       const now = performance.now();
-      const deltaTime = Math.min(1, (now - (lastTimeRef.current || now)) / 16.67); // Normalize to 60 FPS
+      // Limit framerate based on quality settings to improve performance
+      const frameSkip = quality === "low" ? 2 : 1; // Skip frames on low quality
+      if (frameSkip > 1 && now - (lastTimeRef.current || 0) < 16.67 * frameSkip) {
+        requestAnimationFrame(animate);
+        return;
+      }
+
+      const deltaTime = Math.min(1.5, (now - (lastTimeRef.current || now)) / 16.67); // Normalize to 60 FPS with limit
       lastTimeRef.current = now;
 
       material.uniforms.uTime.value = time * 0.001;
@@ -660,7 +687,7 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
           d.x += d.vx * deltaTime;
           d.y += d.vy * deltaTime;
         } // Kiểm tra nếu đang hiển thị số 1 thì không áp dụng hiệu ứng glow
-        const isDisplayingNumberOne = COUNTDOWN[indexRef.current] === "1";
+        const isDisplayingNumberOne = COUNTDOWN[indexRef.current] === COUNTDOWN[2];
         if (isDisplayingNumberOne) {
           // Không áp dụng hiệu ứng glow cho số 1
           d.glowIntensity = 0;
@@ -679,26 +706,24 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
         let flyingPoints = scene.getObjectByName("flyingDots") as THREE.Points | null;
         if (!flyingPoints) {
           const flyingGeometry = new THREE.BufferGeometry();
-          const flyingMaterial = material.clone();
-          flyingPoints = new THREE.Points(flyingGeometry, flyingMaterial);
+          flyingPoints = new THREE.Points(flyingGeometry, material);
           flyingPoints.name = "flyingDots";
           scene.add(flyingPoints);
         }
+
+        // Set a hard limit on flying dots based on quality setting
+        const maxFlyingDots = QUALITY_SETTINGS[qualityOverride || quality].maxFlyingDots;
+        if (flyingDotsRef.current.length > maxFlyingDots) {
+          // Keep only the most visible dots
+          flyingDotsRef.current.sort((a, b) => b.opacity - a.opacity);
+          flyingDotsRef.current = flyingDotsRef.current.slice(0, maxFlyingDots);
+        }
+
         const flyingDots = flyingDotsRef.current;
-        flyingDots.forEach((dot) => {
-          if (dot.delayStart !== undefined && dot.started === false) {
-            dot.delayStart -= 16.67 * deltaTime;
-            if (dot.delayStart <= 0) {
-              dot.started = true;
-              // Thêm một vận tốc nhỏ cho các điểm mới bắt đầu
-              if (Math.abs(dot.vx) < 0.1) dot.vx = (Math.random() - 0.5) * 0.5;
-              if (Math.abs(dot.vy) < 0.1) dot.vy = (Math.random() - 0.5) * 0.5;
-            } else {
-              dot.x += (Math.random() - 0.5) * 0.2 * deltaTime;
-              dot.y += (Math.random() - 0.5) * 0.2 * deltaTime;
-              return;
-            }
-          }
+        const dotsToAdd: Dot[] = [];
+        const dotsToRemove = new Set<number>();
+
+        flyingDots.forEach((dot, index) => {
           if (dot.gathering) {
             // Tăng tốc độ hội tụ khi gần đến điểm đích (nhanh hơn)
             const distance = Math.sqrt(Math.pow(dot.tx - dot.x, 2) + Math.pow(dot.ty - dot.y, 2));
@@ -708,7 +733,7 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
 
             // Khi đến gần điểm đích, hợp nhất với thông điệp
             if (Math.abs(dot.x - dot.tx) < 2 && Math.abs(dot.y - dot.ty) < 2) {
-              const addToDots = {
+              dotsToAdd.push({
                 x: dot.tx,
                 y: dot.ty,
                 tx: dot.tx,
@@ -718,22 +743,21 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
                 vz: 0,
                 exploded: false,
                 opacity: 1,
-                glowIntensity: dot.glowIntensity, 
+                glowIntensity: -0.6,
                 isExtra: false,
                 gathering: false,
-              };
-              dotsRef.current = [...dotsRef.current, addToDots];
-              updateGeometry();
-              dot.opacity = 0;
+              });
+              dotsToRemove.add(index);
             }
           } else {
             if (dot.started !== false) {
               dot.x += dot.vx * deltaTime;
               dot.y += dot.vy * deltaTime;
 
-              // Thêm hiệu ứng rung nhẹ và chuyển động tự nhiên hơn
-              dot.vx += (Math.random() - 0.5) * 0.03 * deltaTime;
-              dot.vy += (Math.random() - 0.5) * 0.03 * deltaTime;
+              // Reduce the jitter effect for better performance
+              const jitterFactor = quality === "low" ? 0.01 : 0.03;
+              dot.vx += (Math.random() - 0.5) * jitterFactor * deltaTime;
+              dot.vy += (Math.random() - 0.5) * jitterFactor * deltaTime;
 
               // Giới hạn tốc độ tối đa
               const maxSpeed = 2.5;
@@ -744,34 +768,57 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
               }
             }
 
-            // Làm cho opacity giảm chậm hơn để chấm bay hiển thị lâu hơn
-            dot.opacity *= Math.pow(0.9998, deltaTime);
+            // Làm cho opacity giảm nhanh hơn để giải phóng dot sớm hơn
+            const opacityFactor = quality === "low" ? 0.95 : 0.998;
+            dot.opacity *= Math.pow(opacityFactor, deltaTime);
+
+            // Remove dots that are nearly invisible
+            if (dot.opacity < 0.01) {
+              dotsToRemove.add(index);
+            }
           }
           dot.glowIntensity *= Math.pow(0.9995, deltaTime);
+
+          // Also remove dots that are far off screen
+          if (Math.abs(dot.x) > 800 || Math.abs(dot.y) > 600) {
+            dotsToRemove.add(index);
+          }
         });
-        flyingDotsRef.current = flyingDots.filter((d) => {
-          if (d.opacity > 0.005) return true;
-          const onScreen = Math.abs(d.x) < 600 && Math.abs(d.y) < 500;
-          return onScreen;
-        });
-        const positions = new Float32Array(flyingDotsRef.current.length * 3);
-        const opacities = new Float32Array(flyingDotsRef.current.length);
-        const glows = new Float32Array(flyingDotsRef.current.length);
-        flyingDotsRef.current.forEach((d, i) => {
-          positions[i * 3] = d.x;
-          positions[i * 3 + 1] = d.y;
-          positions[i * 3 + 2] = 0;
-          opacities[i] = d.opacity;
-          glows[i] = d.glowIntensity;
-        });
-        const flyingGeometry = flyingPoints.geometry as THREE.BufferGeometry;
-        flyingGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-        flyingGeometry.setAttribute("alpha", new THREE.BufferAttribute(opacities, 1));
-        flyingGeometry.setAttribute("glow", new THREE.BufferAttribute(glows, 1));
-        flyingGeometry.attributes.position.needsUpdate = true;
-        flyingGeometry.attributes.alpha.needsUpdate = true;
-        flyingGeometry.attributes.glow.needsUpdate = true;
-        flyingPoints.visible = flyingDotsRef.current.length > 0;
+
+        // Add new dots
+        if (dotsToAdd.length > 0) {
+          dotsRef.current = [...dotsRef.current, ...dotsToAdd];
+          updateGeometry();
+        }
+
+        // Remove dots that should be removed
+        flyingDotsRef.current = flyingDots.filter((_, i) => !dotsToRemove.has(i));
+
+        // Only update geometry if there are any flying dots left
+        if (flyingDotsRef.current.length > 0) {
+          const positions = new Float32Array(flyingDotsRef.current.length * 3);
+          const opacities = new Float32Array(flyingDotsRef.current.length);
+          const glows = new Float32Array(flyingDotsRef.current.length);
+
+          flyingDotsRef.current.forEach((d, i) => {
+            positions[i * 3] = d.x;
+            positions[i * 3 + 1] = d.y;
+            positions[i * 3 + 2] = 0;
+            opacities[i] = d.opacity;
+            glows[i] = d.glowIntensity;
+          });
+
+          const flyingGeometry = flyingPoints.geometry as THREE.BufferGeometry;
+          flyingGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+          flyingGeometry.setAttribute("alpha", new THREE.BufferAttribute(opacities, 1));
+          flyingGeometry.setAttribute("glow", new THREE.BufferAttribute(glows, 1));
+          flyingGeometry.attributes.position.needsUpdate = true;
+          flyingGeometry.attributes.alpha.needsUpdate = true;
+          flyingGeometry.attributes.glow.needsUpdate = true;
+          flyingPoints.visible = true;
+        } else {
+          flyingPoints.visible = false;
+        }
       } else {
         const obj = scene.getObjectByName("flyingDots");
         if (obj) scene.remove(obj);
@@ -794,11 +841,9 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
       alphas.needsUpdate = true;
       glows.needsUpdate = true;
       renderer.render(scene, camera);
-      animationFrameId = requestAnimationFrame(animate);
+      requestAnimationFrame(animate);
     };
     const cleanupAll = () => {
-      finished = true;
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       dotsRef.current = [];
       flyingDotsRef.current = [];
@@ -837,7 +882,7 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
           phaseRef.current = "message";
           indexRef.current = 0;
           if (messages.length > 0) {
-            await transitionToText(messages[0], "1");
+            await transitionToText(messages[0], COUNTDOWN[2]);
             timeoutRef.current = setTimeout(next, MESSAGE_DELAY);
           } else {
             explodeDots(1.2);
@@ -848,7 +893,7 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
         const currentText = COUNTDOWN[indexRef.current];
         const prevText = COUNTDOWN[indexRef.current - 1] || undefined;
         await transitionToText(currentText, prevText);
-        if (currentText === "1") {
+        if (currentText === COUNTDOWN[2]) {
           timeoutRef.current = setTimeout(next, 1500);
         } else {
           timeoutRef.current = setTimeout(next, COUNTDOWN_DELAY);
@@ -858,7 +903,6 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
         if (indexRef.current >= messages.length) {
           explodeDots(1.2);
           setTimeout(() => {
-            cleanupAll();
             onComplete?.();
           }, 1200);
           return;
@@ -874,59 +918,11 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
     indexRef.current = 0;
     setText(COUNTDOWN[0]);
     timeoutRef.current = setTimeout(next, COUNTDOWN_DELAY);
-    animationFrameId = requestAnimationFrame(animate);
+    requestAnimationFrame(animate);
     return () => {
       cleanupAll();
     };
-  }, [messages, dotSize, dotGap, quality, setText, transitionToText, explodeDots, onComplete]);
-
-  // Add quality selector UI
-  const QualitySelector = () => {
-    return (
-      <div
-        style={{
-          position: "absolute",
-          bottom: "10px",
-          right: "10px",
-          background: "rgba(0,0,0,0.5)",
-          padding: "5px",
-          borderRadius: "4px",
-          color: "white",
-          fontSize: "12px",
-          userSelect: "none",
-        }}
-      >
-        <div style={{ marginBottom: "5px" }}>Animation Quality:</div>
-        <div style={{ display: "flex", gap: "5px" }}>
-          {(["low", "medium", "high"] as const).map((q) => (
-            <button
-              key={q}
-              style={{
-                padding: "3px 8px",
-                background: quality === q ? "#4a90e2" : "#333",
-                border: "none",
-                borderRadius: "3px",
-                color: "white",
-                cursor: "pointer",
-              }}
-              onClick={() => {
-                // Save preference to localStorage
-                if (typeof localStorage !== "undefined") {
-                  localStorage.setItem("dotsQualityPreference", q);
-                }
-
-                // Update quality state
-                setQuality(q);
-              }}
-            >
-              {q.charAt(0).toUpperCase() + q.slice(1)}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  };
-  // Quality preference is now handled in the initialization useEffect
+  }, [messages, dotSize, dotGap]);
 
   return (
     <div
@@ -934,16 +930,17 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
       style={{
         width: "100vw",
         height: "100vh",
-        background: "black",
+        maxWidth: "100vw",
+        maxHeight: "100vh",
+        background: "transparent",
         position: "absolute",
         top: 0,
         left: 0,
         overflow: "hidden",
         zIndex: 9999,
+        touchAction: "none",
       }}
-    >
-      <QualitySelector />
-    </div>
+    />
   );
 };
 
@@ -960,37 +957,82 @@ function getOutlinePoints(text: string, dotGap: number, sampleCount: number = 12
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   const fontSize = 150;
-  ctx.font = `bold ${fontSize}px sans-serif`;
+  ctx.font = `900 ${fontSize}px 'Roboto Mono', Arial Black, Arial, sans-serif`;
   ctx.clearRect(0, 0, w, h);
   ctx.fillText(text, w / 2, h / 2);
+  ctx.lineWidth = 12;
+  ctx.strokeStyle = "#fff";
+  ctx.strokeText(text, w / 2, h / 2);
+
   const imageData = ctx.getImageData(0, 0, w, h);
   const outline: { x: number; y: number }[] = [];
-  for (let y = dotGap; y < h - dotGap; y += dotGap) {
-    for (let x = dotGap; x < w - dotGap; x += dotGap) {
+
+  // For optimal performance, increase the gap between scanned pixels based on sample count
+  // This reduces the total number of pixels we need to check
+  const effectiveDotGap = Math.max(2, Math.floor(4 * (150 / sampleCount)));
+  const alphaThreshold = 8;
+
+  // Pre-calculate edge detection offsets
+  const edgeOffsets = [];
+  for (let dy = -effectiveDotGap; dy <= effectiveDotGap; dy += effectiveDotGap) {
+    for (let dx = -effectiveDotGap; dx <= effectiveDotGap; dx += effectiveDotGap) {
+      if (dx !== 0 || dy !== 0) {
+        edgeOffsets.push({ dx, dy });
+      }
+    }
+  }
+
+  // Only scan every nth pixel row/column for better performance
+  const scanGap = sampleCount < 80 ? 1 : 2; // Skip rows/columns for larger sample counts
+
+  for (let y = effectiveDotGap; y < h - effectiveDotGap; y += effectiveDotGap * scanGap) {
+    for (let x = effectiveDotGap; x < w - effectiveDotGap; x += effectiveDotGap * scanGap) {
       const idx = (y * w + x) * 4;
-      if (imageData.data[idx + 3] > 128) {
+      if (imageData.data[idx + 3] > alphaThreshold) {
         let isEdge = false;
-        for (let dy = -dotGap; dy <= dotGap && !isEdge; dy += dotGap) {
-          for (let dx = -dotGap; dx <= dotGap && !isEdge; dx += dotGap) {
-            if (dx === 0 && dy === 0) continue;
-            const ni = ((y + dy) * w + (x + dx)) * 4;
-            if (y + dy < 0 || y + dy >= h || x + dx < 0 || x + dx >= w || imageData.data[ni + 3] < 128) {
+
+        // Check surrounding pixels using pre-calculated offsets
+        for (let i = 0; i < edgeOffsets.length && !isEdge; i++) {
+          const { dx, dy } = edgeOffsets[i];
+          const ny = y + dy;
+          const nx = x + dx;
+
+          if (ny < 0 || ny >= h || nx < 0 || nx >= w) {
+            isEdge = true;
+          } else {
+            const ni = (ny * w + nx) * 4;
+            if (imageData.data[ni + 3] <= alphaThreshold) {
               isEdge = true;
             }
           }
         }
-        if (isEdge) outline.push({ x, y });
+
+        if (isEdge) {
+          outline.push({ x, y });
+          // Break early if we have enough points
+          if (outline.length >= sampleCount * 2) {
+            break;
+          }
+        }
       }
     }
+    // Break early if we have enough points
+    if (outline.length >= sampleCount * 2) {
+      break;
+    }
   }
+
+  // If we have too many points, sample evenly
   if (outline.length > sampleCount) {
     const step = Math.floor(outline.length / sampleCount);
     return outline
       .filter((_, i) => i % step === 0)
+      .slice(0, sampleCount)
       .map((pt) => ({
         x: pt.x - w / 2,
         y: -(pt.y - h / 2),
       }));
   }
+
   return outline.map((pt) => ({ x: pt.x - w / 2, y: -(pt.y - h / 2) }));
 }
