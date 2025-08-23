@@ -1,0 +1,125 @@
+.tile {
+  position: absolute;
+  width: 200px;
+  height: 100px;
+  margin: 20px;
+  top: 25px;
+  border: 1px solid #ccc;
+}
+
+.out {
+  background: white;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.in-top {
+  background: white;
+  z-index: 2;
+  top: -75px;
+  transform: rotateX(-180deg);
+  transform-origin: 0% 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.in-bottom {
+  background: white;
+  z-index: -1;
+  border-top: none;
+}
+
+.openingTop {
+  animation-name: open-card;
+  animation-timing-function: ease;
+  animation-duration: 0.75s;
+  transition-delay: 0s;
+  animation-iteration-count: 1;
+  animation-direction: alternate;
+}
+
+.openingBottom {
+  animation-name: open-card-bottom;
+  animation-timing-function: ease;
+  animation-duration: 0.75s;
+  transition-delay: 0s;
+  animation-iteration-count: 1;
+  animation-direction: alternate;
+}
+
+.closingTop {
+  animation-name: close-card;
+  animation-timing-function: ease;
+  animation-duration: 0.75s;
+  transition-delay: 0s;
+  animation-iteration-count: 1;
+  animation-direction: alternate;
+}
+
+.closingBottom {
+  animation-name: close-card-bottom;
+  animation-timing-function: ease;
+  animation-duration: 0.75s;
+  transition-delay: 0s;
+  animation-iteration-count: 1;
+  animation-direction: alternate;
+}
+
+.topOpen {
+  transform: rotateX(180deg);
+  transform-origin: 0 0;
+}
+
+.bottomOpen {
+  transform: rotateX(0deg);
+  transform-origin: 0 0;
+}
+
+@keyframes open-card {
+  from {
+    transform: rotateX(0deg);
+    transform-origin: 0% 0%;
+  }
+  to {
+    transform: rotateX(180deg);
+    transform-origin: 0% 0%;
+  }
+}
+@keyframes open-card-bottom {
+  from {
+    transform: rotateX(-180deg);
+    transform-origin: 0% 100%;
+  }
+  to {
+    transform: rotateX(0deg);
+    transform-origin: 0% 100%;
+  }
+}
+
+@keyframes close-card {
+  from {
+    transform: rotateX(180deg);
+    transform-origin: 0% 0%;
+  }
+  to {
+    transform: rotateX(0deg);
+    transform-origin: 0% 0%;
+  }
+}
+@keyframes close-card-bottom {
+  from {
+    transform: rotateX(0deg);
+    transform-origin: 0% 100%;
+  }
+  to {
+    transform: rotateX(-180deg);
+    transform-origin: 0% 100%;
+  }
+}
+
+.perspective {
+  perspective: 1200px;
+}

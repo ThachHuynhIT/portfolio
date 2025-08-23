@@ -11,7 +11,7 @@ const MESSAGE_DELAY = 2800;
 const DEFAULT_DOT_SIZE = 6;
 const DEFAULT_DOT_GAP = 4;
 const MOBILE_DOT_SIZE = 6;
-const MOBILE_DOT_GAP = 3;
+const MOBILE_DOT_GAP = 4;
 
 // Quality settings configuration
 const QUALITY_SETTINGS = {
@@ -23,13 +23,13 @@ const QUALITY_SETTINGS = {
   },
   medium: {
     dotGapMultiplier: 1.2,
-    effectIntensity: 0.8,
+    effectIntensity: 0.85,
     blurEnabled: true,
     maxFlyingDots: 387,
   },
   high: {
     dotGapMultiplier: 1.0, // Standard quality
-    effectIntensity: 0.8,
+    effectIntensity: 1.0,
     blurEnabled: true,
     maxFlyingDots: 850,
   },
@@ -121,8 +121,9 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
   // Second useEffect - Update dot size and gap whenever quality changes
   React.useEffect(() => {
     if (typeof window !== "undefined" && qualityInitialized) {
-      // Apply size settings based on device
-      const isMobile = window.innerHeight <= 768;
+      // Nhận diện Mac để không áp dụng kích thước mobile
+      const isMac = /Macintosh|MacIntel|MacPPC|Mac68K/.test(navigator.userAgent);
+      const isMobile = !isMac && window.innerHeight <= 768;
       setDotSize(isMobile ? MOBILE_DOT_SIZE : DEFAULT_DOT_SIZE);
 
       // Apply gap settings based on quality and device
@@ -398,7 +399,7 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
       const currentQuality = qualityOverride || quality;
       const keepRatio = keepRatioByQuality[currentQuality];
       const total = newDots.length;
-      const keepCount = Math.floor(total * (keepRatio + 0.11));
+      const keepCount = Math.floor(total * (keepRatio + 0.119));
       const indicesArr = Array.from({ length: total }, (_, i) => i);
       for (let i = indicesArr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -563,8 +564,6 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
     scene.background = null;
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
     camera.position.z = 260;
-    try {
-    } catch (error) {}
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
@@ -575,6 +574,7 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
     const container = containerRef.current;
     container?.appendChild(renderer.domElement);
     const geometry = new THREE.BufferGeometry();
+    const pointTexture = createGlowTexture(dotSize);
     const vertexShader = `
             attribute float alpha;
             attribute float glow;
@@ -608,7 +608,7 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
         `;
     const material = new THREE.ShaderMaterial({
       uniforms: {
-        pointTexture: { value: createGlowTexture(dotSize) },
+        pointTexture: { value: pointTexture },
         uTime: { value: 0 },
       },
       vertexShader,
@@ -623,12 +623,14 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
 
     // Check if blur should be enabled based on quality settings
     const blurEnabled = QUALITY_SETTINGS[quality].blurEnabled;
-
+    let blurPoints: THREE.Points | null = null;
+    let blurMaterial: THREE.ShaderMaterial | null = null;
     if (blurEnabled) {
       const blurGeometry = new THREE.BufferGeometry();
-      const blurMaterial = new THREE.ShaderMaterial({
+      const blurTexture = createGlowTexture(dotSize * 2.5);
+      blurMaterial = new THREE.ShaderMaterial({
         uniforms: {
-          pointTexture: { value: createGlowTexture(dotSize * 2.5) },
+          pointTexture: { value: blurTexture },
           uTime: { value: 0 },
         },
         vertexShader: vertexShader.replace(
@@ -640,7 +642,7 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
         depthWrite: false,
         blending: THREE.AdditiveBlending,
       });
-      const blurPoints = new THREE.Points(blurGeometry, blurMaterial);
+      blurPoints = new THREE.Points(blurGeometry, blurMaterial);
       blurPoints.renderOrder = -1;
       scene.add(blurPoints);
       dotsBlurRef.current = blurPoints;
@@ -921,6 +923,19 @@ const Countdown3D: React.FC<CountdownProps> = ({ messages = [], onComplete = nul
     requestAnimationFrame(animate);
     return () => {
       cleanupAll();
+      // Dispose textures and materials to avoid immutable texture errors
+      if (material) {
+        if (material.uniforms.pointTexture.value) {
+          material.uniforms.pointTexture.value.dispose?.();
+        }
+        material.dispose();
+      }
+      if (blurMaterial) {
+        if (blurMaterial.uniforms.pointTexture.value) {
+          blurMaterial.uniforms.pointTexture.value.dispose?.();
+        }
+        blurMaterial.dispose();
+      }
     };
   }, [messages, dotSize, dotGap]);
 

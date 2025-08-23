@@ -27,6 +27,7 @@
       "@context/*": ["./src/context/*"],
       "layout/*": ["./src/layout/*"],
       "@constants/*": ["./src/constants/*"],
+      "@css/*": ["./src/components/FreeLance/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
