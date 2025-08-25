@@ -1,13 +1,19 @@
 import React from 'react';
+import Hearth2 from '../../components/Heart';
 
 const HomePage: React.FC = () => {
   return (
-    <div style={{ textAlign: 'center', padding: '2rem' }}>
-      <h1>Welcome to My Portfolio</h1>
-      <p>This is the home page of my portfolio website.</p>
-      <a href="/about" style={{ textDecoration: 'none', color: 'blue' }}>
-        Learn more about me
-      </a>
+    <div>
+      <Hearth2 
+        texts={[
+          "Chào mừng đến với",
+          "Portfolio của tôi",
+          "Hy vọng bạn thích",
+          "Các dự án của tôi"
+        ]}
+        color="#fff"
+        imageUrl="https://picsum.photos/400/300"
+      />
     </div>
   );
 };
