@@ -145,7 +145,7 @@ const getResponsiveConfig = (screenSize: "mobile" | "tablet" | "desktop", isLand
       rodOpacity: 0.7,
 
       // TextOverlay props
-      fontSize: 80,
+      fontSize: 70,
       maxLineWidth: 300,
       wordSpacing: 1.5,
       lineHeight: 1.1,
@@ -226,7 +226,7 @@ const getResponsiveConfig = (screenSize: "mobile" | "tablet" | "desktop", isLand
 };
 
 export default function Hearth2({ texts, color, fontSize, imageUrl, imageWidth = 500, imageHeight = 400 }: Hearth2Props) {
-  const [isShowText, setIsShowText] = React.useState(false);
+  const [isHeartAnimating, setIsHeartAnimating] = React.useState(true); // Track heart animation state
   const [isShowImage, setIsShowImage] = React.useState(false);
   const { screenSize, isLandscape } = useScreenSize();
 
@@ -234,11 +234,14 @@ export default function Hearth2({ texts, color, fontSize, imageUrl, imageWidth =
   const config = useMemo(() => getResponsiveConfig(screenSize, isLandscape), [screenSize, isLandscape]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsShowText(true);
-    }, 3300);
+    // Heart animation typically lasts around 8-10 seconds, reduce overlap
+    const heartAnimationTimer = setTimeout(() => {
+      setIsHeartAnimating(false);
+    }, 8000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(heartAnimationTimer);
+    };
   }, []);
 
   // Callback khi tất cả texts đã hiển thị xong
@@ -319,9 +322,10 @@ export default function Hearth2({ texts, color, fontSize, imageUrl, imageWidth =
         rodDepthMaxAdvance={config.rodDepthMaxAdvance}
         rodDepthSpeed={config.rodDepthSpeed}
         rodOpacity={config.rodOpacity}
+        isTextAnimating={!isShowImage}
       />
 
-      {isShowText && !isShowImage && (
+      {!isShowImage && (
         <TextOverlay
           texts={texts}
           color={color}
@@ -333,6 +337,7 @@ export default function Hearth2({ texts, color, fontSize, imageUrl, imageWidth =
           staggerMs={config.staggerMs}
           holdDurationMs={config.holdDurationMs}
           onAllTextsCompleted={handleAllTextsCompleted}
+          isHeartAnimating={isHeartAnimating}
           style={{ zIndex: 5 }}
         />
       )}

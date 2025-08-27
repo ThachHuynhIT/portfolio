@@ -19,6 +19,9 @@
   backface-visibility: hidden;
   -webkit-transform: translate3d(0, 0, 0);
   transform: translate3d(0, 0, 0);
+
+  /* Reduce rendering load on low-end devices */
+  contain: layout style paint;
 }
 
 /* Optimize canvas rendering */
@@ -34,7 +37,7 @@
   -webkit-transform: translateZ(0);
   will-change: transform;
 
-  /* Optimize rendering */
+  /* Optimize rendering for performance */
   image-rendering: optimizeSpeed;
   image-rendering: -webkit-optimize-contrast;
   image-rendering: optimize-contrast;
@@ -47,20 +50,29 @@
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
 
-  /* Add subtle and compact glow effect to the entire canvas */
-  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3)) drop-shadow(0 0 15px rgba(255, 255, 255, 0.2)) drop-shadow(0 0 25px rgba(255, 255, 255, 0.1));
+  /* Performance optimizations for weak devices */
+  pointer-events: none;
 }
 
-/* Compact glow effect focused around text */
-.textGlow {
-  /* font-family: 'Mali', Arial, Helvetica, sans-serif; */
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 8px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 12px rgba(255, 255, 255, 0.3))
-    drop-shadow(0 0 20px rgba(255, 255, 255, 0.15));
+/* Performance optimizations for weak devices */
+@media (max-width: 768px) {
+  .heartContainer canvas {
+    image-rendering: pixelated; /* Faster rendering on mobile */
+  }
+}
 
-  /* 3D perspective and transform */
-  perspective: 1000px;
+@media (max-device-pixel-ratio: 1.5) {
+  .heartContainer canvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Medium text glow for medium-end devices */
+.textGlowMedium {
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
+  perspective: 500px;
   transform-style: preserve-3d;
-
   /* Animation for pulsing glow effect with subtle 3D movement */
   animation: glow3DPulse 3s ease-in-out infinite alternate;
 }

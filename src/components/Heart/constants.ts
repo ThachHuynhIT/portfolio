@@ -25,8 +25,8 @@ export const SMALL_HEART_GLOW_BLUR = 25; // tăng blur để vùng sáng to hơn
 // =============================
 // Màu sắc cho trái tim nhỏ (3 màu: đỏ, hồng, trắng)
 export const HEART_COLORS = [
-  { tint: "#ff0040ff", glow: "rgba(255, 0, 0, 1)" },
-  { tint: "#ff3366", glow: "rgba(255,60,120,0.6)" },
+  { tint: "#ff0000ff", glow: "rgba(255, 0, 0, 1)" },
+  { tint: "#ff3366", glow: "#ff3c7899" },
   { tint: "#ff99cc", glow: "rgba(255,153,204,0.6)" },
   { tint: "#ffffff", glow: "rgba(255,255,255,0.6)" },
 ];
@@ -34,8 +34,8 @@ export const HEART_COLORS = [
 // =============================
 // MARKER CONSTANTS
 // =============================
-export const MARKER_CANVAS_SIZE = 300; // tăng canvas size để có không gian cho vùng sáng rộng hơn
-export const MARKER_GRAD_INNER_R = 3; // giảm inner radius để vùng trung tâm nhỏ hơn (từ 6)
+export const MARKER_CANVAS_SIZE = 1500; // tăng canvas size để có không gian cho vùng sáng rộng hơn
+export const MARKER_GRAD_INNER_R = 3.5; // giảm inner radius để vùng trung tâm nhỏ hơn (từ 6)
 export const MARKER_GRAD_OUTER_R = 120; // giảm outer radius để vùng sáng nhỏ hơn (từ 140)
 export const MARKER_CIRCLE_R = 125; // giảm circle radius tương ứng (từ 145)
 export const MARKER_Z = -10; // local z for marker sprite
@@ -67,7 +67,7 @@ export const SMALL_HEART_EASE_EXP = 1.4; // opacity ease exponent (smoother)
 // SIDE HEARTS CONFIGURATION
 // =============================
 // Trái tim bên cạnh trên vệt sáng
-export const SIDE_HEARTS_COUNT = 3; // số lượng trái tim bên cạnh mỗi bên
+export const SIDE_HEARTS_COUNT = 2; // số lượng trái tim bên cạnh mỗi bên
 export const SIDE_HEARTS_SPREAD = 25; // khoảng cách spread của trái tim bên cạnh
 export const SIDE_HEARTS_SIZE_VARIATION = 0.3; // biến thiên kích thước (±30%)
 export const SIDE_HEARTS_OPACITY_VARIATION = 0.4; // biến thiên độ mờ
@@ -76,7 +76,7 @@ export const SIDE_HEARTS_OPACITY_VARIATION = 0.4; // biến thiên độ mờ
 // SPEED MULTIPLIERS
 // =============================
 // Speed boost for the flying streaks (rods). Increase >1 for faster motion
-export const STREAK_SPEED_MULTIPLIER = 1.7; // faster streaks (2.5x)
+export const STREAK_SPEED_MULTIPLIER = 1.9; // faster streaks (2.5x)
 export const MARKER_SPEED_MULTIPLIER = 1.1; // faster sweep dot // <-- make vệt bay nhanh hơn (2x)
 
 // =============================
@@ -93,16 +93,6 @@ export const ROD_EMISSIVE_INTENSITY = 0.6; // tăng emissive intensity
 export const ROD_EMISSIVE_COLORS = [
   0xff77aa, // hồng vừa
   0xff88bb, // hồng sáng hơn
-  0xff99cc, // hồng nhiều trắng
-  0xffaadd, // hồng rất sáng
-  0xffbbee, // hồng gần trắng
-  0xffccff, // hồng trắng
-  0xff99bb, // hồng tím
-  0xffcce6, // hồng pastel
-  0xffb6c1, // light pink
-  0xffd1dc, // pastel pink
-  0xf8bbd0, // pink (material)
-  0xfce4ec, // pink 50 (material)
 ];
 
 // =============================
@@ -142,7 +132,7 @@ export const TWO_PI = Math.PI * 2;
 // =============================
 // Device detection utility with performance level assessment
 export const getDeviceTypeByWidth = () => {
-  const width = window.innerWidth;
+  const width = window.innerWidth ?? window.screen.width;
   if (width < 768) {
     return "mobile";
   }
@@ -154,6 +144,7 @@ export const getDeviceTypeByWidth = () => {
 
 // Performance tier detection for optimization - Cải tiến cho máy yếu
 export const getPerformanceTier = () => {
+  // return "medium"
   if (typeof window === "undefined") return "high";
   const cores = (navigator as any).hardwareConcurrency || 4;
   const memory = (navigator as any).deviceMemory || 4;
@@ -180,13 +171,7 @@ export const getPerformanceTier = () => {
     }
   }
 
-  if (cores <= 2 || memory <= 1 || gpuTier === "low") {
-    return "ultra-low";
-  }
-  if (cores <= 4 || memory <= 2) {
-    return "low";
-  }
-  if (cores <= 6 || memory <= 4) {
+  if (cores < 6 || memory < 4) {
     return "medium";
   }
 
@@ -204,83 +189,65 @@ export const getPerformanceTier = () => {
 // =============================
 // PERFORMANCE OPTIMIZATION SETTINGS
 // =============================
-// Get optimized settings based on performance tier - Cải tiến cho máy yếu
-export const getOptimizedSettings = () => {
+// Get optimized settings based on performance tier with text animation consideration
+export const getOptimizedSettings = (isTextAnimating = false) => {
   const performanceTier = getPerformanceTier();
 
-  switch (performanceTier) {
-    case "ultra-low":
-      return {
-        heartParticleCount: 20, // Giảm thêm cho máy rất yếu
-        pixelRatio: 0.5, // Giảm mạnh resolution
-        antialias: false,
-        splitRodCount: 0, // Tắt hoàn toàn split rods
-        sparkleCount: 0, // Tắt sparkles
-        lensFlareCount: 0, // Tắt lens flares
-        bloomEnabled: false, // Tắt bloom effect
-        shadowEnabled: false, // Tắt shadows
-        animationFrameSkip: 4, // Skip nhiều frame hơn (12fps)
-        sideHeartsEnabled: false, // Tắt side hearts
-        particleEffectsEnabled: false, // Tắt particle effects
-        materialComplexity: "basic", // Dùng material đơn giản
-        useSimpleBlending: true, // Dùng blending đơn giản
-        disableMatrixUpdates: true, // Tắt auto matrix updates
-      };
+  // Base settings for each tier - removed ultra-low and low tiers
+  const baseSettings = (() => {
+    switch (performanceTier) {
+      case "medium":
+        return {
+          heartParticleCount: 70,
+          pixelRatio: 1, // Giữ 1x pixel ratio
+          antialias: false, // Tắt antialias cho hiệu năng
+          splitRodCount: 1, // Chỉ 1 split rod
+          sparkleCount: 0, // Tắt sparkles
+          lensFlareCount: 1, // Giảm lens flares
+          bloomEnabled: false, // Tắt bloom để tăng hiệu năng
+          shadowEnabled: false, // Tắt shadows
+          animationFrameSkip: 1, // Skip ít frame hơn (30fps)
+          sideHeartsEnabled: true, // Giữ side hearts
+          particleEffectsEnabled: false, // Tắt một số particle effects
+          materialComplexity: "simple",
+          useSimpleBlending: false,
+          disableMatrixUpdates: false,
+        };
 
-    case "low":
-      return {
-        heartParticleCount: 40, // Giảm thêm
-        pixelRatio: 0.75, // Giảm pixel ratio
-        antialias: false,
-        splitRodCount: 0, // Tắt split rods cho máy yếu
-        sparkleCount: 0, // Tắt sparkles
-        lensFlareCount: 0, // Tắt lens flares
-        bloomEnabled: false, // Tắt bloom effect
-        shadowEnabled: false, // Tắt shadows
-        animationFrameSkip: 3, // Skip nhiều frame (20fps)
-        sideHeartsEnabled: false, // Tắt side hearts
-        particleEffectsEnabled: false, // Tắt particle effects
-        materialComplexity: "basic", // Material đơn giản
-        useSimpleBlending: true, // Dùng blending đơn giản
-        disableMatrixUpdates: true, // Tắt auto matrix updates
-      };
+      default: // high
+        return {
+          heartParticleCount: 100, // Giảm một chút
+          pixelRatio: Math.min(1.5, window.devicePixelRatio || 1), // Giới hạn pixel ratio
+          antialias: true,
+          splitRodCount: 2, // Giảm split rods
+          sparkleCount: 6, // Giảm sparkles
+          lensFlareCount: 2, // Giảm lens flares
+          bloomEnabled: true, // Giữ bloom
+          shadowEnabled: true,
+          animationFrameSkip: 0, // Không skip frame
+          sideHeartsEnabled: true,
+          particleEffectsEnabled: true,
+          materialComplexity: "standard",
+          useSimpleBlending: false,
+          disableMatrixUpdates: false,
+        };
+    }
+  })();
 
-    case "medium":
-      return {
-        heartParticleCount: 70, // Giảm thêm
-        pixelRatio: 1, // Giữ 1x pixel ratio
-        antialias: false, // Tắt antialias cho hiệu năng
-        splitRodCount: 1, // Chỉ 1 split rod
-        sparkleCount: 0, // Tắt sparkles
-        lensFlareCount: 1, // Giảm lens flares
-        bloomEnabled: false, // Tắt bloom để tăng hiệu năng
-        shadowEnabled: false, // Tắt shadows
-        animationFrameSkip: 1, // Skip ít frame hơn (30fps)
-        sideHeartsEnabled: true, // Giữ side hearts
-        particleEffectsEnabled: false, // Tắt một số particle effects
-        materialComplexity: "simple",
-        useSimpleBlending: false,
-        disableMatrixUpdates: false,
-      };
-
-    default: // high
-      return {
-        heartParticleCount: 100, // Giảm một chút
-        pixelRatio: Math.min(1.5, window.devicePixelRatio || 1), // Giới hạn pixel ratio
-        antialias: true,
-        splitRodCount: 2, // Giảm split rods
-        sparkleCount: 6, // Giảm sparkles
-        lensFlareCount: 2, // Giảm lens flares
-        bloomEnabled: true, // Giữ bloom
-        shadowEnabled: true,
-        animationFrameSkip: 0, // Không skip frame
-        sideHeartsEnabled: true,
-        particleEffectsEnabled: true,
-        materialComplexity: "standard",
-        useSimpleBlending: false,
-        disableMatrixUpdates: false,
-      };
+  // Apply additional optimizations when text is animating
+  if (isTextAnimating) {
+    return {
+      ...baseSettings,
+      heartParticleCount: Math.floor(baseSettings.heartParticleCount * 0.7), // Reduce by 30%
+      splitRodCount: Math.max(0, baseSettings.splitRodCount - 1), // Reduce split rods
+      sparkleCount: Math.floor(baseSettings.sparkleCount * 0.5), // Reduce sparkles by 50%
+      lensFlareCount: Math.max(0, baseSettings.lensFlareCount - 1), // Reduce lens flares
+      animationFrameSkip: baseSettings.animationFrameSkip + (performanceTier === "high" ? 1 : performanceTier === "medium" ? 1 : 2), // Increase frame skipping
+      pixelRatio: baseSettings.pixelRatio * (performanceTier === "high" ? 0.9 : 0.8), // Reduce pixel ratio
+    };
   }
+
+  return baseSettings;
 };
 
 // =============================
@@ -345,11 +312,11 @@ export const getDotSpeed = () => {
   const deviceType = getDeviceTypeByWidth();
   switch (deviceType) {
     case "mobile":
-      return 0.97;
+      return 1.05;
     case "tablet":
-      return 1.15;
+      return 1.27;
     default:
-      return 1.3;
+      return 1.45;
   }
 };
 

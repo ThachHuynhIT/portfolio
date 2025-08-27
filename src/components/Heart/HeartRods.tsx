@@ -52,16 +52,68 @@ import {
 
 type RodDirectionMode = "toCamera" | "fromCamera" | "radialOut" | "tangent" | "random";
 
+type SplitRod = {
+  mesh: THREE.Mesh;
+  direction: THREE.Vector3;
+  baseZ: number;
+  advanceMax: number;
+  startSec: number;
+  originalParent: HeartParticle;
+  // Thêm các thuộc tính cho hiệu ứng loá sáng
+  lensFlares?: THREE.Sprite[]; // lens flare sprites
+  sparkles?: SparkleParticle[]; // sparkle particles
+  // Random emissive color for split rod
+  rodEmissiveColor?: number; // màu emissive riêng cho split rod
+};
+
+// Sparkle particle type cho hiệu ứng rải tia sáng
+type SparkleParticle = {
+  sprite: THREE.Sprite;
+  velocity: THREE.Vector3;
+  startTime: number;
+  lifetime: number;
+  startOpacity: number;
+};
+
+type HeartParticle = THREE.Sprite & {
+  basePos: THREE.Vector3;
+  baseScale?: number;
+  // small-heart loop
+  lifeMs: number;
+  tOffset: number;
+  moveDir?: THREE.Vector3;
+  moveDist?: number;
+  // small-heart cycle tracking (to randomize per cycle)
+  cyclePhase?: number;
+  // rods/tip
+  rod?: THREE.Mesh;
+  rodBaseZ?: number;
+  rodAdvanceMax?: number;
+  tip?: THREE.Sprite;
+  tipOffset?: THREE.Vector3;
+  // side hearts - trái tim bên cạnh vệt sáng
+  sideHearts?: THREE.Sprite[];
+  sideHeartsOffsets?: THREE.Vector3[];
+  // sweep / activation
+  paramT?: number;
+  activated?: boolean;
+  rodStartSec?: number;
+  activationTime?: number; // Thời điểm được kích hoạt (ms)
+  // split rods (tách vệt sáng)
+  hasSplit?: boolean; // đã tách chưa
+  splitRods?: SplitRod[]; // các vệt tách ra
+  // Random emissive color for each rod
+  rodEmissiveColor?: number; // màu emissive riêng cho từng rod
+  __dispose: () => void;
+};
+
 const HEART_COLORS2 = [
-  { tint: "#ff3366", glow: "rgba(255,60,120,0.6)" }, // Đỏ
-  { tint: "#ff99cc", glow: "rgba(255,153,204,0.6)" }, // Hồng
-  { tint: "#ffffff", glow: "rgba(255,255,255,0.6)" }, // Trắng
+  { tint: "#ff3366", glow: "rgba(255, 0, 0, 1)" }, // Đỏ
 ];
 
 export type HeartRodsProps = {
   bigHeartWidth?: number;
   bigHeartAspect?: number;
-
   /** Small heart visuals & motion */
   smallHeartSizePx?: number;
   smallHeartScale?: number; // relative size factor (default 0.6)
@@ -69,7 +121,6 @@ export type HeartRodsProps = {
   smallHeartMoveMax?: number; // world units (default 24)
   smallHeartPulse?: number; // ± pulsation factor (default 0.06)
   smallHeartLifeMs?: number; // cycle duration (default 1000ms)
-
   /** Rods */
   rodDirectionMode?: RodDirectionMode;
   rodLengthBase?: number;
@@ -80,14 +131,12 @@ export type HeartRodsProps = {
   rodDepthSpeed?: number; // base speed; multiplied by STREAK_SPEED_MULTIPLIER
   rodDepthMaxAdvance?: number;
   rodOpacity?: number; // base opacity of rods
-
   /** Sweep marker */
   markerRevsPerSec?: number;
   markerSize?: number;
-
   /** Depth alignment */
   targetZ?: number;
-
+  isTextAnimating?: boolean;
   style?: React.CSSProperties;
 };
 
@@ -115,7 +164,6 @@ export default function HeartRods({
   smallHeartMoveMax = 24,
   smallHeartPulse = 0.06,
   smallHeartLifeMs = 1000,
-
   rodDirectionMode = "toCamera",
   rodLengthBase = 150,
   rodLengthJitter = 0,
@@ -125,10 +173,9 @@ export default function HeartRods({
   rodDepthSpeed = 200,
   rodDepthMaxAdvance = 1200,
   rodOpacity = 0.85,
-
   markerRevsPerSec = 0.1,
   markerSize = 400, // giảm kích thước để phù hợp với vùng sáng nhỏ hơn
-
+  isTextAnimating = false,
   style,
 }: HeartRodsProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
@@ -138,8 +185,8 @@ export default function HeartRods({
 
   useEffect(() => {
     if (!mountRef.current) return;
-    // Get performance-optimized settings
-    const optimizedSettings = getOptimizedSettings();
+    // Get performance-optimized settings with text animation consideration
+    const optimizedSettings = getOptimizedSettings(isTextAnimating);
     const performanceTier = getPerformanceTier();
     const cameraSettings = getResponsiveCameraSettings();
     const responsiveTargetZ = cameraSettings.targetZ;
@@ -148,30 +195,15 @@ export default function HeartRods({
     const renderer = new THREE.WebGLRenderer({
       antialias: optimizedSettings.antialias,
       alpha: true,
-      powerPreference: performanceTier === "high" ? "high-performance" : performanceTier === "ultra-low" ? "low-power" : "default",
+      powerPreference: performanceTier === "high" ? "high-performance" : "default",
       stencil: false,
       depth: true,
       logarithmicDepthBuffer: false,
       preserveDrawingBuffer: false,
-      failIfMajorPerformanceCaveat: performanceTier === "ultra-low",
     });
 
-    // Additional performance settings for weak devices
-    if (performanceTier === "ultra-low" || performanceTier === "low") {
-      renderer.shadowMap.enabled = false;
-      renderer.shadowMap.autoUpdate = false;
-      renderer.info.autoReset = false;
-      // Tắt các tính năng không cần thiết cho máy yếu
-      renderer.autoClear = true;
-      renderer.autoClearColor = true;
-      renderer.autoClearDepth = true;
-      renderer.autoClearStencil = false;
-      // Giảm precision cho máy yếu
-      renderer.getContext().getExtension("OES_standard_derivatives"); // Try to get standard derivatives
-    } else {
-      renderer.shadowMap.enabled = optimizedSettings.shadowEnabled;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    }
+    renderer.shadowMap.enabled = optimizedSettings.shadowEnabled;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     renderer.setPixelRatio(optimizedSettings.pixelRatio);
 
@@ -222,91 +254,25 @@ export default function HeartRods({
     camera.lookAt(0, 0, 0);
     cameraRef.current = camera;
 
-    // ----- Lighting with performance optimization -----
-    if (optimizedSettings.bloomEnabled && performanceTier !== "low") {
-      // Full lighting for high-performance devices
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-      scene.add(ambientLight);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(ambientLight);
 
-      const pointLight = new THREE.PointLight(0xff99bb, 2.0, 3500);
-      pointLight.position.copy(camera.position);
-      scene.add(pointLight);
+    const pointLight = new THREE.PointLight(0xff99bb, 2.0, 3500);
+    pointLight.position.copy(camera.position);
+    scene.add(pointLight);
 
-      const auxiliaryPointLight = new THREE.PointLight(0xffffff, 1.4, 2800);
-      auxiliaryPointLight.position.set(0, 0, CAMERA_Z * 0.7);
-      scene.add(auxiliaryPointLight);
+    const auxiliaryPointLight = new THREE.PointLight(0xffffff, 1.4, 2800);
+    auxiliaryPointLight.position.set(0, 0, CAMERA_Z * 0.7);
+    scene.add(auxiliaryPointLight);
 
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-      directionalLight.position.set(0, 0, 1);
-      scene.add(directionalLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    directionalLight.position.set(0, 0, 1);
+    scene.add(directionalLight);
 
-      const rimLight = new THREE.DirectionalLight(0xff99bb, 0.8);
-      rimLight.position.set(0, 0, -1);
-      scene.add(rimLight);
-    } else {
-      // Simplified lighting for low-performance devices
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-      scene.add(ambientLight);
+    const rimLight = new THREE.DirectionalLight(0xff99bb, 0.8);
+    rimLight.position.set(0, 0, -1);
+    scene.add(rimLight);
 
-      const directionalLight = new THREE.DirectionalLight(0xff99bb, 0.8);
-      directionalLight.position.set(0, 0, 1);
-      scene.add(directionalLight);
-    }
-
-    type HeartParticle = THREE.Sprite & {
-      basePos: THREE.Vector3;
-      baseScale?: number;
-      // small-heart loop
-      lifeMs: number;
-      tOffset: number;
-      moveDir?: THREE.Vector3;
-      moveDist?: number;
-      // small-heart cycle tracking (to randomize per cycle)
-      cyclePhase?: number;
-      // rods/tip
-      rod?: THREE.Mesh;
-      rodBaseZ?: number;
-      rodAdvanceMax?: number;
-      tip?: THREE.Sprite;
-      tipOffset?: THREE.Vector3;
-      // side hearts - trái tim bên cạnh vệt sáng
-      sideHearts?: THREE.Sprite[];
-      sideHeartsOffsets?: THREE.Vector3[];
-      // sweep / activation
-      paramT?: number;
-      activated?: boolean;
-      rodStartSec?: number;
-      activationTime?: number; // Thời điểm được kích hoạt (ms)
-      // split rods (tách vệt sáng)
-      hasSplit?: boolean; // đã tách chưa
-      splitRods?: SplitRod[]; // các vệt tách ra
-      // Random emissive color for each rod
-      rodEmissiveColor?: number; // màu emissive riêng cho từng rod
-      __dispose: () => void;
-    };
-
-    type SplitRod = {
-      mesh: THREE.Mesh;
-      direction: THREE.Vector3;
-      baseZ: number;
-      advanceMax: number;
-      startSec: number;
-      originalParent: HeartParticle;
-      // Thêm các thuộc tính cho hiệu ứng loá sáng
-      lensFlares?: THREE.Sprite[]; // lens flare sprites
-      sparkles?: SparkleParticle[]; // sparkle particles
-      // Random emissive color for split rod
-      rodEmissiveColor?: number; // màu emissive riêng cho split rod
-    };
-
-    // Sparkle particle type cho hiệu ứng rải tia sáng
-    type SparkleParticle = {
-      sprite: THREE.Sprite;
-      velocity: THREE.Vector3;
-      startTime: number;
-      lifetime: number;
-      startOpacity: number;
-    };
     // Geometry pooling for better performance
     const geometryPool = {
       box: new Map<string, THREE.BoxGeometry>(),
@@ -338,47 +304,29 @@ export default function HeartRods({
       const geom = getBoxGeometry(width, height, length);
       // Tạo material đơn giản hơn cho máy yếu
       let mat: THREE.Material;
-      if (performanceTier === "ultra-low" || performanceTier === "low") {
-        // Sử dụng MeshBasicMaterial cho máy yếu để tăng hiệu năng
-        mat = new THREE.MeshBasicMaterial({
-          color: new THREE.Color(color),
-          transparent: true,
-          opacity,
-          fog: false, // Tắt fog để tăng hiệu năng
-        });
-        // Sử dụng Normal Blending thay vì Additive để tăng hiệu năng
-        if (optimizedSettings.useSimpleBlending) {
-          mat.blending = THREE.NormalBlending;
-          mat.depthWrite = true;
-          mat.depthTest = true;
-        } else {
-          mat.blending = THREE.AdditiveBlending;
-          mat.depthWrite = false;
-          mat.depthTest = false;
-        }
-      } else {
-        // Material phức tạp hơn cho máy mạnh
-        const baseEmissiveIntensity = isSplitRod ? ROD_EMISSIVE_INTENSITY * SPLIT_ROD_EMISSIVE_BOOST : ROD_EMISSIVE_INTENSITY;
-        // Reduce emissive intensity for medium devices
-        let adjustedIntensity = baseEmissiveIntensity;
-        if (performanceTier === "medium") {
-          adjustedIntensity *= 0.6;
-        }
-        mat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(color).multiplyScalar(1.2),
-          transparent: true,
-          opacity,
-          emissive: optimizedSettings.bloomEnabled ? new THREE.Color(emissiveColor || getRandomEmissiveColor()) : new THREE.Color(0x444444),
-          emissiveIntensity: optimizedSettings.bloomEnabled ? adjustedIntensity : 0.3,
-          metalness: 0,
-          roughness: 0.3,
-          toneMapped: false,
-          fog: false,
-        });
-        mat.blending = THREE.AdditiveBlending;
-        mat.depthWrite = false;
-        mat.depthTest = false;
+
+      // Material phức tạp hơn cho máy mạnh
+      const baseEmissiveIntensity = isSplitRod ? ROD_EMISSIVE_INTENSITY * SPLIT_ROD_EMISSIVE_BOOST : ROD_EMISSIVE_INTENSITY;
+      // Reduce emissive intensity for medium devices
+      let adjustedIntensity = baseEmissiveIntensity;
+      if (performanceTier === "medium") {
+        adjustedIntensity *= 0.6;
       }
+      mat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(color).multiplyScalar(1.2),
+        transparent: true,
+        opacity,
+        emissive: optimizedSettings.bloomEnabled ? new THREE.Color(emissiveColor || getRandomEmissiveColor()) : new THREE.Color(0x444444),
+        emissiveIntensity: optimizedSettings.bloomEnabled ? adjustedIntensity : 0.3,
+        metalness: 0,
+        roughness: 0.3,
+        toneMapped: false,
+        fog: false,
+      });
+      mat.blending = THREE.AdditiveBlending;
+      mat.depthWrite = false;
+      mat.depthTest = false;
+
       const mesh = new THREE.Mesh(geom, mat) as unknown as THREE.Mesh & { __dispose: () => void };
       // Tắt auto matrix updates cho máy yếu
       if (optimizedSettings.disableMatrixUpdates) {
@@ -401,13 +349,7 @@ export default function HeartRods({
       const s = sizePx * SMALL_HEART_CANVAS_SCALE;
       // Sử dụng kích thước nhỏ hơn cho máy yếu để tiết kiệm memory
       let canvasSize: number;
-      if (performanceTier === "ultra-low") {
-        canvasSize = Math.pow(2, Math.ceil(Math.log2(s * 0.5))); // Giảm 50% kích thước
-      } else if (performanceTier === "low") {
-        canvasSize = Math.pow(2, Math.ceil(Math.log2(s * 0.75))); // Giảm 25% kích thước
-      } else {
-        canvasSize = Math.pow(2, Math.ceil(Math.log2(s)));
-      }
+      canvasSize = Math.pow(2, Math.ceil(Math.log2(s)));
       canvas.width = canvas.height = canvasSize;
       const ctx = canvas.getContext("2d", {
         alpha: true,
@@ -416,12 +358,7 @@ export default function HeartRods({
       })!;
       ctx.translate(canvasSize / 2, canvasSize / 2);
       // Đơn giản hóa path creation cho máy yếu
-      let pathDetail = 100;
-      if (performanceTier === "ultra-low") {
-        pathDetail = 20; // Giảm mạnh số điểm
-      } else if (performanceTier === "low") {
-        pathDetail = 50; // Giảm số điểm
-      }
+      let pathDetail = 80;
       ctx.beginPath();
       const scale = sizePx / HEART_BASE_WIDTH;
       // Optimize path creation for better performance
@@ -438,29 +375,21 @@ export default function HeartRods({
       }
       ctx.closePath();
       ctx.fillStyle = heartColor.tint;
-      // Tối ưu soft glow rendering cho máy yếu
-      if (optimizedSettings.bloomEnabled && performanceTier !== "ultra-low" && performanceTier !== "low") {
-        ctx.shadowColor = heartColor.glow;
-        ctx.shadowBlur = SMALL_HEART_GLOW_BLUR;
-      }
+      ctx.shadowColor = heartColor.glow;
+      ctx.shadowBlur = SMALL_HEART_GLOW_BLUR;
       ctx.fill();
       const tex = new THREE.CanvasTexture(canvas);
       // Tối ưu texture settings cho máy yếu
-      if (performanceTier === "ultra-low" || performanceTier === "low") {
-        tex.minFilter = THREE.NearestFilter;
-        tex.magFilter = THREE.NearestFilter;
-        tex.generateMipmaps = false;
-      } else {
-        tex.minFilter = optimizedSettings.antialias ? THREE.LinearFilter : THREE.NearestFilter;
-        tex.magFilter = optimizedSettings.antialias ? THREE.LinearFilter : THREE.NearestFilter;
-        tex.generateMipmaps = optimizedSettings.antialias;
-      }
+
+      tex.minFilter = optimizedSettings.antialias ? THREE.LinearFilter : THREE.NearestFilter;
+      tex.magFilter = optimizedSettings.antialias ? THREE.LinearFilter : THREE.NearestFilter;
+      tex.generateMipmaps = optimizedSettings.antialias;
+
       tex.flipY = true;
       const mat = new THREE.SpriteMaterial({
         map: tex,
         transparent: true,
         depthWrite: false,
-        depthTest: performanceTier !== "low" && performanceTier !== "ultra-low",
         blending: optimizedSettings.useSimpleBlending ? THREE.NormalBlending : THREE.AdditiveBlending,
         toneMapped: false,
         fog: false,
@@ -498,7 +427,7 @@ export default function HeartRods({
       m.__dispose?.();
     };
 
-    // Tạo lens flare sprite cho hiệu ứng loá sáng - cải thiện để vùng sáng rộng hơn
+    // Tạo lens flare sprite cho hiệu ứng loá sáng
     const createLensFlare = (size: number, color: THREE.Color, intensity: number) => {
       const canvas = document.createElement("canvas");
       const canvasSize = size * 3; // tăng canvas size để có không gian cho glow rộng hơn
@@ -506,21 +435,19 @@ export default function HeartRods({
       const ctx = canvas.getContext("2d")!;
 
       // Tạo radial gradient cho lens flare với nhiều layer
-      // Layer ngoài cùng - glow rộng và mờ
       const outerGradient = ctx.createRadialGradient(canvasSize / 2, canvasSize / 2, 0, canvasSize / 2, canvasSize / 2, canvasSize / 2);
 
       const r = Math.floor(color.r * 255);
       const g = Math.floor(color.g * 255);
       const b = Math.floor(color.b * 255);
 
-      outerGradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${intensity * 0.4})`); // tăng intensity
+      outerGradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${intensity * 0.4})`);
       outerGradient.addColorStop(0.2, `rgba(${r}, ${g}, ${b}, ${intensity * 0.25})`);
       outerGradient.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, ${intensity * 0.15})`);
       outerGradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
 
       ctx.fillStyle = outerGradient;
       ctx.fillRect(0, 0, canvasSize, canvasSize);
-
       // Layer trong - glow chính với intensity cao hơn
       const innerGradient = ctx.createRadialGradient(canvasSize / 2, canvasSize / 2, 0, canvasSize / 2, canvasSize / 2, canvasSize / 3);
 
@@ -545,8 +472,8 @@ export default function HeartRods({
       });
 
       const sprite = new THREE.Sprite(material);
-      sprite.scale.set(size * 1.0, size * 1.0, 1); // tăng lại scale
-      sprite.matrixAutoUpdate = false; // Disable automatic matrix updates
+      sprite.scale.set(size * 1.0, size * 1.0, 1);
+      sprite.matrixAutoUpdate = false;
 
       (sprite as any).__dispose = () => {
         texture.dispose();
@@ -903,40 +830,29 @@ export default function HeartRods({
           }
           perpVector2.copy(rodDir).cross(perpVector1).normalize();
 
-          // Giảm số lượng side hearts cho máy yếu
-          const sideHeartsCount =
-            performanceTier === "low" ? Math.min(2, SIDE_HEARTS_COUNT) : performanceTier === "ultra-low" ? 1 : SIDE_HEARTS_COUNT;
-
           // Tạo trái tim bên cạnh theo cả 2 phía
           for (let side = -1; side <= 1; side += 2) {
-            for (let i = 1; i <= sideHeartsCount; i++) {
+            // Randomly choose 2 or 3 side hearts per side
+            const numSideHearts = 2 + Math.round(Math.random());
+            for (let i = 1; i <= numSideHearts; i++) {
               // Kích thước ngẫu nhiên
               const sizeVariation = 1 + (Math.random() - 0.5) * SIDE_HEARTS_SIZE_VARIATION;
               const sideHeartSize = Math.max(SMALL_HEART_MIN_SIZE * 0.7, finalTipSize * 0.8 * sizeVariation);
-
               const sideHeart = createHeartSprite(sideHeartSize);
-
-              // Vị trí offset từ tip
-              const spreadDistance = i * (SIDE_HEARTS_SPREAD / SIDE_HEARTS_COUNT);
               const perpDistance = side * (8 + i * 4); // khoảng cách perpendicular
               const backwardOffset = -i * 5; // lùi lại một chút
-
               // Kết hợp offset từ perpendicular vectors và backward
               const sideOffset = new THREE.Vector3()
                 .addScaledVector(perpVector1, perpDistance)
                 .addScaledVector(perpVector2, (Math.random() - 0.5) * 6)
                 .addScaledVector(rodDir, backwardOffset);
-
               const finalSideOffset = tipOffset.clone().add(sideOffset);
-
               sideHeart.position.set(rod.position.x + finalSideOffset.x, rod.position.y + finalSideOffset.y, rod.position.z + finalSideOffset.z);
-
               // Thiết lập opacity ban đầu
               const opacityVariation = 1 - Math.random() * SIDE_HEARTS_OPACITY_VARIATION;
               (sideHeart.material as THREE.SpriteMaterial).opacity = 0;
               (sideHeart.material as THREE.SpriteMaterial).userData = { maxOpacity: opacityVariation };
               sideHeart.visible = false;
-
               sideHearts.push(sideHeart);
               sideHeartsOffsets.push(finalSideOffset);
               heartGroup.add(sideHeart);
@@ -946,14 +862,11 @@ export default function HeartRods({
 
         p.sideHearts = sideHearts;
         p.sideHeartsOffsets = sideHeartsOffsets;
-
         (rod.material as THREE.MeshStandardMaterial).opacity = 0;
         (rod.material as THREE.MeshStandardMaterial).transparent = true;
         rod.visible = false;
-
         (tip.material as THREE.SpriteMaterial).opacity = 0;
         tip.visible = false;
-
         heartGroup.add(rod, tip, p);
         heartParticles.push(p);
       }
@@ -978,13 +891,17 @@ export default function HeartRods({
         MARKER_CANVAS_SIZE / 2,
         MARKER_CANVAS_SIZE / 2 - 5
       );
-      outerGrd.addColorStop(0, "rgb(246, 1, 149)"); // hồng đậm rực rỡ
-      outerGrd.addColorStop(0.01, "rgba(255, 0, 100, 1)"); // hồng đậm rực rỡ
-      outerGrd.addColorStop(0.08, "rgba(255, 0, 100, 0.6)"); // hồng sáng
-      outerGrd.addColorStop(0.18, "rgba(255, 0, 100, 0.5)"); // hồng tím
-      outerGrd.addColorStop(0.25, "rgba(150, 0, 50, 0.4)"); // hồng đậm hơn
-      outerGrd.addColorStop(0.8, "rgba(100, 0, 50, 0.2)"); // hồng rất đậm
-      outerGrd.addColorStop(1, "rgba(50, 0, 25, 0)"); // fade về đen tím
+      outerGrd.addColorStop(0, "rgba(255, 36, 167)");
+      outerGrd.addColorStop(0.01, "rgb(246, 1, 149)");
+      outerGrd.addColorStop(0.02, "rgb(246, 1, 149, 0.8)");
+      outerGrd.addColorStop(0.03, "rgb(246, 1, 149, 0.32)");
+      outerGrd.addColorStop(0.1, "rgb(246, 1, 149, 0.15)");
+      outerGrd.addColorStop(0.3, "rgb(246, 1, 149, 0.1)");
+      outerGrd.addColorStop(0.4, "rgb(246, 1, 149, 0.09)");
+      outerGrd.addColorStop(0.5, "rgb(246, 1, 149, 0.08)");
+      outerGrd.addColorStop(0.8, "rgb(246, 1, 149, 0.05)"); // Thêm độ loang nhẹ
+      outerGrd.addColorStop(1, "rgb(246, 1, 149, 0)");
+      mctx.filter = "blur(1px)";
       mctx.fillStyle = outerGrd;
       mctx.fillRect(0, 0, MARKER_CANVAS_SIZE, MARKER_CANVAS_SIZE);
 
@@ -1045,26 +962,25 @@ export default function HeartRods({
       lastFrameTime = currentTime;
 
       // Chỉ theo dõi frame time nếu không phải ultra-low (để tránh overhead)
-      if (performanceTier !== "ultra-low") {
-        frameTimeHistory.push(frameTime);
-        if (frameTimeHistory.length > 10) {
-          frameTimeHistory.shift(); // Giữ chỉ 10 frame gần nhất
+
+      frameTimeHistory.push(frameTime);
+      if (frameTimeHistory.length > 10) {
+        frameTimeHistory.shift(); // Giữ chỉ 10 frame gần nhất
+      }
+
+      // Tính average frame time mỗi 10 frame
+      if (frameTimeHistory.length === 10) {
+        const avgFrameTime = frameTimeHistory.reduce((a, b) => a + b, 0) / 10;
+        const currentFPS = 1000 / avgFrameTime;
+
+        // Tự động điều chỉnh frame skip
+        if (currentFPS < 20 && adaptiveFrameSkip < 4) {
+          adaptiveFrameSkip++; // Tăng frame skip nếu FPS thấp
+        } else if (currentFPS > 30 && adaptiveFrameSkip > 0) {
+          adaptiveFrameSkip = Math.max(0, adaptiveFrameSkip - 1); // Giảm frame skip nếu FPS cao
         }
 
-        // Tính average frame time mỗi 10 frame
-        if (frameTimeHistory.length === 10) {
-          const avgFrameTime = frameTimeHistory.reduce((a, b) => a + b, 0) / 10;
-          const currentFPS = 1000 / avgFrameTime;
-
-          // Tự động điều chỉnh frame skip
-          if (currentFPS < 20 && adaptiveFrameSkip < 4) {
-            adaptiveFrameSkip++; // Tăng frame skip nếu FPS thấp
-          } else if (currentFPS > 30 && adaptiveFrameSkip > 0) {
-            adaptiveFrameSkip = Math.max(0, adaptiveFrameSkip - 1); // Giảm frame skip nếu FPS cao
-          }
-
-          frameTimeHistory = []; // Reset history
-        }
+        frameTimeHistory = []; // Reset history
       }
     };
 
@@ -1081,24 +997,15 @@ export default function HeartRods({
 
     const animate = () => {
       rafId = requestAnimationFrame(animate);
-
-      // Tự động điều chỉnh frame skip cho máy không phải ultra-low
-      if (performanceTier !== "ultra-low") {
-        adjustFrameSkip();
-      }
+      adjustFrameSkip();
 
       // Frame skipping for performance optimization - Cải tiến cho máy yếu
       frameCount++;
 
       // Sử dụng adaptive frame skip thay vì static
       let shouldSkipFrame = false;
-      if (performanceTier === "ultra-low") {
-        shouldSkipFrame = frameCount % 5 !== 0; // Chỉ render mỗi 5 frame (~12fps)
-      } else if (performanceTier === "low") {
-        shouldSkipFrame = frameCount % 4 !== 0; // Chỉ render mỗi 4 frame (~15fps)
-      } else {
-        shouldSkipFrame = adaptiveFrameSkip > 0 && frameCount % (adaptiveFrameSkip + 1) !== 0;
-      }
+
+      shouldSkipFrame = adaptiveFrameSkip > 0 && frameCount % (adaptiveFrameSkip + 1) !== 0;
 
       if (shouldSkipFrame) {
         return; // Skip this frame
@@ -1108,12 +1015,7 @@ export default function HeartRods({
       const dtSec = dtMs / 1000;
 
       // Performance optimization: limit delta time, more aggressive for weak devices
-      const maxDeltaMs =
-        performanceTier === "ultra-low"
-          ? 80 // Cap at 12fps equivalent
-          : performanceTier === "low"
-          ? 66 // Cap at 15fps equivalent
-          : 33.33; // Cap at ~30fps equivalent
+      const maxDeltaMs = 33.33; // Cap at ~30fps equivalent
       const clampedDtMs = Math.min(dtMs, maxDeltaMs);
       const clampedDtSec = clampedDtMs / 1000;
       // Intro animation logic
@@ -1301,7 +1203,7 @@ export default function HeartRods({
           }
 
           // Update side hearts - chỉ cho các tier cao hơn để tránh overhead
-          if (p.sideHearts && p.sideHeartsOffsets && performanceTier !== "ultra-low") {
+          if (p.sideHearts && p.sideHeartsOffsets) {
             for (let i = 0; i < p.sideHearts.length; i++) {
               const sideHeart = p.sideHearts[i];
               const sideOffset = p.sideHeartsOffsets[i];
@@ -1520,9 +1422,8 @@ export default function HeartRods({
         // Soft pulsate around base scale - đơn giản hóa cho máy yếu
         const base = p.baseScale ?? p.scale.x;
         let pulse = 1;
-        if (performanceTier !== "ultra-low") {
-          pulse = 1 + smallHeartPulse * Math.sin(t01 * (Math.PI * 2));
-        }
+        pulse = 1 + smallHeartPulse * Math.sin(t01 * (Math.PI * 2));
+
         p.scale.setScalar(base * pulse);
 
         // Update matrix manually if auto updates are disabled
@@ -1537,32 +1438,6 @@ export default function HeartRods({
       }
 
       renderer.render(scene, camera);
-
-      // Cleanup pool objects định kỳ để tránh memory leak
-      if (frameCount % 300 === 0 && (performanceTier === "ultra-low" || performanceTier === "low")) {
-        // Giới hạn pool size mỗi 300 frame (~20 giây ở 15fps)
-        if (objectPool.vectors.length > 30) {
-          objectPool.vectors.splice(30);
-        }
-        if (objectPool.quaternions.length > 30) {
-          objectPool.quaternions.splice(30);
-        }
-        if (objectPool.colors.length > 30) {
-          objectPool.colors.splice(30);
-        }
-      }
-
-      // Force garbage collection hint for ultra-low devices (if available)
-      if (performanceTier === "ultra-low" && frameCount % 600 === 0) {
-        // Gợi ý garbage collection cho máy rất yếu
-        if ((window as any).gc) {
-          try {
-            (window as any).gc();
-          } catch (e) {
-            // Ignore if gc is not available
-          }
-        }
-      }
     };
 
     animate();
@@ -1570,7 +1445,6 @@ export default function HeartRods({
     return () => {
       cancelAnimationFrame(rafId);
       // Enhanced cleanup for weak devices - Force garbage collection triggers
-      const forceCleanup = performanceTier === "ultra-low" || performanceTier === "low";
       // Cleanup split rods với aggressive cleanup cho máy yếu
       for (const splitRod of allSplitRods) {
         disposeMesh(splitRod.mesh);
@@ -1578,21 +1452,12 @@ export default function HeartRods({
         if (splitRod.lensFlares) {
           for (const flare of splitRod.lensFlares) {
             disposeSprite(flare);
-            if (forceCleanup) {
-              // Force dereferencing for weak devices
-              (flare as any).material = null;
-              (flare as any).geometry = null;
-            }
           }
         }
         // Cleanup sparkles
         if (splitRod.sparkles) {
           for (const sparkle of splitRod.sparkles) {
             disposeSprite(sparkle.sprite);
-            if (forceCleanup) {
-              (sparkle.sprite as any).material = null;
-              (sparkle.sprite as any).geometry = null;
-            }
           }
         }
       }
