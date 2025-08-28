@@ -67,8 +67,6 @@ export const SMALL_HEART_EASE_EXP = 1.4; // opacity ease exponent (smoother)
 // SIDE HEARTS CONFIGURATION
 // =============================
 // Trái tim bên cạnh trên vệt sáng
-export const SIDE_HEARTS_COUNT = 2; // số lượng trái tim bên cạnh mỗi bên
-export const SIDE_HEARTS_SPREAD = 25; // khoảng cách spread của trái tim bên cạnh
 export const SIDE_HEARTS_SIZE_VARIATION = 0.3; // biến thiên kích thước (±30%)
 export const SIDE_HEARTS_OPACITY_VARIATION = 0.4; // biến thiên độ mờ
 

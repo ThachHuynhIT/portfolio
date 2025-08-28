@@ -23,8 +23,6 @@ import {
   SMALL_HEART_VISIBLE_THRESHOLD,
   SMALL_HEART_CYCLE_JITTER_RAD,
   SMALL_HEART_EASE_EXP,
-  SIDE_HEARTS_COUNT,
-  SIDE_HEARTS_SPREAD,
   SIDE_HEARTS_SIZE_VARIATION,
   SIDE_HEARTS_OPACITY_VARIATION,
   STREAK_SPEED_MULTIPLIER,
@@ -114,6 +112,11 @@ const HEART_COLORS2 = [
 export type HeartRodsProps = {
   bigHeartWidth?: number;
   bigHeartAspect?: number;
+  /** Second heart layer - simple scale approach */
+  enableSecondLayer?: boolean;
+  secondLayerScale?: number; // scale multiplier for second layer (e.g., 0.7)
+  secondLayerOffset?: { x: number; y: number; z: number };
+  secondLayerOpacity?: number;
   /** Small heart visuals & motion */
   smallHeartSizePx?: number;
   smallHeartScale?: number; // relative size factor (default 0.6)
@@ -157,9 +160,14 @@ const layerStyle: React.CSSProperties = {
 export default function HeartRods({
   bigHeartWidth = 520,
   bigHeartAspect = 1.1,
+  // Second heart layer props - simple approach
+  enableSecondLayer = true,
+  secondLayerScale = 2.5,
+  secondLayerOffset = { x: 0, y: 0, z: -30 },
+  secondLayerOpacity = 1,
 
-  smallHeartSizePx = 24, // reduced from 48 for smaller hearts
-  smallHeartScale = 0.4, // reduced from 0.6 for smaller hearts
+  smallHeartSizePx = 24,
+  smallHeartScale = 0.4,
   smallHeartMoveMin = 10,
   smallHeartMoveMax = 24,
   smallHeartPulse = 0.06,
@@ -652,6 +660,8 @@ export default function HeartRods({
     // state
     let heartGroup: THREE.Group | null = null;
     let heartParticles: HeartParticle[] = [];
+    let secondHeartGroup: THREE.Group | null = null; // Simple cloned group
+    let secondHeartParticles: HeartParticle[] = []; // Track second layer particles for animation sync
     let allSplitRods: SplitRod[] = []; // theo dõi tất cả split rods
     let markerSprite: (THREE.Sprite & { __dispose?: () => void }) | null = null;
     let markerAngle = 0;
@@ -693,6 +703,15 @@ export default function HeartRods({
         }
         heartParticles = [];
         heartGroup = null;
+      }
+
+      // Cleanup second heart layer
+      if (secondHeartGroup) {
+        scene.remove(secondHeartGroup);
+        // Note: Objects in secondHeartGroup are clones, so they'll be disposed automatically
+        // when the cloned group is removed. We just need to clear the tracking array.
+        secondHeartParticles = [];
+        secondHeartGroup = null;
       }
 
       heartGroup = new THREE.Group();
@@ -871,6 +890,80 @@ export default function HeartRods({
         heartParticles.push(p);
       }
 
+      // Create second heart layer using simple cloning approach
+      if (enableSecondLayer) {
+        // Clone the entire heartGroup
+        secondHeartGroup = heartGroup.clone();
+        
+        // Apply transformations to second layer
+        secondHeartGroup.scale.setScalar(secondLayerScale);
+        secondHeartGroup.position.set(
+          secondLayerOffset.x,
+          secondLayerOffset.y,
+          responsiveTargetZ + GROUP_EXTRA_Z_OFFSET + secondLayerOffset.z
+        );
+        
+        // Create simplified mapping for animation sync - collect cloned sprites in order
+        secondHeartParticles = [];
+        const clonedSprites: THREE.Sprite[] = [];
+        const clonedMeshes: THREE.Mesh[] = [];
+        
+        secondHeartGroup.traverse((child) => {
+          // Adjust opacity for all materials in the cloned group
+          if (child instanceof THREE.Mesh && child.material) {
+            const material = child.material as THREE.MeshStandardMaterial;
+            if (material.opacity !== undefined) {
+              material.opacity *= secondLayerOpacity;
+            }
+            clonedMeshes.push(child);
+          } else if (child instanceof THREE.Sprite && child.material) {
+            const material = child.material as THREE.SpriteMaterial;
+            if (material.opacity !== undefined) {
+              material.opacity *= secondLayerOpacity;
+            }
+            clonedSprites.push(child);
+          }
+        });
+        
+        // Map the first N sprites (excluding tips) to particles
+        // Assumption: sprites are added to group in the same order as heartParticles
+        for (let i = 0; i < Math.min(heartParticles.length, clonedSprites.length); i++) {
+          const originalParticle = heartParticles[i];
+          const clonedSprite = clonedSprites[i] as HeartParticle;
+          
+          // Copy animation properties
+          clonedSprite.basePos = originalParticle.basePos.clone().multiplyScalar(secondLayerScale);
+          clonedSprite.baseScale = originalParticle.baseScale;
+          clonedSprite.lifeMs = originalParticle.lifeMs;
+          clonedSprite.tOffset = originalParticle.tOffset;
+          clonedSprite.moveDir = originalParticle.moveDir?.clone();
+          clonedSprite.moveDist = originalParticle.moveDist ? originalParticle.moveDist * secondLayerScale : undefined;
+          clonedSprite.paramT = originalParticle.paramT;
+          clonedSprite.activated = false;
+          clonedSprite.rodStartSec = undefined;
+          clonedSprite.activationTime = undefined;
+          clonedSprite.cyclePhase = originalParticle.cyclePhase;
+          
+          // Try to find corresponding rod (by index)
+          if (i < clonedMeshes.length) {
+            clonedSprite.rod = clonedMeshes[i] as any;
+            clonedSprite.rodBaseZ = originalParticle.rodBaseZ;
+            clonedSprite.rodAdvanceMax = originalParticle.rodAdvanceMax;
+          }
+          
+          // Try to find corresponding tip (assumes tips are after main sprites)
+          const tipIndex = i + heartParticles.length;
+          if (tipIndex < clonedSprites.length) {
+            clonedSprite.tip = clonedSprites[tipIndex] as any;
+            clonedSprite.tipOffset = originalParticle.tipOffset?.clone();
+          }
+          
+          secondHeartParticles.push(clonedSprite);
+        }
+        
+        scene.add(secondHeartGroup);
+      }
+
       // marker
       if (markerSprite) {
         heartGroup.remove(markerSprite);
@@ -1015,7 +1108,7 @@ export default function HeartRods({
       const dtSec = dtMs / 1000;
 
       // Performance optimization: limit delta time, more aggressive for weak devices
-      const maxDeltaMs = 33.33; // Cap at ~30fps equivalent
+      const maxDeltaMs = 24; // Cap at ~30fps equivalent
       const clampedDtMs = Math.min(dtMs, maxDeltaMs);
       const clampedDtSec = clampedDtMs / 1000;
       // Intro animation logic
@@ -1123,6 +1216,39 @@ export default function HeartRods({
               for (const sideHeart of p.sideHearts) {
                 sideHeart.visible = true;
                 (sideHeart.material as THREE.SpriteMaterial).opacity = 0;
+              }
+            }
+          }
+        }
+
+        // Sync activations for second heart layer
+        if (enableSecondLayer && secondHeartParticles.length > 0) {
+          for (let i = 0; i < Math.min(heartParticles.length, secondHeartParticles.length); i++) {
+            const originalP = heartParticles[i];
+            const clonedP = secondHeartParticles[i];
+            const clonedR = clonedP.rod as THREE.Mesh | undefined;
+            
+            // Sync activation state
+            if (originalP.activated !== clonedP.activated) {
+              clonedP.activated = originalP.activated;
+              clonedP.rodStartSec = originalP.rodStartSec;
+              clonedP.activationTime = originalP.activationTime;
+              
+              if (clonedR && clonedP.activated) {
+                // Apply same activation logic but scaled for second layer
+                const tipZ = clonedP.tipOffset?.z ?? 0;
+                const newBaseZ = -tipZ;
+                clonedR.position.z = newBaseZ;
+                clonedP.rodBaseZ = newBaseZ;
+                const groupZ = secondHeartGroup!.position.z;
+                const allowedLocalMaxByCamera = camera.position.z - NEAR_MARGIN_LOCAL - groupZ;
+                clonedP.rodAdvanceMax = Math.max(0, Math.min(rodDepthMaxAdvance, allowedLocalMaxByCamera - newBaseZ));
+                clonedR.visible = true;
+                (clonedR.material as THREE.MeshStandardMaterial).opacity = 0;
+              }
+              if (clonedP.tip && clonedP.activated) {
+                clonedP.tip.visible = true;
+                (clonedP.tip.material as THREE.SpriteMaterial).opacity = 0;
               }
             }
           }
@@ -1245,10 +1371,77 @@ export default function HeartRods({
           }
         }
 
+        // Sync rod animations for second heart layer
+        if (enableSecondLayer && secondHeartParticles.length > 0) {
+          for (let i = 0; i < Math.min(heartParticles.length, secondHeartParticles.length); i++) {
+            const originalP = heartParticles[i];
+            const clonedP = secondHeartParticles[i];
+            const originalR = originalP.rod as THREE.Mesh | undefined;
+            const clonedR = clonedP.rod as THREE.Mesh | undefined;
+            
+            if (!originalR || !clonedR) continue;
+            
+            // Sync position and opacity
+            if (clonedP.activated && originalP.activated) {
+              // Copy rod position and properties from original (already scaled by group transform)
+              clonedR.position.z = originalR.position.z;
+              
+              const originalRM = originalR.material as THREE.MeshStandardMaterial;
+              const clonedRM = clonedR.material as THREE.MeshStandardMaterial;
+              clonedRM.opacity = originalRM.opacity * secondLayerOpacity;
+              
+              // Sync rod visibility
+              clonedR.visible = originalR.visible;
+              
+              // Sync emissive intensity
+              if (performanceTier === "high" || performanceTier === "medium") {
+                clonedRM.emissiveIntensity = originalRM.emissiveIntensity * 0.8; // Slightly dimmer
+              }
+              
+              // Update matrix if needed
+              if (optimizedSettings.disableMatrixUpdates) {
+                clonedR.updateMatrix();
+              }
+              
+              // Sync tip
+              if (originalP.tip && clonedP.tip) {
+                const originalTM = originalP.tip.material as THREE.SpriteMaterial;
+                const clonedTM = clonedP.tip.material as THREE.SpriteMaterial;
+                
+                // Sync tip opacity and position
+                clonedTM.opacity = originalTM.opacity * secondLayerOpacity;
+                clonedP.tip.visible = originalP.tip.visible;
+                
+                // Position is automatically handled by group scaling, just copy relative offset
+                if (clonedP.tipOffset) {
+                  clonedP.tip.position.set(
+                    clonedR.position.x + clonedP.tipOffset.x, 
+                    clonedR.position.y + clonedP.tipOffset.y, 
+                    clonedR.position.z + clonedP.tipOffset.z
+                  );
+                }
+                
+                if (optimizedSettings.disableMatrixUpdates) {
+                  clonedP.tip.updateMatrix();
+                }
+              }
+            }
+            
+            // Sync end of pass reset
+            if (!originalP.activated && clonedP.activated) {
+              clonedP.activated = false;
+              clonedP.activationTime = undefined;
+              if (clonedR && clonedP.rodBaseZ != null) {
+                clonedR.position.z = clonedP.rodBaseZ;
+              }
+            }
+          }
+        }
+
         // Animate split rods
         for (let i = allSplitRods.length - 1; i >= 0; i--) {
           const splitRod = allSplitRods[i];
-          const effectiveSpeed = rodDepthSpeed * STREAK_SPEED_MULTIPLIER * 0.99; // slightly slower than main rods
+          const effectiveSpeed = rodDepthSpeed * STREAK_SPEED_MULTIPLIER;
           const dist = Math.max(0, (rodTimeSec - splitRod.startSec) * effectiveSpeed);
           const adv = Math.min(dist, splitRod.advanceMax);
 
@@ -1420,16 +1613,15 @@ export default function HeartRods({
         p.position.set(p.basePos.x + (p.moveDir?.x ?? 0) * offsetLen, p.basePos.y + (p.moveDir?.y ?? 0) * offsetLen, p.basePos.z);
 
         // Soft pulsate around base scale - đơn giản hóa cho máy yếu
-        const base = p.baseScale ?? p.scale.x;
-        let pulse = 1;
-        pulse = 1 + smallHeartPulse * Math.sin(t01 * (Math.PI * 2));
+        // const base = p.baseScale ?? p.scale.x;
+        // let pulse = 1;
+        // pulse = 1 + smallHeartPulse * Math.sin(t01 * (Math.PI * 2));
 
-        p.scale.setScalar(base * pulse);
+        // p.scale.setScalar(base * pulse);
 
-        // Update matrix manually if auto updates are disabled
-        if (optimizedSettings.disableMatrixUpdates) {
-          p.updateMatrix();
-        }
+        // if (optimizedSettings.disableMatrixUpdates) {
+        //   p.updateMatrix();
+        // }
 
         // Apply both normal opacity and intro effect
         const finalOpacity = ease * introOpacityMultiplier;
@@ -1437,68 +1629,61 @@ export default function HeartRods({
         p.visible = sm.opacity > SMALL_HEART_VISIBLE_THRESHOLD;
       }
 
+      // Sync small hearts animation for second layer
+      if (enableSecondLayer && secondHeartParticles.length > 0) {
+        for (let i = 0; i < Math.min(heartParticles.length, secondHeartParticles.length); i++) {
+          const originalP = heartParticles[i];
+          const clonedP = secondHeartParticles[i];
+          
+          // Sync lifecycle properties
+          clonedP.cyclePhase = originalP.cyclePhase;
+          if (originalP.moveDir) {
+            clonedP.moveDir = originalP.moveDir.clone();
+          }
+          if (originalP.moveDist) {
+            clonedP.moveDist = originalP.moveDist * secondLayerScale;
+          }
+          
+          // Sync position (already handled by basePos scaling, but ensure it's updated)
+          const originalSM = originalP.material as THREE.SpriteMaterial;
+          const clonedSM = clonedP.material as THREE.SpriteMaterial;
+          
+          // Copy position from original but maintain scale difference through basePos
+          const t01 = ((heartsTimeMs + clonedP.tOffset) % clonedP.lifeMs) / clonedP.lifeMs;
+          const half = t01 < 0.5 ? t01 / 0.5 : (1 - t01) / 0.5;
+          const ease = Math.pow(half, SMALL_HEART_EASE_EXP);
+          const travel = t01 <= 0.5 ? 1 - Math.pow(1 - t01 / 0.5, 2) : 1 - Math.pow(1 - (1 - t01) / 0.5, 2);
+          const offsetLen = (clonedP.moveDist ?? 16) * travel;
+          
+          clonedP.position.set(
+            clonedP.basePos.x + (clonedP.moveDir?.x ?? 0) * offsetLen,
+            clonedP.basePos.y + (clonedP.moveDir?.y ?? 0) * offsetLen,
+            clonedP.basePos.z
+          );
+          
+          // Sync opacity and visibility
+          let introOpacityMultiplier = 0;
+          if (clonedP.activated && introElapsedMs >= ANIMATION_START_DELAY_MS && clonedP.activationTime) {
+            const timeSinceActivation = currentTime - clonedP.activationTime;
+            if (timeSinceActivation >= 0 && timeSinceActivation < HEART_APPEAR_DURATION_MS) {
+              const heartAppearProgress = timeSinceActivation / HEART_APPEAR_DURATION_MS;
+              introOpacityMultiplier = Math.pow(heartAppearProgress, 0.5);
+            } else if (timeSinceActivation >= HEART_APPEAR_DURATION_MS) {
+              introOpacityMultiplier = 1;
+            }
+          }
+          
+          const finalOpacity = ease * introOpacityMultiplier * secondLayerOpacity;
+          clonedSM.opacity = finalOpacity;
+          clonedP.visible = clonedSM.opacity > SMALL_HEART_VISIBLE_THRESHOLD;
+        }
+      }
+
       renderer.render(scene, camera);
     };
 
     animate();
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      // Enhanced cleanup for weak devices - Force garbage collection triggers
-      // Cleanup split rods với aggressive cleanup cho máy yếu
-      for (const splitRod of allSplitRods) {
-        disposeMesh(splitRod.mesh);
-        // Cleanup lens flares
-        if (splitRod.lensFlares) {
-          for (const flare of splitRod.lensFlares) {
-            disposeSprite(flare);
-          }
-        }
-        // Cleanup sparkles
-        if (splitRod.sparkles) {
-          for (const sparkle of splitRod.sparkles) {
-            disposeSprite(sparkle.sprite);
-          }
-        }
-      }
-      allSplitRods = [];
-      if (heartGroup) {
-        scene.remove(heartGroup);
-        for (const p of heartParticles) {
-          disposeSprite(p.tip);
-          // Dispose side hearts
-          if (p.sideHearts) {
-            for (const sideHeart of p.sideHearts) {
-              disposeSprite(sideHeart);
-            }
-          }
-          disposeMesh(p.rod);
-          p.__dispose?.();
-        }
-        heartParticles = [];
-        heartGroup = null;
-      }
-      if (markerSprite) {
-        disposeSprite(markerSprite);
-        markerSprite = null;
-      }
-      // Cleanup geometry pool
-      for (const geometry of geometryPool.box.values()) {
-        geometry.dispose();
-      }
-      geometryPool.box.clear();
-
-      // Cleanup object pools
-      objectPool.vectors.length = 0;
-      objectPool.quaternions.length = 0;
-      objectPool.colors.length = 0;
-
-      renderer.dispose();
-      if (renderer.domElement.parentNode) {
-        (renderer.domElement.parentNode as HTMLElement).removeChild(renderer.domElement);
-      }
-    };
-  }, [bigHeartWidth]);
+  }, [bigHeartWidth, enableSecondLayer, secondLayerScale, secondLayerOffset, secondLayerOpacity]);
 
   return <div ref={mountRef} style={{ ...layerStyle, ...style }} />;
 }

@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState, useCallback, useMemo, Suspense } from "react";
 import HeartRods from "./HeartRods";
 import styles from "./responsive.module.css";
