@@ -34,7 +34,7 @@ const useScreenSize = () => {
 
     setIsLandscape(isLandscapeMode);
 
-    if (width < 400) {
+    if (width < 450 || height < 450) {
       setScreenSize("mobile");
     } else if (width < 650) {
       setScreenSize("mobile");

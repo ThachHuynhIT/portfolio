@@ -147,28 +147,6 @@ export const getPerformanceTier = () => {
   const cores = (navigator as any).hardwareConcurrency || 4;
   const memory = (navigator as any).deviceMemory || 4;
 
-  // Phát hiện GPU yếu qua WebGL context
-  const canvas = document.createElement("canvas");
-  const gl = canvas.getContext("webgl") || (canvas.getContext("experimental-webgl") as WebGLRenderingContext);
-  let gpuTier = "medium";
-
-  if (gl && gl instanceof WebGLRenderingContext) {
-    const renderer = gl.getParameter(gl.RENDERER) || "";
-    const vendor = gl.getParameter(gl.VENDOR) || "";
-
-    // Phát hiện GPU tích hợp hoặc cũ
-    if (
-      renderer.includes("Intel") ||
-      renderer.includes("Mali") ||
-      renderer.includes("Adreno 3") ||
-      renderer.includes("PowerVR") ||
-      vendor.includes("ARM") ||
-      renderer.includes("Software")
-    ) {
-      gpuTier = "low";
-    }
-  }
-
   if (cores < 6 || memory < 4) {
     return "medium";
   }
@@ -272,7 +250,7 @@ export const getResponsiveCameraSettings = () => {
   if (deviceType === "mobile" && orientation === "landscape") {
     return {
       fov: Math.min(60, CAMERA_FOV + 15), // Wider FOV for landscape
-      z: Math.max(700, CAMERA_Z - 200), // Move camera closer
+      z: 500, // Move camera closer
       targetZ: Math.max(-200, -120 - 80), // Adjust target depth
     };
   }
