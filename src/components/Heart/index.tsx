@@ -1,10 +1,10 @@
-"use client";
-import React, { useEffect, useState, useCallback, useMemo, Suspense } from "react";
+import React, { useEffect, useState, useCallback, useMemo, Suspense, useRef } from "react";
 import HeartRods from "./HeartRods";
 import styles from "./responsive.module.css";
 import TextOverlay from "./TextOverlay";
 import { Canvas } from "@react-three/fiber";
 import ParticleEffect from "./ParticleEffect";
+import { baseConfigs } from "./constants";
 
 export type Hearth2Props = {
   texts?: string[];
@@ -22,6 +22,17 @@ export type Hearth2Props = {
   };
 };
 
+interface FireworkProp {
+  encryptedData: string;
+}
+
+interface HeartProp {
+  id: string;
+  messages: string[];
+  finalImage: string;
+  music: string;
+}
+
 // Hook để detect screen size và orientation với throttling
 const useScreenSize = () => {
   const [screenSize, setScreenSize] = useState<"mobile" | "tablet" | "desktop">("desktop");
@@ -34,9 +45,7 @@ const useScreenSize = () => {
 
     setIsLandscape(isLandscapeMode);
 
-    if (width < 450 || height < 450) {
-      setScreenSize("mobile");
-    } else if (width < 650) {
+    if (width < 650 || height < 500) {
       setScreenSize("mobile");
     } else if (width < 1024) {
       setScreenSize("tablet");
@@ -126,113 +135,77 @@ const generateHeartClipPath = (points: number = 50): string => {
 
 // Responsive configurations với memoization
 const getResponsiveConfig = (screenSize: "mobile" | "tablet" | "desktop", isLandscape: boolean) => {
-  const baseConfigs = {
-    mobile: {
-      // HeartRods props
-      bigHeartWidth: 280,
-      bigHeartAspect: 1.0,
-      smallHeartSizePx: 32,
-      smallHeartScale: 0.5,
-      smallHeartMoveMin: 8,
-      smallHeartMoveMax: 18,
-      smallHeartLifeMs: 1200,
-      rodLengthBase: 100,
-      rodWidth: 3,
-      rodHeight: 1.4,
-      markerSize: 300, // tăng đáng kể để thấy sự thay đổi trên mobile
-      markerRevsPerSec: 0.25,
-      rodDepthMaxAdvance: 800,
-      rodDepthSpeed: 150,
-      rodOpacity: 0.7,
-
-      // TextOverlay props
-      fontSize: 70,
-      maxLineWidth: 300,
-      wordSpacing: 1.5,
-      lineHeight: 1.1,
-      moveDurationMs: 500,
-      staggerMs: 120,
-      holdDurationMs: 800,
-    },
-    tablet: {
-      // HeartRods props
-      bigHeartWidth: 400,
-      bigHeartAspect: 1.05,
-      smallHeartSizePx: 40,
-      smallHeartScale: 0.55,
-      smallHeartMoveMin: 9,
-      smallHeartMoveMax: 20,
-      smallHeartLifeMs: 1100,
-      rodLengthBase: 125,
-      rodWidth: 4,
-      rodHeight: 1.5,
-      markerSize: 600, // tăng đáng kể để thấy sự thay đổi trên tablet
-      markerRevsPerSec: 0.22,
-      rodDepthMaxAdvance: 1000,
-      rodDepthSpeed: 175,
-      rodOpacity: 0.78,
-
-      // TextOverlay props
-      fontSize: 120,
-      maxLineWidth: 400,
-      wordSpacing: 1.8,
-      lineHeight: 1.15,
-      moveDurationMs: 450,
-      staggerMs: 130,
-      holdDurationMs: 900,
-    },
-    desktop: {
-      // HeartRods props
-      bigHeartWidth: 520,
-      bigHeartAspect: 1.1,
-      smallHeartSizePx: 48,
-      smallHeartScale: 0.6,
-      smallHeartMoveMin: 10,
-      smallHeartMoveMax: 24,
-      smallHeartLifeMs: 1000,
-      rodLengthBase: 150,
-      rodWidth: 5,
-      rodHeight: 1.6,
-      markerSize: 1000, // tăng đáng kể để thấy sự thay đổi trên desktop
-      markerRevsPerSec: 0.2,
-      rodDepthMaxAdvance: 1200,
-      rodDepthSpeed: 200,
-      rodOpacity: 0.85,
-
-      // TextOverlay props
-      fontSize: 150,
-      maxLineWidth: 500,
-      wordSpacing: 2,
-      lineHeight: 1.2,
-      moveDurationMs: 400,
-      staggerMs: 150,
-      holdDurationMs: 1000,
-    },
-  };
-
   const config = { ...baseConfigs[screenSize] };
-
-  // Apply landscape-specific adjustments
-  if (screenSize === "mobile" && isLandscape) {
-    config.bigHeartWidth = Math.min(350, config.bigHeartWidth * 1.2);
-    config.bigHeartAspect = 0.9; // Slightly wider for landscape
-    config.fontSize = Math.max(60, config.fontSize * 0.8); // Smaller font for landscape
-    config.maxLineWidth = Math.min(400, config.maxLineWidth * 1.3);
-  } else if (screenSize === "tablet" && isLandscape) {
-    config.bigHeartWidth = Math.min(450, config.bigHeartWidth * 1.1);
-    config.fontSize = Math.max(100, config.fontSize * 0.9);
-  }
-
   return config;
 };
 
-export default function Hearth2({ texts, color, fontSize, imageUrl, imageWidth = 500, imageHeight = 400 }: Hearth2Props) {
+export default function Hearth2({ texts, imageUrl }: Hearth2Props) {
   const [isHeartAnimating, setIsHeartAnimating] = React.useState(true); // Track heart animation state
   const [isShowImage, setIsShowImage] = React.useState(false);
   const { screenSize, isLandscape } = useScreenSize();
+  const [messages, setMessages] = useState<string[]>([]);
+  // const [imageUrl, setImageUrl] = useState<string>("");
+  const [music, setMusic] = useState<string>("");
+  const audioRef = useRef(null);
+
+  const imageWidth = 500;
+  const imageHeight = 400;
 
   // Memoize configuration to prevent unnecessary recalculations
   const config = useMemo(() => getResponsiveConfig(screenSize, isLandscape), [screenSize, isLandscape]);
+
+  // Prevent body scrolling when component mounts and enable when unmounts
+  useEffect(() => {
+    // Save original body styles
+    const originalBodyStyle = {
+      height: document.body.style.height,
+      maxHeight: document.body.style.maxHeight,
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      width: document.body.style.width,
+      top: document.body.style.top,
+      left: document.body.style.left,
+    };
+
+    // Apply no-scroll styles to body
+    document.body.style.height = "100dvh";
+    document.body.style.height = "100vh"; // Fallback
+    document.body.style.maxHeight = "100dvh";
+    document.body.style.maxHeight = "100vh"; // Fallback
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.width = "100%";
+    document.body.style.top = "0";
+    document.body.style.left = "0";
+
+    // Also apply to html element for better mobile support
+    const originalHtmlStyle = {
+      height: document.documentElement.style.height,
+      maxHeight: document.documentElement.style.maxHeight,
+      overflow: document.documentElement.style.overflow,
+    };
+
+    document.documentElement.style.height = "100dvh";
+    document.documentElement.style.height = "100vh"; // Fallback
+    document.documentElement.style.maxHeight = "100dvh";
+    document.documentElement.style.maxHeight = "100vh"; // Fallback
+    document.documentElement.style.overflow = "hidden";
+
+    // Cleanup function to restore original styles
+    return () => {
+      document.body.style.height = originalBodyStyle.height;
+      document.body.style.maxHeight = originalBodyStyle.maxHeight;
+      document.body.style.overflow = originalBodyStyle.overflow;
+      document.body.style.position = originalBodyStyle.position;
+      document.body.style.width = originalBodyStyle.width;
+      document.body.style.top = originalBodyStyle.top;
+      document.body.style.left = originalBodyStyle.left;
+
+      document.documentElement.style.height = originalHtmlStyle.height;
+      document.documentElement.style.maxHeight = originalHtmlStyle.maxHeight;
+      document.documentElement.style.overflow = originalHtmlStyle.overflow;
+    };
+  }, []);
 
   useEffect(() => {
     // Heart animation typically lasts around 8-10 seconds, reduce overlap
@@ -248,9 +221,9 @@ export default function Hearth2({ texts, color, fontSize, imageUrl, imageWidth =
   // Callback khi tất cả texts đã hiển thị xong
   const handleAllTextsCompleted = useCallback(() => {
     if (imageUrl) {
-      setTimeout(() => {
-        setIsShowImage(true);
-      }, 500); // Delay 500ms trước khi hiển thị hình
+      // setTimeout(() => {
+      setIsShowImage(true);
+      // }, 500); // Delay 500ms trước khi hiển thị hình
     }
   }, [imageUrl]);
 
@@ -258,12 +231,12 @@ export default function Hearth2({ texts, color, fontSize, imageUrl, imageWidth =
   const imageConfig = useMemo(() => {
     const configs = {
       mobile: {
-        width: 250,
-        height: 200,
+        width: 210,
+        height: 180,
       },
       tablet: {
-        width: 400,
-        height: 300,
+        width: 190,
+        height: 150,
       },
       desktop: {
         width: 500,
@@ -278,8 +251,17 @@ export default function Hearth2({ texts, color, fontSize, imageUrl, imageWidth =
     return generateHeartClipPath(60);
   }, []);
 
+  if (!isLandscape) {
+    // return <RotateNotice />;
+  }
+
   return (
-    <div className={styles.heartContainer}>
+    <div className={`${styles.heartContainer} ${screenSize === "mobile" ? styles.heartMobile : ""}`}>
+      {music !== "" && (
+        <audio ref={audioRef} loop controls hidden>
+          <source src={music} type="audio/mpeg" />
+        </audio>
+      )}
       <div
         style={{
           position: "absolute",
@@ -329,8 +311,7 @@ export default function Hearth2({ texts, color, fontSize, imageUrl, imageWidth =
       {!isShowImage && (
         <TextOverlay
           texts={texts}
-          color={color}
-          fontSize={fontSize || config.fontSize}
+          fontSize={config.fontSize}
           maxLineWidth={config.maxLineWidth}
           wordSpacing={config.wordSpacing}
           lineHeight={config.lineHeight}

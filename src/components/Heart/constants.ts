@@ -125,13 +125,98 @@ export const HEART_APPEAR_DURATION_MS = 800; // heart outline appears in first 8
 export const ANIMATION_START_DELAY_MS = 500; // delay before rods/markers start moving
 export const TWO_PI = Math.PI * 2;
 
+export const baseConfigs = {
+  mobile: {
+    // HeartRods props
+    bigHeartWidth: 520,
+    bigHeartAspect: 1.1,
+    smallHeartSizePx: 40,
+    smallHeartScale: 0.5,
+    smallHeartMoveMin: 10,
+    smallHeartMoveMax: 22,
+    smallHeartLifeMs: 1200,
+    rodLengthBase: 120,
+    rodWidth: 3.5,
+    rodHeight: 1.5,
+    markerSize: 400,
+    markerRevsPerSec: 0.25,
+    rodDepthMaxAdvance: 900,
+    rodDepthSpeed: 160,
+    rodOpacity: 0.7,
+
+    // TextOverlay props
+    fontSize: 100,
+    maxLineWidth: 470, // Tăng để phù hợp với trái tim lớn hơn
+    wordSpacing: 1.5,
+    lineHeight: 1.1,
+    moveDurationMs: 500,
+    staggerMs: 120,
+    holdDurationMs: 800,
+  },
+  tablet: {
+    // HeartRods props
+    bigHeartWidth: 650,
+    bigHeartAspect: 1.05,
+    smallHeartSizePx: 44,
+    smallHeartScale: 0.55,
+    smallHeartMoveMin: 11,
+    smallHeartMoveMax: 25,
+    smallHeartLifeMs: 1100,
+    rodLengthBase: 140,
+    rodWidth: 4.5,
+    rodHeight: 1.6,
+    markerSize: 750,
+    markerRevsPerSec: 0.22,
+    rodDepthMaxAdvance: 1100,
+    rodDepthSpeed: 180,
+    rodOpacity: 0.78,
+
+    // TextOverlay props
+    fontSize: 120,
+    maxLineWidth: 450,
+    wordSpacing: 1.8,
+    lineHeight: 1.15,
+    moveDurationMs: 450,
+    staggerMs: 130,
+    holdDurationMs: 900,
+  },
+  desktop: {
+    // HeartRods props
+    bigHeartWidth: 520,
+    bigHeartAspect: 1.1,
+    smallHeartSizePx: 48,
+    smallHeartScale: 0.6,
+    smallHeartMoveMin: 10,
+    smallHeartMoveMax: 24,
+    smallHeartLifeMs: 1000,
+    rodLengthBase: 150,
+    rodWidth: 5,
+    rodHeight: 1.6,
+    markerSize: 1000, // tăng đáng kể để thấy sự thay đổi trên desktop
+    markerRevsPerSec: 0.2,
+    rodDepthMaxAdvance: 1200,
+    rodDepthSpeed: 200,
+    rodOpacity: 0.85,
+
+    // TextOverlay props
+    fontSize: 150,
+    maxLineWidth: 500,
+    wordSpacing: 2,
+    lineHeight: 1.2,
+    moveDurationMs: 400,
+    staggerMs: 150,
+    holdDurationMs: 1000,
+  },
+};
+
 // =============================
 // DEVICE AND PERFORMANCE DETECTION
 // =============================
 // Device detection utility with performance level assessment
 export const getDeviceTypeByWidth = () => {
   const width = window.innerWidth ?? window.screen.width;
-  if (width < 768) {
+  const height = window.innerHeight ?? window.screen.height;
+  if (width < 768 || height < 500) {
     return "mobile";
   }
   if (width >= 768 && width <= 1024) {
@@ -146,6 +231,28 @@ export const getPerformanceTier = () => {
   if (typeof window === "undefined") return "high";
   const cores = (navigator as any).hardwareConcurrency || 4;
   const memory = (navigator as any).deviceMemory || 4;
+
+  // Phát hiện GPU yếu qua WebGL context
+  const canvas = document.createElement("canvas");
+  const gl = canvas.getContext("webgl") || (canvas.getContext("experimental-webgl") as WebGLRenderingContext);
+  let gpuTier = "medium";
+
+  if (gl && gl instanceof WebGLRenderingContext) {
+    const renderer = gl.getParameter(gl.RENDERER) || "";
+    const vendor = gl.getParameter(gl.VENDOR) || "";
+
+    // Phát hiện GPU tích hợp hoặc cũ
+    if (
+      renderer.includes("Intel") ||
+      renderer.includes("Mali") ||
+      renderer.includes("Adreno 3") ||
+      renderer.includes("PowerVR") ||
+      vendor.includes("ARM") ||
+      renderer.includes("Software")
+    ) {
+      gpuTier = "low";
+    }
+  }
 
   if (cores < 6 || memory < 4) {
     return "medium";
@@ -174,7 +281,7 @@ export const getOptimizedSettings = (isTextAnimating = false) => {
     switch (performanceTier) {
       case "medium":
         return {
-          heartParticleCount: 70,
+          heartParticleCount: 120,
           pixelRatio: 1, // Giữ 1x pixel ratio
           antialias: false, // Tắt antialias cho hiệu năng
           splitRodCount: 1, // Chỉ 1 split rod
@@ -250,25 +357,25 @@ export const getResponsiveCameraSettings = () => {
   if (deviceType === "mobile" && orientation === "landscape") {
     return {
       fov: Math.min(60, CAMERA_FOV + 15), // Wider FOV for landscape
-      z: 500, // Move camera closer
-      targetZ: Math.max(-200, -120 - 80), // Adjust target depth
+      z: 400, // Move camera back slightly for larger heart
+      targetZ: -200, // Adjust target depth
     };
   }
 
-  // Mobile portrait adjustments
+  // Mobile portrait adjustments - điều chỉnh để hiển thị trái tim lớn hơn
   if (deviceType === "mobile" && orientation === "portrait") {
     return {
-      fov: CAMERA_FOV,
-      z: Math.max(800, CAMERA_Z - 100), // Slightly closer
+      fov: CAMERA_FOV + 5, // Wider FOV để hiển thị trái tim lớn hơn
+      z: 350, // Move camera back để hiển thị trái tim lớn hơn
       targetZ: -120,
     };
   }
 
-  // Tablet adjustments
+  // Tablet adjustments - điều chỉnh để hiển thị trái tim lớn hơn
   if (deviceType === "tablet") {
     return {
-      fov: CAMERA_FOV,
-      z: orientation === "landscape" ? CAMERA_Z - 100 : CAMERA_Z - 50,
+      fov: CAMERA_FOV + 3, // Wider FOV để hiển thị trái tim lớn hơn
+      z: orientation === "landscape" ? CAMERA_Z - 50 : CAMERA_Z + 50, // Điều chỉnh khoảng cách camera
       targetZ: orientation === "landscape" ? -150 : -120,
     };
   }
