@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=Courgette&display=swap');
+
+/* Container chính */
+.container-christmas-tree {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Canvas */
+.canvas-christmas-tree {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Text Container */
+.christmas-text {
+    width: auto !important;
+    max-width: 90vw !important;
+    padding: 0 10px;
+}
+
+/* Desktop - Default */
+.title {
+    font-size: 1.5rem;
+    font-family: 'cursive';
+    margin-bottom: 0.5rem;
+    padding-left: 1px;
+    line-height: 1.2;
+}
+
+.subtitle {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    padding-left: 8px;
+    line-height: 1.3;
+}
+
+.message {
+    font-size: 1rem;
+    line-height: 1.3;
+    padding-left: 12px;
+
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .title {
+        font-size: 1.5rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .message {
+        font-size: 0.9rem;
+    }
+
+    .christmas-text {
+        max-width: 250px !important;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .title {
+        font-size: 15px;
+        margin-bottom: 0.3rem;
+    }
+
+    .subtitle {
+        font-size: 10px;
+        margin-bottom: 0.15rem;
+    }
+
+    .message {
+        font-size: 10px;
+    }
+
+    .christmas-text {
+        max-width: 200px !important;
+        padding: 0 8px;
+    }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+    .title {
+        font-size: 12px;
+        margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+        font-size: 8px;
+        margin-bottom: 0.1rem;
+    }
+
+    .message {
+        font-size: 8px;
+    }
+
+    .christmas-text {
+        max-width: 180px !important;
+        padding: 0 5px;
+    }
+}
