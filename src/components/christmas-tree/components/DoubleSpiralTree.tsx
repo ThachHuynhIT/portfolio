@@ -237,6 +237,7 @@ export default function DoubleSpiralTree3D({
   }, [STREAKS_N, color, L_SEGS]);
 
   // ======= LIGHTNING =======
+
   const lightningBoltObjs = useMemo(() => {
     const arr: {
       line: THREE.Line;
@@ -321,7 +322,7 @@ export default function DoubleSpiralTree3D({
       arr.push({ line, geo, mat, initialJitter, curN, curB, velN, velB, tgtN, tgtB, nextT, freq, seed });
     }
     return arr;
-  }, [SPARKS_N, color, curveA, curveB, tubeRadius, streakAmp]);
+  }, [SPARKS_N, color, curveA, curveB, tubeRadius, streakAmp,]);
 
   // ======= STAR MATERIAL =======
   const starMat = useMemo(() => {
@@ -486,7 +487,6 @@ export default function DoubleSpiralTree3D({
       }
     }
 
-    const isFlashing = flashStartRef.current !== null && (t - flashStartRef.current) <= fadeFlashDuration;
     const flashPhase = flashStartRef.current === null ? 0 : Math.min(1, (t - flashStartRef.current) / fadeFlashDuration);
     const flash = Math.sin(flashPhase * Math.PI);
     const brightBoost = 1 + 2.8 * flash;

@@ -73,7 +73,7 @@ export default function ChristmasTree3D({
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const getBranchColor = (type: 'tree' | 'trunk') => {
+    const getBranchColor = () => {
         return treeColor === 'pink' ? [0.95, 0.5, 0.7] : [0.1, 0.7, 0.95];
     };
 
@@ -82,7 +82,7 @@ export default function ChristmasTree3D({
         const positions = new Float32Array(particleCount * 3);
         const colors = new Float32Array(particleCount * 3);
         const sizes = new Float32Array(particleCount);
-        const [r, g, b] = getBranchColor('trunk');
+        const [r, g, b] = getBranchColor();
 
         for (let i = 0; i < particleCount; i++) {
             const y = -0.4 + (i / (particleCount - 1)) * trunkHeight;
@@ -100,7 +100,7 @@ export default function ChristmasTree3D({
         }
 
         return { positions, colors, sizes, count: particleCount };
-    }, [treeColor]);
+    }, [treeColor, getBranchColor]);
 
     // Tree
     const treeParticles = useMemo(() => {
@@ -114,7 +114,7 @@ export default function ChristmasTree3D({
         const baseRadius = 1.5;
         const layers = 12;
         const branchesPerLayer = 8;
-        const [r, g, b] = getBranchColor('tree');
+        const [r, g, b] = getBranchColor();
 
         let totalPossibleBranches = 0;
         for (let layer = 0; layer < layers; layer++) {
@@ -184,7 +184,7 @@ export default function ChristmasTree3D({
         }
 
         return { positions, colors, sizes, count: index };
-    }, [treeColor]);
+    }, [treeColor, getBranchColor]);
 
     // Heart
     const heartParticles = useMemo(() => {
@@ -192,7 +192,7 @@ export default function ChristmasTree3D({
         const positions = new Float32Array(targetDots * 3);
         const colors = new Float32Array(targetDots * 3);
         const sizes = new Float32Array(targetDots);
-        const [r, g, b] = getBranchColor('tree');
+        const [r, g, b] = getBranchColor();
 
         const heartScale = 0.1;
         const R = 2;
@@ -288,7 +288,7 @@ export default function ChristmasTree3D({
             sizes: count === targetDots ? sizes : sizes.slice(0, count),
             count,
         };
-    }, [treeColor]);
+    }, [treeColor, getBranchColor]);
 
     // Geometries
     const trunkGeometry = useMemo(() => {
