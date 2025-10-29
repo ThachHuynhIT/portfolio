@@ -31,37 +31,50 @@ function createCircleTexture(size = 128) {
     return texture;
 }
 
-export default function ChristmasTree3D() {
+type Props = {
+    treeColor: string;
+    appearDuration?: number; // s
+    appearDelay?: number;    // s
+    heartDelayOffset?: number; // s
+};
+
+export default function ChristmasTree3D({
+    treeColor,
+    appearDuration = 1.4,
+    appearDelay = 0,
+    heartDelayOffset = 0.2,
+}: Props) {
     const dotTexture = useMemo(() => createCircleTexture(128), []);
     const groupRef = useRef<Group>(null);
+    const heartRef = useRef<THREE.Points>(null);
+
+    const trunkMatRef = useRef<THREE.PointsMaterial>(null);
+    const treeMatRef = useRef<THREE.PointsMaterial>(null);
+    const heartMatRef = useRef<THREE.PointsMaterial>(null);
+
+    const trunkGeoRef = useRef<THREE.BufferGeometry>(null);
+    const treeGeoRef = useRef<THREE.BufferGeometry>(null);
+    const heartGeoRef = useRef<THREE.BufferGeometry>(null);
+
     const trunkHeight = 0.8;
-    const [treeColor, setTreeColor] = useState<'pink' | 'blue'>('pink');
+    const treeHeight = 3.6;
+
     const [treeScale, setTreeScale] = useState(1);
+
+    const TREE_ROTATE_SPEED = 0.10;
+    const HEART_Z_SPIN = 1.3;
 
     useEffect(() => {
         function handleResize() {
-            if (window.innerWidth <= 768) {
-                setTreeScale(0.65);
-            } else {
-                setTreeScale(1);
-            }
+            setTreeScale(window.innerWidth <= 768 ? 0.65 : 1);
         }
         handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    useEffect(() => {
-        const timer = setTimeout(() => setTreeColor('blue'), 5000);
-        return () => clearTimeout(timer);
-    }, []);
-
     const getBranchColor = (type: 'tree' | 'trunk') => {
-        if (treeColor === 'pink') {
-            return [0.95, 0.5, 0.7];
-        } else {
-            return type === 'tree' ? [0.1, 0.7, 0.95] : [0.1, 0.7, 0.95];
-        }
+        return treeColor === 'pink' ? [0.95, 0.5, 0.7] : [0.1, 0.7, 0.95];
     };
 
     const trunkParticles = useMemo(() => {
@@ -70,21 +83,26 @@ export default function ChristmasTree3D() {
         const colors = new Float32Array(particleCount * 3);
         const sizes = new Float32Array(particleCount);
         const [r, g, b] = getBranchColor('trunk');
+
         for (let i = 0; i < particleCount; i++) {
             const y = -0.4 + (i / (particleCount - 1)) * trunkHeight;
             const angle = Math.random() * Math.PI * 2;
             const radius = 0.07 + Math.random() * 0.03;
-            positions[i * 3] = Math.cos(angle) * radius;
+            positions[i * 3 + 0] = Math.cos(angle) * radius;
             positions[i * 3 + 1] = y;
             positions[i * 3 + 2] = Math.sin(angle) * radius;
-            colors[i * 3] = r;
+
+            colors[i * 3 + 0] = r;
             colors[i * 3 + 1] = g;
             colors[i * 3 + 2] = b;
+
             sizes[i] = (0.07 + Math.random() * 0.03) / 2;
         }
+
         return { positions, colors, sizes, count: particleCount };
     }, [treeColor]);
 
+    // Tree
     const treeParticles = useMemo(() => {
         const particleCount = 15000;
         const positions = new Float32Array(particleCount * 3);
@@ -105,13 +123,12 @@ export default function ChristmasTree3D() {
         }
         const avgParticlesPerBranch = particleCount / totalPossibleBranches;
 
-
         for (let layer = 0; layer < layers; layer++) {
             const layerHeight = (layer / layers) * totalHeight;
             const heightRatio = layer / layers;
 
-            const maxRadiusAtLayer = baseRadius * (1 - heightRatio);
             const branchAngleUp = Math.PI * 0.08;
+            const maxRadiusAtLayer = baseRadius * (1 - heightRatio);
             const maxBranchLength = maxRadiusAtLayer / Math.cos(branchAngleUp);
 
             const branches = layer === layers - 1 ? Math.floor(branchesPerLayer / 2) : branchesPerLayer;
@@ -119,7 +136,6 @@ export default function ChristmasTree3D() {
                 const angleAroundTree = (branch / branches) * Math.PI * 2 + layer * 0.5;
                 const branchHeightOffset = (Math.random() - 0.5) * 0.25;
                 const branchStartHeight = layerHeight + branchHeightOffset;
-                const branchAngleVariation = (Math.random() - 0.3) * Math.PI * 0.1;
                 const lengthVariation = 0.9 + Math.random() * 0.1;
                 const currentBranchLength = maxBranchLength * lengthVariation;
 
@@ -131,29 +147,37 @@ export default function ChristmasTree3D() {
                     const branchThickness = (1 - branchProgress * 0.9) * 0.35;
                     const surfaceAngle = Math.random() * Math.PI * 2;
                     const surfaceRadius = branchThickness * (0.7 + Math.random() * 0.3);
+
                     const horizontalDistance = distance * Math.cos(branchAngleUp);
                     const verticalRise = distance * Math.sin(branchAngleUp);
                     const curveFactor = branchProgress * branchProgress * 0.1;
+
                     const branchDirX = Math.cos(angleAroundTree);
                     const branchDirZ = Math.sin(angleAroundTree);
                     const surfaceOffsetX = Math.cos(surfaceAngle) * surfaceRadius;
                     const surfaceOffsetY = Math.sin(surfaceAngle) * surfaceRadius * 0.5;
 
-                    positions[index * 3] =
+                    positions[index * 3 + 0] =
                         branchDirX * horizontalDistance +
                         surfaceOffsetX * Math.cos(angleAroundTree + Math.PI / 2) -
                         surfaceOffsetY * Math.sin(branchAngleUp) * branchDirX;
-                    positions[index * 3 + 1] = branchStartHeight + verticalRise - curveFactor + surfaceOffsetY * Math.cos(branchAngleUp);
+
+                    positions[index * 3 + 1] =
+                        branchStartHeight + verticalRise - curveFactor +
+                        surfaceOffsetY * Math.cos(branchAngleUp);
+
                     positions[index * 3 + 2] =
                         branchDirZ * horizontalDistance +
                         surfaceOffsetX * Math.sin(angleAroundTree + Math.PI / 2) -
                         surfaceOffsetY * Math.sin(branchAngleUp) * branchDirZ;
 
-                    colors[index * 3] = r;
+                    colors[index * 3 + 0] = r;
                     colors[index * 3 + 1] = g;
                     colors[index * 3 + 2] = b;
 
-                    sizes[index] = ((Math.random() * 0.06 + 0.03) * (1 - branchProgress * 0.35)) / 2;
+                    sizes[index] =
+                        ((Math.random() * 0.06 + 0.03) * (1 - branchProgress * 0.35)) / 2;
+
                     index++;
                 }
             }
@@ -162,129 +186,242 @@ export default function ChristmasTree3D() {
         return { positions, colors, sizes, count: index };
     }, [treeColor]);
 
+    // Heart
     const heartParticles = useMemo(() => {
-        const particleCount = 1700;
-        const positions = new Float32Array(particleCount * 3);
-        const colors = new Float32Array(particleCount * 3);
-        const sizes = new Float32Array(particleCount);
+        const targetDots = 1200;
+        const positions = new Float32Array(targetDots * 3);
+        const colors = new Float32Array(targetDots * 3);
+        const sizes = new Float32Array(targetDots);
+        const [r, g, b] = getBranchColor('tree');
 
-        const heartShape = (t: number, scale: number) => {
-            const x = scale * 16 * Math.pow(Math.sin(t), 3);
-            // Tăng hệ số của các thành phần cos(t) để kéo dài theo chiều y
-            const y = scale * (16 * Math.cos(t) - 6 * Math.cos(2 * t) - 2.5 * Math.cos(3 * t) - 1.2 * Math.cos(4 * t)); // Đã điều chỉnh
-            return { x, y };
+        const heartScale = 0.1;
+        const R = 2;
+
+        const F = (x: number, y: number, z: number) => {
+            const a = x * x + (9 / 4) * y * y + z * z - 1;
+            return a * a * a - x * x * z * z * z - (9 / 80) * y * y * z * z * z;
         };
 
-        let index = 0;
-        const scale = 0.23; // Tăng scale tổng thể của trái tim để nó lớn hơn và có thể dài hơn
+        const grad = (x: number, y: number, z: number) => {
+            const h = 1e-3;
+            const fx = (F(x + h, y, z) - F(x - h, y, z)) / (2 * h);
+            const fy = (F(x, y + h, z) - F(x, y - h, z)) / (2 * h);
+            const fz = (F(x, y, z + h) - F(x, y, z - h)) / (2 * h);
+            return new THREE.Vector3(fx, fy, fz);
+        };
 
-        for (let i = 0; i < particleCount / 2; i++) {
-            const t = (i / (particleCount / 2)) * Math.PI * 2;
-            const { x, y } = heartShape(t, scale);
-            const noise = (Math.random() - 0.5) * 0.015;
-            const angle = Math.random() * Math.PI * 2;
-            positions[index * 3] = x / 16 + Math.cos(angle) * noise;
-            positions[index * 3 + 1] = y / 16 + Math.sin(angle) * noise + 0.1;
-            positions[index * 3 + 2] = (Math.random() - 0.5) * 0.04;
-            const brightness = 0.7 + Math.random() * 0.1;
-            const pinkFactor = Math.random();
-            colors[index * 3] = brightness * (0.9 + pinkFactor * 0.1);
-            colors[index * 3 + 1] = brightness * (0.7 + pinkFactor * 0.1);
-            colors[index * 3 + 2] = brightness * (0.8 + pinkFactor * 0.1);
-            sizes[index] = (Math.random() * 0.025 + 0.012) / 2;
-            index++;
+        const hitOnRay = (dir: THREE.Vector3): THREE.Vector3 | null => {
+            const steps = 100;
+            let t0 = -R, f0 = F(dir.x * t0, dir.y * t0, dir.z * t0);
+            for (let i = 1; i <= steps; i++) {
+                const t1 = -R + (2 * R * i) / steps;
+                const f1 = F(dir.x * t1, dir.y * t1, dir.z * t1);
+                if (f0 === 0) return new THREE.Vector3(dir.x * t0, dir.y * t0, dir.z * t0);
+                if (f0 * f1 < 0) {
+                    let a = t0, b = t1;
+                    for (let it = 0; it < 20; it++) {
+                        const m = 0.5 * (a + b);
+                        const fm = F(dir.x * m, dir.y * m, dir.z * m);
+                        if (fm === 0) { a = b = m; break; }
+                        if (f0 * fm < 0) b = m; else { a = m; f0 = fm; }
+                    }
+                    let t = 0.5 * (a + b);
+                    for (let it = 0; it < 2; it++) {
+                        const p = new THREE.Vector3(dir.x * t, dir.y * t, dir.z * t);
+                        const g = grad(p.x, p.y, p.z);
+                        const dfdt = g.dot(dir);
+                        const ft = F(p.x, p.y, p.z);
+                        if (Math.abs(dfdt) < 1e-6) break;
+                        t = t - ft / dfdt;
+                    }
+                    return new THREE.Vector3(dir.x * t, dir.y * t, dir.z * t);
+                }
+                t0 = t1; f0 = f1;
+            }
+            return null;
+        };
+
+        let count = 0;
+        const N = Math.round(targetDots * 1);
+        const jitter = 0.006;
+
+        for (let i = 0; i < N && count < targetDots; i++) {
+            const phi = Math.acos(1 - 2 * (i + 0.5) / N);
+            const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+            const dir = new THREE.Vector3(
+                Math.sin(phi) * Math.cos(theta),
+                Math.cos(phi),
+                Math.sin(phi) * Math.sin(theta)
+            ).normalize();
+
+            const p = hitOnRay(dir);
+            if (!p) continue;
+
+            // jitter tiếp tuyến nhẹ
+            const t1 = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0));
+            const tangent1 =
+                t1.length() < 1e-6
+                    ? new THREE.Vector3(1, 0, 0).cross(dir).normalize()
+                    : t1.normalize();
+            const tangent2 = new THREE.Vector3().crossVectors(dir, tangent1).normalize();
+
+            const u = (Math.random() * 2 - 1) * jitter;
+            const v = (Math.random() * 2 - 1) * jitter;
+            p.addScaledVector(tangent1, u).addScaledVector(tangent2, v);
+
+            positions[count * 3 + 0] = p.x * heartScale;
+            positions[count * 3 + 1] = p.y * heartScale;
+            positions[count * 3 + 2] = p.z * heartScale;
+
+            const brightness = 0.8 + Math.random() * 0.2;
+            colors[count * 3 + 0] = r * brightness;
+            colors[count * 3 + 1] = g * brightness;
+            colors[count * 3 + 2] = b * brightness;
+
+            sizes[count] = 0.85;
+            count++;
         }
 
-        for (let i = 0; i < particleCount / 2; i++) {
-            const t = Math.random() * Math.PI * 2;
-            const innerScale = scale * (0.4 + Math.random() * 0.6);
-            const { x, y } = heartShape(t, innerScale);
-            positions[index * 3] = x / 16;
-            positions[index * 3 + 1] = y / 16 + 0.1;
-            positions[index * 3 + 2] = (Math.random() - 0.5) * 0.03;
-            const brightness = 0.6 + Math.random() * 0.4;
-            colors[index * 3] = brightness * (0.95 + Math.random() * 0.05);
-            colors[index * 3 + 1] = brightness * (0.4 + Math.random() * 0.2);
-            colors[index * 3 + 2] = brightness * (0.6 + Math.random() * 0.2);
-            sizes[index] = (Math.random() * 0.018 + 0.009) / 2;
-            index++;
-        }
-        return { positions, colors, sizes };
-    }, []);
+        return {
+            positions: count === targetDots ? positions : positions.slice(0, count * 3),
+            colors: count === targetDots ? colors : colors.slice(0, count * 3),
+            sizes: count === targetDots ? sizes : sizes.slice(0, count),
+            count,
+        };
+    }, [treeColor]);
 
+    // Geometries
     const trunkGeometry = useMemo(() => {
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.BufferAttribute(trunkParticles.positions, 3));
-        geometry.setAttribute('color', new THREE.BufferAttribute(trunkParticles.colors, 3));
-        geometry.setAttribute('size', new THREE.BufferAttribute(trunkParticles.sizes, 1));
-        return geometry;
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.BufferAttribute(trunkParticles.positions, 3));
+        g.setAttribute('color', new THREE.BufferAttribute(trunkParticles.colors, 3));
+        g.setAttribute('size', new THREE.BufferAttribute(trunkParticles.sizes, 1));
+        g.setDrawRange(0, 0);
+        return g;
     }, [trunkParticles]);
 
     const treeGeometry = useMemo(() => {
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.BufferAttribute(treeParticles.positions, 3));
-        geometry.setAttribute('color', new THREE.BufferAttribute(treeParticles.colors, 3));
-        geometry.setAttribute('size', new THREE.BufferAttribute(treeParticles.sizes, 1));
-        return geometry;
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.BufferAttribute(treeParticles.positions, 3));
+        g.setAttribute('color', new THREE.BufferAttribute(treeParticles.colors, 3));
+        g.setAttribute('size', new THREE.BufferAttribute(treeParticles.sizes, 1));
+        g.setDrawRange(0, 0);
+        return g;
     }, [treeParticles]);
 
     const heartGeometry = useMemo(() => {
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.BufferAttribute(heartParticles.positions, 3));
-        geometry.setAttribute('color', new THREE.BufferAttribute(heartParticles.colors, 3));
-        geometry.setAttribute('size', new THREE.BufferAttribute(heartParticles.sizes, 1));
-        return geometry;
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.BufferAttribute(heartParticles.positions, 3));
+        g.setAttribute('color', new THREE.BufferAttribute(heartParticles.colors, 3));
+        g.setAttribute('size', new THREE.BufferAttribute(heartParticles.sizes, 1));
+        g.setDrawRange(0, 0);
+        return g;
     }, [heartParticles]);
 
+    const startRef = useRef<number | null>(null);
+
+    const easeOutCubic = (x: number) => 1 - Math.pow(1 - x, 3);
+
     useFrame((state) => {
-        if (!groupRef.current) return;
-        groupRef.current.rotation.y = state.clock.getElapsedTime() * 0.3;
+        const t = state.clock.getElapsedTime();
+        if (startRef.current == null) startRef.current = t;
+        const elapsed = t - startRef.current;
+
+        const raw = Math.max(0, Math.min(1, (elapsed - appearDelay) / appearDuration));
+        const k = easeOutCubic(raw);
+
+        const rawHeart = Math.max(0, Math.min(1, (elapsed - (appearDelay + heartDelayOffset)) / appearDuration));
+        const kHeart = easeOutCubic(rawHeart);
+
+        if (groupRef.current) {
+            groupRef.current.scale.setScalar(treeScale);
+            groupRef.current.rotation.y = t * TREE_ROTATE_SPEED;
+        }
+
+        if (heartRef.current) {
+            heartRef.current.rotation.z = t * HEART_Z_SPIN;
+        }
+
+        if (trunkMatRef.current) trunkMatRef.current.opacity = 0.85 * k;
+        if (treeMatRef.current) treeMatRef.current.opacity = 0.75 * k;
+        if (heartMatRef.current) heartMatRef.current.opacity = 0.85 * kHeart;
+
+        if (trunkGeoRef.current) {
+            const total = trunkParticles.count;
+            trunkGeoRef.current.setDrawRange(0, Math.max(1, Math.floor(total * k)));
+        }
+        if (treeGeoRef.current) {
+            const total = treeParticles.count;
+            treeGeoRef.current.setDrawRange(0, Math.max(1, Math.floor(total * k)));
+        }
+        if (heartGeoRef.current) {
+            const total = heartParticles.count;
+            heartGeoRef.current.setDrawRange(0, Math.max(1, Math.floor(total * kHeart)));
+        }
     });
 
-    const treeHeight = 3.6;
-
     return (
-        <group ref={groupRef} scale={[treeScale, treeScale, treeScale]}>
+        <group ref={groupRef}>
             <GroundRings />
-            <points position={[0, 0, 0]} geometry={trunkGeometry}>
+            <points
+                geometry={trunkGeometry}
+                ref={(p) => { if (p) trunkGeoRef.current = p.geometry as THREE.BufferGeometry; }}
+            >
                 <pointsMaterial
+                    ref={trunkMatRef}
                     size={0.04}
                     vertexColors
                     transparent
-                    opacity={0.85}
+                    opacity={0}
                     sizeAttenuation
-                    blending={THREE.NormalBlending}
+                    blending={THREE.AdditiveBlending}
                     depthWrite={false}
                     map={dotTexture}
                     alphaTest={0.5}
                 />
             </points>
-            <points position={[0, 0, 0]} geometry={treeGeometry}>
+
+            <points
+                geometry={treeGeometry}
+                ref={(p) => { if (p) treeGeoRef.current = p.geometry as THREE.BufferGeometry; }}
+            >
                 <pointsMaterial
+                    ref={treeMatRef}
                     size={0.025}
                     vertexColors
                     transparent
-                    opacity={0.75}
+                    opacity={0}
                     sizeAttenuation
-                    blending={THREE.NormalBlending}
+                    blending={THREE.AdditiveBlending}
                     depthWrite={false}
                     map={dotTexture}
                     alphaTest={0.5}
                 />
             </points>
-            <points position={[0, treeHeight + 0.1, 0]} geometry={heartGeometry}>
+
+            <points
+                position={[0, treeHeight + 0.1, 0]}
+                geometry={heartGeometry}
+                rotation={[Math.PI / 2, Math.PI, 0]}
+                ref={(p) => {
+                    heartRef.current = p ?? null as any; // gắn ref cho tim
+                    if (p) heartGeoRef.current = p.geometry as THREE.BufferGeometry;
+                }}
+            >
                 <pointsMaterial
+                    ref={heartMatRef}
                     size={0.013}
                     vertexColors
                     transparent
-                    opacity={0.85}
+                    opacity={0}
                     sizeAttenuation
-                    blending={THREE.NormalBlending}
+                    blending={THREE.AdditiveBlending}
                     depthWrite={false}
                     map={dotTexture}
                     alphaTest={0.5}
                 />
             </points>
+
             <pointLight position={[0, treeHeight + 0.1, 0]} intensity={0.5} color="#ff69b4" distance={1.5} />
             <pointLight position={[0.1, treeHeight + 0.15, 0]} intensity={0.25} color="#ffffff" distance={1} />
             <pointLight position={[-0.1, treeHeight + 0.05, 0]} intensity={0.25} color="#ff1493" distance={1} />
