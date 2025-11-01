@@ -27,9 +27,9 @@ const fragmentShader = `
 `;
 
 /* ===================== Types ===================== */
-type TrailParticle = { position: THREE.Vector3; velocity: THREE.Vector3; createdAt: number; };
-type ClusterHead = { position: THREE.Vector3; velocity: THREE.Vector3; };
-type CoreParticle = { position: THREE.Vector3; velocity: THREE.Vector3; createdAt: number; };
+type TrailParticle = { position: THREE.Vector3; velocity: THREE.Vector3; createdAt: number };
+type ClusterHead = { position: THREE.Vector3; velocity: THREE.Vector3 };
+type CoreParticle = { position: THREE.Vector3; velocity: THREE.Vector3; createdAt: number };
 
 type FireworkState = {
   active: boolean;
@@ -43,14 +43,12 @@ type FireworkState = {
   core: CoreParticle[];
 };
 
-const FIREWORK_COLOR: string = '#99DDFF'
-
 /* ===================== Component ===================== */
-export default function FireworksMainTrail() {
+export default function FireworksMainTrail({ propColor = "#fff" }: { propColor: string }) {
   const { viewport } = useThree();
 
   /* -------- Config -------- */
-  const MAX_FIREWORKS = 8;
+  const MAX_FIREWORKS = 18; // vẫn giữ pool để tái sử dụng
   const NUM_CLUSTERS = 20;
   const CHILDREN_PER_EMIT = 8;
   const MAX_TRAIL_PER_FIREWORK = NUM_CLUSTERS * 520;
@@ -72,7 +70,7 @@ export default function FireworksMainTrail() {
   const TRAIL_LIFE = 1.2;
 
   const MAIN_FADE_START = 0.35;
-  const MAIN_FADE_END = 1.00;
+  const MAIN_FADE_END = 1.0;
 
   const GLOBAL_END_FADE_START = 0.85;
 
@@ -87,74 +85,92 @@ export default function FireworksMainTrail() {
   const corePointsRef = useRef<(THREE.Points<THREE.BufferGeometry> | null)[]>([]);
 
   const fireworksRef = useRef<FireworkState[]>(
-    Array(MAX_FIREWORKS).fill(null).map(() => ({
-      active: false,
-      startTime: 0,
-      position: new THREE.Vector3(),
-      color: new THREE.Color(),
-      life: 0,
-      endTime: 0,
-      clusterHeads: [],
-      trail: [],
-      core: [],
-    }))
+    Array(MAX_FIREWORKS)
+      .fill(null)
+      .map(() => ({
+        active: false,
+        startTime: 0,
+        position: new THREE.Vector3(),
+        color: new THREE.Color(),
+        life: 0,
+        endTime: 0,
+        clusterHeads: [],
+        trail: [],
+        core: [],
+      }))
   );
 
+  // khoảng delay nhỏ giữa 2 quả liên tiếp (cho cảm giác nhịp nhàng)
   const lastSpawnRef = useRef(0);
-  const spawnIntervalRef = useRef(1.1);
+  const spawnDelayRef = useRef(0.1); // 0.1s sau khi quả trước tắt sẽ spawn quả mới
 
   /* -------- Geometries -------- */
   const childGeometries = useMemo(() => {
-    return Array(MAX_FIREWORKS).fill(null).map(() => {
-      const g = new THREE.BufferGeometry();
-      g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(MAX_TRAIL_PER_FIREWORK * 3), 3));
-      g.setAttribute("color", new THREE.BufferAttribute(new Float32Array(MAX_TRAIL_PER_FIREWORK * 3), 3));
-      g.setAttribute("size", new THREE.BufferAttribute(new Float32Array(MAX_TRAIL_PER_FIREWORK), 1));
-      g.setDrawRange(0, 0);
-      return g;
-    });
+    return Array(MAX_FIREWORKS)
+      .fill(null)
+      .map(() => {
+        const g = new THREE.BufferGeometry();
+        g.setAttribute(
+          "position",
+          new THREE.BufferAttribute(new Float32Array(MAX_TRAIL_PER_FIREWORK * 3), 3)
+        );
+        g.setAttribute(
+          "color",
+          new THREE.BufferAttribute(new Float32Array(MAX_TRAIL_PER_FIREWORK * 3), 3)
+        );
+        g.setAttribute(
+          "size",
+          new THREE.BufferAttribute(new Float32Array(MAX_TRAIL_PER_FIREWORK), 1)
+        );
+        g.setDrawRange(0, 0);
+        return g;
+      });
   }, [MAX_FIREWORKS, MAX_TRAIL_PER_FIREWORK]);
 
   const mainGeometries = useMemo(() => {
-    return Array(MAX_FIREWORKS).fill(null).map(() => {
-      const g = new THREE.BufferGeometry();
-      g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(NUM_CLUSTERS * 3), 3));
-      g.setAttribute("color", new THREE.BufferAttribute(new Float32Array(NUM_CLUSTERS * 3), 3));
-      g.setAttribute("size", new THREE.BufferAttribute(new Float32Array(NUM_CLUSTERS), 1));
-      g.setDrawRange(0, 0);
-      return g;
-    });
+    return Array(MAX_FIREWORKS)
+      .fill(null)
+      .map(() => {
+        const g = new THREE.BufferGeometry();
+        g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(NUM_CLUSTERS * 3), 3));
+        g.setAttribute("color", new THREE.BufferAttribute(new Float32Array(NUM_CLUSTERS * 3), 3));
+        g.setAttribute("size", new THREE.BufferAttribute(new Float32Array(NUM_CLUSTERS), 1));
+        g.setDrawRange(0, 0);
+        return g;
+      });
   }, [MAX_FIREWORKS, NUM_CLUSTERS]);
 
   const coreGeometries = useMemo(() => {
-    return Array(MAX_FIREWORKS).fill(null).map(() => {
-      const g = new THREE.BufferGeometry();
-      g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(CORE_COUNT * 3), 3));
-      g.setAttribute("color", new THREE.BufferAttribute(new Float32Array(CORE_COUNT * 3), 3));
-      g.setAttribute("size", new THREE.BufferAttribute(new Float32Array(CORE_COUNT), 1));
-      g.setDrawRange(0, 0);
-      return g;
-    });
+    return Array(MAX_FIREWORKS)
+      .fill(null)
+      .map(() => {
+        const g = new THREE.BufferGeometry();
+        g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(CORE_COUNT * 3), 3));
+        g.setAttribute("color", new THREE.BufferAttribute(new Float32Array(CORE_COUNT * 3), 3));
+        g.setAttribute("size", new THREE.BufferAttribute(new Float32Array(CORE_COUNT), 1));
+        g.setDrawRange(0, 0);
+        return g;
+      });
   }, [MAX_FIREWORKS, CORE_COUNT]);
 
-  /* -------- Spawn -------- */
+  /* -------- Spawn (1 quả) -------- */
   const spawnFirework = (now: number) => {
     const idx = fireworksRef.current.findIndex((f) => !f.active);
     if (idx === -1) return;
 
-    const x = Math.random() * (viewport.width / 7) + 2;
-    const y = Math.random() * (viewport.height / 4) + 2;
+    // random nhẹ quanh giữa
+    const x = (Math.random() - 0.5) * (viewport.width * 0.4);
+    const y = Math.random() * (viewport.height / 4) + 1.5;
     const z = (Math.random() - 0.5) * 1;
     const position = new THREE.Vector3(x, y, z);
 
-    const color = new THREE.Color(FIREWORK_COLOR);
-    const life = 1.2;
+    const color = new THREE.Color(propColor);
+    const life = 1.2; // tổng thời gian sống của 1 quả
 
     const clusterHeads: ClusterHead[] = [];
     for (let i = 0; i < NUM_CLUSTERS; i++) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
-      // ★ THAY ĐỔI: Tăng tốc độ nổ ban đầu để toả ra mạnh hơn
       const speed = 1 + Math.random() * 1;
       const v = new THREE.Vector3(
         Math.sin(phi) * Math.cos(theta),
@@ -189,18 +205,26 @@ export default function FireworksMainTrail() {
       core,
     };
 
-    spawnIntervalRef.current = 0.8 + Math.random() * 0.8;
+    // set lại mốc thời gian spawn
+    lastSpawnRef.current = now;
   };
 
   /* -------- Frame loop -------- */
   useFrame((state, dt) => {
     const t = state.clock.getElapsedTime();
 
-    if (t - lastSpawnRef.current > spawnIntervalRef.current) {
-      spawnFirework(t);
-      lastSpawnRef.current = t;
+    // Đếm xem hiện tại có bao nhiêu quả đang active
+    const activeCount = fireworksRef.current.reduce((acc, f) => (f.active ? acc + 1 : acc), 0);
+
+    // Nếu KHÔNG có quả nào đang nổ → spawn ngay (sau một delay rất nhỏ)
+    if (activeCount === 0) {
+      // đảm bảo có chút "nhịp", không phải frame này tắt frame sau bật liền
+      if (t - lastSpawnRef.current >= spawnDelayRef.current) {
+        spawnFirework(t);
+      }
     }
 
+    // Update tất cả quả đang active
     fireworksRef.current.forEach((fw, index) => {
       if (!fw.active) return;
 
@@ -208,6 +232,7 @@ export default function FireworksMainTrail() {
       const progress = elapsed / fw.life;
 
       if (progress >= 1) {
+        // hết đời → tắt
         fw.active = false;
         fw.endTime = t;
         childGeometries[index].setDrawRange(0, 0);
@@ -237,10 +262,10 @@ export default function FireworksMainTrail() {
         }
       });
 
-      // Cull trails by life
+      // Cull trails
       fw.trail = fw.trail.filter((p) => elapsed - p.createdAt < TRAIL_LIFE);
 
-      /* ----- MAIN geometry: alpha & size fade theo life ----- */
+      /* ----- MAIN geometry ----- */
       const gMain = mainGeometries[index];
       const mainPos = gMain.attributes.position.array as Float32Array;
       const mainCol = gMain.attributes.color.array as Float32Array;
@@ -269,7 +294,7 @@ export default function FireworksMainTrail() {
       gMain.attributes.color.needsUpdate = true;
       gMain.attributes.size.needsUpdate = true;
 
-      /* ----- CHILD trails: fade theo tuổi + endFade toàn cục ----- */
+      /* ----- CHILD trails ----- */
       const gChild = childGeometries[index];
       const cPos = gChild.attributes.position.array as Float32Array;
       const cCol = gChild.attributes.color.array as Float32Array;
@@ -280,7 +305,6 @@ export default function FireworksMainTrail() {
       for (let i = 0; i < fw.trail.length; i++) {
         const p = fw.trail[i];
 
-        // ★ MỚI: Thêm vật lý cho trail để đường bay cong đẹp hơn
         p.velocity.addScaledVector(GRAVITY, dt);
         p.velocity.multiplyScalar(AIR_DRAG);
         p.position.addScaledVector(p.velocity, dt);
@@ -305,7 +329,7 @@ export default function FireworksMainTrail() {
       gChild.attributes.color.needsUpdate = true;
       gChild.attributes.size.needsUpdate = true;
 
-      /* ----- CORE burst: fade theo tuổi + endFade toàn cục ----- */
+      /* ----- CORE burst ----- */
       const gCore = coreGeometries[index];
       const corePos = gCore.attributes.position.array as Float32Array;
       const coreCol = gCore.attributes.color.array as Float32Array;
@@ -356,7 +380,9 @@ export default function FireworksMainTrail() {
       {mainGeometries.map((g, i) => (
         <points
           key={`main-${i}`}
-          ref={(r) => { if (r) mainPointsRef.current[i] = r as THREE.Points<THREE.BufferGeometry>; }}
+          ref={(r) => {
+            if (r) mainPointsRef.current[i] = r as THREE.Points<THREE.BufferGeometry>;
+          }}
           geometry={g}
         >
           <shaderMaterial
@@ -372,7 +398,9 @@ export default function FireworksMainTrail() {
       {childGeometries.map((g, i) => (
         <points
           key={`child-${i}`}
-          ref={(r) => { if (r) childPointsRef.current[i] = r as THREE.Points<THREE.BufferGeometry>; }}
+          ref={(r) => {
+            if (r) childPointsRef.current[i] = r as THREE.Points<THREE.BufferGeometry>;
+          }}
           geometry={g}
         >
           <shaderMaterial
@@ -388,7 +416,9 @@ export default function FireworksMainTrail() {
       {coreGeometries.map((g, i) => (
         <points
           key={`core-${i}`}
-          ref={(r) => { if (r) corePointsRef.current[i] = r as THREE.Points<THREE.BufferGeometry>; }}
+          ref={(r) => {
+            if (r) corePointsRef.current[i] = r as THREE.Points<THREE.BufferGeometry>;
+          }}
           geometry={g}
         >
           <shaderMaterial

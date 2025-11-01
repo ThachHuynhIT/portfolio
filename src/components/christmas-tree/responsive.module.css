@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Courgette&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Courgette&display=swap");
 
 .container-christmas-tree {
     width: 100vw;
@@ -11,10 +11,10 @@
     height: 100% !important;
 }
 
-.canvas-christmas-tree div div{
+.canvas-christmas-tree div div {
     transform-style: inherit;
+    height: 100px;
 }
-
 
 .christmas-text {
     width: auto !important;
@@ -22,7 +22,7 @@
     padding: 0 10px;
 }
 
-.messageWrap{
+.messageWrap {
     width: 175px;
     display: flex;
     flex-wrap: wrap;
@@ -30,7 +30,7 @@
 
 .title {
     font-size: 1.5rem;
-    font-family: 'cursive';
+    font-family: "cursive";
     margin-bottom: 0.5rem;
     padding-left: 1px;
     line-height: 1.2;
@@ -47,7 +47,6 @@
     font-size: 1rem;
     line-height: 1.3;
     padding-left: 12px;
-
 }
 
 .christmas-text-hidden {
@@ -103,13 +102,18 @@
         max-width: 200px !important;
         padding: 0 8px;
     }
+
+    .canvas-christmas-tree div div {
+        transform-style: inherit;
+        height: 45px;
+    }
 }
 
 @media (max-width: 480px) {
-    .messageWrap{
+    .messageWrap {
         width: 101px;
     }
-    
+
     .title {
         font-size: 12px;
         margin-bottom: 0.25rem;
@@ -128,4 +132,8 @@
         max-width: 101px !important;
         padding: 0 5px;
     }
+}
+
+.text-glow {
+    text-shadow: 0 0 2px #00ffff;
 }

@@ -10,52 +10,51 @@ import type { OrbitControls as OrbitControlsType } from "three-stdlib";
 import BackgroundStars from "./components/background-stars";
 import ChristmasTree3D from "./components/ChristmasTree3D";
 import Fireworks from "./components/fireworks";
-import DoubleSpiralTree3D from "./components/DoubleSpiralTree";
 import styles from "./responsive.module.css";
 
-function FlashController({
-    trigger,
-    onUpdate,
-    duration = 0.9,
-    peakBloom = 6.5,
-    peakOverlay = 0.85,
-}: {
-    trigger: number;
-    onUpdate: (bloomIntensity: number, overlayAlpha: number) => void;
-    duration?: number;
-    peakBloom?: number;
-    peakOverlay?: number;
-}) {
-    const [isUpdated, setIsUpdated] = useState(false);
-    const last = useRef(trigger);
-    const startRef = useRef<number | null>(null);
+// function FlashController({
+//     trigger,
+//     onUpdate,
+//     duration = 0.9,
+//     peakBloom = 6.5,
+//     peakOverlay = 0.85,
+// }: {
+//     trigger: number;
+//     onUpdate: (bloomIntensity: number, overlayAlpha: number) => void;
+//     duration?: number;
+//     peakBloom?: number;
+//     peakOverlay?: number;
+// }) {
+//     const [isUpdated, setIsUpdated] = useState(false);
+//     const last = useRef(trigger);
+//     const startRef = useRef<number | null>(null);
 
-    useFrame(({ clock }) => {
-        if (isUpdated) return;
-        const now = clock.getElapsedTime();
+//     useFrame(({ clock }) => {
+//         if (isUpdated) return;
+//         const now = clock.getElapsedTime();
 
-        if (trigger !== last.current) {
-            last.current = trigger;
-            startRef.current = now;
-        }
-        if (startRef.current != null) {
-            const t = now - startRef.current;
-            if (t <= duration) {
-                const x = t / duration;
-                const s = Math.sin(x * Math.PI);
-                const bloom = 2 + peakBloom * s;
-                const overlay = peakOverlay * s;
-                onUpdate(bloom, overlay);
-            } else {
-                onUpdate(2, 0);
-                startRef.current = null;
-            }
-        }
-        setIsUpdated(true);
-    });
+//         if (trigger !== last.current) {
+//             last.current = trigger;
+//             startRef.current = now;
+//         }
+//         if (startRef.current != null) {
+//             const t = now - startRef.current;
+//             if (t <= duration) {
+//                 const x = t / duration;
+//                 const s = Math.sin(x * Math.PI);
+//                 const bloom = 2 + peakBloom * s;
+//                 const overlay = peakOverlay * s;
+//                 onUpdate(bloom, overlay);
+//             } else {
+//                 onUpdate(2, 0);
+//                 startRef.current = null;
+//             }
+//         }
+//         setIsUpdated(true);
+//     });
 
-    return null;
-}
+//     return null;
+// }
 
 interface CameraTransitionProps {
     controlsRef: React.RefObject<OrbitControlsType>;
@@ -161,7 +160,7 @@ function ChristmasText({
     return (
         <Html position={textPositionWithDevice() as [number, number, number]} transform style={{ background: "none", userSelect: "none" }}>
             <div
-                className={`pointer-events-none m-w-[400px] ${styles["christmas-text"]} ${visible ? styles["christmas-text-visible"] : styles["christmas-text-hidden"]
+                className={`pointer-events-none m-w-[400px] ${styles["christmas-text"]} ${styles["text-glow"]} ${visible ? styles["christmas-text-visible"] : styles["christmas-text-hidden"]
                     }`}
             >
                 <h1 className={`${styles["title"]} text-lg font-bold text-cyan-300 drop-shadow-lg`}>Merry Christmas</h1>
@@ -186,22 +185,16 @@ function ChristmasText({
 export default function Index() {
     const controlsRef = useRef<OrbitControlsType>(null!);
 
-    const [showTree, setShowTree] = useState(false);
     const [showText, setShowText] = useState(false);
-    const [fadeKey, setFadeKey] = useState(0);
     const [runTransition, setRunTransition] = useState(false);
 
-    const [bloomIntensity, setBloomIntensity] = useState(2);
-    const [overlayAlpha, setOverlayAlpha] = useState(0);
-
     useEffect(() => {
-        if (showTree) {
-            const t = setTimeout(() => setShowText(true), 500);
-            return () => clearTimeout(t);
-        }
-    }, [showTree]);
-
-    const handlePointerDown = () => setFadeKey((k) => k + 1);
+        const t = setTimeout(() => {
+            setShowText(true);
+            setRunTransition(true);
+        }, 500);
+        return () => clearTimeout(t);
+    }, []);
 
     return (
         <div className={`relative bg-black ${styles["container-christmas-tree"]}`}>
@@ -209,7 +202,6 @@ export default function Index() {
                 className={styles["canvas-christmas-tree"]}
                 camera={{ position: [0, 2.8, 7], fov: 50 }}
                 gl={{ antialias: true, alpha: true }}
-                onPointerDown={handlePointerDown}
             >
                 <Suspense fallback={null}>
                     <ambientLight intensity={0.3} />
@@ -217,38 +209,12 @@ export default function Index() {
                     <pointLight position={[5, 3, 5]} intensity={1} color="#4a90e2" />
                     <Environment preset="night" />
                     <BackgroundStars />
-                    {!showTree && (
-                        <FlashController
-                            trigger={fadeKey}
-                            onUpdate={(b, a) => {
-                                setBloomIntensity(b);
-                                setOverlayAlpha(a);
-                            }}
-                            duration={0.95}
-                            peakBloom={7.5}
-                            peakOverlay={0.9}
-                        />
-                    )}
-                    {!showTree && (
-                        <DoubleSpiralTree3D
-                            colorHex="#1E90FF"
-                            fadeTrigger={fadeKey}
-                            onGone={() => {
-                                setShowTree(true);
-                                setRunTransition(true);
-                            }} 
-                        />
-                    )}
-                    {showTree && (
-                        <>
-                            <ChristmasTree3D treeColor="#1E90FF" />
-                            <Fireworks />
-                            <ChristmasText
-                                messages={["Wishing you a very Merry Christmas.", "Peace, joy, and happiness this Christmas.", "Have a jolly holiday!"]}
-                                visible={showText}
-                            />
-                        </>
-                    )}
+                    <ChristmasTree3D treeColor="#1E90FF" />
+                    <Fireworks propColor="#fff" />
+                    <ChristmasText
+                        messages={["Wishing you a very Merry Christmas.", "Peace, joy, and happiness this Christmas.", "Have a jolly holiday!"]}
+                        visible={showText}
+                    />
                     <CameraTransition controlsRef={controlsRef} run={runTransition} />
                     <OrbitControls
                         ref={controlsRef}
@@ -259,20 +225,8 @@ export default function Index() {
                         maxPolarAngle={Math.PI / 2 + 0.3}
                         target={[0, 1.6, 0]}
                     />
-                    <Html fullscreen transform={false} style={{ pointerEvents: "none" }}>
-                        <div
-                            style={{
-                                position: "fixed",
-                                inset: 0,
-                                opacity: overlayAlpha,
-                                mixBlendMode: "screen",
-                                background: "radial-gradient(closest-side, rgba(255,255,255,0.9), rgba(102,255,255,0.6) 40%, rgba(0,0,0,0) 70%)",
-                                transition: "opacity 40ms linear",
-                            }}
-                        />
-                    </Html>
                     <EffectComposer>
-                        <Bloom luminanceThreshold={0.1} luminanceSmoothing={0.9} intensity={!showTree ? bloomIntensity : 1} />
+                        <Bloom luminanceThreshold={0.1} luminanceSmoothing={0.9} intensity={1} />
                     </EffectComposer>
                 </Suspense>
             </Canvas>

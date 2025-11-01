@@ -7,12 +7,12 @@ import * as THREE from 'three';
 /* ============================================
    Config (giảm chói / giảm ăn Bloom)
    ============================================ */
-const DOT_ALPHA = 1;        // alpha của texture dot (0..1) — giảm từ 1 → 0.6
-const BRIGHT_BASE = 0.35;     // nền sáng
-const BRIGHT_RADIAL = 0.3;   // tăng theo bán kính
+const DOT_ALPHA = 0.7;        // alpha của texture dot (0..1) — giảm từ 1 → 0.6
+const BRIGHT_BASE = 0.4;     // nền sáng
+const BRIGHT_RADIAL = 0.2;   // tăng theo bán kính
 const BRIGHT_RANDOM = 0.3;   // độ ngẫu nhiên
-const BRIGHT_CAP = 0.85;      // trần brightness để tránh quá sáng
-const OPACITY_CAP = 1;     // trần opacity khi reveal (giảm "gắt")
+const BRIGHT_CAP = 0.9;      // trần brightness để tránh quá sáng
+const OPACITY_CAP = 0.8;     // trần opacity khi reveal (giảm "gắt")
 
 type Props = {
     /** thời gian reveal (giây) */
