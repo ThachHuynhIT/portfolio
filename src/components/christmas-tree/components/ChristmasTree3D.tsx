@@ -74,7 +74,8 @@ export default function ChristmasTree3D({
     }, []);
 
     const getBranchColor = () => {
-        return treeColor === 'pink' ? [0.95, 0.5, 0.7] : [0.1, 0.7, 0.95];
+        const c = new THREE.Color(treeColor);
+        return [c.r, c.g, c.b];
     };
 
     const trunkParticles = useMemo(() => {
@@ -100,7 +101,7 @@ export default function ChristmasTree3D({
         }
 
         return { positions, colors, sizes, count: particleCount };
-    }, [treeColor, getBranchColor]);
+    }, [treeColor]);
 
     // Tree
     const treeParticles = useMemo(() => {
@@ -184,7 +185,7 @@ export default function ChristmasTree3D({
         }
 
         return { positions, colors, sizes, count: index };
-    }, [treeColor, getBranchColor]);
+    }, [treeColor]);
 
     // Heart
     const heartParticles = useMemo(() => {

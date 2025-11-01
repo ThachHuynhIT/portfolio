@@ -4,7 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 
-function createCircleTexture(size = 128) {
+function createCircleTexture(size = 100) {
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = size;
     const ctx = canvas.getContext("2d");
@@ -19,7 +19,7 @@ function createCircleTexture(size = 128) {
     return new THREE.CanvasTexture(canvas);
 }
 
-const starColors = ['#00bfff', '#2196f3', '#ffffff'];
+const starColors = ['#ffffff', '#ffffff', '#ffffff'];
 function normalizeColor(color: THREE.Color, targetSum = 2.7) {
     const sum = color.r + color.g + color.b;
     if (sum < targetSum) {
@@ -32,7 +32,7 @@ function normalizeColor(color: THREE.Color, targetSum = 2.7) {
 }
 
 export default function BackgroundStars() {
-    const dotTexture = useMemo(() => createCircleTexture(128), []);
+    const dotTexture = useMemo(() => createCircleTexture(50), []);
     const pointsRef = useRef<THREE.Points>(null);
     const particleCount = 10000;
 

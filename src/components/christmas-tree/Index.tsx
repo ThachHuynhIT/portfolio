@@ -231,17 +231,17 @@ export default function Index() {
                     )}
                     {!showTree && (
                         <DoubleSpiralTree3D
-                            colorHex="#6ec8ff"
+                            colorHex="#1E90FF"
                             fadeTrigger={fadeKey}
                             onGone={() => {
                                 setShowTree(true);
                                 setRunTransition(true);
-                            }}
+                            }} 
                         />
                     )}
                     {showTree && (
                         <>
-                            <ChristmasTree3D treeColor="#99DDFF" />
+                            <ChristmasTree3D treeColor="#1E90FF" />
                             <Fireworks />
                             <ChristmasText
                                 messages={["Wishing you a very Merry Christmas.", "Peace, joy, and happiness this Christmas.", "Have a jolly holiday!"]}
