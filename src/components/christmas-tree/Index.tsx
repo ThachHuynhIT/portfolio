@@ -1,7 +1,7 @@
 "use client";
 
 import { Environment, Html, OrbitControls } from "@react-three/drei";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Vector3 } from "three";
@@ -11,50 +11,6 @@ import BackgroundStars from "./components/background-stars";
 import ChristmasTree3D from "./components/ChristmasTree3D";
 import Fireworks from "./components/fireworks";
 import styles from "./responsive.module.css";
-
-// function FlashController({
-//     trigger,
-//     onUpdate,
-//     duration = 0.9,
-//     peakBloom = 6.5,
-//     peakOverlay = 0.85,
-// }: {
-//     trigger: number;
-//     onUpdate: (bloomIntensity: number, overlayAlpha: number) => void;
-//     duration?: number;
-//     peakBloom?: number;
-//     peakOverlay?: number;
-// }) {
-//     const [isUpdated, setIsUpdated] = useState(false);
-//     const last = useRef(trigger);
-//     const startRef = useRef<number | null>(null);
-
-//     useFrame(({ clock }) => {
-//         if (isUpdated) return;
-//         const now = clock.getElapsedTime();
-
-//         if (trigger !== last.current) {
-//             last.current = trigger;
-//             startRef.current = now;
-//         }
-//         if (startRef.current != null) {
-//             const t = now - startRef.current;
-//             if (t <= duration) {
-//                 const x = t / duration;
-//                 const s = Math.sin(x * Math.PI);
-//                 const bloom = 2 + peakBloom * s;
-//                 const overlay = peakOverlay * s;
-//                 onUpdate(bloom, overlay);
-//             } else {
-//                 onUpdate(2, 0);
-//                 startRef.current = null;
-//             }
-//         }
-//         setIsUpdated(true);
-//     });
-
-//     return null;
-// }
 
 interface CameraTransitionProps {
     controlsRef: React.RefObject<OrbitControlsType>;
@@ -107,12 +63,11 @@ function CameraTransition({ controlsRef, run }: CameraTransitionProps) {
 function ChristmasText({
     messages,
     visible,
-    messageDurationMs = 1000,
+    // mấy cái này vẫn cho phép truyền để tinh chỉnh
     fadeMs = 300,
 }: {
     messages: string[];
     visible: boolean;
-    messageDurationMs?: number;
     fadeMs?: number;
 }) {
     const textPositionWithDevice = () => {
@@ -127,43 +82,69 @@ function ChristmasText({
     const [index, setIndex] = useState(0);
     const [fading, setFading] = useState(false);
 
+    // giữ ref để clear timeout
+    const timeoutsRef = useRef<number[]>([]);
+
     useEffect(() => {
+        // clear tất cả timeout cũ
+        timeoutsRef.current.forEach((id) => window.clearTimeout(id));
+        timeoutsRef.current = [];
+
+        // reset lại
         setIndex(0);
         setFading(false);
-
         if (!visible || messages.length === 0) return;
+        // hàm tính thời gian hiển thị theo độ dài
+        // chỉnh 2 số này để nhanh/chậm:
+        // baseMs: tối thiểu ở lại bao lâu
+        // perCharMs: mỗi ký tự cộng thêm bao nhiêu ms
+        const getDurationForText = (text: string) => {
+            const baseMs = 1100; // tối thiểu 1.1s
+            const perCharMs = 30; // mỗi ký tự +45ms → text dài sẽ lâu hơn
+            const len = text?.length ?? 0;
+            return baseMs + len * perCharMs;
+        };
 
-        let fadeTimeout: number | undefined;
-        let cycleTimeout: number | undefined;
-        let alive = true;
+        const runSequence = (startIdx: number) => {
+            const currentText = messages[startIdx] ?? "";
+            const holdMs = getDurationForText(currentText);
 
-        const scheduleNext = () => {
-            cycleTimeout = window.setTimeout(() => {
-                if (!alive) return;
-                setFading(true); // bắt đầu fade out
-                fadeTimeout = window.setTimeout(() => {
-                    if (!alive) return;
-                    setIndex((i) => (i + 1) % messages.length); // đổi message
-                    setFading(false); // fade in
-                    scheduleNext(); // hẹn lần kế tiếp sau khi hiển thị đủ 1s
+            const t1 = window.setTimeout(() => {
+                // nếu là message cuối thì dừng luôn, không fade out
+                const isLast = startIdx === messages.length - 1;
+                if (isLast) {
+                    setFading(false);
+                    return;
+                }
+                // fade out
+                setFading(true);
+                const t2 = window.setTimeout(() => {
+                    // chuyển sang message kế tiếp
+                    setIndex(startIdx + 1);
+                    setFading(false);
+                    runSequence(startIdx + 1);
                 }, fadeMs);
-            }, messageDurationMs);
+                timeoutsRef.current.push(t2);
+            }, holdMs);
+            timeoutsRef.current.push(t1);
         };
-        scheduleNext();
+        // bắt đầu từ message 0
+        runSequence(0);
         return () => {
-            alive = false;
-            if (cycleTimeout) window.clearTimeout(cycleTimeout);
-            if (fadeTimeout) window.clearTimeout(fadeTimeout);
+            timeoutsRef.current.forEach((id) => window.clearTimeout(id));
+            timeoutsRef.current = [];
         };
-    }, [visible, messages, messageDurationMs, fadeMs]);
+    }, [visible, messages, fadeMs]);
 
     return (
         <Html position={textPositionWithDevice() as [number, number, number]} transform style={{ background: "none", userSelect: "none" }}>
             <div
-                className={`pointer-events-none m-w-[400px] ${styles["christmas-text"]} ${visible ? styles["christmas-text-visible"] : styles["christmas-text-hidden"]
-                    }`}
+                className={`pointer-events-none m-w-[400px] ${styles["christmas-text"]
+                    } ${visible ? styles["christmas-text-visible"] : styles["christmas-text-hidden"]}`}
             >
-                <h1 className={`${styles["title"]} ${styles["text-glow"]} text-lg font-bold text-cyan-300 drop-shadow-lg`}>Merry Christmas</h1>
+                <h1 className={`${styles["title"]} ${styles["text-glow"]} text-lg font-bold text-cyan-300 drop-shadow-lg`}>
+                    Merry Christmas
+                </h1>
                 <div className={styles.messageWrap}>
                     <p
                         className={`${styles["subtitle"]} text-base text-white drop-shadow-md`}
@@ -212,7 +193,11 @@ export default function Index() {
                     <ChristmasTree3D treeColor="#1E90FF" />
                     <Fireworks propColor="#fff" />
                     <ChristmasText
-                        messages={["Wishing you a very Merry Christmas.", "Peace, joy, and happiness this Christmas.", "Have a jolly holiday!"]}
+                        messages={[
+                            "Wishing you a very Merry Christmas.",
+                            "Peace, joy, and happiness this Christmas.",
+                            "Have a jolly holiday!",
+                        ]}
                         visible={showText}
                     />
                     <OrbitControls
@@ -227,6 +212,7 @@ export default function Index() {
                     <EffectComposer>
                         <Bloom luminanceThreshold={0.1} luminanceSmoothing={0.9} intensity={1} />
                     </EffectComposer>
+                    {/* <CameraTransition controlsRef={controlsRef} run={runTransition} /> */}
                 </Suspense>
             </Canvas>
         </div>
