@@ -73,7 +73,7 @@ export default function BackgroundStars() {
     useFrame((state) => {
         if (!pointsRef.current) return;
         const time = state.clock.getElapsedTime();
-        pointsRef.current.rotation.y = time * 0.18;
+        pointsRef.current.rotation.y = time * 0.28;
     });
 
     return (

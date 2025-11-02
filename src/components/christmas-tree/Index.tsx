@@ -160,10 +160,10 @@ function ChristmasText({
     return (
         <Html position={textPositionWithDevice() as [number, number, number]} transform style={{ background: "none", userSelect: "none" }}>
             <div
-                className={`pointer-events-none m-w-[400px] ${styles["christmas-text"]} ${styles["text-glow"]} ${visible ? styles["christmas-text-visible"] : styles["christmas-text-hidden"]
+                className={`pointer-events-none m-w-[400px] ${styles["christmas-text"]} ${visible ? styles["christmas-text-visible"] : styles["christmas-text-hidden"]
                     }`}
             >
-                <h1 className={`${styles["title"]} text-lg font-bold text-cyan-300 drop-shadow-lg`}>Merry Christmas</h1>
+                <h1 className={`${styles["title"]} ${styles["text-glow"]} text-lg font-bold text-cyan-300 drop-shadow-lg`}>Merry Christmas</h1>
                 <div className={styles.messageWrap}>
                     <p
                         className={`${styles["subtitle"]} text-base text-white drop-shadow-md`}
@@ -200,7 +200,7 @@ export default function Index() {
         <div className={`relative bg-black ${styles["container-christmas-tree"]}`}>
             <Canvas
                 className={styles["canvas-christmas-tree"]}
-                camera={{ position: [0, 2.8, 7], fov: 50 }}
+                camera={{ position: [5, 2, 7], fov: 50 }}
                 gl={{ antialias: true, alpha: true }}
             >
                 <Suspense fallback={null}>
@@ -215,7 +215,6 @@ export default function Index() {
                         messages={["Wishing you a very Merry Christmas.", "Peace, joy, and happiness this Christmas.", "Have a jolly holiday!"]}
                         visible={showText}
                     />
-                    <CameraTransition controlsRef={controlsRef} run={runTransition} />
                     <OrbitControls
                         ref={controlsRef}
                         enableZoom={true}
@@ -223,7 +222,7 @@ export default function Index() {
                         minDistance={6}
                         maxDistance={12}
                         maxPolarAngle={Math.PI / 2 + 0.3}
-                        target={[0, 1.6, 0]}
+                        target={[1, 1, 0]}
                     />
                     <EffectComposer>
                         <Bloom luminanceThreshold={0.1} luminanceSmoothing={0.9} intensity={1} />
