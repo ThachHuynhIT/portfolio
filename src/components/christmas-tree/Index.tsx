@@ -63,12 +63,13 @@ function CameraTransition({ controlsRef, run }: CameraTransitionProps) {
 function ChristmasText({
     messages,
     visible,
-    // mấy cái này vẫn cho phép truyền để tinh chỉnh
     fadeMs = 300,
+    messageDelayMs = 500, // 👈 delay để message dưới xuất hiện sau title
 }: {
     messages: string[];
     visible: boolean;
     fadeMs?: number;
+    messageDelayMs?: number;
 }) {
     const textPositionWithDevice = () => {
         if (typeof window === "undefined") return [3, 3, 0];
@@ -81,8 +82,8 @@ function ChristmasText({
 
     const [index, setIndex] = useState(0);
     const [fading, setFading] = useState(false);
+    const [messagesReady, setMessagesReady] = useState(false); // 👈 để điều khiển bắt đầu chuỗi message
 
-    // giữ ref để clear timeout
     const timeoutsRef = useRef<number[]>([]);
 
     useEffect(() => {
@@ -90,17 +91,37 @@ function ChristmasText({
         timeoutsRef.current.forEach((id) => window.clearTimeout(id));
         timeoutsRef.current = [];
 
-        // reset lại
+        // reset text
         setIndex(0);
         setFading(false);
+        setMessagesReady(false);
+
         if (!visible || messages.length === 0) return;
-        // hàm tính thời gian hiển thị theo độ dài
-        // chỉnh 2 số này để nhanh/chậm:
-        // baseMs: tối thiểu ở lại bao lâu
-        // perCharMs: mỗi ký tự cộng thêm bao nhiêu ms
+
+        // sau 0.5s mới cho message bắt đầu chạy
+        const startTimeout = window.setTimeout(() => {
+            setMessagesReady(true);
+        }, messageDelayMs);
+        timeoutsRef.current.push(startTimeout);
+
+        return () => {
+            timeoutsRef.current.forEach((id) => window.clearTimeout(id));
+            timeoutsRef.current = [];
+        };
+    }, [visible, messages, fadeMs, messageDelayMs]);
+
+    useEffect(() => {
+        // chỉ chạy sequence khi đã sẵn sàng
+        if (!messagesReady) return;
+        if (messages.length === 0) return;
+
+        // clear cũ (phòng trường hợp rerun)
+        timeoutsRef.current.forEach((id) => window.clearTimeout(id));
+        timeoutsRef.current = [];
+
         const getDurationForText = (text: string) => {
-            const baseMs = 1100; // tối thiểu 1.1s
-            const perCharMs = 30; // mỗi ký tự +45ms → text dài sẽ lâu hơn
+            const baseMs = 1100;
+            const perCharMs = 30;
             const len = text?.length ?? 0;
             return baseMs + len * perCharMs;
         };
@@ -110,31 +131,32 @@ function ChristmasText({
             const holdMs = getDurationForText(currentText);
 
             const t1 = window.setTimeout(() => {
-                // nếu là message cuối thì dừng luôn, không fade out
                 const isLast = startIdx === messages.length - 1;
                 if (isLast) {
                     setFading(false);
                     return;
                 }
-                // fade out
+
                 setFading(true);
                 const t2 = window.setTimeout(() => {
-                    // chuyển sang message kế tiếp
                     setIndex(startIdx + 1);
                     setFading(false);
                     runSequence(startIdx + 1);
                 }, fadeMs);
                 timeoutsRef.current.push(t2);
             }, holdMs);
+
             timeoutsRef.current.push(t1);
         };
+
         // bắt đầu từ message 0
         runSequence(0);
+
         return () => {
             timeoutsRef.current.forEach((id) => window.clearTimeout(id));
             timeoutsRef.current = [];
         };
-    }, [visible, messages, fadeMs]);
+    }, [messagesReady, messages, fadeMs]);
 
     return (
         <Html position={textPositionWithDevice() as [number, number, number]} transform style={{ background: "none", userSelect: "none" }}>
@@ -145,13 +167,18 @@ function ChristmasText({
                 <h1 className={`${styles["title"]} ${styles["text-glow"]} text-lg font-bold text-cyan-300 drop-shadow-lg`}>
                     Merry Christmas
                 </h1>
-                <div className={styles.messageWrap}>
+
+                <div
+                    className={styles.messageWrap}
+                    style={{
+                        opacity: messagesReady ? (fading ? 0 : 1) : 0,
+                        transition: `opacity ${fadeMs}ms ease`,
+                        willChange: "opacity",
+                    }}
+                >
                     <p
                         className={`${styles["subtitle"]} text-base text-white drop-shadow-md`}
                         style={{
-                            opacity: fading ? 0 : 1,
-                            transition: `opacity ${fadeMs}ms ease`,
-                            willChange: "opacity",
                             minHeight: "1.5em",
                         }}
                     >
@@ -199,6 +226,8 @@ export default function Index() {
                             "Have a jolly holiday!",
                         ]}
                         visible={showText}
+                        messageDelayMs={1700}
+                        fadeMs={300}
                     />
                     <OrbitControls
                         ref={controlsRef}
