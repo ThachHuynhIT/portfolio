@@ -137,3 +137,7 @@
 .text-glow {
     text-shadow: 0 0 2px #00ffff;
 }
+
+.text-glow-white {
+    text-shadow: 0 0 2px #ffff;
+}

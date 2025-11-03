@@ -177,7 +177,7 @@ function ChristmasText({
                     }}
                 >
                     <p
-                        className={`${styles["subtitle"]} text-base text-white drop-shadow-md`}
+                        className={`${styles["subtitle"]} ${styles["text-glow-white"]} text-base text-white drop-shadow-md`}
                         style={{
                             minHeight: "1.5em",
                         }}

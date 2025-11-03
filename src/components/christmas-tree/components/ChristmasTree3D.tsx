@@ -45,7 +45,8 @@ export default function ChristmasTree3D({
     heartDelayOffset = 0.2,
 }: Props) {
     const dotTexture = useMemo(() => createCircleTexture(128), []);
-    const groupRef = useRef<Group>(null);
+    const groupRef = useRef<Group>(null);      // group của cây + tim
+    const groundRef = useRef<Group>(null);     // group của nền quay riêng
     const heartRef = useRef<THREE.Points>(null);
 
     const trunkMatRef = useRef<THREE.PointsMaterial>(null);
@@ -61,7 +62,9 @@ export default function ChristmasTree3D({
 
     const [treeScale, setTreeScale] = useState(1);
 
-    const TREE_ROTATE_SPEED = 0.10;
+    // tốc độ
+    const TREE_ROTATE_SPEED = 0.08;       // chậm hơn bản gốc một chút
+    const GROUND_ROTATE_RATIO = 0.4;      // nền chậm hơn 60%
     const HEART_Z_SPIN = 1.3;
 
     useEffect(() => {
@@ -75,9 +78,10 @@ export default function ChristmasTree3D({
 
     const getBranchColor = () => {
         const c = new THREE.Color(treeColor);
-        return [c.r, c.g, c.b];
+        return [c.r, c.g, c.b] as const;
     };
 
+    // Trunk
     const trunkParticles = useMemo(() => {
         const particleCount = 60;
         const positions = new Float32Array(particleCount * 3);
@@ -137,7 +141,8 @@ export default function ChristmasTree3D({
                 const angleAroundTree = (branch / branches) * Math.PI * 2 + layer * 0.5;
                 const branchHeightOffset = (Math.random() - 0.5) * 0.25;
                 const branchStartHeight = layerHeight + branchHeightOffset;
-                const lengthVariation = 0.9 + Math.random() * 0.1;
+
+                const lengthVariation = 0.85 + Math.random() * 0.35;
                 const currentBranchLength = maxBranchLength * lengthVariation;
 
                 const particlesPerBranch = Math.floor(avgParticlesPerBranch * (1 - heightRatio * 0.5));
@@ -176,12 +181,22 @@ export default function ChristmasTree3D({
                     colors[index * 3 + 1] = g;
                     colors[index * 3 + 2] = b;
 
-                    sizes[index] =
-                        ((Math.random() * 0.06 + 0.03) * (1 - branchProgress * 0.35)) / 2;
+                    sizes[index] = ((Math.random() * 0.06 + 0.03) * (1 - branchProgress * 0.35)) / 2;
 
                     index++;
                 }
             }
+        }
+
+        if (index + 1 <= particleCount) {
+            positions[index * 3 + 0] = 0;
+            positions[index * 3 + 1] = totalHeight; // đỉnh
+            positions[index * 3 + 2] = 0;
+            colors[index * 3 + 0] = r;
+            colors[index * 3 + 1] = g;
+            colors[index * 3 + 2] = b;
+            sizes[index] = 0.06;
+            index++;
         }
 
         return { positions, colors, sizes, count: index };
@@ -320,7 +335,6 @@ export default function ChristmasTree3D({
     }, [heartParticles]);
 
     const startRef = useRef<number | null>(null);
-
     const easeOutCubic = (x: number) => 1 - Math.pow(1 - x, 3);
 
     useFrame((state) => {
@@ -334,9 +348,15 @@ export default function ChristmasTree3D({
         const rawHeart = Math.max(0, Math.min(1, (elapsed - (appearDelay + heartDelayOffset)) / appearDuration));
         const kHeart = easeOutCubic(rawHeart);
 
+        // cây quay
         if (groupRef.current) {
             groupRef.current.scale.setScalar(treeScale);
             groupRef.current.rotation.y = t * TREE_ROTATE_SPEED;
+        }
+
+        // nền quay chậm hơn (không dùng prop)
+        if (groundRef.current) {
+            groundRef.current.rotation.y = t * TREE_ROTATE_SPEED * GROUND_ROTATE_RATIO;
         }
 
         if (heartRef.current) {
@@ -362,70 +382,77 @@ export default function ChristmasTree3D({
     });
 
     return (
-        <group ref={groupRef}>
-            <GroundRings />
-            <points
-                geometry={trunkGeometry}
-                ref={(p) => { if (p) trunkGeoRef.current = p.geometry as THREE.BufferGeometry; }}
-            >
-                <pointsMaterial
-                    ref={trunkMatRef}
-                    size={0.04}
-                    vertexColors
-                    transparent
-                    opacity={0}
-                    sizeAttenuation
-                    blending={THREE.AdditiveBlending}
-                    depthWrite={false}
-                    map={dotTexture}
-                    alphaTest={0.5}
-                />
-            </points>
+        <>
+            {/* Nền tách group để quay riêng */}
+            <group ref={groundRef}>
+                <GroundRings />
+            </group>
 
-            <points
-                geometry={treeGeometry}
-                ref={(p) => { if (p) treeGeoRef.current = p.geometry as THREE.BufferGeometry; }}
-            >
-                <pointsMaterial
-                    ref={treeMatRef}
-                    size={0.025}
-                    vertexColors
-                    transparent
-                    opacity={0}
-                    sizeAttenuation
-                    blending={THREE.AdditiveBlending}
-                    depthWrite={false}
-                    map={dotTexture}
-                    alphaTest={0.5}
-                />
-            </points>
+            {/* Cây + Tim */}
+            <group ref={groupRef}>
+                <points
+                    geometry={trunkGeometry}
+                    ref={(p) => { if (p) trunkGeoRef.current = p.geometry as THREE.BufferGeometry; }}
+                >
+                    <pointsMaterial
+                        ref={trunkMatRef}
+                        size={0.04}
+                        vertexColors
+                        transparent
+                        opacity={0}
+                        sizeAttenuation
+                        blending={THREE.AdditiveBlending}
+                        depthWrite={false}
+                        map={dotTexture}
+                        alphaTest={0.5}
+                    />
+                </points>
 
-            <points
-                position={[0, treeHeight + 0.1, 0]}
-                geometry={heartGeometry}
-                rotation={[Math.PI / 2, Math.PI, 0]}
-                ref={(p) => {
-                    heartRef.current = p ?? null as any; // gắn ref cho tim
-                    if (p) heartGeoRef.current = p.geometry as THREE.BufferGeometry;
-                }}
-            >
-                <pointsMaterial
-                    ref={heartMatRef}
-                    size={0.013}
-                    vertexColors
-                    transparent
-                    opacity={0}
-                    sizeAttenuation
-                    blending={THREE.AdditiveBlending}
-                    depthWrite={false}
-                    map={dotTexture}
-                    alphaTest={0.5}
-                />
-            </points>
+                <points
+                    geometry={treeGeometry}
+                    ref={(p) => { if (p) treeGeoRef.current = p.geometry as THREE.BufferGeometry; }}
+                >
+                    <pointsMaterial
+                        ref={treeMatRef}
+                        size={0.025}
+                        vertexColors
+                        transparent
+                        opacity={0}
+                        sizeAttenuation
+                        blending={THREE.AdditiveBlending}
+                        depthWrite={false}
+                        map={dotTexture}
+                        alphaTest={0.5}
+                    />
+                </points>
 
-            <pointLight position={[0, treeHeight + 0.1, 0]} intensity={0.5} color="#ff69b4" distance={1.5} />
-            <pointLight position={[0.1, treeHeight + 0.15, 0]} intensity={0.25} color="#ffffff" distance={1} />
-            <pointLight position={[-0.1, treeHeight + 0.05, 0]} intensity={0.25} color="#ff1493" distance={1} />
-        </group>
+                <points
+                    position={[0, treeHeight + 0.02, 0]}
+                    geometry={heartGeometry}
+                    rotation={[Math.PI / 2, Math.PI, 0]}
+                    ref={(p) => {
+                        heartRef.current = (p ?? null) as any;
+                        if (p) heartGeoRef.current = p.geometry as THREE.BufferGeometry;
+                    }}
+                >
+                    <pointsMaterial
+                        ref={heartMatRef}
+                        size={0.013}
+                        vertexColors
+                        transparent
+                        opacity={0}
+                        sizeAttenuation
+                        blending={THREE.AdditiveBlending}
+                        depthWrite={false}
+                        map={dotTexture}
+                        alphaTest={0.5}
+                    />
+                </points>
+
+                <pointLight position={[0, treeHeight + 0.1, 0]} intensity={0.5} color="#ff69b4" distance={1.5} />
+                <pointLight position={[0.1, treeHeight + 0.15, 0]} intensity={0.25} color="#ffffff" distance={1} />
+                <pointLight position={[-0.1, treeHeight + 0.05, 0]} intensity={0.25} color="#ff1493" distance={1} />
+            </group>
+        </>
     );
 }
