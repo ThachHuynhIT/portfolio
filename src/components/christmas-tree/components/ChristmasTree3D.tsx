@@ -45,8 +45,8 @@ export default function ChristmasTree3D({
     heartDelayOffset = 0.2,
 }: Props) {
     const dotTexture = useMemo(() => createCircleTexture(128), []);
-    const groupRef = useRef<Group>(null);      // group của cây + tim
-    const groundRef = useRef<Group>(null);     // group của nền quay riêng
+    const groupRef = useRef<Group>(null);      // Cây + Tim
+    const groundRef = useRef<Group>(null);     // Nền quay riêng
     const heartRef = useRef<THREE.Points>(null);
 
     const trunkMatRef = useRef<THREE.PointsMaterial>(null);
@@ -63,8 +63,8 @@ export default function ChristmasTree3D({
     const [treeScale, setTreeScale] = useState(1);
 
     // tốc độ
-    const TREE_ROTATE_SPEED = 0.08;       // chậm hơn bản gốc một chút
-    const GROUND_ROTATE_RATIO = 0.4;      // nền chậm hơn 60%
+    const TREE_ROTATE_SPEED = 0.08;
+    const GROUND_ROTATE_RATIO = 0.4;   // nền quay chậm hơn
     const HEART_Z_SPIN = 1.3;
 
     useEffect(() => {
@@ -81,7 +81,7 @@ export default function ChristmasTree3D({
         return [c.r, c.g, c.b] as const;
     };
 
-    // Trunk
+    // ===== Trunk =====
     const trunkParticles = useMemo(() => {
         const particleCount = 60;
         const positions = new Float32Array(particleCount * 3);
@@ -107,7 +107,7 @@ export default function ChristmasTree3D({
         return { positions, colors, sizes, count: particleCount };
     }, [treeColor]);
 
-    // Tree
+    // ===== Tree (thân & tầng nhánh giữ nguyên; thêm chóp ở ngọn) =====
     const treeParticles = useMemo(() => {
         const particleCount = 15000;
         const positions = new Float32Array(particleCount * 3);
@@ -128,6 +128,7 @@ export default function ChristmasTree3D({
         }
         const avgParticlesPerBranch = particleCount / totalPossibleBranches;
 
+        // ---- Phần thân & các tầng nhánh (giữ nguyên) ----
         for (let layer = 0; layer < layers; layer++) {
             const layerHeight = (layer / layers) * totalHeight;
             const heightRatio = layer / layers;
@@ -142,7 +143,8 @@ export default function ChristmasTree3D({
                 const branchHeightOffset = (Math.random() - 0.5) * 0.25;
                 const branchStartHeight = layerHeight + branchHeightOffset;
 
-                const lengthVariation = 0.85 + Math.random() * 0.35;
+                // nhánh random dài/ngắn hơn một chút
+                const lengthVariation = 0.85 + Math.random() * 0.25; // ~0.85 → 1.10
                 const currentBranchLength = maxBranchLength * lengthVariation;
 
                 const particlesPerBranch = Math.floor(avgParticlesPerBranch * (1 - heightRatio * 0.5));
@@ -154,8 +156,8 @@ export default function ChristmasTree3D({
                     const surfaceAngle = Math.random() * Math.PI * 2;
                     const surfaceRadius = branchThickness * (0.7 + Math.random() * 0.3);
 
-                    const horizontalDistance = distance * Math.cos(branchAngleUp);
-                    const verticalRise = distance * Math.sin(branchAngleUp);
+                    const horizontalDistance = distance * Math.cos(Math.PI * 0.08);
+                    const verticalRise = distance * Math.sin(Math.PI * 0.08);
                     const curveFactor = branchProgress * branchProgress * 0.1;
 
                     const branchDirX = Math.cos(angleAroundTree);
@@ -166,16 +168,16 @@ export default function ChristmasTree3D({
                     positions[index * 3 + 0] =
                         branchDirX * horizontalDistance +
                         surfaceOffsetX * Math.cos(angleAroundTree + Math.PI / 2) -
-                        surfaceOffsetY * Math.sin(branchAngleUp) * branchDirX;
+                        surfaceOffsetY * Math.sin(Math.PI * 0.08) * branchDirX;
 
                     positions[index * 3 + 1] =
                         branchStartHeight + verticalRise - curveFactor +
-                        surfaceOffsetY * Math.cos(branchAngleUp);
+                        surfaceOffsetY * Math.cos(Math.PI * 0.08);
 
                     positions[index * 3 + 2] =
                         branchDirZ * horizontalDistance +
                         surfaceOffsetX * Math.sin(angleAroundTree + Math.PI / 2) -
-                        surfaceOffsetY * Math.sin(branchAngleUp) * branchDirZ;
+                        surfaceOffsetY * Math.sin(Math.PI * 0.08) * branchDirZ;
 
                     colors[index * 3 + 0] = r;
                     colors[index * 3 + 1] = g;
@@ -188,21 +190,66 @@ export default function ChristmasTree3D({
             }
         }
 
+        // ---- Dot cố định ở đúng đỉnh để nối với trái tim ----
         if (index + 1 <= particleCount) {
             positions[index * 3 + 0] = 0;
-            positions[index * 3 + 1] = totalHeight; // đỉnh
+            positions[index * 3 + 1] = totalHeight;
             positions[index * 3 + 2] = 0;
+
             colors[index * 3 + 0] = r;
             colors[index * 3 + 1] = g;
             colors[index * 3 + 2] = b;
+
             sizes[index] = 0.06;
             index++;
+        }
+
+        // ---- CHỈ thêm CHÓP (cone) ở NGỌN TRÊN CÙNG ----
+        const TIP_HEIGHT = 0.28;        // chiều cao chóp từ đỉnh xuống
+        const TIP_BASE_RADIUS = 0.12;   // ⬅ đáy nhỏ hơn trước
+        const TIP_COUNT = 200;          // số điểm mục tiêu của chóp
+        const DENSITY_DROP = 0.01;       // ⬅ giảm mật độ khi t→1; p(t)=1-DENSITY_DROP*t
+
+        // Lấy mẫu với xác suất nhận giảm dần theo t (t=0 đáy, t=1 đỉnh)
+        let accepted = 0;
+        const MAX_ATTEMPTS = TIP_COUNT * 4; // giới hạn để tránh vòng lặp dài
+        for (let attempt = 0; attempt < MAX_ATTEMPTS && accepted < TIP_COUNT && index < particleCount; attempt++) {
+            // Phân bố t ~ pow(rand, 1.0..1.4) để DÀY HƠN ở đáy, THƯA DẦN về đỉnh
+            const t = Math.pow(Math.random(), 1); // nghiêng về 0 (đáy) => tự nhiên
+            const acceptProb = 1 - DENSITY_DROP * t; // càng lên cao (t→1) xác suất càng thấp
+            if (Math.random() > acceptProb) continue; // từ chối để giảm dot gần đỉnh
+
+            const y = totalHeight - TIP_HEIGHT + t * TIP_HEIGHT;
+
+            // bán kính giảm phi tuyến để chóp nhọn hơn (gamma > 1)
+            const gamma = 1.1;
+            const radiusBase = Math.pow(1 - t, gamma) * TIP_BASE_RADIUS;
+            const radius = radiusBase * (0.9 + Math.random() * 0.25);
+
+            const phi = Math.random() * Math.PI * 2;
+            const x = Math.cos(phi) * radius;
+            const z = Math.sin(phi) * radius;
+
+            positions[index * 3 + 0] = x;
+            positions[index * 3 + 1] = y;
+            positions[index * 3 + 2] = z;
+
+            const brightBoost = 0.96 - 0.9 * t;
+            colors[index * 3 + 0] = r * brightBoost;
+            colors[index * 3 + 1] = g * brightBoost;
+            colors[index * 3 + 2] = b * brightBoost;
+
+            // size nhỏ dần khi lên cao để nhọn hơn
+            sizes[index] = (0.01 * (1 - 0.65 * t)) * (0.1 + Math.random() * 0.3);
+
+            index++;
+            accepted++;
         }
 
         return { positions, colors, sizes, count: index };
     }, [treeColor]);
 
-    // Heart
+    // ===== Heart =====
     const heartParticles = useMemo(() => {
         const targetDots = 1200;
         const positions = new Float32Array(targetDots * 3);
@@ -306,7 +353,7 @@ export default function ChristmasTree3D({
         };
     }, [treeColor, getBranchColor]);
 
-    // Geometries
+    // ===== Geometries =====
     const trunkGeometry = useMemo(() => {
         const g = new THREE.BufferGeometry();
         g.setAttribute('position', new THREE.BufferAttribute(trunkParticles.positions, 3));
@@ -334,6 +381,7 @@ export default function ChristmasTree3D({
         return g;
     }, [heartParticles]);
 
+    // ===== Animation =====
     const startRef = useRef<number | null>(null);
     const easeOutCubic = (x: number) => 1 - Math.pow(1 - x, 3);
 
@@ -348,13 +396,11 @@ export default function ChristmasTree3D({
         const rawHeart = Math.max(0, Math.min(1, (elapsed - (appearDelay + heartDelayOffset)) / appearDuration));
         const kHeart = easeOutCubic(rawHeart);
 
-        // cây quay
         if (groupRef.current) {
             groupRef.current.scale.setScalar(treeScale);
             groupRef.current.rotation.y = t * TREE_ROTATE_SPEED;
         }
 
-        // nền quay chậm hơn (không dùng prop)
         if (groundRef.current) {
             groundRef.current.rotation.y = t * TREE_ROTATE_SPEED * GROUND_ROTATE_RATIO;
         }
@@ -381,9 +427,10 @@ export default function ChristmasTree3D({
         }
     });
 
+    // ===== Scene =====
     return (
         <>
-            {/* Nền tách group để quay riêng */}
+            {/* Nền tách group để quay riêng, chậm hơn */}
             <group ref={groundRef}>
                 <GroundRings />
             </group>
@@ -427,7 +474,8 @@ export default function ChristmasTree3D({
                 </points>
 
                 <points
-                    position={[0, treeHeight + 0.02, 0]}
+                    // 💗 Nâng tim cao hơn để tránh tiếp xúc với chóp
+                    position={[0, treeHeight + 0.12, 0]}
                     geometry={heartGeometry}
                     rotation={[Math.PI / 2, Math.PI, 0]}
                     ref={(p) => {
@@ -449,9 +497,9 @@ export default function ChristmasTree3D({
                     />
                 </points>
 
-                <pointLight position={[0, treeHeight + 0.1, 0]} intensity={0.5} color="#ff69b4" distance={1.5} />
-                <pointLight position={[0.1, treeHeight + 0.15, 0]} intensity={0.25} color="#ffffff" distance={1} />
-                <pointLight position={[-0.1, treeHeight + 0.05, 0]} intensity={0.25} color="#ff1493" distance={1} />
+                <pointLight position={[0, treeHeight + 0.16, 0]} intensity={0.5} color="#ff69b4" distance={1.7} />
+                <pointLight position={[0.1, treeHeight + 0.20, 0]} intensity={0.25} color="#ffffff" distance={1.1} />
+                <pointLight position={[-0.1, treeHeight + 0.10, 0]} intensity={0.25} color="#ff1493" distance={1.1} />
             </group>
         </>
     );
