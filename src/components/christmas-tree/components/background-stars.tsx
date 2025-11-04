@@ -74,7 +74,7 @@ export default function BackgroundStars() {
         if (!pointsRef.current) return;
         const time = state.clock.getElapsedTime();
         // tốc độ quay
-        pointsRef.current.rotation.y = time * 0.25;
+        pointsRef.current.rotation.y = time * 0.22;
     });
 
     return (
