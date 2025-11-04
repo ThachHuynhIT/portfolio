@@ -19,7 +19,7 @@ function createCircleTexture(size = 100) {
     return new THREE.CanvasTexture(canvas);
 }
 
-const starColors = ['#00bfff', '#2196f3', '#ffffff'];
+const starColors = ['#ffffff', '#ffffff', '#ffffff'];
 function normalizeColor(color: THREE.Color, targetSum = 2.7) {
     const sum = color.r + color.g + color.b;
     if (sum < targetSum) {
@@ -73,7 +73,8 @@ export default function BackgroundStars() {
     useFrame((state) => {
         if (!pointsRef.current) return;
         const time = state.clock.getElapsedTime();
-        pointsRef.current.rotation.y = time * 0.28;
+        // tốc độ quay
+        pointsRef.current.rotation.y = time * 0.25;
     });
 
     return (

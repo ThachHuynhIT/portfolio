@@ -257,7 +257,8 @@ export default function ChristmasTree3D({
         const sizes = new Float32Array(targetDots);
         const [r, g, b] = getBranchColor();
 
-        const heartScale = 0.1;
+        // size của heart
+        const heartScale = 0.12;
         const R = 2;
 
         const F = (x: number, y: number, z: number) => {
