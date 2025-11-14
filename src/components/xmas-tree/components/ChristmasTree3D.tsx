@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Group } from 'three';
 import * as THREE from 'three';
 import GroundRings from './ground-rings';
+import { RgbColor } from 'react-colorful';
 
 function createCircleTexture(size = 128) {
     const canvas = document.createElement('canvas');
@@ -32,14 +33,14 @@ function createCircleTexture(size = 128) {
 }
 
 type Props = {
-    treeColor: string;
+    treeColor: RgbColor;
     appearDuration?: number; // s
     appearDelay?: number;    // s
     heartDelayOffset?: number; // s
 };
 
 export default function ChristmasTree3D({
-    treeColor,
+    treeColor = { r: 30, g: 144, b: 255 },
     appearDuration = 1.4,
     appearDelay = 0,
     heartDelayOffset = 0.2,
@@ -77,7 +78,8 @@ export default function ChristmasTree3D({
     }, []);
 
     const getBranchColor = () => {
-        const c = new THREE.Color(treeColor);
+        const c = new THREE.Color(treeColor.r / 255, treeColor.g / 255, treeColor.b / 255);
+        
         return [c.r, c.g, c.b] as const;
     };
 
@@ -433,7 +435,7 @@ export default function ChristmasTree3D({
         <>
             {/* Nền tách group để quay riêng, chậm hơn */}
             <group ref={groundRef}>
-                <GroundRings />
+                <GroundRings wave={true} />
             </group>
 
             {/* Cây + Tim */}

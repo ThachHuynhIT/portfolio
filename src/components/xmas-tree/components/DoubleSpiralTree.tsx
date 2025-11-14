@@ -5,6 +5,7 @@ import { useMemo, useRef } from 'react';
 import type { Group, InstancedMesh, Mesh } from 'three';
 import * as THREE from 'three';
 import { svgPath } from '../constant';
+import GroundRings from './ground-rings';
 
 type Props = {
     colorHex?: string;
@@ -20,6 +21,7 @@ type Props = {
     // Streaks & Lightning
     streaks?: number;
     sparks?: number;
+    showStreaks?: boolean;
 
     // Common FX
     rotateSpeed?: number;
@@ -142,7 +144,7 @@ function getFrame(tangent: THREE.Vector3, outN: THREE.Vector3, outB: THREE.Vecto
 
 export default function DoubleSpiralTree3D({
     colorHex = '#6ec8ff',
-    height = 3.6,
+    height = 4.2,
     baseRadius = 1.6,
     turns = 6,
     tubeRadius = 0.032,
@@ -150,6 +152,7 @@ export default function DoubleSpiralTree3D({
     dotsBoost = 6.9,
     streaks = 2,
     sparks = 4,
+    showStreaks = true,
     rotateSpeed = 0.1,
     appearDuration = 2.2,
     scale = 1,
@@ -158,7 +161,7 @@ export default function DoubleSpiralTree3D({
     fadeFlashDuration = 0.8,
     onGone,
     fadeTrigger = 0,
-    snowCount = 900,
+    snowCount = 800,
     snowSpeedMultiplier = 2.5,
     snowWindMultiplier = 2.0,
     snowSizeMin = 0.12,
@@ -183,12 +186,18 @@ export default function DoubleSpiralTree3D({
     const L_AMP_MUL = 1.0;
     // Tỷ lệ phóng to cho LIGHTNING — tăng để làm "to" hơn
     const LIGHTNING_SCALE = 1.4;
+    const width = window?.innerWidth ?? 0;
+    if (width < 480) {
+        height = 4
+        baseRadius = 1.4
+    }
     const curveA = useMemo(() => new TaperHelixCurve(height, baseRadius, turns, 0), [height, baseRadius, turns]);
     const curveB = useMemo(() => new TaperHelixCurve(height, baseRadius, turns, Math.PI), [height, baseRadius, turns]);
     const color = useMemo(() => new THREE.Color(colorHex), [colorHex]);
     const dotTex = useMemo(createCircleTexture, []);
     const snowTex = useMemo(() => createSnowflakeTextureFromSVG(256, '#fff'), []);
     type P = { u: number; r: number; om: number; ph: number; h: number; which: 0 | 1 };
+    const groundRef = useRef<Group>(null);
 
     const N = useMemo(() => Math.floor(particles * dotsBoost), [particles, dotsBoost]);
     const pParams = useMemo(() => {
@@ -391,18 +400,113 @@ export default function DoubleSpiralTree3D({
         return arr;
     }, [SPARKS_N, color, curveA, curveB, tubeRadius, streakAmp]);
 
-    // ======= STAR MATERIAL =======
-    const starMat = useMemo(() => {
-        return new THREE.MeshBasicMaterial({
-            color: color.clone().multiplyScalar(1.8),
-            transparent: true,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
-            toneMapped: false,
-            opacity: 0,
-            side: THREE.DoubleSide,
-        });
+    // ======= STAR DOTS 3D =======
+    // Tạo dots cho ngôi sao 5 cánh 3D
+    const starDotsGeometry = useMemo(() => {
+        const starDotsCount = 2000; // tăng số lượng dots
+        const positions = new Float32Array(starDotsCount * 3);
+        const colors = new Float32Array(starDotsCount * 3);
+        const sizes = new Float32Array(starDotsCount);
+
+        // Tạo hình ngôi sao 5 cánh 3D
+        const outerRadius = 0.28; // bán kính cánh nhọn
+        const innerRadius = 0.11; // bán kính phần lõm (nhỏ hơn để tạo cánh nhọn rõ)
+        const arms = 5; // 5 cánh
+        const depth = 0.14; // độ dày cho hình 3D
+
+        // Hàm kiểm tra xem điểm có nằm trong ngôi sao 5 cánh không
+        const isInsideStar = (x: number, y: number) => {
+            const dist = Math.sqrt(x * x + y * y);
+            if (dist < innerRadius) return true; // phần giữa tròn
+
+            const angle = Math.atan2(y, x);
+            // Xoay để cánh đầu tiên hướng lên trên
+            const normalizedAngle = ((angle + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2));
+
+            // Tính góc trong mỗi segment (72 độ cho 5 cánh)
+            const segmentAngle = (Math.PI * 2) / arms;
+            const angleInSegment = normalizedAngle % segmentAngle;
+            const centerAngle = segmentAngle / 2;
+
+            // Tính bán kính cho phép tại góc này
+            // Tạo hình dạng nhọn ở mỗi cánh
+            const angleDiff = Math.abs(angleInSegment - centerAngle);
+            const t = angleDiff / centerAngle; // 0 ở giữa cánh, 1 ở rìa
+
+            // Interpolate giữa outer và inner radius với curve để tạo cánh nhọn
+            const currentMaxRadius = THREE.MathUtils.lerp(outerRadius, innerRadius, Math.pow(t, 0.8));
+
+            return dist <= currentMaxRadius;
+        };
+
+        // Hàm tạo bề mặt cong (bulge) cho ngôi sao 3D - giống hình với các mặt phẳng cong
+        const getBulgeDepth = (x: number, y: number, baseDepth: number) => {
+            const dist = Math.sqrt(x * x + y * y);
+            const angle = Math.atan2(y, x);
+            const normalizedAngle = ((angle + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2));
+
+            // Tạo độ cong giảm dần từ tâm ra ngoài
+            const normalizedDist = Math.min(1, dist / outerRadius);
+
+            // Tạo hiệu ứng các mặt phẳng cong (faceted) cho từng cánh
+            const segmentAngle = (Math.PI * 2) / arms;
+            const angleInSegment = normalizedAngle % segmentAngle;
+            const centerAngle = segmentAngle / 2;
+            const angleDiff = Math.abs(angleInSegment - centerAngle);
+            const armFactor = 1.0 - (angleDiff / centerAngle) * 0.3; // cánh cao hơn ở giữa
+
+            // Sử dụng hàm cos để tạo độ cong mượt
+            const bulge = Math.cos(normalizedDist * Math.PI / 2) * armFactor;
+            return bulge * baseDepth;
+        };
+
+        let index = 0;
+        let attempts = 0;
+        const maxAttempts = starDotsCount * 20;
+
+        while (index < starDotsCount && attempts < maxAttempts) {
+            attempts++;
+
+            // Random vị trí trong hình hộp bao quanh ngôi sao
+            const x = (Math.random() - 0.5) * outerRadius * 2;
+            const y = (Math.random() - 0.5) * outerRadius * 2;
+
+            // Kiểm tra xem điểm có nằm trong ngôi sao không
+            if (isInsideStar(x, y)) {
+                // Tạo độ dày với bề mặt cong
+                const maxZ = getBulgeDepth(x, y, depth / 2);
+                const z = (Math.random() - 0.5) * maxZ * 2;
+
+                positions[index * 3 + 0] = x;
+                positions[index * 3 + 1] = y;
+                positions[index * 3 + 2] = z;
+
+                // Màu sắc với biến thiên để tạo hiệu ứng 3D (sáng ở giữa, tối ở rìa)
+                const dist = Math.sqrt(x * x + y * y);
+                const centerBrightness = 1.3 - (dist / outerRadius) * 0.4; // sáng hơn ở giữa
+                const depthFactor = Math.abs(z) / (depth / 2);
+                const brightness = centerBrightness * (1.0 + Math.random() * 0.3 - depthFactor * 0.2);
+                const c = color.clone().multiplyScalar(brightness * 2.0);
+                colors[index * 3 + 0] = c.r;
+                colors[index * 3 + 1] = c.g;
+                colors[index * 3 + 2] = c.b;
+
+                // Kích thước dots
+                sizes[index] = THREE.MathUtils.lerp(0.018, 0.032, Math.random());
+
+                index++;
+            }
+        }
+
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+        return geo;
     }, [color]);
+
+    const starDotsMatRef = useRef<THREE.PointsMaterial>(null);
 
     // ======= Precompute particle positions =======
     useMemo(() => {
@@ -527,6 +631,8 @@ export default function DoubleSpiralTree3D({
     const explodeStartRef = useRef<number | null>(null);
     const vanishedRef = useRef<boolean>(false);
     const lastTriggerRef = useRef<number>(fadeTrigger);
+    const TREE_ROTATE_SPEED = 0.08;
+    const GROUND_ROTATE_RATIO = 0.4;
 
     useFrame((state) => {
         const t = state.clock.getElapsedTime();
@@ -544,6 +650,10 @@ export default function DoubleSpiralTree3D({
         if (fadeTrigger !== lastTriggerRef.current && appearProgressRaw >= 1 && !vanishedRef.current) {
             lastTriggerRef.current = fadeTrigger;
             readyToFlashAtRef.current = t + waitBeforeFade;
+        }
+
+        if (groundRef.current) {
+            groundRef.current.rotation.y = t * TREE_ROTATE_SPEED * GROUND_ROTATE_RATIO;
         }
 
         // Bắt đầu flash
@@ -581,6 +691,13 @@ export default function DoubleSpiralTree3D({
             starRef.current.rotation.y = t * 0.1;
         }
 
+        // Cập nhật star dots material
+        if (starDotsMatRef.current && !vanishedRef.current) {
+            const starEase = Math.max(0, Math.min(1, (elapsed - appearDuration) / 0.2));
+            starDotsMatRef.current.color.set(color).multiplyScalar(brightBoost * 1.5);
+            starDotsMatRef.current.opacity = starEase * 0.9;
+        }
+
         if (!vanishedRef.current) {
             // Streaks show range
             streakObjs.forEach((obj) => {
@@ -608,21 +725,14 @@ export default function DoubleSpiralTree3D({
                 pMatRef.current.opacity = 0.95 * (appearProgressRaw > 0 ? 1 : 0);
             }
 
-            // Star
-            const starEase = Math.max(0, Math.min(1, (elapsed - appearDuration) / 0.2));
-            if (starMat) {
-                starMat.color.set(color).multiplyScalar(1.8 * brightBoost);
-                starMat.opacity = starEase;
-            }
-
             // LIGHTNING
             const dampingRatio = 0.9;
             const changeMin = 0.5;
             const changeMax = 0.7;
             // const jitterBase = tubeRadius * streakAmp * L_AMP_MUL;
-             // tăng jitter base theo LIGHTNING_SCALE để bolt rộng hơn
+            // tăng jitter base theo LIGHTNING_SCALE để bolt rộng hơn
             const jitterBase = tubeRadius * streakAmp * L_AMP_MUL * LIGHTNING_SCALE;
-            
+
             // const initialInfluence = 1.0 - 0.7 * appearProgressRaw;
             const initialInfluence = 1.0 - 0.7 * appearProgressRaw;
 
@@ -791,40 +901,30 @@ export default function DoubleSpiralTree3D({
                 />
             </instancedMesh>
 
+            <group ref={groundRef}>
+                <GroundRings wave={false} />
+            </group>
+
             {/* TREE GROUP */}
             <group ref={groupRef}>
-                {/* STAR */}
-                <mesh
-                    ref={starRef}
-                    geometry={useMemo(() => {
-                        const s = new THREE.Shape();
-                        const r = 0.24,
-                            ir = 0.1,
-                            p = 5;
-                        s.moveTo(0, r);
-                        for (let i = 0; i < p; i++) {
-                            let ang = (i / p) * Math.PI * 2 + Math.PI / 2;
-                            s.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
-                            ang += (Math.PI * 2) / (p * 2);
-                            s.lineTo(Math.cos(ang) * ir, Math.sin(ang) * ir);
-                        }
-                        s.closePath();
-                        // return new THREE.ShapeGeometry(s);
-                         // Dùng ExtrudeGeometry để tạo "độ dày" cho ngôi sao
-                        const depth = 0.06; // điều chỉnh giá trị để tăng/giảm độ dày
-                        const extrudeSettings: THREE.ExtrudeGeometryOptions = {
-                            depth,
-                            bevelEnabled: false,
-                        };
-                        const geom = new THREE.ExtrudeGeometry(s, extrudeSettings);
-                        // ExtrudeGeometry mở rộng theo trục Z; dịch nhẹ về giữa nếu cần
-                        geom.translate(0, 0, -depth / 2);
-                        return geom;
-                    }, [])}
-                    material={starMat}
-                    position={[0, height + 0.25, 0]}
-                    renderOrder={6}
-                />
+                {/* STAR - Chỉ dùng dots, không có mesh viền */}
+                <group position={[0, height + 0.25, 0]} ref={starRef}>
+                    {/* Dots tạo hình ngôi sao 3D */}
+                    <points geometry={starDotsGeometry}>
+                        <pointsMaterial
+                            ref={starDotsMatRef}
+                            size={0.03}
+                            vertexColors
+                            transparent
+                            opacity={0}
+                            sizeAttenuation
+                            blending={THREE.AdditiveBlending}
+                            depthWrite={false}
+                            map={dotTex}
+                            alphaTest={0.1}
+                        />
+                    </points>
+                </group>
 
                 {/* PARTICLES */}
                 <points
@@ -845,7 +945,7 @@ export default function DoubleSpiralTree3D({
                 >
                     <pointsMaterial
                         ref={pMatRef}
-                        size={0.024}
+                        size={0.040}
                         vertexColors
                         transparent
                         opacity={0}
@@ -858,14 +958,17 @@ export default function DoubleSpiralTree3D({
                 </points>
 
                 {/* MAIN STREAKS */}
-                {streakObjs.map((o, i) => (
+                {/* {streakObjs.map((o, i) => (
+                    <primitive key={i} object={o.line} renderOrder={4} />
+                ))} */}
+                {showStreaks && streakObjs.map((o, i) => (
                     <primitive key={i} object={o.line} renderOrder={4} />
                 ))}
 
                 {/* LIGHTNING (static on mobile) */}
-                {lightningBoltObjs.map((o, i) => (
+                {/* {lightningBoltObjs.map((o, i) => (
                     <primitive key={`lightning-${i}`} object={o.line} renderOrder={10} />
-                ))}
+                ))} */}
             </group>
         </>
     );

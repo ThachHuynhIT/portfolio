@@ -111,7 +111,7 @@
 
 @media (max-width: 480px) {
     .messageWrap {
-        width: 101px;
+        width: 104px;
     }
 
     .title {
@@ -140,4 +140,52 @@
 
 .text-glow-white {
     text-shadow: 0 0 4px #ffff;
+}
+
+.displayImage {
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  object-fit: cover;
+  /* Change from contain to cover for better heart shape */
+  box-sizing: border-box;
+  /* Heart shape clip path matching getSimpleHeartPoint function - corrected orientation */
+  clip-path: polygon(50% 6%,
+      /* Top tip (corrected from bottom) */
+      41% 9%,
+      /* Upper left curve */
+      32% 12%,
+      24% 16%,
+      17% 22%,
+      12% 30%,
+      9% 39%,
+      /* Left side curve */
+      8% 48%,
+      10% 57%,
+      14% 65%,
+      20% 72%,
+      28% 78%,
+      /* Left bottom curve */
+      37% 83%,
+      46% 87%,
+      50% 90%,
+      /* Bottom center (heart tip pointing down) */
+      54% 87%,
+      /* Right bottom curve */
+      63% 83%,
+      72% 78%,
+      80% 72%,
+      86% 65%,
+      90% 57%,
+      /* Right side curve */
+      92% 48%,
+      91% 39%,
+      88% 30%,
+      83% 22%,
+      76% 16%,
+      68% 12%,
+      /* Upper right curve */
+      59% 9%);
+
+  /* Smooth transitions for shape changes */
+  transition: clip-path 0.3s ease-in-out;
 }
