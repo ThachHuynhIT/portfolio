@@ -104,7 +104,7 @@ export default function MessageForm({ encryptedData }: IEncryptedProp) {
             return;
         }
         Inertia.post(
-            route('xmas-tree-form-save'),
+            route('chrismas-tree-form-save'),
             {
                 id: id,
                 messages: messages.filter((msg) => msg.message.trim() !== '').map((msg) => msg.message),

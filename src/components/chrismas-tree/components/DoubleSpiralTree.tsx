@@ -6,9 +6,10 @@ import type { Group, InstancedMesh, Mesh } from 'three';
 import * as THREE from 'three';
 import { svgPath } from '../constant';
 import GroundRings from './ground-rings';
+import { RgbColor } from '@/types';
 
 type Props = {
-    colorAll?: string;
+    colorAll?: RgbColor;
     height?: number;
     baseRadius?: number;
     turns?: number;
@@ -143,7 +144,7 @@ function getFrame(tangent: THREE.Vector3, outN: THREE.Vector3, outB: THREE.Vecto
 }
 
 export default function DoubleSpiralTree3D({
-    colorAll = '#6ec8ff',
+    colorAll = { r: 30, g: 144, b: 255 },
     height = 4.2,
     baseRadius = 1.6,
     turns = 6,
@@ -193,7 +194,7 @@ export default function DoubleSpiralTree3D({
     }
     const curveA = useMemo(() => new TaperHelixCurve(height, baseRadius, turns, 0), [height, baseRadius, turns]);
     const curveB = useMemo(() => new TaperHelixCurve(height, baseRadius, turns, Math.PI), [height, baseRadius, turns]);
-    const color = useMemo(() => new THREE.Color(colorAll), [colorAll]);
+    const color = useMemo(() => new THREE.Color(colorAll.r / 255, colorAll.g / 255, colorAll.b / 255), [colorAll]);
     const dotTex = useMemo(createCircleTexture, []);
     const snowTex = useMemo(() => createSnowflakeTextureFromSVG(256, '#fff'), []);
     type P = { u: number; r: number; om: number; ph: number; h: number; which: 0 | 1 };

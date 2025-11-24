@@ -1,24 +1,23 @@
-"use client";
+'use client';
 
-import { Environment, Html, OrbitControls } from "@react-three/drei";
-import { Canvas, useThree, useFrame } from "@react-three/fiber";
-import { Bloom, EffectComposer } from "@react-three/postprocessing";
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Vector3 } from "three";
-import type { OrbitControls as OrbitControlsType } from "three-stdlib";
-
-import BackgroundStars from "./components/background-stars";
-import ChristmasTree3D from "./components/ChristmasTree3D";
-import Fireworks from "./components/fireworks";
-import styles from "./responsive.module.css";
-// import { decrypt } from "@/hooks/OpenSSLDecryptionService";
-import { RgbColor } from "@/types";
-import ChristmasText from "./components/ChistmasText";
+// import { RgbColor } from '@/components/color-picker';
+import { Environment, Html, OrbitControls } from '@react-three/drei';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Bloom, EffectComposer } from '@react-three/postprocessing';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { Vector3 } from 'three';
+import type { OrbitControls as OrbitControlsType } from 'three-stdlib';
+import BackgroundStars from './components/background-stars';
+import DoubleSpiralTree3D from './components/DoubleSpiralTree';
+import styles from './responsive.module.css';
+// import { decrypt } from '@/hooks/OpenSSLDecryptionService';
+import ChristmasText from './components/ChistmasText';
 
 interface CameraTransitionProps {
     controlsRef: React.RefObject<OrbitControlsType>;
     run: boolean;
 }
+const startPosition = new Vector3(8, 1, 10);
 
 function CameraTransition({ controlsRef, run }: CameraTransitionProps) {
     const { camera } = useThree();
@@ -27,12 +26,18 @@ function CameraTransition({ controlsRef, run }: CameraTransitionProps) {
         startTime: 0,
     });
 
-    const DURATION = 2.5;
+    const DURATION = 2.8;
 
-    const startPosition = new Vector3(0, 2.8, 7);
-    const endPosition = new Vector3(5, 2, 7);
-    const startTarget = new Vector3(0, 1.6, 0);
-    const endTarget = new Vector3(1, 1, 0);
+    const startTarget = new Vector3(0, 1.8, 0);
+    // chỉnh end để vị trí
+    let endPosition = new Vector3(5, 3, 7);
+    let endTarget = new Vector3(0.2, 1.6, 0);
+
+    const width = window?.innerWidth ?? 0;
+    if (width < 480) {
+        endPosition = new Vector3(6, 2.5, 11);
+        endTarget = new Vector3(1.2, 1.8, -0.1);
+    }
 
     useEffect(() => {
         if (run) {
@@ -48,7 +53,7 @@ function CameraTransition({ controlsRef, run }: CameraTransitionProps) {
 
         const elapsedTime = (performance.now() - animationState.current.startTime) / 1000;
         const progress = Math.min(elapsedTime / DURATION, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
+        const eased = progress;
 
         const currentPos = new Vector3().lerpVectors(startPosition, endPosition, eased);
         const currentTarget = new Vector3().lerpVectors(startTarget, endTarget, eased);
@@ -63,104 +68,6 @@ function CameraTransition({ controlsRef, run }: CameraTransitionProps) {
     return null;
 }
 
-const useScreenSize = () => {
-    const [screenSize, setScreenSize] = useState<"mobile" | "tablet" | "desktop">("desktop");
-    const [isLandscape, setIsLandscape] = useState(false);
-
-    const updateScreenSize = useCallback(() => {
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-        const isLandscapeMode = width > height;
-
-        setIsLandscape(isLandscapeMode);
-
-        if (width < 650 || height < 500) {
-            setScreenSize("mobile");
-        } else if (width < 1024) {
-            setScreenSize("tablet");
-        } else {
-            setScreenSize("desktop");
-        }
-    }, []);
-
-    useEffect(() => {
-        updateScreenSize();
-
-        // Use throttled resize handler for better performance
-        let rafId: number;
-        let lastResize = 0;
-
-        const throttledResize = () => {
-            const now = Date.now();
-            if (now - lastResize > 150) {
-                // Throttle to max 6.7 calls per second
-                lastResize = now;
-                updateScreenSize();
-            } else {
-                rafId = requestAnimationFrame(throttledResize);
-            }
-        };
-
-        const handleResize = () => {
-            cancelAnimationFrame(rafId);
-            throttledResize();
-        };
-
-        window.addEventListener("resize", handleResize, { passive: true });
-
-        return () => {
-            window.removeEventListener("resize", handleResize);
-            cancelAnimationFrame(rafId);
-        };
-    }, [updateScreenSize]);
-
-    return { screenSize, isLandscape };
-};
-
-const generateHeartClipPath = (points: number = 50): string => {
-    const TWO_PI = Math.PI * 2;
-    const pathPoints: string[] = [];
-
-    // Use the same mathematical formula as in HeartRods
-    const getSimpleHeartPoint = (t: number) => {
-        const cosT = Math.cos(t);
-        const sinT = Math.sin(t);
-        const cos2T = Math.cos(2 * t);
-        const x = 16 * sinT * sinT * sinT;
-        const y = 13 * cosT - 4 * cos2T - 2 * Math.cos(3 * t);
-        return { x, y };
-    };
-
-    // Find the bounds to normalize coordinates
-    let minX = Infinity,
-        maxX = -Infinity,
-        minY = Infinity,
-        maxY = -Infinity;
-    const calculatedPoints = [];
-
-    // Calculate points starting from the bottom tip (t=0) going counter-clockwise
-    for (let i = 0; i < points; i++) {
-        const t = (i / points) * TWO_PI;
-        const point = getSimpleHeartPoint(t);
-        calculatedPoints.push(point);
-
-        minX = Math.min(minX, point.x);
-        maxX = Math.max(maxX, point.x);
-        minY = Math.min(minY, point.y);
-        maxY = Math.max(maxY, point.y);
-    }
-
-    // Convert to percentage coordinates (0-100%) - flip Y axis for correct orientation
-    for (const point of calculatedPoints) {
-        const xPercent = ((point.x - minX) / (maxX - minX)) * 100;
-        // Flip Y coordinate: use (maxY - point.y) instead of (point.y - minY)
-        const yPercent = ((maxY - point.y) / (maxY - minY)) * 100;
-        pathPoints.push(`${xPercent.toFixed(1)}% ${yPercent.toFixed(1)}%`);
-    }
-
-    return `polygon(${pathPoints.join(", ")})`;
-};
-
 interface EncryptProps {
     encryptedData: string;
 }
@@ -169,8 +76,8 @@ interface TreeProp {
     id: string;
     messages: string[],
     title: string,
-    textColor: RgbColor,
-    treeColor: RgbColor,
+    textColor: any,
+    treeColor: any,
     music: string,
     finalImage: string,
 }
@@ -196,20 +103,45 @@ export default function Index({ encryptedData }: EncryptProps) {
 
     const [showText, setShowText] = useState(false);
     const [runTransition, setRunTransition] = useState(false);
-    const [messages, setMessages] = useState<string[]>([]);
-    const [title, setTitle] = useState<string>('');
-    const [textColor, setTextColor] = useState<RgbColor>({ r: 0, g: 255, b: 255 });
-    const [treeColor, setTreeColor] = useState<RgbColor>({ r: 30, g: 144, b: 255 });
+    const [messages, setMessages] = useState<string[]>(["Merry Christmas!", "Wishing you joy and happiness.", "May your holidays be bright!"]);
+    const [title, setTitle] = useState<string>('Chuc Mung Giang Sinh');
+    const [textColor, setTextColor] = useState<any>({ r: 0, g: 255, b: 255 });
+    const [treeColor, setTreeColor] = useState<any>({ r: 30, g: 144, b: 255 });
     const [music, setMusic] = useState<string>('');
     const [imageUrl, setImageUrl] = useState<string>('');
     const audioRef = useRef(null);
 
+    // Thời gian xuất hiện mặc định của DoubleSpiralTree3D là 2.2 giây (2200ms)
+    const TREE_APPEAR_DURATION_MS = 2200;
+    // Độ trễ nhỏ để đảm bảo cây đã hoàn tất (ví dụ: 300ms)
+    // const BUFFER_MS = 300;
+
+    // useEffect(() => {
+    //     // BẮT ĐẦU CHUYỂN ĐỘNG CAMERA CÙNG LÚC VỚI ANIMATION CỦA CÂY
+    //     setRunTransition(true);
+
+    //     // Hiển thị chữ sau khi cây hoàn thành animation xuất hiện + thời gian đệm
+    //     const t = setTimeout(() => {
+    //         setShowText(true);
+    //     }, TREE_APPEAR_DURATION_MS + BUFFER_MS);
+
+    //     return () => clearTimeout(t);
+    // }, []);
+    // CameraTransition duration (phù hợp với DURATION trong CameraTransition component)
+    const CAMERA_TRANSITION_MS = 3000;
+
     useEffect(() => {
-        const t = setTimeout(() => {
+        // BẮT ĐẦU CHUYỂN ĐỘNG CAMERA CÙNG LÚC VỚI ANIMATION CỦA CÂY
+        const totalMs = TREE_APPEAR_DURATION_MS + CAMERA_TRANSITION_MS + 450;
+        const t = window.setTimeout(() => {
             setShowText(true);
+        }, totalMs);
+
+        setTimeout(() => {
             setRunTransition(true);
-        }, 500);
-        return () => clearTimeout(t);
+        }, CAMERA_TRANSITION_MS);
+
+        return () => window.clearTimeout(t);
     }, []);
 
     useEffect(() => {
@@ -326,7 +258,7 @@ export default function Index({ encryptedData }: EncryptProps) {
     return (
         <div
             ref={containerRef}
-            className={`relative bg-black ${styles["container-christmas-tree"]}`}
+            className={`relative bg-black ${styles['container-christmas-tree']}`}
             style={{
                 backgroundColor: '#000',
                 position: 'fixed',
@@ -340,22 +272,23 @@ export default function Index({ encryptedData }: EncryptProps) {
                 </audio>
             )}
             <Canvas
-                className={styles["canvas-christmas-tree"]}
-                camera={{ position: [5, 2, 7], fov: 50 }}
+                className={styles['canvas-christmas-tree']}
+                camera={{ position: startPosition, fov: 50 }}
                 gl={{ antialias: true, alpha: true }}
             >
                 <Suspense fallback={null}>
                     <ambientLight intensity={0.3} />
-                    <pointLight position={[0, 5, 0]} intensity={2} />
+                    <pointLight position={[0, 5, 0]} intensity={2} color="#00ffff" />
                     <pointLight position={[5, 3, 5]} intensity={1} color="#4a90e2" />
                     <Environment preset="night" />
                     <BackgroundStars />
-                    <ChristmasTree3D treeColor={treeColor} />
-                    <Fireworks propColor="#fff" />
+
+                    <DoubleSpiralTree3D colorAll={treeColor} appearDuration={TREE_APPEAR_DURATION_MS / 1000} showStreaks={false} />
+
                     <ChristmasText
                         titleColor={textColor}
-                        // title={title}
-                        messages={["Merry Christmas!", "Wishing you joy and happiness this holiday season.", "May your days be filled with love and laughter."]}
+                        title={title}
+                        messages={messages}
                         visible={showText}
                         imageUrl={imageUrl}
                         messageDelayMs={1700}
@@ -368,17 +301,15 @@ export default function Index({ encryptedData }: EncryptProps) {
                         minDistance={6}
                         maxDistance={12}
                         maxPolarAngle={Math.PI / 2 + 0.3}
-                        target={[1, 1, 0]}
+                        // Target ban đầu được đặt tại startTarget của CameraTransition (0, 1.6, 0)
+                        target={[0, 1.8, 0]}
                     />
                     <EffectComposer>
-                        <Bloom
-                            luminanceThreshold={0.8}
-                            luminanceSmoothing={0.9}
-                            intensity={1.2}
-                            mipmapBlur
-                        />
+                        <Bloom luminanceThreshold={0.1} luminanceSmoothing={0.9} intensity={1} />
                     </EffectComposer>
-                    {/* <CameraTransition controlsRef={controlsRef} run={runTransition} /> */}
+
+                    {/* KÍCH HOẠT HIỆU ỨNG ZOOM-IN CỦA CAMERA */}
+                    <CameraTransition controlsRef={controlsRef} run={runTransition} />
                 </Suspense>
             </Canvas>
         </div>

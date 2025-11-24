@@ -40,24 +40,22 @@
 .messageWrap {
     width: 175px;
     display: flex;
-    flex-direction: column;
     flex-wrap: wrap;
-    margin-top: 0;
 }
 
 .title {
     font-size: 1rem;
     font-family: "cursive";
+    /* margin-bottom: 0.5rem; */
+    /* padding-left: 1px; */
     line-height: 1.2;
-    display: block;
-    margin-bottom: 0.25rem;
 }
 
 .subtitle {
     font-size: .7rem;
-    line-height: 1.2;
-    margin: 0;
-    padding: 0;
+    /* margin-bottom: 0.25rem; */
+    /* padding-left: 8px; */
+    /* line-height: 1.3; */
 }
 
 .message {
@@ -69,15 +67,19 @@
 .christmas-text-hidden {
     opacity: 0;
     transform: scale(0.5);
+    top: -100px;
 }
 
 .christmas-text-visible {
     opacity: 1;
     transform: scale(1);
+    top: 0;
 }
 
 .christmas-text {
+    position: absolute;
     transition: opacity 1.5s ease-out, transform 1.5s ease-out;
+    transition: all 2s ease-in-out, transform 2s ease-in-out;
 }
 
 @media (max-width: 1024px) {
@@ -97,12 +99,6 @@
 
     .christmas-text {
         max-width: 250px !important;
-        padding-left: 30px;
-    }
-
-    .canvas-christmas-tree div div {
-        transform-style: inherit;
-        height: 145px;
     }
 }
 
@@ -134,16 +130,16 @@
 
 @media (max-width: 480px) {
     .messageWrap {
-        width: 104px;
+        width: 132px;
     }
 
     .title {
-        font-size: 9.5px;
+        font-size: .8rem;
         margin-bottom: 0.25rem;
     }
 
     .subtitle {
-        font-size: 7px;
+        font-size: 8px;
         margin-bottom: 0.1rem;
     }
 
@@ -152,12 +148,8 @@
     }
 
     .christmas-text {
-        max-width: 101px !important;
-        padding: 0;
-    }
-
-    .canvas-christmas-tree div div {
-        height: 32px;
+        max-width: 180px !important;
+        padding: 0 5px;
     }
 }
 

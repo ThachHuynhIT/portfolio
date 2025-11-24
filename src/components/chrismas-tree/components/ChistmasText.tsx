@@ -3,109 +3,65 @@ import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 // import { RgbColor } from '@/components/color-picker';
 import styles from './../responsive.module.css';
 
-const generateHeartClipPath = (points: number = 50): string => {
-  const TWO_PI = Math.PI * 2;
-  const pathPoints: string[] = [];
-
-  // Use the same mathematical formula as in HeartRods
-  const getSimpleHeartPoint = (t: number) => {
-    const cosT = Math.cos(t);
-    const sinT = Math.sin(t);
-    const cos2T = Math.cos(2 * t);
-    const x = 16 * sinT * sinT * sinT;
-    const y = 13 * cosT - 4 * cos2T - 2 * Math.cos(3 * t);
-    return { x, y };
-  };
-
-  // Find the bounds to normalize coordinates
-  let minX = Infinity,
-    maxX = -Infinity,
-    minY = Infinity,
-    maxY = -Infinity;
-  const calculatedPoints = [];
-
-  // Calculate points starting from the bottom tip (t=0) going counter-clockwise
-  for (let i = 0; i < points; i++) {
-    const t = (i / points) * TWO_PI;
-    const point = getSimpleHeartPoint(t);
-    calculatedPoints.push(point);
-
-    minX = Math.min(minX, point.x);
-    maxX = Math.max(maxX, point.x);
-    minY = Math.min(minY, point.y);
-    maxY = Math.max(maxY, point.y);
-  }
-
-  // Convert to percentage coordinates (0-100%) - flip Y axis for correct orientation
-  for (const point of calculatedPoints) {
-    const xPercent = ((point.x - minX) / (maxX - minX)) * 100;
-    // Flip Y coordinate: use (maxY - point.y) instead of (point.y - minY)
-    const yPercent = ((maxY - point.y) / (maxY - minY)) * 100;
-    pathPoints.push(`${xPercent.toFixed(1)}% ${yPercent.toFixed(1)}%`);
-  }
-
-  return `polygon(${pathPoints.join(', ')})`;
-};
-
 const useScreenSize = () => {
-  const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
-  const [isLandscape, setIsLandscape] = useState(false);
+    const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
+    const [isLandscape, setIsLandscape] = useState(false);
 
-  const updateScreenSize = useCallback(() => {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    const isLandscapeMode = width > height;
+    const updateScreenSize = useCallback(() => {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const isLandscapeMode = width > height;
 
-    setIsLandscape(isLandscapeMode);
+        setIsLandscape(isLandscapeMode);
 
-    if (width < 650 || height < 500) {
-      setScreenSize('mobile');
-    } else if (width < 1024) {
-      setScreenSize('tablet');
-    } else {
-      setScreenSize('desktop');
-    }
-  }, []);
+        if (width < 650 || height < 500) {
+            setScreenSize('mobile');
+        } else if (width < 1024) {
+            setScreenSize('tablet');
+        } else {
+            setScreenSize('desktop');
+        }
+    }, []);
 
-  useEffect(() => {
-    updateScreenSize();
-
-    // Use throttled resize handler for better performance
-    let rafId: number;
-    let lastResize = 0;
-
-    const throttledResize = () => {
-      const now = Date.now();
-      if (now - lastResize > 150) {
-        // Throttle to max 6.7 calls per second
-        lastResize = now;
+    useEffect(() => {
         updateScreenSize();
-      } else {
-        rafId = requestAnimationFrame(throttledResize);
-      }
-    };
 
-    const handleResize = () => {
-      cancelAnimationFrame(rafId);
-      throttledResize();
-    };
+        // Use throttled resize handler for better performance
+        let rafId: number;
+        let lastResize = 0;
 
-    window.addEventListener('resize', handleResize, { passive: true });
+        const throttledResize = () => {
+            const now = Date.now();
+            if (now - lastResize > 150) {
+                // Throttle to max 6.7 calls per second
+                lastResize = now;
+                updateScreenSize();
+            } else {
+                rafId = requestAnimationFrame(throttledResize);
+            }
+        };
 
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(rafId);
-    };
-  }, [updateScreenSize]);
+        const handleResize = () => {
+            cancelAnimationFrame(rafId);
+            throttledResize();
+        };
 
-  return { screenSize, isLandscape };
+        window.addEventListener('resize', handleResize, { passive: true });
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            cancelAnimationFrame(rafId);
+        };
+    }, [updateScreenSize]);
+
+    return { screenSize, isLandscape };
 };
 
 export default function ChristmasText({
     messages,
     visible,
     fadeMs = 300,
-    title = "Giáng Sinh Vui Vẻ!",
+    title = "Merry Christmas",
     titleColor,
     imageUrl,
     messageDelayMs = 500, // 👈 delay để message dưới xuất hiện sau title,
@@ -113,16 +69,14 @@ export default function ChristmasText({
     messages: string[];
     visible: boolean;
     fadeMs?: number;
-    title?: string;
+    title: string;
     imageUrl?: string;
     titleColor: any;
     messageDelayMs?: number;
-    styles?: any;
 }) {
-
     const [index, setIndex] = useState(0);
     const [fading, setFading] = useState(false);
-    const { screenSize, isLandscape } = useScreenSize();
+    const { screenSize } = useScreenSize();
     const [messagesReady, setMessagesReady] = useState(false); // 👈 để điều khiển bắt đầu chuỗi message
     const [isShowImage, setIsShowImage] = useState(false);
 
@@ -143,16 +97,12 @@ export default function ChristmasText({
                 height: 80,
             },
             desktop: {
-                width: 115,
+                width: 110,
                 height: 110,
             },
         };
         return configs[screenSize];
     }, [screenSize, imageWidth, imageHeight]);
-
-    const heartClipPath = useMemo(() => {
-        return generateHeartClipPath(60);
-    }, []);
 
     useEffect(() => {
         // clear tất cả timeout cũ
@@ -211,12 +161,12 @@ export default function ChristmasText({
     }, [isShowImage]);
 
     const textPositionWithDevice = () => {
-        if (typeof window === "undefined") return [3, 2.2, 0];
+        if (typeof window === "undefined") return [1, 3.5, 0];
         const width = window.innerWidth;
-        if (width < 480) return [1.6, 2.2, 0];
-        if (width < 768) return [2.1, 2.2, 0];
-        if (width < 1024) return [2.4, 2.2, 0];
-        return [3, 2.8, 0];
+        if (width < 520) return [.5, 3.5, 0];
+        if (width < 768) return [.5, 3.5, 0];
+        if (width < 1024) return [.5, 3.5, 0];
+        return [1, 3, 0];
     }
 
     const getDurationForText = (text: string) => {
@@ -261,17 +211,17 @@ export default function ChristmasText({
     };
 
     return (
-        <Html position={textPositionWithDevice() as [number, number, number]} transform style={{ background: "none", userSelect: "none", fontFamily: "Mali" }}>
+        <Html position={textPositionWithDevice() as [number, number, number]} transform style={{ background: "none", userSelect: "none", fontFamily: "Aptima", position: "relative" }}>
             <div
-                className={`pointer-events-none ${styles["christmas-text"]
+                className={`pointer-events-none m-w-[400px] ${styles["christmas-text"]
                     } ${visible ? styles["christmas-text-visible"] : styles["christmas-text-hidden"]}`}
             >
-                <span className={`${styles["title"]} font-bold text-cyan-300 drop-shadow-lg`} style={{ color: `rgb(${titleColor.r}, ${titleColor.g}, ${titleColor.b})`, textShadow: `0 0 2px rgb(${titleColor.r}, ${titleColor.g}, ${titleColor.b})`, fontFamily: "Mali" }}>
+                <span className={`${styles["title"]} font-bold text-cyan-300 drop-shadow-lg`} style={{ color: `rgb(${titleColor.r}, ${titleColor.g}, ${titleColor.b})`, textShadow: `0 0 2px rgb(${titleColor.r}, ${titleColor.g}, ${titleColor.b})`, fontFamily: "Heroe" }}>
                     {title}
                 </span>
 
                 <div
-                    className={`${styles.messageWrap}`}
+                    className={`${styles.messageWrap} flex`}
                     style={{
                         opacity: messagesReady ? (fading ? 0 : 1) : 0,
                         transition: `opacity ${fadeMs}ms ease`,

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Group } from 'three';
 import * as THREE from 'three';
 import GroundRings from './ground-rings';
-import { RgbColor } from 'react-colorful';
+import { RgbColor } from "@/types";
 
 function createCircleTexture(size = 128) {
     const canvas = document.createElement('canvas');
@@ -79,7 +79,7 @@ export default function ChristmasTree3D({
 
     const getBranchColor = () => {
         const c = new THREE.Color(treeColor.r / 255, treeColor.g / 255, treeColor.b / 255);
-        
+
         return [c.r, c.g, c.b] as const;
     };
 
@@ -111,7 +111,7 @@ export default function ChristmasTree3D({
 
     // ===== Tree (thân & tầng nhánh giữ nguyên; thêm chóp ở ngọn) =====
     const treeParticles = useMemo(() => {
-        const particleCount = 15000;
+        const particleCount = 20000;
         const positions = new Float32Array(particleCount * 3);
         const colors = new Float32Array(particleCount * 3);
         const sizes = new Float32Array(particleCount);
@@ -119,8 +119,8 @@ export default function ChristmasTree3D({
         let index = 0;
         const totalHeight = 3.6;
         const baseRadius = 1.5;
-        const layers = 12;
-        const branchesPerLayer = 8;
+        const layers = 13;
+        const branchesPerLayer = 10;
         const [r, g, b] = getBranchColor();
 
         let totalPossibleBranches = 0;
@@ -130,37 +130,66 @@ export default function ChristmasTree3D({
         }
         const avgParticlesPerBranch = particleCount / totalPossibleBranches;
 
-        // ---- Phần thân & các tầng nhánh (giữ nguyên) ----
+        // ---- Phần thân & các tầng nhánh ----
         for (let layer = 0; layer < layers; layer++) {
-            const layerHeight = (layer / layers) * totalHeight;
             const heightRatio = layer / layers;
 
-            const branchAngleUp = Math.PI * 0.08;
-            const maxRadiusAtLayer = baseRadius * (1 - heightRatio);
+            // Tăng khoảng cách giữa các tầng ở phần trên (30% top)
+            let layerHeight;
+            if (heightRatio > 0.7) {
+                // Phần trên: tăng khoảng cách giữa các tầng
+                const topRatio = (heightRatio - 0.7) / 0.3; // 0→1 trong phần 30% trên
+                const baseHeight = 0.7 * totalHeight;
+                const topHeight = 0.3 * totalHeight;
+                // Kéo dãn các tầng ra xa nhau hơn
+                const stretchedTopHeight = topHeight * (1 + topRatio * 0.4); // tăng 40% khoảng cách
+                layerHeight = baseHeight + topRatio * stretchedTopHeight;
+
+                // Hạ thấp tầng cuối cùng xuống
+                if (layer === layers - 1) {
+                    layerHeight -= 0.15; // hạ xuống 0.15 đơn vị
+                }
+            } else {
+                // Phần dưới: bình thường
+                layerHeight = heightRatio * totalHeight;
+            }
+
+            const branchAngleUp = Math.PI * 0.02;
+            const maxRadiusAtLayer = baseRadius * (1 - heightRatio * 0.85);
             const maxBranchLength = maxRadiusAtLayer / Math.cos(branchAngleUp);
 
             const branches = layer === layers - 1 ? Math.floor(branchesPerLayer / 2) : branchesPerLayer;
             for (let branch = 0; branch < branches; branch++) {
                 const angleAroundTree = (branch / branches) * Math.PI * 2 + layer * 0.5;
-                const branchHeightOffset = (Math.random() - 0.5) * 0.25;
+
+                // Giảm biến động chiều cao ở phần trên để các tầng rõ ràng hơn
+                const heightOffsetRange = heightRatio > 0.7 ? 0.08 : 0.25;
+                const branchHeightOffset = (Math.random() - 0.5) * heightOffsetRange;
                 const branchStartHeight = layerHeight + branchHeightOffset;
 
                 // nhánh random dài/ngắn hơn một chút
-                const lengthVariation = 0.85 + Math.random() * 0.25; // ~0.85 → 1.10
+                const lengthVariation = 0.95 + Math.random() * 0.25; // ~0.95 → 1.20
                 const currentBranchLength = maxBranchLength * lengthVariation;
 
-                const particlesPerBranch = Math.floor(avgParticlesPerBranch * (1 - heightRatio * 0.5));
+                // Tầng dưới nhiều dots hơn, tầng trên giảm dần
+                // heightRatio = 0 (dưới) -> multiplier = 2.0 (200%)
+                // heightRatio = 1 (trên) -> multiplier = 0.3 (30%)
+                const densityMultiplier = 1.5 - heightRatio * 1.2;
+                const particlesPerBranch = Math.floor(avgParticlesPerBranch * densityMultiplier);
 
                 for (let i = 0; i < particlesPerBranch && index < particleCount; i++) {
-                    const branchProgress = Math.pow(i / particlesPerBranch, 0.8);
+                    const branchProgress = Math.pow(i / particlesPerBranch, 0.7);
                     const distance = branchProgress * currentBranchLength;
-                    const branchThickness = (1 - branchProgress * 0.9) * 0.35;
-                    const surfaceAngle = Math.random() * Math.PI * 2;
-                    const surfaceRadius = branchThickness * (0.7 + Math.random() * 0.3);
 
-                    const horizontalDistance = distance * Math.cos(Math.PI * 0.08);
-                    const verticalRise = distance * Math.sin(Math.PI * 0.08);
-                    const curveFactor = branchProgress * branchProgress * 0.1;
+                    // Giảm độ dày nhánh ở phần trên để các tầng tách rời
+                    const thicknessMultiplier = heightRatio > 0.7 ? 0.32 : 0.45;
+                    const branchThickness = (1 - branchProgress * 0.85) * thicknessMultiplier;
+                    const surfaceAngle = Math.random() * Math.PI * 2;
+                    const surfaceRadius = branchThickness * (0.8 + Math.random() * 0.3);
+
+                    const horizontalDistance = distance * Math.cos(Math.PI * 0.02);
+                    const verticalRise = distance * Math.sin(Math.PI * 0.02);
+                    const curveFactor = branchProgress * branchProgress * 0.25;
 
                     const branchDirX = Math.cos(angleAroundTree);
                     const branchDirZ = Math.sin(angleAroundTree);
@@ -170,22 +199,27 @@ export default function ChristmasTree3D({
                     positions[index * 3 + 0] =
                         branchDirX * horizontalDistance +
                         surfaceOffsetX * Math.cos(angleAroundTree + Math.PI / 2) -
-                        surfaceOffsetY * Math.sin(Math.PI * 0.08) * branchDirX;
+                        surfaceOffsetY * Math.sin(Math.PI * 0.02) * branchDirX;
 
                     positions[index * 3 + 1] =
                         branchStartHeight + verticalRise - curveFactor +
-                        surfaceOffsetY * Math.cos(Math.PI * 0.08);
+                        surfaceOffsetY * Math.cos(Math.PI * 0.02);
 
                     positions[index * 3 + 2] =
                         branchDirZ * horizontalDistance +
                         surfaceOffsetX * Math.sin(angleAroundTree + Math.PI / 2) -
-                        surfaceOffsetY * Math.sin(Math.PI * 0.08) * branchDirZ;
+                        surfaceOffsetY * Math.sin(Math.PI * 0.02) * branchDirZ;
 
-                    colors[index * 3 + 0] = r;
-                    colors[index * 3 + 1] = g;
-                    colors[index * 3 + 2] = b;
+                    // Tăng độ sáng cho các tầng trên (heightRatio càng cao càng sáng)
+                    const baseBrightness = 1.15 + heightRatio * 0.15; // 1.15 → 1.30
+                    const brightness = baseBrightness + Math.random() * 0.1;
+                    colors[index * 3 + 0] = Math.min(r * brightness, 1);
+                    colors[index * 3 + 1] = Math.min(g * brightness, 1);
+                    colors[index * 3 + 2] = Math.min(b * brightness, 1);
 
-                    sizes[index] = ((Math.random() * 0.06 + 0.03) * (1 - branchProgress * 0.35)) / 2;
+                    // Tăng size cho các tầng trên để rõ ràng hơn
+                    const sizeBoost = 1 + heightRatio * 0.3; // tầng trên to hơn 30%
+                    sizes[index] = ((Math.random() * 0.06 + 0.04) * (1 - branchProgress * 0.3) * sizeBoost) / 2;
 
                     index++;
                 }
@@ -207,24 +241,24 @@ export default function ChristmasTree3D({
         }
 
         // ---- CHỈ thêm CHÓP (cone) ở NGỌN TRÊN CÙNG ----
-        const TIP_HEIGHT = 0.28;        // chiều cao chóp từ đỉnh xuống
-        const TIP_BASE_RADIUS = 0.12;   // ⬅ đáy nhỏ hơn trước
-        const TIP_COUNT = 200;          // số điểm mục tiêu của chóp
-        const DENSITY_DROP = 0.01;       // ⬅ giảm mật độ khi t→1; p(t)=1-DENSITY_DROP*t
+        const TIP_HEIGHT = 0.32;        // giảm chiều cao chóp để tách rời với tầng dưới
+        const TIP_BASE_RADIUS = 0.16;   // giảm bán kính đáy để không dính vào tầng dưới
+        const TIP_COUNT = 380;          // số điểm mục tiêu của chóp
+        const DENSITY_DROP = 0.02;      // tăng để chóp thưa hơn, tách rời hơn
 
         // Lấy mẫu với xác suất nhận giảm dần theo t (t=0 đáy, t=1 đỉnh)
         let accepted = 0;
         const MAX_ATTEMPTS = TIP_COUNT * 4; // giới hạn để tránh vòng lặp dài
         for (let attempt = 0; attempt < MAX_ATTEMPTS && accepted < TIP_COUNT && index < particleCount; attempt++) {
-            // Phân bố t ~ pow(rand, 1.0..1.4) để DÀY HƠN ở đáy, THƯA DẦN về đỉnh
-            const t = Math.pow(Math.random(), 1); // nghiêng về 0 (đáy) => tự nhiên
+            // Phân bố t ~ pow(rand, 0.7) để DÀY HƠN ở đáy, THƯA DẦN về đỉnh
+            const t = Math.pow(Math.random(), 0.7); // nghiêng về 0 (đáy) => tự nhiên hơn
             const acceptProb = 1 - DENSITY_DROP * t; // càng lên cao (t→1) xác suất càng thấp
             if (Math.random() > acceptProb) continue; // từ chối để giảm dot gần đỉnh
 
             const y = totalHeight - TIP_HEIGHT + t * TIP_HEIGHT;
 
-            // bán kính giảm phi tuyến để chóp nhọn hơn (gamma > 1)
-            const gamma = 1.1;
+            // bán kính giảm phi tuyến để chóp trùm xuống như hình (gamma nhỏ hơn)
+            const gamma = 0.8;
             const radiusBase = Math.pow(1 - t, gamma) * TIP_BASE_RADIUS;
             const radius = radiusBase * (0.9 + Math.random() * 0.25);
 
@@ -236,13 +270,14 @@ export default function ChristmasTree3D({
             positions[index * 3 + 1] = y;
             positions[index * 3 + 2] = z;
 
-            const brightBoost = 0.96 - 0.9 * t;
-            colors[index * 3 + 0] = r * brightBoost;
-            colors[index * 3 + 1] = g * brightBoost;
-            colors[index * 3 + 2] = b * brightBoost;
+            // Tăng độ sáng cho chóp, đặc biệt ở phần trên
+            const brightBoost = 1.25 - 0.2 * t; // sáng hơn và đồng đều hơn
+            colors[index * 3 + 0] = Math.min(r * brightBoost, 1);
+            colors[index * 3 + 1] = Math.min(g * brightBoost, 1);
+            colors[index * 3 + 2] = Math.min(b * brightBoost, 1);
 
-            // size nhỏ dần khi lên cao để nhọn hơn
-            sizes[index] = (0.01 * (1 - 0.65 * t)) * (0.1 + Math.random() * 0.3);
+            // Tăng size và đồng đều hơn để rõ ràng
+            sizes[index] = (0.018 * (1 - 0.3 * t)) * (0.9 + Math.random() * 0.3);
 
             index++;
             accepted++;

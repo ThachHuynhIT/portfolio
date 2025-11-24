@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import styles from "@/app/page.module.css";
-import ChristmasScene from "@/components/xmas-tree/Index";
+import ChristmasScene from "@/components/chrismas-tree/Index";
 
 const Home: React.FC = () => {
   return (
