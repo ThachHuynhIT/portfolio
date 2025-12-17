@@ -221,7 +221,7 @@ function FloatingText({
         transform
         distanceFactor={5}
         style={{
-          color: '#ff6b9d',
+          color: '#ff6b9ca9',
           fontSize: `min(${size * 150}px, 25px)`,
           fontWeight: 'bold',
           opacity: finalOpacity,

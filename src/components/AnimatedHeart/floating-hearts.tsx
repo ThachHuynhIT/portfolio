@@ -301,9 +301,9 @@ export default function FloatingHearts({
             const currentG = ORANGE_COLOR.g + (RED_COLOR.g - ORANGE_COLOR.g) * colorProgress;
             const currentB = ORANGE_COLOR.b + (RED_COLOR.b - ORANGE_COLOR.b) * colorProgress;
 
-            // Giảm độ sáng khi đã đổi màu (colorProgress > 0)
-            // Tỉ lệ giảm sáng: khi colorProgress = 0 thì không giảm, khi = 1 thì giảm còn 60%
-            const brightness = 1 - 0.4 * colorProgress;
+            // Giảm độ sáng tổng thể cho các trái tim nhỏ
+            // Khi colorProgress = 0 thì brightness = 0.8, khi = 1 thì còn 0.4
+            const brightness = 0.8 - 0.4 * colorProgress;
 
             // Áp dụng flashMultiplier để đồng bộ với trái tim
             colorAttr.setXYZ(
