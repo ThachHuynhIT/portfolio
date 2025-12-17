@@ -117,9 +117,9 @@ interface HeartData {
     fadeOutDuration: number; // Thời gian fade out
 }
 
-// Màu cam và đỏ - bình thường (không glow), chỉ glow khi flash
+// Màu vàng cam ban đầu và màu hồng #ff7092ff (rgba(255, 0, 60, 1)) khi đổi màu
 const ORANGE_COLOR = new THREE.Color(1.0, 0.65, 0.28);
-const RED_COLOR = new THREE.Color(1.0, 0.11, 0.11);
+const PINK_COLOR = new THREE.Color(255 / 255, 112 / 255, 146 / 255); // #ff7092ff
 
 export default function FloatingHearts({
     count = 120, // Gấp đôi số lượng
@@ -181,7 +181,7 @@ export default function FloatingHearts({
 
             sizes[i] = data.baseSize;
 
-            // Màu cam ban đầu - giống với trái tim chính
+            // Màu vàng cam ban đầu
             colors[i * 3] = ORANGE_COLOR.r;
             colors[i * 3 + 1] = ORANGE_COLOR.g;
             colors[i * 3 + 2] = ORANGE_COLOR.b;
@@ -296,16 +296,11 @@ export default function FloatingHearts({
             const fadeByColor = 1 - 0.8 * colorProgress;
             sizeAttr.setX(i, data.baseSize * lifeAlpha * fadeByColor);
 
-            // Màu chuyển đổi từ cam sang đỏ theo colorProgress - đồng bộ với trái tim chính
-            const currentR = ORANGE_COLOR.r + (RED_COLOR.r - ORANGE_COLOR.r) * colorProgress;
-            const currentG = ORANGE_COLOR.g + (RED_COLOR.g - ORANGE_COLOR.g) * colorProgress;
-            const currentB = ORANGE_COLOR.b + (RED_COLOR.b - ORANGE_COLOR.b) * colorProgress;
-
-            // Giảm độ sáng tổng thể cho các trái tim nhỏ
-            // Khi colorProgress = 0 thì brightness = 0.8, khi = 1 thì còn 0.4
+            // Chuyển màu từ vàng cam sang hồng #ff7092ff theo colorProgress
+            const currentR = ORANGE_COLOR.r + (PINK_COLOR.r - ORANGE_COLOR.r) * colorProgress;
+            const currentG = ORANGE_COLOR.g + (PINK_COLOR.g - ORANGE_COLOR.g) * colorProgress;
+            const currentB = ORANGE_COLOR.b + (PINK_COLOR.b - ORANGE_COLOR.b) * colorProgress;
             const brightness = 0.7 - 0.4 * colorProgress;
-
-            // Áp dụng flashMultiplier để đồng bộ với trái tim
             colorAttr.setXYZ(
                 i,
                 currentR * lifeAlpha * flashMultiplier * brightness,

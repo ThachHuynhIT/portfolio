@@ -93,9 +93,6 @@ function SceneContent({
 export default function AnimatedHeartScene({
   position = [0, 0, 0],
   scale = 0.44,
-  riseDuration = 2.5,
-  morphDuration = 2.0,
-  colorChangeDuration = 1.0,
   heartbeatSpeed = 1.5,
   enableControls = true,
   backgroundColor = '#000000',

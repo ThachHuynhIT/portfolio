@@ -285,7 +285,8 @@ export default function AnimatedHeart({
   // Màu trắng sáng cho hiệu ứng glow
   const whiteGlowColor = useMemo(() => new THREE.Color(3.0, 3.0, 3.0), []);
   // Màu sau: đỏ - tăng độ sáng vượt 1.0 để glow
-  const redColor = useMemo(() => new THREE.Color(1.8, 0.2, 0.2), []);
+  // Màu đỏ tươi rgba(255, 21, 0, 1)
+  const redColor = useMemo(() => new THREE.Color(1.0, 5/255, 5/255), []);
   // Màu bụi: xám/nâu nhạt
   const dustColor = useMemo(() => new THREE.Color(0.6, 0.5, 0.45), []);
 
@@ -905,19 +906,9 @@ export default function AnimatedHeart({
     }
     const easedMorphProgress = easeInOutQuad(morphProgress);
 
-    // Bắt đầu NHỊP ĐẬP ĐẦU TIÊN SAU KHI morph xong (thay vì đổi màu ngay)
-    if (morphProgress >= 1 && firstBeatStartRef.current === null) {
-      firstBeatStartRef.current = t;
-    }
-
-    // Bắt đầu đổi màu SAU KHI đập xong 1 nhịp
-    const firstBeatDuration = 1 / heartbeatSpeed; // Thời gian 1 nhịp đập hoàn chỉnh
-    if (firstBeatStartRef.current !== null && colorChangeStartRef.current === null) {
-      const firstBeatElapsed = t - firstBeatStartRef.current;
-      if (firstBeatElapsed >= firstBeatDuration) {
-        colorChangeStartRef.current = t;
-        isFirstBeatCompleteRef.current = true;
-      }
+    // Đổi màu NGAY SAU KHI morph xong (không chờ nhịp đập đầu tiên)
+    if (morphProgress >= 1 && colorChangeStartRef.current === null) {
+      colorChangeStartRef.current = t;
     }
 
     // Giảm dần hiệu ứng biến dạng khi morph
