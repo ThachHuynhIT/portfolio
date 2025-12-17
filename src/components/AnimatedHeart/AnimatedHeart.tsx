@@ -213,6 +213,7 @@ function FloatingText({
 
   // Tính opacity cuối cùng với multiplier (KHÔNG dùng flash cho text)
   const finalOpacity = opacity * opacityMultiplier;
+  const fontsize = window.innerWidth < 600 ? 25 : size * 150;
 
   return (
     <group ref={groupRef} position={[startX, startY, startZ]} visible={visible}>
@@ -221,8 +222,8 @@ function FloatingText({
         transform
         distanceFactor={5}
         style={{
-          color: '#ff6b9ca9',
-          fontSize: `min(${size * 150}px, 25px)`,
+          color: '#ff6b9c94',
+          fontSize: `${fontsize}px`,
           fontWeight: 'bold',
           opacity: finalOpacity,
           whiteSpace: 'nowrap',
@@ -1469,7 +1470,7 @@ export default function AnimatedHeart({
     if (firstBeatStartRef.current !== null && colorChangeStartRef.current === null) {
       // Reset flash multiplier - chưa đến lúc flash
       flashMultiplierRef.current = 1;
-      
+
       const firstBeatElapsed = t - firstBeatStartRef.current;
       const heartbeatTime = firstBeatElapsed * heartbeatSpeed;
       const beat = Math.sin(heartbeatTime * Math.PI * 2);
@@ -1528,7 +1529,7 @@ export default function AnimatedHeart({
       }
       // Cập nhật ref để các particles khác có thể sử dụng
       flashMultiplierRef.current = flashMultiplier;
-      
+
       // Gọi callback để thông báo cho các component khác về flash multiplier
       if (onFlashProgress) {
         onFlashProgress(flashMultiplier);

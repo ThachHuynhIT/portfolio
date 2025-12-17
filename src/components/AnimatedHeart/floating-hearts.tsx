@@ -303,7 +303,7 @@ export default function FloatingHearts({
 
             // Giảm độ sáng tổng thể cho các trái tim nhỏ
             // Khi colorProgress = 0 thì brightness = 0.8, khi = 1 thì còn 0.4
-            const brightness = 0.8 - 0.4 * colorProgress;
+            const brightness = 0.7 - 0.4 * colorProgress;
 
             // Áp dụng flashMultiplier để đồng bộ với trái tim
             colorAttr.setXYZ(
