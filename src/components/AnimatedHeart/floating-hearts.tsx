@@ -292,8 +292,9 @@ export default function FloatingHearts({
 
             posAttr.setXYZ(i, data.x + wobbleX, newY, data.z + wobbleZ);
 
-            // Kích thước cố định, chỉ thay đổi theo fade in/out
-            sizeAttr.setX(i, data.baseSize * lifeAlpha);
+            // Khi colorProgress càng lớn, trái tim càng mờ hơn (ví dụ giảm còn 40% khi colorProgress = 1)
+            const fadeByColor = 1 - 0.8 * colorProgress;
+            sizeAttr.setX(i, data.baseSize * lifeAlpha * fadeByColor);
 
             // Màu chuyển đổi từ cam sang đỏ theo colorProgress - đồng bộ với trái tim chính
             const currentR = ORANGE_COLOR.r + (RED_COLOR.r - ORANGE_COLOR.r) * colorProgress;
