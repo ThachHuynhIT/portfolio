@@ -1442,11 +1442,14 @@ export default function AnimatedHeart({
       dustColorAttr.needsUpdate = true;
       dustSizeAttr.needsUpdate = true;
 
-      // Opacity - hiện trong giai đoạn bay lên, mờ dần khi morph
+      // Opacity - hiện trong giai đoạn bay lên, mờ dần khi morph, và mờ hơn sau khi đổi màu
       const isFlashActiveForDust = colorChangeStartRef.current !== null && flashMultiplierRef.current > 1.5;
       if (isFlashActiveForDust) {
         // Flash đang hoạt động - giữ opacity cao và tăng theo flash
         dustMatRef.current.opacity = Math.min(0.75 * (flashMultiplierRef.current / 2), 1);
+      } else if (colorChangeStartRef.current !== null && (t - colorChangeStartRef.current) > (glowDuration + colorChangeDuration)) {
+        // Sau khi đổi màu xong, làm mờ và trong hơn
+        dustMatRef.current.opacity = 0.23;
       } else if (morphProgress > 0) {
         // Mờ dần khi morph bắt đầu
         dustMatRef.current.opacity = 0.75 * (1 - easedMorphProgress);
@@ -1607,7 +1610,7 @@ export default function AnimatedHeart({
   // ===== Render =====
   return (
     <group>
-      {/* Trái tim chính - biến đổi từ blob */}
+      {/* Trái tim chính - biến đổi từ blob (FILL) */}
       <points
         position={position}
         geometry={heartGeometry}
@@ -1620,12 +1623,12 @@ export default function AnimatedHeart({
       >
         <pointsMaterial
           ref={heartMatRef}
-          size={0.025}
+          size={0.035}
           vertexColors
           transparent
-          opacity={0}
+          opacity={0.95}
           sizeAttenuation
-          blending={THREE.AdditiveBlending}
+          blending={THREE.NormalBlending}
           depthWrite={false}
           map={dotTexture}
           alphaTest={0.01}

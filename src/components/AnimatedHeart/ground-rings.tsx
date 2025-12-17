@@ -180,8 +180,10 @@ export default function GroundRings({
             baseColors[idx + 1] = baseColor.g;
             baseColors[idx + 2] = baseColor.b;
 
-            // Size nhỏ
-            sizes[i] = (DOT_SIZE_BASE + Math.random() * DOT_SIZE_RANDOM) * (0.5 + (1 - distRatio) * 0.5);
+            // Size đa dạng hơn: thêm random mạnh và non-linear cho tự nhiên
+            const sizeRand = Math.pow(Math.random(), 1.7); // Nhiều dot nhỏ, ít dot lớn
+            const sizeVar = DOT_SIZE_BASE + sizeRand * 0.032 + Math.random() * 0.012;
+            sizes[i] = sizeVar * (0.5 + (1 - distRatio) * 0.5);
         }
 
         // Lưu initialOffsets
@@ -284,10 +286,12 @@ export default function GroundRings({
 
                     posAttr.setY(i, baseY + popOffset + waveOffset);
 
-                    // Chỉ glow khi flash hoặc khi đang đổi màu
+                    // Glow khi xuất hiện, khi đổi màu, và duy trì glow nhẹ sau khi đổi màu
                     const appearGlow = dotProgress < 0.5 ? (0.5 - dotProgress) * 0.2 : 0;
                     const colorChangeGlow = colorProgress > 0 && colorProgress < 1 && flashMultiplier > 1.5 ? 0.6 * Math.sin(colorProgress * Math.PI) : 0;
-                    const glowBoost = appearGlow + colorChangeGlow;
+                    // Glow nhẹ duy trì sau khi đổi màu
+                    const persistentGlow = colorProgress >= 1 ? 0.18 : 0;
+                    const glowBoost = appearGlow + colorChangeGlow + persistentGlow;
 
                     // Áp dụng flashMultiplier để đồng bộ với trái tim
                     colorAttr.setXYZ(

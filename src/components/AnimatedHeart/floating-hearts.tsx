@@ -281,7 +281,7 @@ export default function FloatingHearts({
                 // Fade out
                 lifeAlpha = (data.lifetime - heartAge) / data.fadeOutDuration;
             }
-            lifeAlpha = Math.max(0, Math.min(1, lifeAlpha));
+            lifeAlpha = Math.max(0, Math.min(1.5, lifeAlpha));
 
             // Tính vị trí Y mới (bay lên theo thời gian heart sống)
             const newY = data.baseY + heartAge * data.speed;
@@ -303,9 +303,9 @@ export default function FloatingHearts({
             const brightness = 0.7 - 0.4 * colorProgress;
             colorAttr.setXYZ(
                 i,
-                currentR * lifeAlpha * flashMultiplier * brightness,
-                currentG * lifeAlpha * flashMultiplier * brightness,
-                currentB * lifeAlpha * flashMultiplier * brightness
+                currentR * lifeAlpha * flashMultiplier * brightness * 1.8,
+                currentG * lifeAlpha * flashMultiplier * brightness * 1.8,
+                currentB * lifeAlpha * flashMultiplier * brightness * 1.8
             );
         }
 
