@@ -313,7 +313,7 @@ export default function FloatingHearts({
         sizeAttr.needsUpdate = true;
         colorAttr.needsUpdate = true;
 
-        mat.opacity = globalFadeIn * opacity;
+        mat.opacity = globalFadeIn * 0.3;
     });
 
     return (
