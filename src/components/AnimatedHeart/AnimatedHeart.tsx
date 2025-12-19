@@ -275,18 +275,15 @@ export default function AnimatedHeart({
   const maxSmokeParticles = maxSmokeClusters * particlesPerCluster;
 
   // Dust layer on top - hình trái tim bụi phủ dày trên đỉnh blob
-  const dustGeoRef = useRef<THREE.BufferGeometry>(null);
-  const dustMatRef = useRef<THREE.PointsMaterial>(null);
   const dustParticlesRef = useRef<DustParticle[]>([]);
   const maxDustParticles = 3000; // Số particle bụi
 
   // Màu ban đầu: cam/vàng ấm - tăng độ sáng vượt 1.0 để glow
   const orangeColor = useMemo(() => new THREE.Color(1.8, 1.2, 0.5), []);
   // Màu trắng sáng cho hiệu ứng glow
-  const whiteGlowColor = useMemo(() => new THREE.Color(3.0, 3.0, 3.0), []);
   // Màu sau: đỏ - tăng độ sáng vượt 1.0 để glow
   // Màu đỏ tươi rgba(255, 21, 0, 1)
-  const redColor = useMemo(() => new THREE.Color(1.0, 5/255, 5/255), []);
+  const redColor = useMemo(() => new THREE.Color(1.0, 5 / 255, 5 / 255), []);
   // Màu bụi: xám/nâu nhạt
   const dustColor = useMemo(() => new THREE.Color(0.6, 0.5, 0.45), []);
 
@@ -361,23 +358,50 @@ export default function AnimatedHeart({
       return null;
     };
 
+
+
     let count = 0;
-    const N = Math.round(targetDots * 1);
+    const maxSafety = targetDots * 100;
+    let safety = 0;
     const jitter = 0.006;
 
-    for (let i = 0; i < N && count < targetDots; i++) {
-      // Thêm random vào Fibonacci sphere để phá vỡ sự đều đặn
-      const randomOffset = (Math.random() - 0.5) * 0.15; // Random offset nhỏ
-      const phi = Math.acos(1 - 2 * (i + 0.5 + randomOffset) / N);
-      const theta = Math.PI * (1 + Math.sqrt(5)) * i + (Math.random() - 0.5) * 0.3; // Thêm random vào góc theta
+    while (count < targetDots && safety < maxSafety) {
+      safety++;
+
+      // Random uniform sampling trên sphere để tránh bias
+      const sphereY = Math.random() * 2 - 1;
+      const theta = Math.random() * Math.PI * 2;
+      const sqrt1minusU2 = Math.sqrt(1 - sphereY * sphereY);
+
       const dir = new THREE.Vector3(
-        Math.sin(phi) * Math.cos(theta),
-        Math.cos(phi),
-        Math.sin(phi) * Math.sin(theta)
+        sqrt1minusU2 * Math.cos(theta),
+        sphereY,
+        sqrt1minusU2 * Math.sin(theta)
       ).normalize();
 
       const p = hitOnRay(dir);
       if (!p) continue;
+
+      // === Density-based sampling để tạo phân bố đều ===
+      // Tính toán xác suất giữ lại dựa trên tỷ lệ diện tích bề mặt/góc khối
+      // Density tự nhiên ~ cos(alpha) / r^2
+      // Để có density đều, ta cần xác suất giữ lại ~ r^2 / cos(alpha)
+
+      const normal = grad(p.x, p.y, p.z).normalize();
+      const distSq = p.lengthSq(); // r^2
+      const cosAlpha = Math.abs(normal.dot(dir)); // cos(alpha)
+
+      // Weight càng lớn thì xác suất giữ lại càng cao
+      // Các khu vực ở xa (r lớn) hoặc tia tới xiên (cosAlpha nhỏ) cần được ưu tiên giữ lại
+      // Thêm 0.1 vào cosAlpha để tránh chia cho 0
+      const weight = distSq / (cosAlpha + 0.1);
+
+      // Normalize weight về xác suất [0, 1]
+      // Hệ số 0.2 được chọn thực nghiệm để cân bằng số lượng điểm
+      const keepProbability = Math.min(1.0, weight * 0.2);
+
+      // Skip particle nếu không may
+      if (Math.random() > keepProbability) continue;
 
       const t1 = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0));
       const tangent1 =
@@ -1351,115 +1375,6 @@ export default function AnimatedHeart({
       }
     }
 
-    // ===== Update dust layer (lớp bụi hình trái tim phủ trực tiếp trên blob) =====
-    if (dustGeoRef.current && dustMatRef.current) {
-      const dustPosAttr = dustGeoRef.current.getAttribute('position') as THREE.BufferAttribute;
-      const dustColorAttr = dustGeoRef.current.getAttribute('color') as THREE.BufferAttribute;
-      const dustSizeAttr = dustGeoRef.current.getAttribute('size') as THREE.BufferAttribute;
-
-      const dustParticles = dustParticlesRef.current;
-
-      // Hiệu ứng dao động của bụi - GIẢM DẦN khi morph
-      const dustDeformStrength = 1 - easedMorphProgress;
-
-      for (let i = 0; i < dustParticles.length; i++) {
-        const dp = dustParticles[i];
-
-        // Dao động mạnh quanh vị trí gốc - tạo hiệu ứng bụi bay lơ lửng - TĂNG x3
-        const driftX = Math.sin(t * dp.driftSpeed * 1.5 + dp.phase) * 0.12 * dustDeformStrength;
-        const driftY = Math.cos(t * dp.driftSpeed * 1.2 + dp.phase * 1.2) * 0.08 * dustDeformStrength;
-        const driftZ = Math.sin(t * dp.driftSpeed * 1.4 + dp.phase * 0.7) * 0.12 * dustDeformStrength;
-
-        // Hiệu ứng "bụi bay" - particle bay lên xuống - TĂNG x3
-        const floatY = Math.sin(t * 2.5 + i * 0.05) * 0.06 * dustDeformStrength;
-        const floatY2 = Math.cos(t * 1.8 + i * 0.08) * 0.04 * dustDeformStrength;
-
-        // Hiệu ứng xoáy quanh trục Y - TĂNG x3
-        const swirlAngle = t * 0.8 + dp.phase * 0.5;
-        const swirlRadius = 0.08 * dustDeformStrength;
-        const swirlX = Math.cos(swirlAngle) * swirlRadius;
-        const swirlZ = Math.sin(swirlAngle) * swirlRadius;
-
-        // Hiệu ứng xoáy thứ 2 - ngược chiều
-        const swirl2Angle = -t * 0.5 + dp.phase * 0.8;
-        const swirl2Radius = 0.05 * dustDeformStrength;
-        const swirl2X = Math.cos(swirl2Angle) * swirl2Radius;
-        const swirl2Z = Math.sin(swirl2Angle) * swirl2Radius;
-
-        // Hiệu ứng rung lắc ngẫu nhiên - MỚI
-        const shakeX = Math.sin(t * 8 + i * 0.3) * 0.03 * dustDeformStrength;
-        const shakeY = Math.cos(t * 9 + i * 0.4) * 0.025 * dustDeformStrength;
-        const shakeZ = Math.sin(t * 7 + i * 0.35) * 0.03 * dustDeformStrength;
-
-        // Hiệu ứng phồng xẹp theo nhóm - MỚI
-        const bulgePhase = Math.sin(t * 1.2 + dp.phase * 2);
-        const bulgeAmount = bulgePhase * 0.05 * dustDeformStrength;
-
-        // Vị trí gốc của dust - đã theo hình trái tim
-        const baseX = dp.basePos.x;
-        const baseY = dp.basePos.y;
-        const baseZ = dp.basePos.z;
-
-        // Tính hướng từ tâm
-        const dustDist = Math.sqrt(baseX * baseX + baseY * baseY + baseZ * baseZ);
-        const dustDirX = dustDist > 0.001 ? baseX / dustDist : 0;
-        const dustDirY = dustDist > 0.001 ? baseY / dustDist : 0;
-        const dustDirZ = dustDist > 0.001 ? baseZ / dustDist : 0;
-
-        // Xoay như blob chính: [Math.PI / 2, Math.PI, 0]
-        const rotatedX = -baseX - dustDirX * bulgeAmount;
-        const rotatedY = baseZ + dustDirZ * bulgeAmount;
-        const rotatedZ = baseY + dustDirY * bulgeAmount;
-
-        // Vị trí cuối cùng - KHÔNG thu nhỏ, chỉ di chuyển theo blob
-        dustPosAttr.setXYZ(
-          i,
-          position[0] + (rotatedX + driftX + swirlX + swirl2X + shakeX) * scale,
-          position[1] + currentYPosition + (rotatedY + driftY + floatY + floatY2 + shakeY) * scale,
-          position[2] + (rotatedZ + driftZ + swirlZ + swirl2Z + shakeZ) * scale
-        );
-
-        // Màu bụi - bình thường khi chưa flash, loá sáng khi flash
-        const dustFlash = colorChangeStartRef.current !== null ? flashMultiplierRef.current : 1;
-        // Chỉ có variation nhẹ khi chưa flash, mạnh khi flash
-        const variationStrength = colorChangeStartRef.current !== null ? 1.0 : 0.3;
-        const colorPulse = 1.0 + (Math.sin(t * 3 + dp.phase) * 0.3) * variationStrength;
-        const colorFlicker = 1.0 + (Math.sin(t * 8 + i * 0.2) * 0.1) * variationStrength;
-        dustColorAttr.setXYZ(
-          i,
-          dustColor.r * colorPulse * colorFlicker * dustFlash,
-          dustColor.g * colorPulse * colorFlicker * dustFlash,
-          dustColor.b * colorPulse * colorFlicker * dustFlash
-        );
-
-        // Size dao động mạnh hơn - bụi lung linh - TĂNG x2
-        const sizePulse = 1 + Math.sin(t * 5 + i * 0.1) * 0.4;
-        const sizeFlicker = 1 + Math.sin(t * 12 + i * 0.15) * 0.15;
-        dustSizeAttr.setX(i, dp.size * sizePulse * sizeFlicker);
-      }
-
-      dustPosAttr.needsUpdate = true;
-      dustColorAttr.needsUpdate = true;
-      dustSizeAttr.needsUpdate = true;
-
-      // Opacity - hiện trong giai đoạn bay lên, mờ dần khi morph, và mờ hơn sau khi đổi màu
-      const isFlashActiveForDust = colorChangeStartRef.current !== null && flashMultiplierRef.current > 1.5;
-      if (isFlashActiveForDust) {
-        // Flash đang hoạt động - giữ opacity cao và tăng theo flash
-        dustMatRef.current.opacity = Math.min(0.75 * (flashMultiplierRef.current / 2), 1);
-      } else if (colorChangeStartRef.current !== null && (t - colorChangeStartRef.current) > (glowDuration + colorChangeDuration)) {
-        // Sau khi đổi màu xong, làm mờ và trong hơn
-        dustMatRef.current.opacity = 0.23;
-      } else if (morphProgress > 0) {
-        // Mờ dần khi morph bắt đầu
-        dustMatRef.current.opacity = 0.75 * (1 - easedMorphProgress);
-      } else {
-        // Fade in ở đầu
-        const fadeInProgress = Math.min(elapsed / 0.8, 1);
-        dustMatRef.current.opacity = 0.75 * fadeInProgress;
-      }
-    }
-
     // ===== Phase 2.5: Nhịp đập đầu tiên (sau morph, trước đổi màu) =====
     if (firstBeatStartRef.current !== null && colorChangeStartRef.current === null) {
       // Reset flash multiplier - chưa đến lúc flash
@@ -1650,27 +1565,6 @@ export default function AnimatedHeart({
           opacity={0.7}
           sizeAttenuation
           blending={THREE.AdditiveBlending}
-          depthWrite={false}
-          map={dotTexture}
-          alphaTest={0.01}
-        />
-      </points>
-
-      {/* Dust layer - lớp bụi dày hình trái tim phủ trên đỉnh blob */}
-      <points
-        geometry={dustGeometry}
-        ref={(p) => {
-          if (p) dustGeoRef.current = p.geometry as THREE.BufferGeometry;
-        }}
-      >
-        <pointsMaterial
-          ref={dustMatRef}
-          size={0.02}
-          vertexColors
-          transparent
-          opacity={0}
-          sizeAttenuation
-          blending={THREE.NormalBlending}
           depthWrite={false}
           map={dotTexture}
           alphaTest={0.01}
