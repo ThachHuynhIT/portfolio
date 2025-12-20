@@ -261,7 +261,6 @@ export default function AnimatedHeart({
   const colorChangeStartRef = useRef<number | null>(null);
   const firstBeatStartRef = useRef<number | null>(null); // Thời điểm bắt đầu nhịp đập đầu tiên
   const isMorphCompleteRef = useRef(false);
-  const isFirstBeatCompleteRef = useRef(false); // Đã hoàn thành nhịp đập đầu tiên chưa
   const [canShowTexts, setCanShowTexts] = useState(false);
   const textsTriggeredRef = useRef(false);
   const flashMultiplierRef = useRef(1); // Lưu trữ flash multiplier để áp dụng cho tất cả particles
@@ -274,18 +273,12 @@ export default function AnimatedHeart({
   const particlesPerCluster = 30; // Số particles mỗi chùm
   const maxSmokeParticles = maxSmokeClusters * particlesPerCluster;
 
-  // Dust layer on top - hình trái tim bụi phủ dày trên đỉnh blob
-  const dustParticlesRef = useRef<DustParticle[]>([]);
-  const maxDustParticles = 3000; // Số particle bụi
-
   // Màu ban đầu: cam/vàng ấm - tăng độ sáng vượt 1.0 để glow
   const orangeColor = useMemo(() => new THREE.Color(1.8, 1.2, 0.5), []);
   // Màu trắng sáng cho hiệu ứng glow
   // Màu sau: đỏ - tăng độ sáng vượt 1.0 để glow
   // Màu đỏ tươi rgba(255, 21, 0, 1)
   const redColor = useMemo(() => new THREE.Color(1.0, 5 / 255, 5 / 255), []);
-  // Màu bụi: xám/nâu nhạt
-  const dustColor = useMemo(() => new THREE.Color(0.6, 0.5, 0.45), []);
 
   // Tạo data cho floating texts
   const floatingTextData = useMemo(() => {
@@ -303,7 +296,7 @@ export default function AnimatedHeart({
 
   // ===== Heart và Blob Particles =====
   const heartParticles = useMemo(() => {
-    const targetDots = 7000;
+    const targetDots = 14000;
     const heartPositions = new Float32Array(targetDots * 3);
     const blobPositions = new Float32Array(targetDots * 3); // Vị trí trên hình blob
     const originalColors = new Float32Array(targetDots * 3);
@@ -357,8 +350,6 @@ export default function AnimatedHeart({
       }
       return null;
     };
-
-
 
     let count = 0;
     const maxSafety = targetDots * 100;
@@ -600,131 +591,6 @@ export default function AnimatedHeart({
     g.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
     return g;
   }, []);
-
-  // Geometry cho dust particles - lớp bụi dày hình trái tim phủ trên blob
-  const dustGeometry = useMemo(() => {
-    const g = new THREE.BufferGeometry();
-    const positions = new Float32Array(maxDustParticles * 3);
-    const colors = new Float32Array(maxDustParticles * 3);
-    const sizes = new Float32Array(maxDustParticles);
-
-    // Tạo dust particles theo hình trái tim - CÙNG SIZE với trái tim chính
-    const dustHeartScale = 3.0; // Cùng scale với heartScale của trái tim chính
-    const R = 2;
-
-    // Heart equation helper
-    const F = (x: number, y: number, z: number) => {
-      const a = x * x + (9 / 4) * y * y + z * z - 1;
-      return a * a * a - x * x * z * z * z - (9 / 80) * y * y * z * z * z;
-    };
-
-    const grad = (x: number, y: number, z: number) => {
-      const h = 1e-3;
-      const fx = (F(x + h, y, z) - F(x - h, y, z)) / (2 * h);
-      const fy = (F(x, y + h, z) - F(x, y - h, z)) / (2 * h);
-      const fz = (F(x, y, z + h) - F(x, y, z - h)) / (2 * h);
-      return new THREE.Vector3(fx, fy, fz);
-    };
-
-    const hitOnRay = (dir: THREE.Vector3): THREE.Vector3 | null => {
-      const steps = 100;
-      let t0 = -R, f0 = F(dir.x * t0, dir.y * t0, dir.z * t0);
-      for (let i = 1; i <= steps; i++) {
-        const t1 = -R + (2 * R * i) / steps;
-        const f1 = F(dir.x * t1, dir.y * t1, dir.z * t1);
-        if (f0 === 0) return new THREE.Vector3(dir.x * t0, dir.y * t0, dir.z * t0);
-        if (f0 * f1 < 0) {
-          let a = t0, b = t1;
-          for (let it = 0; it < 20; it++) {
-            const m = 0.5 * (a + b);
-            const fm = F(dir.x * m, dir.y * m, dir.z * m);
-            if (fm === 0) { a = b = m; break; }
-            if (f0 * fm < 0) b = m; else { a = m; f0 = fm; }
-          }
-          let t = 0.5 * (a + b);
-          for (let it = 0; it < 2; it++) {
-            const p = new THREE.Vector3(dir.x * t, dir.y * t, dir.z * t);
-            const g2 = grad(p.x, p.y, p.z);
-            const dfdt = g2.dot(dir);
-            const ft = F(p.x, p.y, p.z);
-            if (Math.abs(dfdt) < 1e-6) break;
-            t = t - ft / dfdt;
-          }
-          return new THREE.Vector3(dir.x * t, dir.y * t, dir.z * t);
-        }
-        t0 = t1; f0 = f1;
-      }
-      return null;
-    };
-
-    let count = 0;
-    const dustParticles: DustParticle[] = [];
-
-    // Tạo dust particles phủ đều trên bề mặt trái tim
-    for (let i = 0; i < maxDustParticles && count < maxDustParticles; i++) {
-      const phi = Math.acos(1 - 2 * (i + 0.5) / maxDustParticles);
-      const theta = Math.PI * (1 + Math.sqrt(5)) * i;
-      const dir = new THREE.Vector3(
-        Math.sin(phi) * Math.cos(theta),
-        Math.cos(phi),
-        Math.sin(phi) * Math.sin(theta)
-      ).normalize();
-
-      const p = hitOnRay(dir);
-      if (!p) continue;
-
-      // Thêm nhiều lớp bụi - từ bề mặt ra ngoài
-      const numLayers = 3 + Math.floor(Math.random() * 3); // 3-5 lớp
-      for (let layer = 0; layer < numLayers && count < maxDustParticles; layer++) {
-        // Offset ra ngoài bề mặt trái tim
-        const layerOffset = 0.05 + layer * 0.08 + Math.random() * 0.1;
-
-        // Random offset để tạo độ dày không đều (bụi)
-        const randomOffset = (Math.random() - 0.5) * 0.15;
-
-        const dustX = (p.x + dir.x * layerOffset + dir.x * randomOffset) * dustHeartScale;
-        const dustY = (p.y + dir.y * layerOffset + dir.y * randomOffset) * dustHeartScale;
-        const dustZ = (p.z + dir.z * layerOffset + dir.z * randomOffset) * dustHeartScale;
-
-        positions[count * 3 + 0] = dustX;
-        positions[count * 3 + 1] = dustY;
-        positions[count * 3 + 2] = dustZ;
-
-        // Màu bụi: xám/nâu với variation
-        const colorVariation = 0.8 + Math.random() * 0.4;
-        colors[count * 3 + 0] = dustColor.r * colorVariation;
-        colors[count * 3 + 1] = dustColor.g * colorVariation;
-        colors[count * 3 + 2] = dustColor.b * colorVariation;
-
-        // Size nhỏ để tạo hiệu ứng bụi mịn - lớp ngoài nhỏ hơn
-        const baseSize = 0.015 + Math.random() * 0.02;
-        const layerSizeFactor = 1 - layer * 0.15;
-        sizes[count] = baseSize * layerSizeFactor;
-
-        // Lưu dust particle data
-        dustParticles.push({
-          basePos: new THREE.Vector3(dustX, dustY, dustZ),
-          offset: new THREE.Vector3(
-            (Math.random() - 0.5) * 0.1,
-            (Math.random() - 0.5) * 0.1,
-            (Math.random() - 0.5) * 0.1
-          ),
-          size: sizes[count],
-          phase: Math.random() * Math.PI * 2,
-          driftSpeed: 0.5 + Math.random() * 1.0,
-        });
-
-        count++;
-      }
-    }
-
-    dustParticlesRef.current = dustParticles;
-
-    g.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    g.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-    return g;
-  }, [dustColor]);
 
   // Function để spawn một chùm smoke cluster từ VIỀN blob - bay ra ngoài một chiều
   const spawnSmokeCluster = (
