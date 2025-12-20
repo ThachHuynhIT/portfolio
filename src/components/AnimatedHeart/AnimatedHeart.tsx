@@ -1328,9 +1328,9 @@ export default function AnimatedHeart({
           newG = originalG * glowMultiplier * flashMultiplier;
           newB = originalB * glowMultiplier * flashMultiplier;
         } else {
-          // Giai đoạn 2: Đổi từ cam sáng → đỏ, đồng thời tăng brightness + FLASH
-          // Brightness tăng từ 2.5x lên 3.5x khi hoàn thành đổi màu (trái tim đỏ sáng hơn)
-          const glowMultiplier = 2.5 + easedColorProgress * 1.0; // Từ 2.5 lên 3.5
+          // Giai đoạn 2: Đổi từ cam sáng → đỏ, đồng thời giảm độ sáng lại một ít
+          // Brightness tăng từ 2.0x lên 2.5x khi hoàn thành đổi màu (trái tim đỏ bớt sáng)
+          const glowMultiplier = 1 + easedColorProgress * 0.5; // Từ 2.0 lên 2.5
 
           // Blend màu từ cam sang đỏ
           const blendedR = orangeColor.r + (redColor.r - orangeColor.r) * easedColorProgress;
