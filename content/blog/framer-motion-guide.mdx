@@ -1,0 +1,125 @@
+---
+title: "Mastering Framer Motion for Stunning UI Animations"
+excerpt: "A comprehensive guide to creating smooth, performant animations in React using Framer Motion."
+date: "2024-11-15"
+category: "Tutorial"
+tags: ["react", "animation", "framer-motion", "ui"]
+readTime: "6 min read"
+---
+
+# Mastering Framer Motion for Stunning UI Animations
+
+Framer Motion is a production-ready motion library for React that makes creating animations a breeze. Let's explore how to create stunning UI animations that enhance user experience.
+
+## Getting Started
+
+Install Framer Motion:
+
+```bash
+npm install framer-motion
+```
+
+## Basic Animations
+
+The `motion` component is your building block for animations:
+
+```tsx
+import { motion } from "framer-motion";
+
+function FadeIn() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
+      Hello, World!
+    </motion.div>
+  );
+}
+```
+
+## Variants for Complex Animations
+
+Variants let you orchestrate animations across components:
+
+```tsx
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
+
+function List({ items }) {
+  return (
+    <motion.ul variants={containerVariants} initial="hidden" animate="visible">
+      {items.map((item) => (
+        <motion.li key={item.id} variants={itemVariants}>
+          {item.name}
+        </motion.li>
+      ))}
+    </motion.ul>
+  );
+}
+```
+
+## Scroll-Triggered Animations
+
+Use `useInView` for viewport-based animations:
+
+```tsx
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
+
+function ScrollReveal({ children }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6 }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+```
+
+## Gesture Animations
+
+Add interactivity with gestures:
+
+```tsx
+<motion.button
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+  transition={{ type: "spring", stiffness: 400 }}
+>
+  Click Me
+</motion.button>
+```
+
+## Performance Best Practices
+
+1. **Use `layout` prop sparingly** - it can be expensive
+2. **Prefer transform properties** - `x`, `y`, `scale`, `rotate`
+3. **Use `will-change`** for complex animations
+4. **Leverage `useReducedMotion`** for accessibility
+
+## Conclusion
+
+Framer Motion makes animations in React both powerful and accessible. Start with simple animations and gradually build up to complex, orchestrated sequences.
+
+Your users will thank you! ✨
