@@ -3,20 +3,17 @@
 import { useFrame } from '@react-three/fiber';
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { parseRGBStringToColor } from './util';
 
 /* ============================================
    Config - Hiệu ứng dot nhỏ, phát sáng mạnh
    ============================================ */
 const DOT_ALPHA = 1.0;           // Alpha full
 const BRIGHT_BASE = 1.5;         // Độ sáng cơ bản vượt 1.0 để glow
-const BRIGHT_RADIAL = 0.3;       // Sáng theo khoảng cách
-const BRIGHT_RANDOM = 0.3;       // Random brightness
-const BRIGHT_CAP = 2.5;          // Giới hạn độ sáng cao để glow mạnh
 const OPACITY_CAP = 1.0;         // Opacity tối đa = 1
 
 // Config cho kích thước dot
 const DOT_SIZE_BASE = 0.015;     // Kích thước cơ bản lớn hơn
-const DOT_SIZE_RANDOM = 0.01;    // Random size
 const DOT_SIZE_MATERIAL = 0.045; // Size trong material lớn hơn
 
 // Config cho độ cao
@@ -77,7 +74,6 @@ function createGlowDotTexture(size = 64, alpha = DOT_ALPHA) {
     tex.needsUpdate = true;
     return tex;
 }
-
 export default function GroundRings({
     appearDuration = 1.6,
     appearDelay = 0,
@@ -85,8 +81,8 @@ export default function GroundRings({
     groundSize = 30,
     groundY = -0.8,
     colorProgress = 0,
-    initialColor = '#ffb333', // Màu cam/vàng ấm (giống trái tim ban đầu)
-    targetColor = '#ff1a1a', // Màu đỏ (giống trái tim sau khi đổi)
+    initialColor = 'rgb(255, 179, 51)',
+    targetColor = 'rgb(255, 26, 26)',
     flashMultiplier = 1,
 }: Props) {
     const pointsRef = useRef<THREE.Points>(null);
@@ -98,16 +94,11 @@ export default function GroundRings({
 
     const dotTexture = useMemo(() => createGlowDotTexture(64, DOT_ALPHA), []);
 
-    // Màu ban đầu và màu mục tiêu - bình thường (không glow), chỉ glow khi flash
     const orangeColor = useMemo(() => {
-        const c = new THREE.Color(initialColor);
-        // Giữ màu gốc bình thường
-        return c;
+        return new THREE.Color(parseRGBStringToColor(initialColor));
     }, [initialColor]);
     const redColor = useMemo(() => {
-        const c = new THREE.Color(targetColor);
-        // Giữ màu gốc bình thường
-        return c;
+        return new THREE.Color(parseRGBStringToColor(targetColor));
     }, [targetColor]);
 
     // Lưu offset Y ban đầu cho mỗi particle để làm animation

@@ -1,37 +1,47 @@
 'use client';
 
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, } from '@react-three/fiber';
 import { Environment, OrbitControls } from '@react-three/drei';
 import { Bloom, EffectComposer } from '@react-three/postprocessing';
-import { useRef, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import AnimatedHeart from './AnimatedHeart';
 import GroundRings from './ground-rings';
 import FloatingHearts from './floating-hearts';
 
+const floatingTexts = [
+  "I Love You ❤️",
+  "Forever",
+  "Always",
+  "My Heart",
+  "Yêu Em",
+  "Mãi Mãi",
+
+];
+
+
 type Props = {
-  position?: [number, number, number];
   scale?: number;
-  riseDuration?: number;
-  morphDuration?: number;
-  colorChangeDuration?: number;
-  heartbeatSpeed?: number;
-  enableControls?: boolean;
-  backgroundColor?: string;
-  showGround?: boolean;
+  texts?: string[];
+  heartColor?: string
+  textColor?: string
+  miniHeartColor?: string
 };
 
 // Component wrapper để quản lý state đồng bộ màu
 function SceneContent({
   position,
-  scale,
   heartbeatSpeed,
-  showGround,
-
+  texts,
+  heartColor,
+  textColor,
+  miniHeartColor
 }: {
   position: [number, number, number];
-  scale: number;
   heartbeatSpeed: number;
-  showGround: boolean;
+  texts: string[];
+  heartColor: string
+  textColor: string
+  miniHeartColor: string
 }) {
   const [colorProgress, setColorProgress] = useState(0);
   const [flashMultiplier, setFlashMultiplier] = useState(1);
@@ -48,30 +58,25 @@ function SceneContent({
     <>
       <ambientLight intensity={0.5} />
       <pointLight position={[10, 10, 10]} intensity={1} />
-
       <AnimatedHeart
         position={position}
-        scale={scale}
         heartbeatSpeed={heartbeatSpeed}
         onColorChangeProgress={handleColorChangeProgress}
         onFlashProgress={handleFlashProgress}
+        texts={texts}
+        heartColor={heartColor}
+        textColor={textColor}
       />
-
       {/* Ground với particles gồ ghề - đồng bộ màu với trái tim */}
-      {showGround && (
-        <GroundRings
-          appearDuration={2.0}
-          appearDelay={0.5}
-          bumpiness={0.2}
-          groundSize={25}
-          groundY={-0.8}
-          colorProgress={colorProgress}
-          flashMultiplier={flashMultiplier}
-          initialColor="#ffb333"
-          targetColor="#ff1a1a"
-        />
-      )}
-
+      <GroundRings
+        appearDuration={2.0}
+        appearDelay={0.5}
+        bumpiness={0.2}
+        groundSize={25}
+        groundY={-0.8}
+        colorProgress={colorProgress}
+        flashMultiplier={flashMultiplier}
+      />
       {/* Trái tim 2D bay lên - nhiều hơn, mờ hơn, phát sáng hơn */}
       <FloatingHearts
         count={80}
@@ -84,19 +89,17 @@ function SceneContent({
         glowMultiplier={3.5}
         colorProgress={colorProgress}
         flashMultiplier={flashMultiplier}
+        miniHeartColor={miniHeartColor}
       />
-
     </>
   );
 }
 
 export default function AnimatedHeartScene({
-  position = [0, 0, 0],
-  scale = 0.44,
-  heartbeatSpeed = 1.5,
-  enableControls = true,
-  backgroundColor = '#000000',
-  showGround = true,
+  texts = floatingTexts,
+  heartColor = "rgb(255, 5 , 5)",
+  textColor = "rgba(255, 107, 156, 0.58)",
+  miniHeartColor = "rgb(255, 112, 146)"
 }: Props) {
   return (
     <Canvas
@@ -114,28 +117,23 @@ export default function AnimatedHeartScene({
       style={{
         width: '100%',
         height: '100vh',
-        background: backgroundColor,
       }}
     >
-      <color attach="background" args={[backgroundColor]} />
-
-      {enableControls && (
-        <OrbitControls
-          enableZoom={true}
-          enablePan={true}
-          enableRotate={true}
-          minDistance={0.5}
-          maxDistance={10}
-        />
-      )}
-
-      <SceneContent
-        position={position}
-        scale={scale}
-        heartbeatSpeed={heartbeatSpeed}
-        showGround={showGround}
+      <OrbitControls
+        enableZoom={true}
+        enablePan={true}
+        enableRotate={true}
+        minDistance={0.5}
+        maxDistance={10}
       />
-
+      <SceneContent
+        position={[0, 0, 0]}
+        heartbeatSpeed={1.5}
+        texts={texts.flatMap(text => Array(5).fill(text))}
+        heartColor={heartColor}
+        textColor={textColor}
+        miniHeartColor={miniHeartColor}
+      />
       <EffectComposer>
         <Bloom
           intensity={4.0}
@@ -145,7 +143,6 @@ export default function AnimatedHeartScene({
           radius={0.8}
         />
       </EffectComposer>
-
       <Environment preset="night" />
     </Canvas>
   );

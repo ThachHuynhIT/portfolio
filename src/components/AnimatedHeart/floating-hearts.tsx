@@ -3,6 +3,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { parseRGBStringToColor } from './util';
 
 type Props = {
     /** Số lượng trái tim */
@@ -25,6 +26,7 @@ type Props = {
     colorProgress?: number;
     /** Flash multiplier từ bên ngoài */
     flashMultiplier?: number;
+    miniHeartColor: string
 };
 
 /* Tạo texture hình trái tim 2D đơn giản - màu trắng để vertex colors điều khiển */
@@ -117,9 +119,6 @@ interface HeartData {
     fadeOutDuration: number; // Thời gian fade out
 }
 
-// Màu vàng cam ban đầu và màu hồng #ff7092ff (rgba(255, 0, 60, 1)) khi đổi màu
-const ORANGE_COLOR = new THREE.Color(1.0, 0.65, 0.28);
-const PINK_COLOR = new THREE.Color(255 / 255, 112 / 255, 146 / 255); // #ff7092ff
 
 export default function FloatingHearts({
     count = 120, // Gấp đôi số lượng
@@ -127,14 +126,17 @@ export default function FloatingHearts({
     riseSpeed = 0.25,
     startHeight = 0.5, // Bắt đầu cao hơn nền
     appearDelay = 1,
-    opacity = 0.7,
     glowMultiplier = 1.0,
     colorProgress = 0, // Progress đổi màu từ cam sang đỏ
     flashMultiplier = 1,
+    miniHeartColor
 }: Props) {
     const pointsRef = useRef<THREE.Points>(null);
     const matRef = useRef<THREE.PointsMaterial>(null);
     const startRef = useRef<number | null>(null);
+
+    const ORANGE_COLOR = new THREE.Color(1.0, 0.65, 0.28);
+    const PINK_COLOR = new THREE.Color(parseRGBStringToColor(miniHeartColor));
 
     const heartTexture = useMemo(() => createGlowHeartTexture(128), []);
 

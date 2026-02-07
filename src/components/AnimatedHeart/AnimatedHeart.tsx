@@ -4,6 +4,11 @@ import { Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { parseRGBStringToColor } from './util';
+
+// size of heart
+const HEART_SCALE = 1.5;
+const MOBILE_HEART_SCALE = 1.1;
 
 // Interface cho smoke cluster (chùm particles) - bay ra ngoài một chiều
 interface SmokeCluster {
@@ -65,89 +70,8 @@ function createGlowTexture(size = 128) {
 }
 
 // Mảng các đoạn text ngắn để chạy dọc màn hình
-const floatingTexts = [
-  "I Love You ❤️",
-  "Forever",
-  "Always",
-  "My Heart",
-  "Yêu Em",
-  "Mãi Mãi",
-  "Sweet Love",
-  "Be Mine",
-  "Anh Yêu Em",
-  "Together",
-  "💕",
-  "True Love",
-  "Hạnh Phúc",
-  "Endless",
-  "💖",
-  "Soulmate",
-  "Destiny",
-  "♥",
-  "Only You",
-  "Dream", "I Love You ❤️",
-  "Forever",
-  "Always",
-  "My Heart",
-  "Yêu Em",
-  "Mãi Mãi",
-  "Sweet Love",
-  "Be Mine",
-  "Anh Yêu Em",
-  "Together",
-  "💕",
-  "True Love",
-  "Hạnh Phúc",
-  "Endless",
-  "💖",
-  "Soulmate",
-  "Destiny",
-  "♥",
-  "Only You",
-  "Dream", "I Love You ❤️",
-  "Forever",
-  "Always",
-  "My Heart",
-  "Yêu Em",
-  "Mãi Mãi",
-  "Sweet Love",
-  "Be Mine",
-  "Anh Yêu Em",
-  "Together",
-  "💕",
-  "True Love",
-  "Hạnh Phúc",
-  "Endless",
-  "💖",
-  "Soulmate",
-  "Destiny",
-  "♥",
-  "Only You",
-  "Dream", "I Love You ❤️",
-  "Forever",
-  "Always",
-  "My Heart",
-  "Yêu Em",
-  "Mãi Mãi",
-  "Sweet Love",
-  "Be Mine",
-  "Anh Yêu Em",
-  "Together",
-  "💕",
-  "True Love",
-  "Hạnh Phúc",
-  "Endless",
-  "💖",
-  "Soulmate",
-  "Destiny",
-  "♥",
-  "Only You",
-  "Dream"
-];
-
 type Props = {
   position?: [number, number, number];
-  scale?: number;
   riseDuration?: number; // thời gian blob bay từ dưới lên (s)
   morphDuration?: number; // thời gian biến đổi từ blob sang trái tim (s)
   colorChangeDuration?: number; // thời gian đổi màu (s)
@@ -157,7 +81,9 @@ type Props = {
   targetY?: number; // vị trí Y đích (nơi blob biến thành trái tim)
   onColorChangeProgress?: (progress: number) => void; // callback khi đổi màu
   onFlashProgress?: (flashMultiplier: number) => void; // callback khi flash effect
-  texts?: string[]; // mảng text chạy dọc màn hình
+  texts: string[]; // mảng text chạy dọc màn hình
+  heartColor: string
+  textColor: string
 };
 
 // Component cho text chạy dọc - sử dụng HTML overlay
@@ -170,6 +96,7 @@ function FloatingText({
   size,
   delay,
   opacityMultiplier = 1,
+  textColor
 }: {
   text: string;
   startX: number;
@@ -179,6 +106,7 @@ function FloatingText({
   size: number;
   delay: number;
   opacityMultiplier?: number;
+  textColor: string
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const startTime = useRef<number | null>(null);
@@ -222,16 +150,16 @@ function FloatingText({
         transform
         distanceFactor={5}
         style={{
-          color: '#ff6b9c94',
+          color: textColor,
           fontSize: `${fontsize}px`,
           fontWeight: 'bold',
+          fontFamily: 'Mali',
           opacity: finalOpacity,
           whiteSpace: 'nowrap',
           textShadow: '0 0 16px #ff80b0, 0 0 16px #ff6090',
           pointerEvents: 'none',
           userSelect: 'none',
-        }}
-      >
+        }}        >
         {text}
       </Html>
     </group>
@@ -240,7 +168,6 @@ function FloatingText({
 
 export default function AnimatedHeart({
   position = [0, 0, 0],
-  scale = 1,
   riseDuration = 2.5, // thời gian blob bay lên
   morphDuration = 2.0, // thời gian biến đổi thành trái tim
   colorChangeDuration = 1.0,
@@ -250,7 +177,9 @@ export default function AnimatedHeart({
   targetY = 0, // blob đến vị trí này rồi biến đổi
   onColorChangeProgress, // callback để đồng bộ màu với ground
   onFlashProgress, // callback để đồng bộ flash effect
-  texts = floatingTexts, // sử dụng default texts
+  texts, // sử dụng default texts
+  heartColor,
+  textColor,
 }: Props) {
   const dotTexture = useMemo(() => createGlowTexture(128), []);
   const pointsRef = useRef<THREE.Points>(null);
@@ -275,10 +204,8 @@ export default function AnimatedHeart({
 
   // Màu ban đầu: cam/vàng ấm - tăng độ sáng vượt 1.0 để glow
   const orangeColor = useMemo(() => new THREE.Color(1.8, 1.2, 0.5), []);
-  // Màu trắng sáng cho hiệu ứng glow
   // Màu sau: đỏ - tăng độ sáng vượt 1.0 để glow
-  // Màu đỏ tươi rgba(255, 21, 0, 1)
-  const redColor = useMemo(() => new THREE.Color(1.0, 5 / 255, 5 / 255), []);
+  const redColor = useMemo(() => new THREE.Color(parseRGBStringToColor(heartColor)), []);
 
   // Tạo data cho floating texts
   const floatingTextData = useMemo(() => {
@@ -303,7 +230,7 @@ export default function AnimatedHeart({
     const sizes = new Float32Array(targetDots);
     const noiseOffsets = new Float32Array(targetDots * 3); // Offset noise cho blob biến dạng
 
-    const heartScale = 3.0;
+    const heartScale = window.innerWidth < 600 ? MOBILE_HEART_SCALE : HEART_SCALE;
     const R = 2;
     const blobRadius = 1.0; // Bán kính blob nhỏ hơn trái tim (khoảng 50%)
 
@@ -1083,9 +1010,9 @@ export default function AnimatedHeart({
           const rotatedStartY = blobSurfaceZ;
           const rotatedStartZ = blobSurfaceY;
 
-          const startWorldX = position[0] + rotatedStartX * scale;
-          const startWorldY = position[1] + currentYPosition + rotatedStartY * scale;
-          const startWorldZ = position[2] + rotatedStartZ * scale;
+          const startWorldX = position[0] + rotatedStartX * 0.44;
+          const startWorldY = position[1] + currentYPosition + rotatedStartY * 0.44;
+          const startWorldZ = position[2] + rotatedStartZ * 0.44;
 
           // Hướng bay ra (từ tâm ra ngoài)
           const particleDist = Math.sqrt(blobSurfaceX * blobSurfaceX + blobSurfaceY * blobSurfaceY + blobSurfaceZ * blobSurfaceZ);
@@ -1396,7 +1323,7 @@ export default function AnimatedHeart({
         position={position}
         geometry={heartGeometry}
         rotation={[Math.PI / 2, Math.PI, 0]}
-        scale={scale}
+        scale={0.44}
         ref={(p) => {
           pointsRef.current = p as THREE.Points | null;
           if (p) heartGeoRef.current = p.geometry as THREE.BufferGeometry;
@@ -1448,6 +1375,7 @@ export default function AnimatedHeart({
           speed={data.speed}
           size={data.size}
           delay={data.delay}
+          textColor={textColor}
         />
       ))}
     </group>
