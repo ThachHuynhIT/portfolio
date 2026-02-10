@@ -1,0 +1,100 @@
+{
+  "public.tb_def_exception_parameter": [
+    {
+      "tb_def_exception__exid": "(( 'x' || 'D1200001' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101621
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'D1200001' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101622
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'D1200002' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101622
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'D1200002' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101623
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F3202003' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101621
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F3202003' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101622
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F3202003' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101623
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'D1200004' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101655
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'D1200004' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101656
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F2202001' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101621
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F2202001' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101622
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F2202002' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101621
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F2202002' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101622
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F2202002' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101623
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F2202003' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101621
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F2202003' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101622
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F2202003' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101623
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F2202004' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101655
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F2202004' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101656
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F2202005' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101655
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F2202005' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101656
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F2202006' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101621
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F2202006' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101622
+    },
+    {
+      "tb_def_exception__exid": "(( 'x' || 'F2202006' ) :: BIT ( 32 ) :: BIGINT)",
+      "tb_def_parameter__id": 201101623
+    }
+  ]
+}

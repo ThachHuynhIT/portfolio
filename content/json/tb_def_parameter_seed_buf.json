@@ -1,0 +1,70 @@
+{
+  "public.tb_def_parameter": [
+    {
+      "id": 200116004,
+      "tb_def_cem__id": "'D440CB27-9C7C-4481-8EE9-7F7098DF6603'",
+      "tb_def_data_type__id": 7,
+      "tb_def_enum__id": 6004,
+      "class": 11,
+      "object_usage": 5,
+      "name": [
+        "'[Buffer] READY'"
+      ]
+    },
+    {
+      "id": 201101621,
+      "tb_def_cem__id": "'D60102D0-0DCA-4D91-B233-04E7CE4DBB19'",
+      "tb_def_data_type__id": 7,
+      "tb_def_enum__id": 10000,
+      "class": 10,
+      "object_usage": 5,
+      "name": [
+        "'[Buffer] Edge Clamper Clamped'"
+      ]
+    },
+    {
+      "id": 201101622,
+      "tb_def_cem__id": "'D60F076E-CACE-4DB4-A384-C1D74C6F0F46'",
+      "tb_def_data_type__id": 7,
+      "tb_def_enum__id": 10000,
+      "class": 10,
+      "object_usage": 5,
+      "name": [
+        "'[Buffer] Edge Clamper Released'"
+      ]
+    },
+    {
+      "id": 201101623,
+      "tb_def_cem__id": "'D6020A54-485B-40E0-A5E5-AB5D06136AEA'",
+      "tb_def_data_type__id": 7,
+      "tb_def_enum__id": 10000,
+      "class": 10,
+      "object_usage": 5,
+      "name": [
+        "'[Buffer] Edge Clamper Wafer Clamp Error'"
+      ]
+    },
+    {
+      "id": 201101655,
+      "tb_def_cem__id": "'D60F29D3-B5F0-493E-A4EC-431204E1C6E2'",
+      "tb_def_data_type__id": 7,
+      "tb_def_enum__id": 10000,
+      "class": 10,
+      "object_usage": 5,
+      "name": [
+        "'[Buffer] Shutter Opened'"
+      ]
+    },
+    {
+      "id": 201101656,
+      "tb_def_cem__id": "'D60E70D0-34F9-4344-A9E0-E90A2BFB64DD'",
+      "tb_def_data_type__id": 7,
+      "tb_def_enum__id": 10000,
+      "class": 10,
+      "object_usage": 5,
+      "name": [
+        "'[Buffer] Shutter Closed'"
+      ]
+    }
+  ]
+}
