@@ -64,7 +64,7 @@ const mdxComponents = {
   ul: (props: React.HTMLProps<HTMLUListElement>) => (
     <ul className="list-disc list-inside text-white/70 mb-4 space-y-2" {...props} />
   ),
-  ol: (props: React.HTMLProps<HTMLOListElement>) => (
+  ol: (props: React.OlHTMLAttributes<HTMLOListElement>) => (
     <ol className="list-decimal list-inside text-white/70 mb-4 space-y-2" {...props} />
   ),
   li: (props: React.HTMLProps<HTMLLIElement>) => (

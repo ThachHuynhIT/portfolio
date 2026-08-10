@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui";
@@ -18,7 +18,10 @@ const Hero3DScene = dynamic(
 );
 
 export default function HeroSection() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  // Mutable ref instead of React state: Hero3DScene reads x/y inside an
+  // r3f useFrame loop every animation frame, so mutating this object in
+  // place avoids re-rendering the whole Hero tree on every mousemove.
+  const mousePositionRef = useRef({ x: 0, y: 0 });
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -30,13 +33,22 @@ export default function HeroSection() {
       const { clientX, clientY } = e;
       const { innerWidth, innerHeight } = window;
 
-      setMousePosition({
-        x: (clientX / innerWidth - 0.5) * 2,
-        y: (clientY / innerHeight - 0.5) * 2,
-      });
+      mousePositionRef.current.x = (clientX / innerWidth - 0.5) * 2;
+      mousePositionRef.current.y = (clientY / innerHeight - 0.5) * 2;
     },
     []
   );
+
+  const handleViewWork = useCallback(() => {
+    document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  const handleDownloadCV = useCallback(() => {
+    const link = document.createElement("a");
+    link.href = "/resume.pdf";
+    link.download = "";
+    link.click();
+  }, []);
 
   return (
     <section
@@ -47,7 +59,7 @@ export default function HeroSection() {
       {/* 3D Background */}
       {isMounted && (
         <SceneContainer>
-          <Hero3DScene mousePosition={mousePosition} />
+          <Hero3DScene mousePosition={mousePositionRef.current} />
         </SceneContainer>
       )}
 
@@ -95,10 +107,10 @@ export default function HeroSection() {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Button size="lg" variant="primary">
+            <Button size="lg" variant="primary" onClick={handleViewWork}>
               View My Work
             </Button>
-            <Button size="lg" variant="outline">
+            <Button size="lg" variant="outline" onClick={handleDownloadCV}>
               Download CV
             </Button>
           </motion.div>

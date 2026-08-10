@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
 import { AnimatedSection, TiltCard, Button, GlassCard } from "@/components/ui";
 import { projects } from "@/lib/constants";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
@@ -14,6 +13,55 @@ interface ProjectModalProps {
 }
 
 function ProjectModal({ project, onClose }: ProjectModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previouslyFocused = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!project) return;
+
+    previouslyFocused.current = document.activeElement as HTMLElement;
+    document.body.style.overflow = "hidden";
+    dialogRef.current?.focus();
+
+    const getFocusable = () =>
+      Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+      );
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+
+      if (e.key === "Tab") {
+        const focusable = getFocusable();
+        if (focusable.length === 0) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+      previouslyFocused.current?.focus();
+    };
+  }, [project, onClose]);
+
   if (!project) return null;
 
   return (
@@ -34,15 +82,21 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
 
       {/* Modal */}
       <motion.div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={project.title}
+        tabIndex={-1}
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className="relative z-10 w-full max-w-2xl"
+        className="relative z-10 w-full max-w-2xl focus:outline-none"
       >
         <GlassCard className="p-8">
           {/* Close button */}
           <button
             onClick={onClose}
+            aria-label="Close"
             className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all"
           >
             ✕
@@ -76,7 +130,9 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
             {project.liveUrl && (
               <Button
                 variant="primary"
-                onClick={() => window.open(project.liveUrl, "_blank")}
+                onClick={() =>
+                  window.open(project.liveUrl, "_blank", "noopener,noreferrer")
+                }
               >
                 View Live
               </Button>
@@ -84,7 +140,9 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
             {project.githubUrl && (
               <Button
                 variant="outline"
-                onClick={() => window.open(project.githubUrl, "_blank")}
+                onClick={() =>
+                  window.open(project.githubUrl, "_blank", "noopener,noreferrer")
+                }
               >
                 Source Code
               </Button>

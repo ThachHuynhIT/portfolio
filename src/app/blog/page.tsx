@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { getAllPosts, getAllCategories } from "@/lib/blog";
-import { GlassCard } from "@/components/ui";
+import BlogList from "@/components/blog/BlogList";
 
 export const metadata = {
   title: "Blog | John Doe",
@@ -36,74 +35,7 @@ export default function BlogPage() {
           </p>
         </div>
 
-        {/* Categories Filter */}
-        {categories.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-3 mb-12">
-            <button className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full">
-              All
-            </button>
-            {categories.map((category) => (
-              <button
-                key={category}
-                className="px-4 py-2 text-sm font-medium text-white/70 bg-white/5 border border-white/10 rounded-full hover:text-white hover:bg-white/10 transition-all"
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Blog Posts Grid */}
-        {posts.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post) => (
-              <Link key={post.slug} href={`/blog/${post.slug}`}>
-                <GlassCard className="h-full p-6 group cursor-pointer">
-                  {/* Category Badge */}
-                  <span className="inline-block px-3 py-1 text-xs font-medium text-purple-400 bg-purple-500/10 rounded-full mb-4">
-                    {post.category}
-                  </span>
-
-                  {/* Title */}
-                  <h2 className="text-xl font-semibold text-white mb-3 group-hover:text-purple-400 transition-colors">
-                    {post.title}
-                  </h2>
-
-                  {/* Excerpt */}
-                  <p className="text-white/60 text-sm mb-4 line-clamp-2">
-                    {post.excerpt}
-                  </p>
-
-                  {/* Meta */}
-                  <div className="flex items-center justify-between text-sm text-white/40">
-                    <span>{new Date(post.date).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}</span>
-                    <span>{post.readTime}</span>
-                  </div>
-
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {post.tags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-1 text-xs text-white/50 bg-white/5 rounded"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                </GlassCard>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-20">
-            <p className="text-white/60 text-lg">No blog posts yet. Check back soon!</p>
-          </div>
-        )}
+        <BlogList posts={posts} categories={categories} />
       </div>
     </div>
   );

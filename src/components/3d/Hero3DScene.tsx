@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useMemo } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import { Float, MeshDistortMaterial } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -13,7 +13,7 @@ interface Hero3DSceneProps {
  * Floating Geometric Sphere - Main 3D centerpiece for the hero section
  */
 function FloatingGeometry({ mousePosition }: Hero3DSceneProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<THREE.Group>(null);
   const innerMeshRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
@@ -182,8 +182,6 @@ function Lighting() {
  * Main Hero 3D Scene Component
  */
 export default function Hero3DScene({ mousePosition }: Hero3DSceneProps) {
-  const { viewport } = useThree();
-
   return (
     <>
       <Lighting />

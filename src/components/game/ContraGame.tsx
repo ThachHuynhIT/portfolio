@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback } from "react";
 
 // ═══════════════════════════════════════════════════
 // TYPES & INTERFACES
@@ -68,6 +68,14 @@ const GRAVITY = 0.48;
 const PLAYER_SPEED = 3.5;
 const JUMP_FORCE = -11.5; // much stronger jump
 const TILE = 32;
+// Fixed simulation step (ms) — decouples game physics from display refresh rate.
+const FIXED_DT = 1000 / 60;
+const MAX_FRAME_DELTA = 250; // clamp huge gaps (tab was backgrounded/lagged) to avoid a "spiral of death"
+// Keys the game actually cares about — only these get preventDefault(), and only without a modifier held.
+const GAME_KEYS = new Set([
+  "arrowleft", "arrowright", "arrowup", "arrowdown",
+  "a", "d", "w", "s", " ", "j", "z", "x", "enter", "escape",
+]);
 
 const WEAPON_DATA: Record<string, { rate: number; speed: number; damage: number; spread: number; count: number; color: string }> = {
   default: { rate: 12, speed: 8, damage: 1, spread: 0, count: 1, color: "#FFFF00" },
@@ -553,8 +561,12 @@ function createPowerUp(x: number, y: number, type: PowerUp["type"]): PowerUp {
 // ═══════════════════════════════════════════════════
 export default function ContraGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [, setGameState] = useState<"menu" | "playing" | "paused" | "gameover" | "victory" | "levelIntro">("menu");
-  const [, setCurrentLevel] = useState(0);
+  // Game state lives entirely in gameRef (mutated + read by the imperative canvas loop below).
+  // Rendering is 100% canvas draw calls — nothing in the JSX below reads game state — so there is
+  // no reason to mirror it into React state, which would otherwise re-render this component on
+  // every single transition (level start, pause, death, victory...) for zero visual benefit.
+  const lastTimeRef = useRef<number | null>(null);
+  const accumulatorRef = useRef(0);
   const gameRef = useRef<{
     player: Player; bullets: Bullet[]; particles: Particle[];
     enemies: Enemy[]; platforms: Platform[]; powerUps: PowerUp[];
@@ -588,28 +600,29 @@ export default function ContraGame() {
       levelTimer: 120, shakeTimer: 0, shakeIntensity: 0,
       bossActive: false, bossDefeated: false, frameCount: 0,
     };
-    setCurrentLevel(levelIdx);
-    setGameState("levelIntro");
   }, []);
 
   // ── Input ──
   useEffect(() => {
     const handleKey = (e: KeyboardEvent, down: boolean) => {
       const key = e.key.toLowerCase();
+      // Only swallow the keys the game actually uses, and never while a modifier is held —
+      // this keeps browser/OS shortcuts (Ctrl+R, Ctrl+Tab, etc.) working while the game is mounted.
+      if (GAME_KEYS.has(key) && !e.ctrlKey && !e.metaKey && !e.altKey) e.preventDefault();
+
       if (down && key === "enter") {
         if (!gameRef.current || gameRef.current.gameState === "menu" || gameRef.current.gameState === "gameover" || gameRef.current.gameState === "victory") {
-          initGame(0); e.preventDefault(); return;
+          initGame(0); return;
         } else if (gameRef.current.gameState === "levelIntro") {
-          gameRef.current.gameState = "playing"; setGameState("playing"); e.preventDefault(); return;
+          gameRef.current.gameState = "playing"; return;
         }
       }
-      if (!gameRef.current) { e.preventDefault(); return; }
+      if (!gameRef.current) return;
       gameRef.current.keys[key] = down;
       if (down && key === "escape") {
-        if (gameRef.current.gameState === "playing") { gameRef.current.gameState = "paused"; setGameState("paused"); }
-        else if (gameRef.current.gameState === "paused") { gameRef.current.gameState = "playing"; setGameState("playing"); }
+        if (gameRef.current.gameState === "playing") gameRef.current.gameState = "paused";
+        else if (gameRef.current.gameState === "paused") gameRef.current.gameState = "playing";
       }
-      e.preventDefault();
     };
     const onKD = (e: KeyboardEvent) => handleKey(e, true);
     const onKU = (e: KeyboardEvent) => handleKey(e, false);
@@ -625,22 +638,67 @@ export default function ContraGame() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     let animId: number;
-    const gameLoop = () => {
+    let running = true;
+
+    // One fixed-size simulation tick — assumes a 60fps step, exactly like the original code did.
+    const stepOnce = () => {
       const g = gameRef.current;
-      if (!g) { drawMenu(ctx); animId = requestAnimationFrame(gameLoop); return; }
+      if (!g) return;
       g.frameCount++;
       if (g.gameState === "levelIntro") {
-        g.levelTimer--; if (g.levelTimer <= 0) { g.gameState = "playing"; setGameState("playing"); }
-        drawLevelIntro(ctx, g);
-      } else if (g.gameState === "playing") { update(g); draw(ctx, g); }
+        g.levelTimer--;
+        if (g.levelTimer <= 0) g.gameState = "playing";
+      } else if (g.gameState === "playing") {
+        update(g);
+      }
+    };
+
+    const gameLoop = (time: number) => {
+      if (lastTimeRef.current === null) lastTimeRef.current = time;
+      const rawDelta = Math.min(time - lastTimeRef.current, MAX_FRAME_DELTA);
+      lastTimeRef.current = time;
+      accumulatorRef.current += rawDelta;
+
+      // Run as many fixed 60Hz steps as needed to catch up — keeps physics speed identical
+      // regardless of the display's actual refresh rate (60/120/144Hz) or momentary lag.
+      while (accumulatorRef.current >= FIXED_DT) {
+        stepOnce();
+        accumulatorRef.current -= FIXED_DT;
+      }
+
+      const g = gameRef.current;
+      if (!g) drawMenu(ctx);
+      else if (g.gameState === "levelIntro") drawLevelIntro(ctx, g);
+      else if (g.gameState === "playing") draw(ctx, g);
       else if (g.gameState === "paused") { draw(ctx, g); drawPauseOverlay(ctx); }
       else if (g.gameState === "gameover") { draw(ctx, g); drawGameOver(ctx, g); }
       else if (g.gameState === "victory") { draw(ctx, g); drawVictory(ctx, g); }
-      else { drawMenu(ctx); }
-      animId = requestAnimationFrame(gameLoop);
+      else drawMenu(ctx);
+
+      if (running) animId = requestAnimationFrame(gameLoop);
     };
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        running = false;
+        cancelAnimationFrame(animId);
+      } else if (!running) {
+        running = true;
+        // Drop the stale timestamp/accumulator so the next frame doesn't see a huge
+        // "elapsed time" (which would otherwise fast-forward the simulation on return).
+        lastTimeRef.current = null;
+        accumulatorRef.current = 0;
+        animId = requestAnimationFrame(gameLoop);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
     animId = requestAnimationFrame(gameLoop);
-    return () => cancelAnimationFrame(animId);
+    return () => {
+      running = false;
+      cancelAnimationFrame(animId);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -656,7 +714,7 @@ export default function ContraGame() {
           p.lives--; p.dead = false; p.hp = p.maxHp;
           p.x = Math.max(50, g.camera.x + 50); p.y = 300;
           p.vx = 0; p.vy = 0; p.invincible = 120; p.weapon = "default";
-        } else { g.gameState = "gameover"; setGameState("gameover"); return; }
+        } else { g.gameState = "gameover"; return; }
       }
       updateParticles(g); return;
     }
@@ -744,7 +802,7 @@ export default function ContraGame() {
       g.bossDefeated = false; g.bossActive = false;
       const nextLevel = g.currentLevel + 1;
       if (nextLevel < g.levels.length) initGame(nextLevel, { lives: p.lives, score: p.score });
-      else { g.gameState = "victory"; setGameState("victory"); }
+      else { g.gameState = "victory"; }
     }
     if (g.shakeTimer > 0) g.shakeTimer--;
   }

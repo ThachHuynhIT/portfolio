@@ -20,20 +20,27 @@ export function getAllPosts(): BlogPost[] {
     .map((file) => {
       const slug = file.replace(".mdx", "");
       const filePath = path.join(BLOG_DIR, file);
-      const fileContents = fs.readFileSync(filePath, "utf-8");
-      const { data, content } = matter(fileContents);
 
-      return {
-        slug,
-        title: data.title || "",
-        excerpt: data.excerpt || "",
-        date: data.date || "",
-        category: data.category || "",
-        tags: data.tags || [],
-        readTime: data.readTime || "",
-        content,
-      };
+      try {
+        const fileContents = fs.readFileSync(filePath, "utf-8");
+        const { data, content } = matter(fileContents);
+
+        return {
+          slug,
+          title: data.title || "",
+          excerpt: data.excerpt || "",
+          date: data.date || "",
+          category: data.category || "",
+          tags: data.tags || [],
+          readTime: data.readTime || "",
+          content,
+        };
+      } catch (error) {
+        console.error(`Skipping malformed blog post "${file}":`, error);
+        return null;
+      }
     })
+    .filter((post): post is BlogPost => post !== null)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return posts;

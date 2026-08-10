@@ -44,13 +44,22 @@ export default function ContactSection() {
     resolver: zodResolver(contactSchema),
   });
 
+  const [submittedData, setSubmittedData] = useState<ContactFormData | null>(
+    null
+  );
+
   const onSubmit = async (data: ContactFormData) => {
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log("Form submitted:", data);
+    setSubmittedData(data);
     reset();
-    alert("Message sent successfully!");
   };
+
+  const mailtoHref = submittedData
+    ? `mailto:${siteConfig.author.email}?subject=${encodeURIComponent(
+        submittedData.subject
+      )}&body=${encodeURIComponent(
+        `${submittedData.message}\n\n— ${submittedData.name} (${submittedData.email})`
+      )}`
+    : undefined;
 
   return (
     <section id="contact" className="relative py-32 overflow-hidden">
@@ -87,68 +96,149 @@ export default function ContactSection() {
           {/* Contact Form */}
           <AnimatedSection>
             <GlassCard className="p-8">
+              {submittedData && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="mb-6 p-4 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-sm text-white/80"
+                >
+                  <p>
+                    This form isn&apos;t connected to a live inbox yet, so
+                    nothing was sent automatically.
+                  </p>
+                  <p className="mt-2">
+                    Please{" "}
+                    <a
+                      href={mailtoHref}
+                      className="text-cyan-400 underline hover:text-cyan-300"
+                    >
+                      click here to send it via your email client
+                    </a>{" "}
+                    instead, or reach me directly at{" "}
+                    <a
+                      href={`mailto:${siteConfig.author.email}`}
+                      className="text-cyan-400 underline hover:text-cyan-300"
+                    >
+                      {siteConfig.author.email}
+                    </a>
+                    .
+                  </p>
+                </div>
+              )}
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* Name Field */}
                 <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">
+                  <label
+                    htmlFor="contact-name"
+                    className="block text-sm font-medium text-white/70 mb-2"
+                  >
                     Name
                   </label>
                   <input
                     {...register("name")}
+                    id="contact-name"
                     type="text"
                     placeholder="John Doe"
+                    aria-invalid={!!errors.name}
+                    aria-describedby={
+                      errors.name ? "contact-name-error" : undefined
+                    }
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
                   />
                   {errors.name && (
-                    <p className="mt-1 text-sm text-red-400">{errors.name.message}</p>
+                    <p
+                      id="contact-name-error"
+                      className="mt-1 text-sm text-red-400"
+                    >
+                      {errors.name.message}
+                    </p>
                   )}
                 </div>
 
                 {/* Email Field */}
                 <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">
+                  <label
+                    htmlFor="contact-email"
+                    className="block text-sm font-medium text-white/70 mb-2"
+                  >
                     Email
                   </label>
                   <input
                     {...register("email")}
+                    id="contact-email"
                     type="email"
                     placeholder="john@example.com"
+                    aria-invalid={!!errors.email}
+                    aria-describedby={
+                      errors.email ? "contact-email-error" : undefined
+                    }
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
                   />
                   {errors.email && (
-                    <p className="mt-1 text-sm text-red-400">{errors.email.message}</p>
+                    <p
+                      id="contact-email-error"
+                      className="mt-1 text-sm text-red-400"
+                    >
+                      {errors.email.message}
+                    </p>
                   )}
                 </div>
 
                 {/* Subject Field */}
                 <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">
+                  <label
+                    htmlFor="contact-subject"
+                    className="block text-sm font-medium text-white/70 mb-2"
+                  >
                     Subject
                   </label>
                   <input
                     {...register("subject")}
+                    id="contact-subject"
                     type="text"
                     placeholder="Project Inquiry"
+                    aria-invalid={!!errors.subject}
+                    aria-describedby={
+                      errors.subject ? "contact-subject-error" : undefined
+                    }
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
                   />
                   {errors.subject && (
-                    <p className="mt-1 text-sm text-red-400">{errors.subject.message}</p>
+                    <p
+                      id="contact-subject-error"
+                      className="mt-1 text-sm text-red-400"
+                    >
+                      {errors.subject.message}
+                    </p>
                   )}
                 </div>
 
                 {/* Message Field */}
                 <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">
+                  <label
+                    htmlFor="contact-message"
+                    className="block text-sm font-medium text-white/70 mb-2"
+                  >
                     Message
                   </label>
                   <textarea
                     {...register("message")}
+                    id="contact-message"
                     rows={5}
                     placeholder="Tell me about your project..."
+                    aria-invalid={!!errors.message}
+                    aria-describedby={
+                      errors.message ? "contact-message-error" : undefined
+                    }
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all resize-none"
                   />
                   {errors.message && (
-                    <p className="mt-1 text-sm text-red-400">{errors.message.message}</p>
+                    <p
+                      id="contact-message-error"
+                      className="mt-1 text-sm text-red-400"
+                    >
+                      {errors.message.message}
+                    </p>
                   )}
                 </div>
 

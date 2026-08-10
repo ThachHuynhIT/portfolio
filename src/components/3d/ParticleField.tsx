@@ -44,8 +44,9 @@ export default function ParticleField({
 
   useFrame((state) => {
     if (pointsRef.current) {
-      const positions = pointsRef.current.geometry.attributes.position
-        .array as Float32Array;
+      const positionAttribute = pointsRef.current.geometry.attributes
+        .position as THREE.BufferAttribute;
+      const positions = positionAttribute.array as Float32Array;
 
       for (let i = 0; i < count; i++) {
         // Add slight wave motion
@@ -67,7 +68,7 @@ export default function ParticleField({
         }
       }
 
-      pointsRef.current.geometry.attributes.position.needsUpdate = true;
+      positionAttribute.needsUpdate = true;
       pointsRef.current.rotation.y = state.clock.elapsedTime * 0.02;
     }
   });

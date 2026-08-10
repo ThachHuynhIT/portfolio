@@ -1,18 +1,16 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import { FlatCompat } from "@eslint/eslintrc";
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
-]);
+// eslint-config-next@14 only ships legacy eslintrc-style configs (`extends: [...]`),
+// not flat-config arrays — FlatCompat converts them. This also avoids the `eslint/config`
+// helper module (defineConfig/globalIgnores), which only exists on ESLint v9+
+// (this project pins ESLint 8.57.1).
+const compat = new FlatCompat({ baseDirectory: import.meta.dirname });
+
+const eslintConfig = [
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    ignores: [".next/**", "out/**", "build/**", "next-env.d.ts"],
+  },
+];
 
 export default eslintConfig;
