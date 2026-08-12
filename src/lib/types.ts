@@ -1,0 +1,53 @@
+// Project Types
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  longDescription?: string;
+  image: string;
+  tags: string[];
+  liveUrl?: string;
+  githubUrl?: string;
+  featured?: boolean;
+}
+
+// Blog Post Types
+export interface BlogPost {
+  slug: string;
+  title: string;
+  excerpt: string;
+  date: string;
+  category: string;
+  tags: string[];
+  readTime: string;
+  content: string;
+}
+
+// Skill Types
+export interface Skill {
+  name: string;
+  icon: string;
+  category: "frontend" | "backend" | "tools" | "design";
+  level: number; // 1-100
+}
+
+// Contact Form Types
+export interface ContactFormData {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+// Navigation Types
+export interface NavLink {
+  label: string;
+  href: string;
+}
+
+// Social Link Types
+export interface SocialLink {
+  name: string;
+  url: string;
+  icon: string;
+}
