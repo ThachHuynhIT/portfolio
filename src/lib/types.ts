@@ -25,6 +25,7 @@ export interface BlogPost {
 
 // Skill Types
 export interface Skill {
+  id: string;
   name: string;
   icon: string;
   category: "frontend" | "backend" | "tools" | "design";
@@ -41,13 +42,34 @@ export interface ContactFormData {
 
 // Navigation Types
 export interface NavLink {
+  id: string;
   label: string;
   href: string;
 }
 
 // Social Link Types
 export interface SocialLink {
+  id: string;
   name: string;
   url: string;
   icon: string;
+}
+
+// Site Config Types
+export interface SiteAuthor {
+  name: string;
+  title: string;
+  bio: string;
+  avatar: string;
+  email: string;
+  location: string;
+}
+
+export interface SiteConfig {
+  name: string;
+  title: string;
+  description: string;
+  url: string;
+  ogImage: string;
+  author: SiteAuthor;
 }
