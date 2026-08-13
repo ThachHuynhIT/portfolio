@@ -11,23 +11,38 @@ export const metadata: Metadata = {
 export const revalidate = 60; // ISR — revalidate every 60 seconds
 
 export default async function MusicPage() {
-  const tracks = await db.track.findMany({
-    where: { published: true },
-    orderBy: [{ order: "asc" }, { createdAt: "desc" }],
-  });
+  let tracks: Array<{
+    id: string;
+    title: string;
+    artist: string;
+    album: string | null;
+    duration: number;
+    audioUrl: string;
+    thumbnailUrl: string | null;
+    genre: string | null;
+    playCount: number;
+  }> = [];
 
-  // Serialize Dates to plain objects for client component
-  const serializedTracks = tracks.map((t) => ({
-    id: t.id,
-    title: t.title,
-    artist: t.artist,
-    album: t.album,
-    duration: t.duration,
-    audioUrl: t.audioUrl,
-    thumbnailUrl: t.thumbnailUrl,
-    genre: t.genre,
-    playCount: t.playCount,
-  }));
+  try {
+    const rawTracks = await db.track.findMany({
+      where: { published: true },
+      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+    });
+
+    tracks = rawTracks.map((t) => ({
+      id: t.id,
+      title: t.title,
+      artist: t.artist,
+      album: t.album,
+      duration: t.duration,
+      audioUrl: t.audioUrl,
+      thumbnailUrl: t.thumbnailUrl,
+      genre: t.genre,
+      playCount: t.playCount,
+    }));
+  } catch (error) {
+    console.error("[MusicPage] Failed to fetch tracks from database:", error);
+  }
 
   return (
     <>
@@ -41,7 +56,7 @@ export default async function MusicPage() {
         </p>
       </section>
 
-      <MusicPlayer tracks={serializedTracks} />
+      <MusicPlayer tracks={tracks} />
     </>
   );
 }
