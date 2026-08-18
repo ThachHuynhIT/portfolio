@@ -69,10 +69,11 @@ export default function SiteConfigAdminPage() {
   }
 
   return (
-    <div>
+    <div className="max-w-2xl">
       <AdminHeader
         title="Site Configuration"
         description="Edit site branding, metadata, and author details."
+        icon="settings"
       />
 
       {message && (

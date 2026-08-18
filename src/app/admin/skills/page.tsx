@@ -112,16 +112,18 @@ export default function SkillsAdminPage() {
   }
 
   return (
-    <div>
+    <div className="max-w-5xl">
       <AdminHeader
-        title="Skills Management"
-        description="Add, edit, or remove technologies and proficiency levels."
+        title="Skills"
+        description="Manage technologies and proficiency levels displayed in your portfolio."
+        icon="skills"
         action={
           <button
             onClick={openCreateModal}
-            className="px-4 py-2.5 bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-medium rounded-xl text-sm shadow-lg shadow-purple-500/25 hover:opacity-90 transition-all"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
           >
-            + Add New Skill
+            <span className="text-base leading-none">+</span>
+            Add Skill
           </button>
         }
       />

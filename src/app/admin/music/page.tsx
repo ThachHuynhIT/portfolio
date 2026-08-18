@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import AdminMusicClient from "./AdminMusicClient";
-import "../../music/music.css";
+import AdminHeader from "@/components/admin/AdminHeader";
 
 export const metadata: Metadata = {
   title: "Music Management | Admin",
@@ -31,20 +31,21 @@ export default async function AdminMusicPage() {
   }));
 
   return (
-    <div className="music-admin-page">
-      <div className="music-admin-header">
-        <div>
-          <Link href="/admin" className="music-admin-back">
-            ← Back to Admin
+    <div className="max-w-7xl space-y-6">
+      <AdminHeader
+        title="Music Tracks"
+        description="Upload and manage audio tracks for the /music lounge. Preview, filter, and batch-manage your library."
+        icon="music"
+        action={
+          <Link
+            href="/admin/music/new"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
+          >
+            <span className="text-base leading-none">+</span>
+            Add Track
           </Link>
-          <h1 className="music-admin-title">🎵 Music Management</h1>
-        </div>
-        <Link href="/admin/music/new">
-          <button className="music-form-btn music-form-btn--primary" id="add-track-btn">
-            + Add Track
-          </button>
-        </Link>
-      </div>
+        }
+      />
 
       <AdminMusicClient tracks={serialized} />
     </div>

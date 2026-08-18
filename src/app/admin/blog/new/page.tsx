@@ -76,8 +76,9 @@ export default function NewBlogPostPage() {
   return (
     <div>
       <AdminHeader
-        title="Write New Blog Post"
+        title="Write New Post"
         description="Create a new MDX blog post with frontmatter metadata and live preview."
+        icon="blog"
       />
 
       {error && (

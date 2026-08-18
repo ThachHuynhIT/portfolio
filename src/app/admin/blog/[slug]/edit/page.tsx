@@ -109,6 +109,7 @@ export default function EditBlogPostPage() {
       <AdminHeader
         title={`Edit: ${title}`}
         description={`Editing /blog/${slugParam}.mdx`}
+        icon="blog"
       />
 
       {error && (

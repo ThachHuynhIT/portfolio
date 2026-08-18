@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
+import Icon from "@/components/ui/Icon";
 
 interface DashboardStats {
   skillsCount: number;
@@ -12,6 +13,79 @@ interface DashboardStats {
   socialCount: number;
   musicCount: number;
 }
+
+const STAT_CARDS = [
+  {
+    key: "skillsCount" as const,
+    label: "Skills",
+    icon: "skills",
+    href: "/admin/skills",
+    accent: "violet",
+  },
+  {
+    key: "projectsCount" as const,
+    label: "Projects",
+    icon: "projects",
+    href: "/admin/projects",
+    accent: "cyan",
+  },
+  {
+    key: "musicCount" as const,
+    label: "Music Tracks",
+    icon: "music",
+    href: "/admin/music",
+    accent: "indigo",
+  },
+  {
+    key: "blogCount" as const,
+    label: "Blog Posts",
+    icon: "blog",
+    href: "/admin/blog",
+    accent: "emerald",
+  },
+  {
+    key: "socialCount" as const,
+    label: "Social Links",
+    icon: "links",
+    href: "/admin/social-links",
+    accent: "pink",
+  },
+];
+
+const ACCENT_CLASSES: Record<string, string> = {
+  violet: "bg-violet-500/10 text-violet-400 border-violet-500/20",
+  cyan: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+  indigo: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+  emerald: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  pink: "bg-pink-500/10 text-pink-400 border-pink-500/20",
+};
+
+const QUICK_ACTIONS = [
+  {
+    icon: "music",
+    label: "Music Studio",
+    description: "Upload and manage audio tracks, cover art, and stream stats for the /music lounge.",
+    actions: [
+      { label: "Add Track", href: "/admin/music/new", primary: true },
+      { label: "Manage", href: "/admin/music", primary: false },
+    ],
+  },
+  {
+    icon: "settings",
+    label: "Site Configuration",
+    description: "Update author bio, job title, contact details, and site metadata.",
+    actions: [{ label: "Edit Config", href: "/admin/site-config", primary: true }],
+  },
+  {
+    icon: "blog",
+    label: "Blog Platform",
+    description: "Write new MDX articles, manage drafts, categories, and tags.",
+    actions: [
+      { label: "New Post", href: "/admin/blog/new", primary: true },
+      { label: "All Posts", href: "/admin/blog", primary: false },
+    ],
+  },
+];
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -55,125 +129,107 @@ export default function AdminDashboardPage() {
         setLoading(false);
       }
     }
-
     loadStats();
   }, [router]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-purple-400 animate-pulse font-medium">Loading stats...</div>
-      </div>
-    );
-  }
-
-  const statCards = [
-    { title: "Skills", count: stats?.skillsCount ?? 0, href: "/admin/skills", icon: "💡", color: "from-blue-500/20 to-purple-500/20" },
-    { title: "Projects", count: stats?.projectsCount ?? 0, href: "/admin/projects", icon: "🚀", color: "from-purple-500/20 to-pink-500/20" },
-    { title: "Music Tracks", count: stats?.musicCount ?? 0, href: "/admin/music", icon: "🎵", color: "from-indigo-500/20 to-cyan-500/20" },
-    { title: "Blog Posts", count: stats?.blogCount ?? 0, href: "/admin/blog", icon: "📝", color: "from-cyan-500/20 to-blue-500/20" },
-    { title: "Social Links", count: stats?.socialCount ?? 0, href: "/admin/social-links", icon: "🔗", color: "from-emerald-500/20 to-teal-500/20" },
-  ];
-
   return (
-    <div>
+    <div className="max-w-5xl space-y-8">
       <AdminHeader
-        title="Dashboard Overview"
-        description="Welcome to your portfolio CMS. Manage site content, music lounge tracks, skills, projects, and blog posts."
+        title="Dashboard"
+        description="Overview of your portfolio content and site health."
+        icon="dashboard"
       />
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-12">
-        {statCards.map((card) => (
+      {/* ── Stat Cards ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {STAT_CARDS.map((card) => (
           <Link
-            key={card.title}
+            key={card.key}
             href={card.href}
-            className={`p-5 rounded-2xl bg-gradient-to-br ${card.color} border border-white/10 hover:border-white/20 transition-all group`}
+            className="group p-4 rounded-2xl bg-white/[0.03] border border-white/[0.07] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-150"
           >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl">{card.icon}</span>
-              <span className="text-2xl font-bold text-white group-hover:scale-110 transition-transform">
-                {card.count}
-              </span>
+            <div className={`w-8 h-8 rounded-lg border flex items-center justify-center mb-3 ${ACCENT_CLASSES[card.accent]}`}>
+              <Icon name={card.icon} size={15} />
             </div>
-            <h2 className="text-base font-semibold text-gray-200">{card.title}</h2>
-            <p className="text-xs text-gray-400 mt-1">Manage &rarr;</p>
+            <p className="text-2xl font-bold text-white tabular-nums">
+              {loading ? (
+                <span className="inline-block w-8 h-6 bg-white/8 rounded animate-pulse" />
+              ) : (
+                stats?.[card.key] ?? 0
+              )}
+            </p>
+            <p className="text-xs text-slate-500 mt-0.5 font-medium">{card.label}</p>
           </Link>
         ))}
       </div>
 
-      {/* Quick Sections */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 flex flex-col justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
-              <span>🎵</span> Music Studio
-            </h2>
-            <p className="text-gray-400 text-sm mb-6">
-              Upload and manage audio tracks, album artwork, tags, and inspect stream counts for your /music lounge.
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Link
-              href="/admin/music/new"
-              className="inline-flex px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-medium rounded-xl transition-all shadow-md shadow-purple-500/20"
+      {/* ── Quick Actions ── */}
+      <div>
+        <h2 className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-3">
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {QUICK_ACTIONS.map((section) => (
+            <div
+              key={section.label}
+              className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.07] flex flex-col justify-between gap-4"
             >
-              Add Track
-            </Link>
-            <Link
-              href="/admin/music"
-              className="inline-flex px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium rounded-xl transition-all"
-            >
-              Manage Tracks
-            </Link>
-          </div>
-        </div>
+              <div>
+                <div className="flex items-center gap-2.5 mb-2">
+                  <Icon name={section.icon} size={16} className="text-slate-500" />
+                  <h3 className="text-sm font-semibold text-white">{section.label}</h3>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">{section.description}</p>
+              </div>
 
-        <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 flex flex-col justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
-              <span>⚙️</span> Site Configuration
-            </h2>
-            <p className="text-gray-400 text-sm mb-6">
-              Update your author bio, job title, contact email, social preview image, and general site metadata.
-            </p>
-          </div>
-          <div>
-            <Link
-              href="/admin/site-config"
-              className="inline-flex px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium rounded-xl transition-all"
-            >
-              Edit Site Config
-            </Link>
-          </div>
+              <div className="flex gap-2">
+                {section.actions.map((action) => (
+                  <Link
+                    key={action.href}
+                    href={action.href}
+                    className={
+                      action.primary
+                        ? "px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold transition-colors"
+                        : "px-3 py-1.5 rounded-lg bg-white/6 hover:bg-white/10 text-slate-300 text-xs font-semibold transition-colors border border-white/8"
+                    }
+                  >
+                    {action.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
+      </div>
 
-        <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 flex flex-col justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
-              <span>📝</span> Blog Platform
-            </h2>
-            <p className="text-gray-400 text-sm mb-6">
-              Write new technical articles, edit existing MDX posts, configure categories and tags.
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Link
-              href="/admin/blog/new"
-              className="inline-flex px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium rounded-xl transition-all"
-            >
-              New Post
-            </Link>
-            <Link
-              href="/admin/blog"
-              className="inline-flex px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium rounded-xl transition-all"
-            >
-              Manage Posts
-            </Link>
+      {/* ── Tech Stack Reference ── */}
+      <div>
+        <h2 className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-3">
+          Tech Stack
+        </h2>
+        <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.07]">
+          <div className="flex flex-wrap gap-3 items-center">
+            {[
+              { name: "nextjs", label: "Next.js 14" },
+              { name: "react", label: "React 18" },
+              { name: "typescript", label: "TypeScript" },
+              { name: "tailwind", label: "Tailwind CSS" },
+              { name: "prisma", label: "Prisma ORM" },
+              { name: "postgresql", label: "PostgreSQL" },
+              { name: "cloudinary", label: "Cloudinary" },
+              { name: "threejs", label: "Three.js" },
+            ].map((tech) => (
+              <div
+                key={tech.name}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.07]"
+              >
+                <Icon name={tech.name} size={14} />
+                <span className="text-xs text-slate-400 font-medium">{tech.label}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
     </div>
   );
 }
-

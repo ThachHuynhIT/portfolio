@@ -103,16 +103,18 @@ export default function NavLinksAdminPage() {
   }
 
   return (
-    <div>
+    <div className="max-w-3xl">
       <AdminHeader
-        title="Navigation Links Management"
-        description="Edit navbar items and anchor links."
+        title="Navigation Links"
+        description="Edit navbar items and anchor links displayed in the site header."
+        icon="nav"
         action={
           <button
             onClick={openCreateModal}
-            className="px-4 py-2.5 bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-medium rounded-xl text-sm shadow-lg shadow-purple-500/25 hover:opacity-90 transition-all"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
           >
-            + Add Nav Link
+            <span className="text-base leading-none">+</span>
+            Add Link
           </button>
         }
       />
