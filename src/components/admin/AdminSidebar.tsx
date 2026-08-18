@@ -9,6 +9,7 @@ const navItems = [
   { label: "Site Config", href: "/admin/site-config", icon: "⚙️" },
   { label: "Skills", href: "/admin/skills", icon: "💡" },
   { label: "Projects", href: "/admin/projects", icon: "🚀" },
+  { label: "Music Tracks", href: "/admin/music", icon: "🎵" },
   { label: "Social Links", href: "/admin/social-links", icon: "🔗" },
   { label: "Nav Links", href: "/admin/nav-links", icon: "🧭" },
   { label: "Blog Posts", href: "/admin/blog", icon: "📝" },

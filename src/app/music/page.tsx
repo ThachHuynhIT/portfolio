@@ -4,8 +4,8 @@ import MusicPlayer from "@/components/music/MusicPlayer";
 import "./music.css";
 
 export const metadata: Metadata = {
-  title: "Music | Portfolio",
-  description: "Listen to my music collection — a curated playlist of tracks I love and create.",
+  title: "Music Lounge | Soundtracks & Curated Vibes",
+  description: "Immerse yourself in high-fidelity sound, lo-fi beats, and soundscapes curated for deep focus and chill vibes.",
 };
 
 export const revalidate = 60; // ISR — revalidate every 60 seconds
@@ -48,10 +48,13 @@ export default async function MusicPage() {
     <>
       {/* Hero header above the player */}
       <section className="music-page-hero">
-        <h1 className="music-page-hero__title">🎵 Music</h1>
+        <div className="music-page-hero__badge">
+          <span>🎧 High-Fidelity Audio Lounge</span>
+        </div>
+        <h1 className="music-page-hero__title">Soundtracks & Vibes</h1>
         <p className="music-page-hero__sub">
           {tracks.length > 0
-            ? `${tracks.length} track${tracks.length !== 1 ? "s" : ""} · Enjoy the vibes`
+            ? `Explore ${tracks.length} hand-picked soundscape${tracks.length !== 1 ? "s" : ""} designed for coding, focus, and relaxation.`
             : "No tracks yet — check back soon!"}
         </p>
       </section>
@@ -60,3 +63,4 @@ export default async function MusicPage() {
     </>
   );
 }
+
