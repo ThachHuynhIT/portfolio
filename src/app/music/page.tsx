@@ -45,22 +45,9 @@ export default async function MusicPage() {
   }
 
   return (
-    <>
-      {/* Hero header above the player */}
-      <section className="music-page-hero">
-        <div className="music-page-hero__badge">
-          <span>🎧 High-Fidelity Audio Lounge</span>
-        </div>
-        <h1 className="music-page-hero__title">Soundtracks & Vibes</h1>
-        <p className="music-page-hero__sub">
-          {tracks.length > 0
-            ? `Explore ${tracks.length} hand-picked soundscape${tracks.length !== 1 ? "s" : ""} designed for coding, focus, and relaxation.`
-            : "No tracks yet — check back soon!"}
-        </p>
-      </section>
-
+    <div className="music-page-root">
       <MusicPlayer tracks={tracks} />
-    </>
+    </div>
   );
 }
 

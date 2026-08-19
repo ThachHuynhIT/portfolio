@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Navigation, Footer } from "@/components/ui";
+import { MusicProvider } from "@/context/MusicContext";
+import GlobalMusicPlayer from "@/components/music/GlobalMusicPlayer";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -52,9 +54,12 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${spaceGrotesk.variable} antialiased bg-black text-white font-sans`}
       >
-        <Navigation />
-        <main>{children}</main>
-        <Footer />
+        <MusicProvider>
+          <Navigation />
+          <main>{children}</main>
+          <Footer />
+          <GlobalMusicPlayer />
+        </MusicProvider>
       </body>
     </html>
   );

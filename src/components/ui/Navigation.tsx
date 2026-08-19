@@ -14,37 +14,6 @@ export default function Navigation() {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  if (pathname?.startsWith("/admin")) {
-    return null;
-  }
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 30);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  useEffect(() => {
-    if (!isMobileMenuOpen) return;
-
-    const focusable =
-      mobileMenuRef.current?.querySelectorAll<HTMLElement>("a, button");
-    focusable?.[0]?.focus();
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setIsMobileMenuOpen(false);
-        menuButtonRef.current?.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isMobileMenuOpen]);
-
   // Helper to handle hash navigation from subpages
   const getResolvedHref = (href: string) => {
     if (href.startsWith("#")) {
@@ -58,6 +27,10 @@ export default function Navigation() {
     if (href.startsWith("#")) return false;
     return pathname === href || pathname.startsWith(`${href}/`);
   };
+
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/music")) {
+    return null;
+  }
 
   return (
     <motion.header

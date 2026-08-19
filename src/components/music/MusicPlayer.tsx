@@ -1,22 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useRef, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-
-export interface Track {
-  id: string;
-  title: string;
-  artist: string;
-  album?: string | null;
-  duration: number;
-  audioUrl: string;
-  thumbnailUrl?: string | null;
-  genre?: string | null;
-  playCount: number;
-}
+import { useMusic, Track, EqPreset } from "@/context/MusicContext";
+import MusicSidebar from "./MusicSidebar";
+import LyricsView from "./LyricsView";
+import ZenModeView from "./ZenModeView";
+import MusicRoomModal from "./MusicRoomModal";
+import MusicRoomBar from "./MusicRoomBar";
+import LiveReactionOverlay from "./LiveReactionOverlay";
+import {
+  SpectrumBarsVisualizer,
+  WaveVisualizer,
+  PulsarVisualizer,
+} from "./Visualizers";
+import "@/app/music/music.css";
 
 interface MusicPlayerProps {
-  tracks: Track[];
+  tracks?: Track[];
 }
 
 function formatTime(seconds: number): string {
@@ -26,254 +28,92 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-type VisualizerStyle = "bars" | "wave" | "pulsar";
-type TabView = "player" | "queue" | "info";
+function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
+  const searchParams = useSearchParams();
+  const {
+    tracks,
+    setTracks,
+    currentTrack,
+    currentIndex,
+    filteredTracks,
+    isPlaying,
+    currentTime,
+    duration,
+    buffered,
+    volume,
+    isMuted,
+    isShuffle,
+    repeatMode,
+    playbackRate,
+    isLoading,
+    visualizerStyle,
+    setVisualizerStyle,
+    isZenMode,
+    setIsZenMode,
+    activeTab,
+    setActiveTab,
+    isPlayerCollapsed,
+    setIsPlayerCollapsed,
+    togglePlayerCollapsed,
+    isMobileSidebarOpen,
+    setIsMobileSidebarOpen,
+    likedTrackIds,
+    toggleLike,
+    searchQuery,
+    setSearchQuery,
+    selectedGenre,
+    setSelectedGenre,
+    showOnlyLiked,
+    setShowOnlyLiked,
+    sortBy,
+    setSortBy,
+    eqPreset,
+    setEqPreset,
+    sleepTimer,
+    setSleepTimerMinutes,
+    playTrackByIndex,
+    togglePlay,
+    nextTrack,
+    prevTrack,
+    seekTo,
+    setVolume,
+    toggleMute,
+    setIsShuffle,
+    cycleRepeat,
+    cycleSpeed,
+    audioMetrics,
+    room,
+    setIsRoomModalOpen,
+    setPrefilledRoomCode,
+  } = useMusic();
 
-export default function MusicPlayer({ tracks: initialTracks }: MusicPlayerProps) {
-  const audioRef = useRef<HTMLAudioElement>(null);
   const seekContainerRef = useRef<HTMLDivElement>(null);
-
-  // Tracks & Playback state
-  const [tracks, setTracks] = useState<Track[]>(initialTracks);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [buffered, setBuffered] = useState(0);
-  const [volume, setVolume] = useState(0.85);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isShuffle, setIsShuffle] = useState(false);
-  const [repeatMode, setRepeatMode] = useState<"none" | "all" | "one">("none");
-  const [playbackRate, setPlaybackRate] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [visualizerStyle, setVisualizerStyle] = useState<VisualizerStyle>("bars");
-  const [isZenMode, setIsZenMode] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabView>("player");
-
-  // Search & Filter state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedGenre, setSelectedGenre] = useState<string>("All");
-  const [showOnlyLiked, setShowOnlyLiked] = useState(false);
-  const [sortBy, setSortBy] = useState<"default" | "title" | "plays" | "duration">("default");
-
-  // Liked tracks (localStorage)
-  const [likedTrackIds, setLikedTrackIds] = useState<Set<string>>(new Set());
-
-  // Tooltip seek time
   const [hoverSeekTime, setHoverSeekTime] = useState<number | null>(null);
   const [hoverSeekPos, setHoverSeekPos] = useState(0);
 
-  // Track play count registered
-  const playCountLoggedRef = useRef<string | null>(null);
-
-  // Initialize liked tracks from localStorage
+  // Check URL query param ?room=CODE on load
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("portfolio_music_likes");
-      if (saved) {
-        setLikedTrackIds(new Set(JSON.parse(saved)));
-      }
-    } catch {
-      // ignore
+    const roomParam = searchParams.get("room");
+    if (roomParam && roomParam.length === 5 && !room) {
+      setPrefilledRoomCode(roomParam.toUpperCase());
+      setIsRoomModalOpen(true);
     }
-  }, []);
+  }, [searchParams, room, setPrefilledRoomCode, setIsRoomModalOpen]);
 
-  const toggleLike = useCallback((id: string) => {
-    setLikedTrackIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      try {
-        localStorage.setItem("portfolio_music_likes", JSON.stringify(Array.from(next)));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
-  }, []);
-
-  // Compute unique genres
-  const genres = useMemo(() => {
-    const set = new Set<string>();
-    tracks.forEach((t) => {
-      if (t.genre && t.genre.trim()) set.add(t.genre.trim());
-    });
-    return ["All", ...Array.from(set)];
-  }, [tracks]);
-
-  // Filtered & sorted tracks list
-  const filteredTracks = useMemo(() => {
-    let list = tracks.filter((t) => {
-      const matchSearch =
-        searchQuery === "" ||
-        t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (t.album && t.album.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (t.genre && t.genre.toLowerCase().includes(searchQuery.toLowerCase()));
-
-      const matchGenre =
-        selectedGenre === "All" ||
-        (t.genre && t.genre.toLowerCase() === selectedGenre.toLowerCase());
-
-      const matchLiked = !showOnlyLiked || likedTrackIds.has(t.id);
-
-      return matchSearch && matchGenre && matchLiked;
-    });
-
-    if (sortBy === "title") {
-      list = [...list].sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sortBy === "plays") {
-      list = [...list].sort((a, b) => b.playCount - a.playCount);
-    } else if (sortBy === "duration") {
-      list = [...list].sort((a, b) => b.duration - a.duration);
-    }
-
-    return list;
-  }, [tracks, searchQuery, selectedGenre, showOnlyLiked, likedTrackIds, sortBy]);
-
-  const currentTrack = tracks[currentIndex] || tracks[0];
-
-  // Sync audio element when track changes
+  // Sync initial tracks from server page if available
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !currentTrack) return;
-
-    audio.src = currentTrack.audioUrl;
-    audio.playbackRate = playbackRate;
-    audio.volume = isMuted ? 0 : volume;
-    setCurrentTime(0);
-    setDuration(currentTrack.duration || 0);
-    setIsLoading(true);
-    playCountLoggedRef.current = null;
-
-    if (isPlaying) {
-      audio
-        .play()
-        .then(() => setIsLoading(false))
-        .catch(() => {
-          setIsPlaying(false);
-          setIsLoading(false);
-        });
-    } else {
-      setIsLoading(false);
+    if (initialTracks && initialTracks.length > 0) {
+      const formatted = initialTracks.map((t) => ({
+        ...t,
+        lyrics:
+          t.lyrics ||
+          `[00:02.00] 🎵 ${t.title} - ${t.artist}\n[00:08.50] Hi-Res Audio Lounge & Chill Vibes\n[00:16.00] Enjoy the soundtrack and relaxing atmosphere\n[00:26.00] Flow state, deep focus and smooth harmony\n[00:38.00] Let the rhythm take over your mind...`,
+      }));
+      setTracks(formatted);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex]);
+  }, [initialTracks, setTracks]);
 
-  // Volume & rate sync
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.volume = isMuted ? 0 : volume;
-    audio.playbackRate = playbackRate;
-  }, [volume, isMuted, playbackRate]);
-
-  // Count plays after 6s of playback
-  useEffect(() => {
-    if (
-      isPlaying &&
-      currentTime > 6 &&
-      currentTrack &&
-      playCountLoggedRef.current !== currentTrack.id
-    ) {
-      playCountLoggedRef.current = currentTrack.id;
-      fetch(`/api/music/tracks/${currentTrack.id}`, { method: "GET" })
-        .then((res) => res.json())
-        .then((updated) => {
-          if (updated && updated.id) {
-            setTracks((prev) =>
-              prev.map((t) => (t.id === updated.id ? { ...t, playCount: updated.playCount } : t))
-            );
-          }
-        })
-        .catch(() => {});
-    }
-  }, [currentTime, isPlaying, currentTrack]);
-
-  // Play a specific track by its original index
-  const playTrackByIndex = useCallback(
-    (index: number) => {
-      if (index === currentIndex && isPlaying) {
-        togglePlay();
-        return;
-      }
-      setCurrentIndex(index);
-      setIsPlaying(true);
-      const audio = audioRef.current;
-      if (audio && index === currentIndex) {
-        audio.currentTime = 0;
-        audio.play().catch(() => {});
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [currentIndex, isPlaying]
-  );
-
-  const togglePlay = useCallback(async () => {
-    const audio = audioRef.current;
-    if (!audio || !currentTrack) return;
-    if (isPlaying) {
-      audio.pause();
-      setIsPlaying(false);
-    } else {
-      try {
-        await audio.play();
-        setIsPlaying(true);
-      } catch (err) {
-        console.error("Audio playback error:", err);
-        setIsPlaying(false);
-      }
-    }
-  }, [isPlaying, currentTrack]);
-
-  const nextTrack = useCallback(() => {
-    if (tracks.length === 0) return;
-    if (isShuffle) {
-      const next = Math.floor(Math.random() * tracks.length);
-      setCurrentIndex(next);
-    } else {
-      setCurrentIndex((prev) => (prev + 1) % tracks.length);
-    }
-    setIsPlaying(true);
-  }, [isShuffle, tracks.length]);
-
-  const prevTrack = useCallback(() => {
-    if (tracks.length === 0) return;
-    const audio = audioRef.current;
-    if (audio && audio.currentTime > 3) {
-      audio.currentTime = 0;
-      setCurrentTime(0);
-      return;
-    }
-    setCurrentIndex((prev) => (prev - 1 + tracks.length) % tracks.length);
-    setIsPlaying(true);
-  }, [tracks.length]);
-
-  const handleEnded = useCallback(() => {
-    if (repeatMode === "one") {
-      const audio = audioRef.current;
-      if (audio) {
-        audio.currentTime = 0;
-        audio.play().catch(() => {});
-      }
-    } else if (repeatMode === "all" || currentIndex < tracks.length - 1) {
-      nextTrack();
-    } else {
-      setIsPlaying(false);
-    }
-  }, [repeatMode, currentIndex, tracks.length, nextTrack]);
-
-  // Scrubbing
-  const handleSeekChange = (newTime: number) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.currentTime = newTime;
-    setCurrentTime(newTime);
-  };
-
+  // Scrubbing handlers
   const handleSeekMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!seekContainerRef.current || !duration) return;
     const rect = seekContainerRef.current.getBoundingClientRect();
@@ -286,23 +126,12 @@ export default function MusicPlayer({ tracks: initialTracks }: MusicPlayerProps)
     if (!seekContainerRef.current || !duration) return;
     const rect = seekContainerRef.current.getBoundingClientRect();
     const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    handleSeekChange(pos * duration);
+    seekTo(pos * duration);
   };
 
-  const cycleRepeat = () => {
-    setRepeatMode((m) => (m === "none" ? "all" : m === "all" ? "one" : "none"));
-  };
-
-  const cycleSpeed = () => {
-    const speeds = [0.75, 1, 1.25, 1.5, 2];
-    const nextIdx = (speeds.indexOf(playbackRate) + 1) % speeds.length;
-    setPlaybackRate(speeds[nextIdx]);
-  };
-
-  // Keyboard hotkeys
+  // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't intercept if user is typing in an input
       if (
         document.activeElement?.tagName === "INPUT" ||
         document.activeElement?.tagName === "TEXTAREA"
@@ -315,45 +144,67 @@ export default function MusicPlayer({ tracks: initialTracks }: MusicPlayerProps)
         togglePlay();
       } else if (e.code === "KeyM") {
         e.preventDefault();
-        setIsMuted((m) => !m);
+        toggleMute();
       } else if (e.code === "ArrowRight") {
         e.preventDefault();
         if (e.shiftKey) nextTrack();
-        else handleSeekChange(Math.min(duration, currentTime + 5));
+        else seekTo(Math.min(duration, currentTime + 5));
       } else if (e.code === "ArrowLeft") {
         e.preventDefault();
         if (e.shiftKey) prevTrack();
-        else handleSeekChange(Math.max(0, currentTime - 5));
+        else seekTo(Math.max(0, currentTime - 5));
       } else if (e.code === "ArrowUp") {
         e.preventDefault();
-        setVolume((v) => Math.min(1, v + 0.05));
-        setIsMuted(false);
+        setVolume(Math.min(1, volume + 0.05));
       } else if (e.code === "ArrowDown") {
         e.preventDefault();
-        setVolume((v) => Math.max(0, v - 0.05));
+        setVolume(Math.max(0, volume - 0.05));
       } else if (e.code === "KeyL" && currentTrack) {
         e.preventDefault();
         toggleLike(currentTrack.id);
       } else if (e.code === "KeyZ") {
         e.preventDefault();
         setIsZenMode((z) => !z);
+      } else if (e.code === "Escape") {
+        // Escape always exits Zen Mode if active
+        setIsZenMode(false);
+      } else if (e.code === "KeyC") {
+        e.preventDefault();
+        togglePlayerCollapsed();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [togglePlay, nextTrack, prevTrack, duration, currentTime, currentTrack, toggleLike]);
+  }, [
+    togglePlay,
+    toggleMute,
+    nextTrack,
+    prevTrack,
+    duration,
+    currentTime,
+    currentTrack,
+    toggleLike,
+    setIsZenMode,
+    togglePlayerCollapsed,
+    seekTo,
+    setVolume,
+    volume,
+  ]);
 
   if (!currentTrack) {
     return (
-      <div className="music-empty-state">
-        <div className="music-empty-card">
-          <div className="music-empty-icon">🎧</div>
-          <h2 className="text-xl font-bold text-white mb-2">No Tracks Found</h2>
-          <p className="text-white/50 text-sm mb-6 max-w-sm">
-            Music library is currently empty. Check back later or add songs via the Admin panel.
-          </p>
-        </div>
+      <div className="music-studio-app">
+        <MusicSidebar />
+        <main className="music-main-stage flex items-center justify-center min-h-[70vh]">
+          <div className="music-empty-card text-center p-8 rounded-3xl bg-white/5 border border-white/10 max-w-md">
+            <div className="text-5xl mb-4">🎧</div>
+            <h2 className="text-xl font-bold text-white mb-2">No Tracks Found</h2>
+            <p className="text-white/50 text-sm mb-6">
+              The sound library is currently empty. Add tracks from the Admin Manager.
+            </p>
+          </div>
+        </main>
       </div>
     );
   }
@@ -361,150 +212,378 @@ export default function MusicPlayer({ tracks: initialTracks }: MusicPlayerProps)
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const isCurrentLiked = likedTrackIds.has(currentTrack.id);
 
-  return (
-    <div className={`music-studio ${isZenMode ? "music-studio--zen" : ""}`}>
-      {/* Dynamic Ambient Background Light */}
-      <div className="music-ambient-glow" aria-hidden="true" />
+  // Calculate Stereo VU needle angles (-45deg to +45deg)
+  const leftVuDeg = -40 + Math.min(85, (audioMetrics.bass * 70 + audioMetrics.avgVolume * 25));
+  const rightVuDeg = -40 + Math.min(85, (audioMetrics.mid * 65 + audioMetrics.treble * 25));
 
-      {/* Hidden Audio Player */}
-      <audio
-        ref={audioRef}
-        preload="metadata"
-        onTimeUpdate={() => {
-          if (audioRef.current) {
-            setCurrentTime(audioRef.current.currentTime);
-          }
+  return (
+    <div className={`music-studio-app ${isZenMode ? "music-studio-app--zen" : ""}`}>
+      {/* Dynamic Ambient Background Glow */}
+      <div
+        className="music-ambient-glow"
+        style={{
+          opacity: isPlaying ? 0.6 + audioMetrics.bass * 0.4 : 0.35,
+          transform: `scale(${isPlaying ? 1 + audioMetrics.bass * 0.15 : 1})`,
         }}
-        onProgress={() => {
-          if (audioRef.current && audioRef.current.buffered.length > 0) {
-            const end = audioRef.current.buffered.end(audioRef.current.buffered.length - 1);
-            setBuffered(duration > 0 ? (end / duration) * 100 : 0);
-          }
-        }}
-        onDurationChange={() => {
-          if (audioRef.current && !isNaN(audioRef.current.duration)) {
-            setDuration(audioRef.current.duration);
-          }
-        }}
-        onEnded={handleEnded}
-        onCanPlay={() => {
-          setIsLoading(false);
-          if (isPlaying) audioRef.current?.play().catch(() => {});
-        }}
-        onWaiting={() => setIsLoading(true)}
-        onPlaying={() => {
-          setIsLoading(false);
-          setIsPlaying(true);
-        }}
-        onPause={() => setIsPlaying(false)}
+        aria-hidden="true"
       />
 
-      {/* Zen Mode Exit Button */}
-      {isZenMode && (
-        <button
-          onClick={() => setIsZenMode(false)}
-          className="music-zen-exit-btn"
-          title="Exit Zen Mode (Esc or Z)"
-        >
-          <span>✕ Exit Zen Mode</span>
-        </button>
-      )}
+      {/* Floating Room Status & Controls (when in room) */}
+      <MusicRoomBar />
 
-      {/* ─────────────────────────────────────────────────────────────
-          MAIN STUDIO GRID
-      ────────────────────────────────────────────────────────────── */}
-      <div className="music-studio-grid">
-        {/* ── LEFT: Playlist & Library Sidebar ── */}
-        {!isZenMode && (
-          <aside className="music-library">
-            {/* Header & Search */}
-            <div className="music-library-header">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">🎵</span>
-                  <h2 className="text-base font-bold text-white tracking-wide">Library</h2>
-                </div>
-                <span className="text-xs px-2.5 py-1 rounded-full bg-white/[0.08] text-white/70 font-medium">
-                  {filteredTracks.length} / {tracks.length}
-                </span>
+      {/* Live Floating Reaction Emojis Overlay */}
+      <LiveReactionOverlay />
+
+      {/* Room Modal (Create/Join 5-char room) */}
+      <MusicRoomModal />
+
+      {/* ── FULLSCREEN ZEN MODE OVERHAUL ── */}
+      {isZenMode ? (
+        <ZenModeView />
+      ) : (
+        /* ── REGULAR STUDIO APP LAYOUT ── */
+        <div className="music-studio-layout">
+          {/* Dedicated Sidebar */}
+          <MusicSidebar />
+
+          {/* Main Stage */}
+          <main className="music-main-stage">
+            {/* Top Stage Bar (Search, Mobile Toggle, Tabs, Room, EQ, Timer, Zen) */}
+            <header className="music-top-bar">
+              {/* Mobile menu trigger */}
+              <div className="flex items-center gap-2 md:hidden">
+                <button
+                  onClick={() => setIsMobileSidebarOpen(true)}
+                  className="music-mobile-menu-btn"
+                  aria-label="Open Music Navigation"
+                >
+                  <span>☰</span>
+                  <span className="text-xs font-semibold">Menu</span>
+                </button>
               </div>
 
               {/* Search Bar */}
-              <div className="relative mb-3">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 text-xs">
-                  🔍
-                </span>
+              <div className="music-top-search">
+                <span className="music-search-icon">🔍</span>
                 <input
                   type="text"
-                  placeholder="Search tracks, artists, albums..."
+                  placeholder="Search tracks, artists, albums, lyrics..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="music-search-input"
+                  className="music-top-search-input"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white text-xs"
+                    className="music-search-clear-btn"
+                    title="Clear search"
                   >
                     ✕
                   </button>
                 )}
               </div>
 
-              {/* Genre Pills Filter */}
-              <div className="music-genre-scroller">
-                {genres.map((g) => (
-                  <button
-                    key={g}
-                    onClick={() => setSelectedGenre(g)}
-                    className={`music-genre-chip ${selectedGenre === g ? "music-genre-chip--active" : ""}`}
-                  >
-                    {g}
-                  </button>
-                ))}
+              {/* Active Filter Chips & Actions */}
+              <div className="flex items-center gap-2 overflow-x-auto py-1">
+                {selectedGenre !== "All" && (
+                  <div className="music-active-chip">
+                    <span>Mood: {selectedGenre}</span>
+                    <button onClick={() => setSelectedGenre("All")}>✕</button>
+                  </div>
+                )}
+
+                {showOnlyLiked && (
+                  <div className="music-active-chip music-active-chip--liked">
+                    <span>❤️ Liked Only</span>
+                    <button onClick={() => setShowOnlyLiked(false)}>✕</button>
+                  </div>
+                )}
+
+                {/* Listen Together Quick Button */}
                 <button
-                  onClick={() => setShowOnlyLiked((prev) => !prev)}
-                  className={`music-genre-chip ${showOnlyLiked ? "music-genre-chip--liked" : ""}`}
-                  title="Show only liked songs"
+                  onClick={() => setIsRoomModalOpen(true)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 border transition-all ${
+                    room
+                      ? "bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-500/20"
+                      : "bg-white/5 hover:bg-white/10 text-white/90 border-white/10"
+                  }`}
+                  title="Listen together in a 5-character room"
                 >
-                  ❤️ Liked ({likedTrackIds.size})
+                  <span>🎧</span>
+                  <span className="hidden sm:inline">{room ? `#${room.code}` : "Listen Together"}</span>
+                </button>
+
+                {/* Equalizer Preset Selector */}
+                <select
+                  value={eqPreset}
+                  onChange={(e) => setEqPreset(e.target.value as EqPreset)}
+                  className="music-sort-select"
+                  title="Graphic Equalizer Preset"
+                  aria-label="Equalizer Preset"
+                >
+                  <option value="flat">🎚️ EQ: Flat / Studio</option>
+                  <option value="bass_boost">🔊 EQ: Bass Boost</option>
+                  <option value="vocal">🎤 EQ: Vocal & Acoustic</option>
+                  <option value="electronic">🌌 EQ: Synth & EDM</option>
+                  <option value="chill">☕ EQ: Chill Lofi</option>
+                </select>
+
+                {/* Sleep Timer Selector */}
+                <select
+                  value={sleepTimer.minutes === null ? "off" : sleepTimer.minutes === 0 ? "end" : String(sleepTimer.minutes)}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === "off") setSleepTimerMinutes(null);
+                    else if (v === "end") setSleepTimerMinutes(0);
+                    else setSleepTimerMinutes(Number(v));
+                  }}
+                  className={`music-sort-select ${sleepTimer.minutes !== null ? "!border-cyan-400 !text-cyan-300" : ""}`}
+                  title="Sleep Timer"
+                  aria-label="Sleep Timer"
+                >
+                  <option value="off">⏱️ Sleep: Off</option>
+                  <option value="15">⏱️ Sleep: 15 min</option>
+                  <option value="30">⏱️ Sleep: 30 min</option>
+                  <option value="45">⏱️ Sleep: 45 min</option>
+                  <option value="60">⏱️ Sleep: 60 min</option>
+                  <option value="end">⏱️ Sleep: End of Track</option>
+                </select>
+
+                {/* Sleep Timer Countdown Badge */}
+                {sleepTimer.remainingSeconds !== null && (
+                  <span className="text-[11px] font-mono font-bold text-cyan-300 bg-cyan-500/10 px-2.5 py-1 rounded-full border border-cyan-500/30 animate-pulse">
+                    ⏱️ {Math.floor(sleepTimer.remainingSeconds / 60)}:
+                    {(sleepTimer.remainingSeconds % 60).toString().padStart(2, "0")}
+                  </span>
+                )}
+
+                {/* Sort dropdown */}
+                <select
+                  value={sortBy}
+                  onChange={(e) =>
+                    setSortBy(e.target.value as "default" | "title" | "plays" | "duration")
+                  }
+                  className="music-sort-select"
+                  aria-label="Sort tracks by"
+                >
+                  <option value="default">Sort: Default</option>
+                  <option value="plays">Sort: Most Played</option>
+                  <option value="title">Sort: Track Title</option>
+                  <option value="duration">Sort: Duration</option>
+                </select>
+
+                {/* Zen Mode Button */}
+                <button
+                  onClick={() => setIsZenMode(true)}
+                  className="music-zen-btn"
+                  title="Fullscreen Zen Mode (Hotkey: Z)"
+                >
+                  <span>📺</span>
+                  <span className="hidden sm:inline">Zen Mode</span>
                 </button>
               </div>
-            </div>
+            </header>
 
-            {/* Track List */}
-            <div className="music-tracklist-wrapper">
-              {filteredTracks.length === 0 ? (
-                <div className="music-tracklist-empty">
-                  <p className="text-white/40 text-sm">No songs match your filter.</p>
-                  <button
-                    onClick={() => {
-                      setSearchQuery("");
-                      setSelectedGenre("All");
-                      setShowOnlyLiked(false);
+            {/* ── TAB 1: TURNTABLE & VISUALIZER DECK ── */}
+            {activeTab === "player" && (
+              <section className="music-deck-section">
+                {/* Turntable / Vinyl Rig */}
+                <div className="music-turntable-wrapper">
+                  {/* Vinyl Record */}
+                  <div
+                    className={`music-vinyl ${isPlaying ? "music-vinyl--spinning" : ""}`}
+                    style={{
+                      animationPlayState: isPlaying ? "running" : "paused",
+                      transform: `scale(${isPlaying ? 1 + audioMetrics.bass * 0.03 : 1})`,
+                      boxShadow: isPlaying
+                        ? `0 0 ${20 + audioMetrics.bass * 40}px rgba(168, 85, 247, 0.4), 0 20px 50px rgba(0,0,0,0.8)`
+                        : "0 20px 50px rgba(0,0,0,0.8)",
                     }}
-                    className="mt-2 text-xs text-purple-400 hover:text-purple-300 underline"
                   >
-                    Reset filters
-                  </button>
+                    <div className="music-vinyl-grooves" />
+                    <div className="music-vinyl-center">
+                      {currentTrack.thumbnailUrl ? (
+                        <img src={currentTrack.thumbnailUrl} alt="" className="music-vinyl-art" />
+                      ) : (
+                        <div className="music-vinyl-placeholder">JD</div>
+                      )}
+                      <div className="music-vinyl-hole" />
+                    </div>
+                  </div>
+
+                  {/* 3D Cover Card */}
+                  <motion.div
+                    className="music-cover-card"
+                    whileHover={{ scale: 1.02, rotateY: 5 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    {currentTrack.thumbnailUrl ? (
+                      <img
+                        src={currentTrack.thumbnailUrl}
+                        alt={currentTrack.title}
+                        className="music-cover-img"
+                      />
+                    ) : (
+                      <div className="music-cover-default">
+                        <span className="text-6xl">🎵</span>
+                      </div>
+                    )}
+
+                    {/* Album Cover Badges */}
+                    <div className="music-cover-overlay">
+                      <div className="music-cover-top-badge">
+                        <span className="music-lossless-badge">HI-RES AUDIO</span>
+                        {currentTrack.genre && (
+                          <span className="music-genre-badge">{currentTrack.genre}</span>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Real Tonearm with playing rotation */}
+                  <div
+                    className={`music-tonearm ${isPlaying ? "music-tonearm--playing" : ""}`}
+                    aria-hidden="true"
+                  >
+                    <div className="music-tonearm-base" />
+                    <div className="music-tonearm-arm" />
+                    <div className="music-tonearm-head" />
+                  </div>
                 </div>
-              ) : (
-                <ul className="music-tracklist" role="listbox" aria-label="Song list">
-                  {filteredTracks.map((track) => {
-                    const originalIndex = tracks.findIndex((t) => t.id === track.id);
-                    const isSelected = track.id === currentTrack.id;
+
+                {/* Track Metadata */}
+                <div className="music-stage-meta">
+                  <div className="flex items-center justify-center gap-3">
+                    <h1 className="music-stage-title">{currentTrack.title}</h1>
+                    <button
+                      onClick={() => toggleLike(currentTrack.id)}
+                      className={`music-main-heart-btn ${isCurrentLiked ? "music-main-heart-btn--liked" : ""}`}
+                      title={isCurrentLiked ? "Liked!" : "Add to Liked Songs (L)"}
+                    >
+                      {isCurrentLiked ? "❤️" : "🤍"}
+                    </button>
+                  </div>
+
+                  <p className="music-stage-artist">{currentTrack.artist}</p>
+
+                  <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
+                    {currentTrack.album && (
+                      <span className="music-pill-meta">💿 {currentTrack.album}</span>
+                    )}
+                    <span className="music-pill-meta">
+                      🔥 {currentTrack.playCount.toLocaleString()} plays
+                    </span>
+                    <span className="music-pill-meta">
+                      ⏱️ {formatTime(currentTrack.duration)}
+                    </span>
+                    <button
+                      onClick={() => setActiveTab("lyrics")}
+                      className="music-pill-meta hover:bg-white/10 text-cyan-300 border-cyan-500/30 cursor-pointer"
+                    >
+                      🎤 View Lyrics
+                    </button>
+                  </div>
+                </div>
+
+                {/* Real-Time Web Audio Visualizer */}
+                <div className="music-stage-visualizer">
+                  {visualizerStyle === "bars" && <SpectrumBarsVisualizer />}
+                  {visualizerStyle === "wave" && <WaveVisualizer />}
+                  {visualizerStyle === "pulsar" && <PulsarVisualizer />}
+                </div>
+
+                {/* Quick Track Grid / Playlist Preview */}
+                <div className="music-quick-library">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-bold text-white/80 uppercase tracking-wider">
+                      Soundtrack Collection ({filteredTracks.length})
+                    </h3>
+                    <span className="text-xs text-white/40">Click to Play</span>
+                  </div>
+
+                  <div className="music-grid-tracks">
+                    {filteredTracks.map((t) => {
+                      const originalIdx = tracks.findIndex((item) => item.id === t.id);
+                      const isSelected = t.id === currentTrack.id;
+                      const isLiked = likedTrackIds.has(t.id);
+
+                      return (
+                        <div
+                          key={t.id}
+                          onClick={() => playTrackByIndex(originalIdx)}
+                          className={`music-grid-card ${isSelected ? "music-grid-card--active" : ""}`}
+                        >
+                          <div className="music-grid-thumb">
+                            {t.thumbnailUrl ? (
+                              <img src={t.thumbnailUrl} alt={t.title} />
+                            ) : (
+                              <div className="music-grid-default-art">🎵</div>
+                            )}
+                            <div className="music-grid-play-overlay">
+                              {isSelected && isPlaying ? "⏸" : "▶"}
+                            </div>
+                          </div>
+
+                          <div className="music-grid-info">
+                            <div className="music-grid-title" title={t.title}>
+                              {t.title}
+                            </div>
+                            <div className="music-grid-artist">{t.artist}</div>
+                          </div>
+
+                          <div className="music-grid-footer">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleLike(t.id);
+                              }}
+                              className={`text-xs ${isLiked ? "text-red-400" : "text-white/30 hover:text-white"}`}
+                            >
+                              {isLiked ? "❤️" : "🤍"}
+                            </button>
+                            <span className="text-[11px] text-white/40 tabular-nums">
+                              {formatTime(t.duration)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* ── TAB 2: KARAOKE LIVE SYNCED LYRICS ── */}
+            {activeTab === "lyrics" && (
+              <section className="music-lyrics-section max-w-2xl mx-auto w-full">
+                <LyricsView />
+              </section>
+            )}
+
+            {/* ── TAB 3: QUEUE LIST ── */}
+            {activeTab === "queue" && (
+              <section className="music-queue-view">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-white">Up Next Queue</h2>
+                    <p className="text-xs text-white/50">
+                      {tracks.length} tracks queued for continuous playback
+                    </p>
+                  </div>
+                </div>
+
+                <div className="music-queue-list">
+                  {tracks.map((track, i) => {
+                    const isSelected = i === currentIndex;
                     const isLiked = likedTrackIds.has(track.id);
 
                     return (
-                      <li
+                      <div
                         key={track.id}
-                        role="option"
-                        aria-selected={isSelected}
-                        onClick={() => playTrackByIndex(originalIndex)}
-                        className={`music-track-item ${isSelected ? "music-track-item--active" : ""}`}
+                        onClick={() => playTrackByIndex(i)}
+                        className={`music-queue-item ${isSelected ? "music-queue-item--active" : ""}`}
                       >
-                        {/* Index / Play Status */}
-                        <div className="music-track-num">
+                        <div className="w-8 text-center text-xs text-white/40 font-mono">
                           {isSelected && isPlaying ? (
                             <div className="music-mini-bars">
                               <span />
@@ -512,550 +591,473 @@ export default function MusicPlayer({ tracks: initialTracks }: MusicPlayerProps)
                               <span />
                             </div>
                           ) : (
-                            <span className="music-track-idx">
-                              {originalIndex + 1}
-                            </span>
+                            i + 1
                           )}
                         </div>
 
-                        {/* Thumbnail */}
-                        <div className="music-track-thumb">
+                        <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 bg-white/10 border border-white/10">
                           {track.thumbnailUrl ? (
-                            <img src={track.thumbnailUrl} alt={track.title} />
+                            <img
+                              src={track.thumbnailUrl}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
-                            <div className="music-default-art">
-                              <span>🎵</span>
+                            <div className="w-full h-full flex items-center justify-center text-xs">
+                              🎵
                             </div>
                           )}
-                          <div className="music-track-thumb-overlay">
-                            {isSelected && isPlaying ? "⏸" : "▶"}
-                          </div>
                         </div>
 
-                        {/* Info */}
-                        <div className="music-track-details">
-                          <span className="music-track-title">{track.title}</span>
-                          <div className="flex items-center gap-1.5 text-xs text-white/50">
-                            <span className="truncate max-w-[120px]">{track.artist}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold text-white truncate">
+                            {track.title}
+                          </div>
+                          <div className="text-xs text-white/50 truncate flex items-center gap-1.5">
+                            <span>{track.artist}</span>
                             {track.genre && (
                               <>
-                                <span className="opacity-40">•</span>
-                                <span className="text-purple-400/80 text-[11px] truncate max-w-[70px]">
-                                  {track.genre}
-                                </span>
+                                <span>•</span>
+                                <span className="text-purple-400">{track.genre}</span>
                               </>
                             )}
                           </div>
                         </div>
 
-                        {/* Heart & Duration */}
-                        <div className="music-track-actions" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-3">
                           <button
-                            onClick={() => toggleLike(track.id)}
-                            className={`music-item-heart-btn ${isLiked ? "music-item-heart-btn--liked" : ""}`}
-                            title={isLiked ? "Unlike track" : "Like track"}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleLike(track.id);
+                            }}
+                            className={`text-xs ${isLiked ? "text-red-400" : "text-white/30 hover:text-white"}`}
+                            title="Like track"
                           >
                             {isLiked ? "❤️" : "🤍"}
                           </button>
-                          <span className="music-track-time">
+                          <div className="text-xs text-white/40 tabular-nums">
                             {formatTime(track.duration)}
-                          </span>
+                          </div>
                         </div>
-                      </li>
+                      </div>
                     );
                   })}
-                </ul>
-              )}
-            </div>
-          </aside>
-        )}
-
-        {/* ── CENTER: Visualizer & Turntable Deck ── */}
-        <main className={`music-stage ${isZenMode ? "music-stage--zen" : ""}`}>
-          {/* Top Mode Bar */}
-          {!isZenMode && (
-            <div className="music-stage-nav">
-              <div className="flex items-center gap-1 bg-white/[0.05] p-1 rounded-xl border border-white/10">
-                <button
-                  onClick={() => setActiveTab("player")}
-                  className={`music-tab-btn ${activeTab === "player" ? "music-tab-btn--active" : ""}`}
-                >
-                  🎧 Turntable
-                </button>
-                <button
-                  onClick={() => setActiveTab("queue")}
-                  className={`music-tab-btn ${activeTab === "queue" ? "music-tab-btn--active" : ""}`}
-                >
-                  📑 Queue ({tracks.length})
-                </button>
-                <button
-                  onClick={() => setActiveTab("info")}
-                  className={`music-tab-btn ${activeTab === "info" ? "music-tab-btn--active" : ""}`}
-                >
-                  ℹ️ Details
-                </button>
-              </div>
-
-              {/* Visualizer Preset & Zen Toggle */}
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/10">
-                  <button
-                    onClick={() => setVisualizerStyle("bars")}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${visualizerStyle === "bars" ? "bg-purple-500/30 text-purple-300" : "text-white/60 hover:text-white"}`}
-                    title="Spectrum Bars"
-                  >
-                    Bars
-                  </button>
-                  <button
-                    onClick={() => setVisualizerStyle("wave")}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${visualizerStyle === "wave" ? "bg-cyan-500/30 text-cyan-300" : "text-white/60 hover:text-white"}`}
-                    title="Neon Wave"
-                  >
-                    Wave
-                  </button>
-                  <button
-                    onClick={() => setVisualizerStyle("pulsar")}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${visualizerStyle === "pulsar" ? "bg-pink-500/30 text-pink-300" : "text-white/60 hover:text-white"}`}
-                    title="Pulsar Glow"
-                  >
-                    Pulsar
-                  </button>
                 </div>
+              </section>
+            )}
 
-                <button
-                  onClick={() => setIsZenMode(true)}
-                  className="px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/10 border border-white/10 text-xs font-semibold text-white/80 hover:text-white transition-all flex items-center gap-1.5"
-                  title="Enter Fullscreen Zen Mode (Hot-key: Z)"
-                >
-                  <span>📺</span>
-                  <span>Zen Mode</span>
-                </button>
-              </div>
-            </div>
-          )}
+            {/* ── TAB 4: TRACK INFO & AUDIO SPECS + ANALOG VU METERS ── */}
+            {activeTab === "info" && (
+              <section className="music-info-view">
+                <div className="music-info-card">
+                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <span>ℹ️</span>
+                    <span>Audio Specifications & Analog VU Studio</span>
+                  </h3>
 
-          {/* TAB 1: Turntable & Vinyl Visualizer */}
-          {activeTab === "player" && (
-            <div className="music-deck-container">
-              {/* Turntable / Vinyl Rig */}
-              <div className="music-turntable-wrapper">
-                {/* Vinyl Record */}
-                <div
-                  className={`music-vinyl ${isPlaying ? "music-vinyl--spinning" : ""}`}
-                  style={{
-                    animationPlayState: isPlaying ? "running" : "paused",
-                  }}
-                >
-                  <div className="music-vinyl-grooves" />
-                  <div className="music-vinyl-center">
-                    {currentTrack.thumbnailUrl ? (
-                      <img src={currentTrack.thumbnailUrl} alt="" className="music-vinyl-art" />
-                    ) : (
-                      <div className="music-vinyl-placeholder">JD</div>
-                    )}
-                    <div className="music-vinyl-hole" />
-                  </div>
-                </div>
-
-                {/* Cover Art Case */}
-                <motion.div
-                  className="music-cover-card"
-                  whileHover={{ scale: 1.02, rotateY: 4 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                >
-                  {currentTrack.thumbnailUrl ? (
-                    <img
-                      src={currentTrack.thumbnailUrl}
-                      alt={currentTrack.title}
-                      className="music-cover-img"
-                    />
-                  ) : (
-                    <div className="music-cover-default">
-                      <span className="text-6xl">🎵</span>
+                  {/* Dual Stereo Analog VU Meters */}
+                  <div className="p-4 rounded-2xl bg-black/40 border border-white/10 mb-6">
+                    <div className="text-xs font-bold text-white/60 uppercase tracking-wider mb-3 text-center">
+                      STEREO ANALOG VU METERS (REAL-TIME dB)
                     </div>
-                  )}
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Left Channel VU */}
+                      <div className="music-vu-meter-box">
+                        <div className="music-vu-scale">
+                          <span>-20</span>
+                          <span>-10</span>
+                          <span>-5</span>
+                          <span>0</span>
+                          <span className="text-red-400">+3</span>
+                        </div>
+                        <div className="music-vu-dial">
+                          <div
+                            className="music-vu-needle"
+                            style={{ transform: `rotate(${leftVuDeg}deg)` }}
+                          />
+                          <div className="music-vu-center-pin" />
+                        </div>
+                        <div className="text-[11px] font-bold text-cyan-400 text-center mt-1 font-mono">
+                          CH 1 (L)
+                        </div>
+                      </div>
 
-                  {/* Album Cover Badges */}
-                  <div className="music-cover-overlay">
-                    <div className="music-cover-top-badge">
-                      <span className="music-lossless-badge">HI-RES AUDIO</span>
-                      {currentTrack.genre && (
-                        <span className="music-genre-badge">{currentTrack.genre}</span>
-                      )}
+                      {/* Right Channel VU */}
+                      <div className="music-vu-meter-box">
+                        <div className="music-vu-scale">
+                          <span>-20</span>
+                          <span>-10</span>
+                          <span>-5</span>
+                          <span>0</span>
+                          <span className="text-red-400">+3</span>
+                        </div>
+                        <div className="music-vu-dial">
+                          <div
+                            className="music-vu-needle"
+                            style={{ transform: `rotate(${rightVuDeg}deg)` }}
+                          />
+                          <div className="music-vu-center-pin" />
+                        </div>
+                        <div className="text-[11px] font-bold text-purple-400 text-center mt-1 font-mono">
+                          CH 2 (R)
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </motion.div>
 
-                {/* Tonearm */}
-                <div
-                  className={`music-tonearm ${isPlaying ? "music-tonearm--playing" : ""}`}
-                  aria-hidden="true"
-                >
-                  <div className="music-tonearm-base" />
-                  <div className="music-tonearm-arm" />
-                  <div className="music-tonearm-head" />
-                </div>
-              </div>
-
-              {/* Track Metadata */}
-              <div className="music-stage-meta">
-                <div className="flex items-center justify-center gap-3">
-                  <h1 className="music-stage-title">{currentTrack.title}</h1>
-                  <button
-                    onClick={() => toggleLike(currentTrack.id)}
-                    className={`music-main-heart-btn ${isCurrentLiked ? "music-main-heart-btn--liked" : ""}`}
-                    title={isCurrentLiked ? "Liked!" : "Add to Liked Songs (L)"}
-                  >
-                    {isCurrentLiked ? "❤️" : "🤍"}
-                  </button>
-                </div>
-
-                <p className="music-stage-artist">{currentTrack.artist}</p>
-
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  {currentTrack.album && (
-                    <span className="text-xs text-white/50 bg-white/[0.05] px-3 py-1 rounded-full border border-white/10">
-                      💿 {currentTrack.album}
-                    </span>
-                  )}
-                  <span className="text-xs text-white/50 bg-white/[0.05] px-3 py-1 rounded-full border border-white/10">
-                    🔥 {currentTrack.playCount.toLocaleString()} plays
-                  </span>
-                </div>
-              </div>
-
-              {/* Real-time Dynamic Visualizer Display */}
-              <div className="music-stage-visualizer">
-                {visualizerStyle === "bars" && (
-                  <SpectrumBarsVisualizer isPlaying={isPlaying} />
-                )}
-                {visualizerStyle === "wave" && (
-                  <WaveVisualizer isPlaying={isPlaying} />
-                )}
-                {visualizerStyle === "pulsar" && (
-                  <PulsarVisualizer isPlaying={isPlaying} />
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: Queue List */}
-          {activeTab === "queue" && (
-            <div className="music-queue-view">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-bold text-white">Up Next</h3>
-                <span className="text-xs text-white/50">
-                  Click any track to jump
-                </span>
-              </div>
-              <div className="music-queue-list">
-                {tracks.map((track, i) => (
-                  <div
-                    key={track.id}
-                    onClick={() => playTrackByIndex(i)}
-                    className={`music-queue-item ${i === currentIndex ? "music-queue-item--active" : ""}`}
-                  >
-                    <div className="w-8 text-center text-xs text-white/40">
-                      {i === currentIndex ? "▶" : i + 1}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-8">
+                    <div className="music-info-field">
+                      <span className="text-white/40 text-xs block">TRACK TITLE</span>
+                      <span className="text-white font-medium">{currentTrack.title}</span>
                     </div>
-                    <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-white/10">
-                      {track.thumbnailUrl ? (
-                        <img src={track.thumbnailUrl} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs">🎵</div>
-                      )}
+                    <div className="music-info-field">
+                      <span className="text-white/40 text-xs block">ARTIST</span>
+                      <span className="text-white font-medium">{currentTrack.artist}</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-white truncate">{track.title}</div>
-                      <div className="text-xs text-white/50 truncate">{track.artist}</div>
+                    <div className="music-info-field">
+                      <span className="text-white/40 text-xs block">ALBUM</span>
+                      <span className="text-white font-medium">
+                        {currentTrack.album || "Single Release"}
+                      </span>
                     </div>
-                    <div className="text-xs text-white/40 tabular-nums">
-                      {formatTime(track.duration)}
+                    <div className="music-info-field">
+                      <span className="text-white/40 text-xs block">GENRE & MOOD</span>
+                      <span className="text-white font-medium">
+                        {currentTrack.genre || "Uncategorized"}
+                      </span>
+                    </div>
+                    <div className="music-info-field">
+                      <span className="text-white/40 text-xs block">ACTIVE EQUALIZER</span>
+                      <span className="text-purple-400 font-medium capitalize">
+                        {eqPreset.replace("_", " ")} Preset
+                      </span>
+                    </div>
+                    <div className="music-info-field">
+                      <span className="text-white/40 text-xs block">STREAM ENGINE</span>
+                      <span className="text-cyan-400 font-medium">
+                        Web Audio API (5-Band EQ / 64 Bins)
+                      </span>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
 
-          {/* TAB 3: Track Info */}
-          {activeTab === "info" && (
-            <div className="music-info-view">
-              <div className="music-info-card">
-                <h3 className="text-lg font-bold text-white mb-4">Track Information</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="music-info-field">
-                    <span className="text-white/40 text-xs block">TITLE</span>
-                    <span className="text-white font-medium">{currentTrack.title}</span>
-                  </div>
-                  <div className="music-info-field">
-                    <span className="text-white/40 text-xs block">ARTIST</span>
-                    <span className="text-white font-medium">{currentTrack.artist}</span>
-                  </div>
-                  <div className="music-info-field">
-                    <span className="text-white/40 text-xs block">ALBUM</span>
-                    <span className="text-white font-medium">{currentTrack.album || "Single"}</span>
-                  </div>
-                  <div className="music-info-field">
-                    <span className="text-white/40 text-xs block">GENRE</span>
-                    <span className="text-white font-medium">{currentTrack.genre || "Uncategorized"}</span>
-                  </div>
-                  <div className="music-info-field">
-                    <span className="text-white/40 text-xs block">DURATION</span>
-                    <span className="text-white font-medium">{formatTime(currentTrack.duration)}</span>
-                  </div>
-                  <div className="music-info-field">
-                    <span className="text-white/40 text-xs block">PLAY COUNT</span>
-                    <span className="text-white font-medium">{currentTrack.playCount.toLocaleString()} plays</span>
+                  {/* Keyboard Shortcuts Cheat Sheet */}
+                  <div className="pt-6 border-t border-white/10">
+                    <h4 className="text-xs font-bold text-white/60 uppercase tracking-wider mb-4">
+                      Studio Keyboard Shortcuts
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs text-white/70">
+                      <div>
+                        <kbd className="music-kbd">Space</kbd> Play / Pause
+                      </div>
+                      <div>
+                        <kbd className="music-kbd">M</kbd> Mute / Unmute
+                      </div>
+                      <div>
+                        <kbd className="music-kbd">← / →</kbd> Seek -5s / +5s
+                      </div>
+                      <div>
+                        <kbd className="music-kbd">Shift + ← / →</kbd> Prev / Next
+                      </div>
+                      <div>
+                        <kbd className="music-kbd">↑ / ↓</kbd> Volume Up / Down
+                      </div>
+                      <div>
+                        <kbd className="music-kbd">L</kbd> Like / Favorite
+                      </div>
+                      <div>
+                        <kbd className="music-kbd">Z</kbd> Zen Fullscreen
+                      </div>
+                      <div>
+                        <kbd className="music-kbd">C</kbd> Collapse Player
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                {/* Keyboard shortcuts cheatsheet */}
-                <div className="mt-8 pt-6 border-t border-white/10">
-                  <h4 className="text-xs font-bold text-white/60 uppercase tracking-wider mb-3">
-                    Keyboard Shortcuts
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2 text-xs text-white/50">
-                    <div><kbd className="music-kbd">Space</kbd> Play / Pause</div>
-                    <div><kbd className="music-kbd">M</kbd> Mute / Unmute</div>
-                    <div><kbd className="music-kbd">← / →</kbd> Seek -5s / +5s</div>
-                    <div><kbd className="music-kbd">Shift + ← / →</kbd> Prev / Next</div>
-                    <div><kbd className="music-kbd">↑ / ↓</kbd> Volume Up / Down</div>
-                    <div><kbd className="music-kbd">L</kbd> Like / Favorite</div>
-                    <div><kbd className="music-kbd">Z</kbd> Toggle Zen Mode</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </main>
-      </div>
+              </section>
+            )}
+          </main>
+        </div>
+      )}
 
       {/* ─────────────────────────────────────────────────────────────
-          BOTTOM PRO PLAYER CONTROLS
+          COLLAPSIBLE PRO BOTTOM PLAYER BAR (When not in Zen Mode)
       ────────────────────────────────────────────────────────────── */}
-      <footer className="music-bottom-bar">
-        {/* Track preview */}
-        <div className="music-bar-track">
-          <div className="music-bar-thumb">
-            {currentTrack.thumbnailUrl ? (
-              <img src={currentTrack.thumbnailUrl} alt="" />
-            ) : (
-              <div className="music-default-art">🎵</div>
-            )}
-          </div>
-          <div className="music-bar-meta">
-            <div className="flex items-center gap-2">
-              <span className="music-bar-title">{currentTrack.title}</span>
-              <button
-                onClick={() => toggleLike(currentTrack.id)}
-                className={`text-xs ${isCurrentLiked ? "text-red-400" : "text-white/30 hover:text-white"}`}
-                title="Like track"
-              >
-                {isCurrentLiked ? "❤️" : "🤍"}
-              </button>
-            </div>
-            <span className="music-bar-artist">{currentTrack.artist}</span>
-          </div>
-        </div>
-
-        {/* Center: Buttons + Scrub Bar */}
-        <div className="music-bar-center">
-          {/* Main playback buttons */}
-          <div className="music-playback-buttons">
-            <button
-              id="music-shuffle-btn"
-              onClick={() => setIsShuffle((s) => !s)}
-              className={`music-ctrl-btn ${isShuffle ? "music-ctrl-btn--active" : ""}`}
-              aria-label="Shuffle"
-              title={isShuffle ? "Shuffle On" : "Shuffle Off"}
+      {!isZenMode && (
+        <AnimatePresence mode="wait">
+          {isPlayerCollapsed ? (
+            /* ── COLLAPSED MINI FLOATING DOCK (Thu gọn) ── */
+            <motion.div
+              key="collapsed-player"
+              initial={{ y: 80, opacity: 0, scale: 0.95 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 80, opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 350, damping: 25 }}
+              className="music-collapsed-dock"
             >
-              <ShuffleIcon />
-            </button>
-
-            <button
-              id="music-prev-btn"
-              onClick={prevTrack}
-              className="music-ctrl-btn music-ctrl-btn--skip"
-              aria-label="Previous Track"
-              title="Previous Track (Shift+Left)"
-            >
-              <PrevIcon />
-            </button>
-
-            <button
-              id="music-play-btn"
-              onClick={togglePlay}
-              className="music-ctrl-btn music-ctrl-btn--play-main"
-              aria-label={isPlaying ? "Pause" : "Play"}
-              disabled={isLoading}
-              title="Play / Pause (Space)"
-            >
-              {isLoading ? (
-                <LoadingSpinner />
-              ) : isPlaying ? (
-                <PauseIcon />
-              ) : (
-                <PlayIcon />
-              )}
-            </button>
-
-            <button
-              id="music-next-btn"
-              onClick={nextTrack}
-              className="music-ctrl-btn music-ctrl-btn--skip"
-              aria-label="Next Track"
-              title="Next Track (Shift+Right)"
-            >
-              <NextIcon />
-            </button>
-
-            <button
-              id="music-repeat-btn"
-              onClick={cycleRepeat}
-              className={`music-ctrl-btn ${repeatMode !== "none" ? "music-ctrl-btn--active" : ""}`}
-              aria-label={`Repeat: ${repeatMode}`}
-              title={`Repeat: ${repeatMode}`}
-            >
-              {repeatMode === "one" ? <RepeatOneIcon /> : <RepeatIcon />}
-            </button>
-          </div>
-
-          {/* Scrub Timeline */}
-          <div className="music-timeline">
-            <span className="music-time-label">{formatTime(currentTime)}</span>
-
-            <div
-              ref={seekContainerRef}
-              className="music-scrub-track"
-              onClick={handleSeekClick}
-              onMouseMove={handleSeekMouseMove}
-              onMouseLeave={() => setHoverSeekTime(null)}
-            >
-              {/* Buffer Bar */}
+              {/* Mini cover art */}
               <div
-                className="music-scrub-buffer"
-                style={{ width: `${buffered}%` }}
-              />
-
-              {/* Progress Bar */}
-              <div
-                className="music-scrub-progress"
-                style={{ width: `${progressPercent}%` }}
+                className={`music-dock-art ${isPlaying ? "animate-[spin_6s_linear_infinite]" : ""}`}
               >
-                <div className="music-scrub-handle" />
+                {currentTrack.thumbnailUrl ? (
+                  <img src={currentTrack.thumbnailUrl} alt="" />
+                ) : (
+                  <span>🎵</span>
+                )}
               </div>
 
-              {/* Hover Tooltip */}
-              {hoverSeekTime !== null && (
-                <div
-                  className="music-scrub-tooltip"
-                  style={{ left: `${hoverSeekPos}%` }}
+              {/* Mini track title */}
+              <div className="music-dock-info" onClick={togglePlayerCollapsed}>
+                <div className="music-dock-title truncate">{currentTrack.title}</div>
+                <div className="music-dock-artist truncate">{currentTrack.artist}</div>
+              </div>
+
+              {/* Mini live pulse */}
+              <div className="music-mini-bars">
+                <span style={{ height: isPlaying ? `${Math.max(4, audioMetrics.bass * 14)}px` : "3px" }} />
+                <span style={{ height: isPlaying ? `${Math.max(4, audioMetrics.mid * 14)}px` : "3px" }} />
+                <span style={{ height: isPlaying ? `${Math.max(4, audioMetrics.treble * 14)}px` : "3px" }} />
+              </div>
+
+              {/* Mini controls */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={togglePlay}
+                  className="music-dock-btn music-dock-btn--play"
+                  title={isPlaying ? "Pause (Space)" : "Play (Space)"}
                 >
-                  {formatTime(hoverSeekTime)}
-                </div>
-              )}
-            </div>
+                  {isPlaying ? <PauseIcon /> : <PlayIcon />}
+                </button>
 
-            <span className="music-time-label">{formatTime(duration)}</span>
-          </div>
-        </div>
+                <button
+                  onClick={nextTrack}
+                  className="music-dock-btn"
+                  title="Next Track"
+                >
+                  <NextIcon />
+                </button>
 
-        {/* Right side: Speed, Zen, Volume */}
-        <div className="music-bar-right">
-          {/* Playback speed switcher */}
-          <button
-            onClick={cycleSpeed}
-            className="music-speed-badge"
-            title="Playback Speed"
-          >
-            {playbackRate}x
-          </button>
-
-          {/* Volume Control */}
-          <div className="music-volume-group">
-            <button
-              id="music-mute-btn"
-              onClick={() => setIsMuted((m) => !m)}
-              className="music-ctrl-btn music-ctrl-btn--sm"
-              aria-label={isMuted ? "Unmute" : "Mute"}
-              title="Mute / Unmute (M)"
+                {/* Expand Button */}
+                <button
+                  onClick={togglePlayerCollapsed}
+                  className="music-dock-btn music-dock-btn--expand"
+                  title="Expand Player Bar (C)"
+                >
+                  <span>▲</span>
+                </button>
+              </div>
+            </motion.div>
+          ) : (
+            /* ── EXPANDED FULL PRO STUDIO BAR (Mở rộng) ── */
+            <motion.footer
+              key="expanded-player"
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 350, damping: 30 }}
+              className="music-bottom-bar"
             >
-              {isMuted || volume === 0 ? <MuteIcon /> : volume < 0.5 ? <VolumeLowIcon /> : <VolumeHighIcon />}
-            </button>
+              {/* Left: Track preview */}
+              <div className="music-bar-track">
+                <div className="music-bar-thumb">
+                  {currentTrack.thumbnailUrl ? (
+                    <img src={currentTrack.thumbnailUrl} alt="" />
+                  ) : (
+                    <div className="music-default-art">🎵</div>
+                  )}
+                </div>
+                <div className="music-bar-meta">
+                  <div className="flex items-center gap-2">
+                    <span className="music-bar-title">{currentTrack.title}</span>
+                    <button
+                      onClick={() => toggleLike(currentTrack.id)}
+                      className={`text-xs transition-colors ${
+                        isCurrentLiked ? "text-red-400" : "text-white/30 hover:text-white"
+                      }`}
+                      title={isCurrentLiked ? "Liked!" : "Like track"}
+                    >
+                      {isCurrentLiked ? "❤️" : "🤍"}
+                    </button>
+                  </div>
+                  <span className="music-bar-artist">{currentTrack.artist}</span>
+                </div>
+              </div>
 
-            <div className="music-volume-slider-wrap">
-              <input
-                id="music-volume-slider"
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
-                value={isMuted ? 0 : volume}
-                onChange={(e) => {
-                  setVolume(Number(e.target.value));
-                  setIsMuted(false);
-                }}
-                className="music-volume-slider"
-                style={{ "--val": `${(isMuted ? 0 : volume) * 100}%` } as React.CSSProperties}
-                aria-label="Volume"
-              />
-            </div>
-          </div>
-        </div>
-      </footer>
+              {/* Center: Buttons + Scrub Bar */}
+              <div className="music-bar-center">
+                {/* Playback Buttons */}
+                <div className="music-playback-buttons">
+                  <button
+                    id="music-shuffle-btn"
+                    onClick={() => setIsShuffle((s) => !s)}
+                    className={`music-ctrl-btn ${isShuffle ? "music-ctrl-btn--active" : ""}`}
+                    aria-label="Shuffle"
+                    title={isShuffle ? "Shuffle On" : "Shuffle Off"}
+                  >
+                    <ShuffleIcon />
+                  </button>
+
+                  <button
+                    id="music-prev-btn"
+                    onClick={prevTrack}
+                    className="music-ctrl-btn music-ctrl-btn--skip"
+                    aria-label="Previous Track"
+                    title="Previous Track (Shift+Left)"
+                  >
+                    <PrevIcon />
+                  </button>
+
+                  <button
+                    id="music-play-btn"
+                    onClick={togglePlay}
+                    className="music-ctrl-btn music-ctrl-btn--play-main"
+                    aria-label={isPlaying ? "Pause" : "Play"}
+                    disabled={isLoading}
+                    title="Play / Pause (Space)"
+                  >
+                    {isLoading ? (
+                      <LoadingSpinner />
+                    ) : isPlaying ? (
+                      <PauseIcon />
+                    ) : (
+                      <PlayIcon />
+                    )}
+                  </button>
+
+                  <button
+                    id="music-next-btn"
+                    onClick={nextTrack}
+                    className="music-ctrl-btn music-ctrl-btn--skip"
+                    aria-label="Next Track"
+                    title="Next Track (Shift+Right)"
+                  >
+                    <NextIcon />
+                  </button>
+
+                  <button
+                    id="music-repeat-btn"
+                    onClick={cycleRepeat}
+                    className={`music-ctrl-btn ${repeatMode !== "none" ? "music-ctrl-btn--active" : ""}`}
+                    aria-label={`Repeat: ${repeatMode}`}
+                    title={`Repeat: ${repeatMode}`}
+                  >
+                    {repeatMode === "one" ? <RepeatOneIcon /> : <RepeatIcon />}
+                  </button>
+                </div>
+
+                {/* Scrub Timeline */}
+                <div className="music-timeline">
+                  <span className="music-time-label">{formatTime(currentTime)}</span>
+
+                  <div
+                    ref={seekContainerRef}
+                    className="music-scrub-track"
+                    onClick={handleSeekClick}
+                    onMouseMove={handleSeekMouseMove}
+                    onMouseLeave={() => setHoverSeekTime(null)}
+                  >
+                    {/* Buffer Bar */}
+                    <div
+                      className="music-scrub-buffer"
+                      style={{ width: `${buffered}%` }}
+                    />
+
+                    {/* Progress Bar */}
+                    <div
+                      className="music-scrub-progress"
+                      style={{ width: `${progressPercent}%` }}
+                    >
+                      <div className="music-scrub-handle" />
+                    </div>
+
+                    {/* Hover Tooltip */}
+                    {hoverSeekTime !== null && (
+                      <div
+                        className="music-scrub-tooltip"
+                        style={{ left: `${hoverSeekPos}%` }}
+                      >
+                        {formatTime(hoverSeekTime)}
+                      </div>
+                    )}
+                  </div>
+
+                  <span className="music-time-label">{formatTime(duration)}</span>
+                </div>
+              </div>
+
+              {/* Right: Speed, Volume, Collapse Button */}
+              <div className="music-bar-right">
+                {/* Playback speed */}
+                <button
+                  onClick={cycleSpeed}
+                  className="music-speed-badge"
+                  title="Playback Speed"
+                >
+                  {playbackRate}x
+                </button>
+
+                {/* Volume Slider */}
+                <div className="music-volume-group">
+                  <button
+                    id="music-mute-btn"
+                    onClick={toggleMute}
+                    className="music-ctrl-btn music-ctrl-btn--sm"
+                    aria-label={isMuted ? "Unmute" : "Mute"}
+                    title="Mute / Unmute (M)"
+                  >
+                    {isMuted || volume === 0 ? (
+                      <MuteIcon />
+                    ) : volume < 0.5 ? (
+                      <VolumeLowIcon />
+                    ) : (
+                      <VolumeHighIcon />
+                    )}
+                  </button>
+
+                  <div className="music-volume-slider-wrap">
+                    <input
+                      id="music-volume-slider"
+                      type="range"
+                      min={0}
+                      max={1}
+                      step={0.01}
+                      value={isMuted ? 0 : volume}
+                      onChange={(e) => setVolume(Number(e.target.value))}
+                      className="music-volume-slider"
+                      style={{ "--val": `${(isMuted ? 0 : volume) * 100}%` } as React.CSSProperties}
+                      aria-label="Volume"
+                    />
+                  </div>
+                </div>
+
+                {/* Collapse Player Button (Thu gọn) */}
+                <button
+                  onClick={togglePlayerCollapsed}
+                  className="music-collapse-btn"
+                  title="Collapse Player Bar (Hotkey: C)"
+                >
+                  <span>▼</span>
+                  <span className="hidden lg:inline text-[11px]">Collapse</span>
+                </button>
+              </div>
+            </motion.footer>
+          )}
+        </AnimatePresence>
+      )}
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// VISUALIZER PRESET COMPONENTS
-// ─────────────────────────────────────────────────────────────────────────────
-
-function SpectrumBarsVisualizer({ isPlaying }: { isPlaying: boolean }) {
-  const barsCount = 36;
+export default function MusicPlayer(props: MusicPlayerProps) {
   return (
-    <div className="music-spectrum-bars" aria-hidden="true">
-      {Array.from({ length: barsCount }).map((_, i) => (
-        <div
-          key={i}
-          className={`music-spectrum-bar ${isPlaying ? "music-spectrum-bar--live" : ""}`}
-          style={
-            {
-              "--idx": i,
-              "--height-factor": `${15 + ((i * 13) % 85)}%`,
-            } as React.CSSProperties
-          }
-        />
-      ))}
-    </div>
-  );
-}
-
-function WaveVisualizer({ isPlaying }: { isPlaying: boolean }) {
-  return (
-    <div className={`music-wave-container ${isPlaying ? "music-wave--live" : ""}`} aria-hidden="true">
-      <div className="music-wave-line wave-1" />
-      <div className="music-wave-line wave-2" />
-      <div className="music-wave-line wave-3" />
-    </div>
-  );
-}
-
-function PulsarVisualizer({ isPlaying }: { isPlaying: boolean }) {
-  return (
-    <div className={`music-pulsar-wrap ${isPlaying ? "music-pulsar--live" : ""}`} aria-hidden="true">
-      <div className="music-pulsar-ring ring-1" />
-      <div className="music-pulsar-ring ring-2" />
-      <div className="music-pulsar-ring ring-3" />
-    </div>
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+      <MusicPlayerContent initialTracks={props.tracks} />
+    </Suspense>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ICON COMPONENTS
+// ICONS
 // ─────────────────────────────────────────────────────────────────────────────
-
 const PlayIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
     <path d="M8 5.14v14l11-7-11-7z" />
