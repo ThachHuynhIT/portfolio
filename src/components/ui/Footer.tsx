@@ -1,8 +1,16 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { navLinks, socialLinks, siteConfig } from "@/lib/constants";
 
 export default function Footer() {
+  const pathname = usePathname();
   const currentYear = new Date().getFullYear();
+
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/music")) {
+    return null;
+  }
 
   return (
     <footer className="relative border-t border-white/10 bg-black/50 backdrop-blur-xl">
@@ -68,16 +76,24 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-3">
-              {navLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-white/60 hover:text-white transition-colors duration-300"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
+              {navLinks.map((link) => {
+                const resolvedHref = link.href.startsWith("#")
+                  ? pathname === "/"
+                    ? link.href
+                    : `/${link.href}`
+                  : link.href;
+
+                return (
+                  <li key={link.id || link.href}>
+                    <Link
+                      href={resolvedHref}
+                      className="text-white/60 hover:text-white transition-colors duration-300"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
