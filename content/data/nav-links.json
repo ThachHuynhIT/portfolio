@@ -1,0 +1,37 @@
+[
+  {
+    "id": "nav-1",
+    "label": "Home",
+    "href": "#home"
+  },
+  {
+    "id": "nav-2",
+    "label": "About",
+    "href": "#about"
+  },
+  {
+    "id": "nav-3",
+    "label": "Skills",
+    "href": "#skills"
+  },
+  {
+    "id": "nav-4",
+    "label": "Projects",
+    "href": "#projects"
+  },
+  {
+    "id": "nav-music",
+    "label": "Music",
+    "href": "/music"
+  },
+  {
+    "id": "nav-5",
+    "label": "Blog",
+    "href": "/blog"
+  },
+  {
+    "id": "nav-6",
+    "label": "Contra",
+    "href": "/contra"
+  }
+]

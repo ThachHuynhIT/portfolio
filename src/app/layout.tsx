@@ -1,17 +1,48 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata } from "next";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import Header from "@/layout/Header";
-import Footer from "@/layout/Footer";
+import { Navigation, Footer } from "@/components/ui";
+import { MusicProvider } from "@/context/MusicContext";
+import GlobalMusicPlayer from "@/components/music/GlobalMusicPlayer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
 });
+
+export const metadata: Metadata = {
+  title: "John Doe | Creative Web Developer",
+  description:
+    "A passionate web developer crafting immersive digital experiences with cutting-edge technologies.",
+  keywords: [
+    "web developer",
+    "frontend",
+    "react",
+    "next.js",
+    "three.js",
+    "portfolio",
+  ],
+  authors: [{ name: "John Doe" }],
+  openGraph: {
+    title: "John Doe | Creative Web Developer",
+    description:
+      "A passionate web developer crafting immersive digital experiences with cutting-edge technologies.",
+    type: "website",
+    locale: "en_US",
+    url: "https://johndoe.dev",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "John Doe | Creative Web Developer",
+    description:
+      "A passionate web developer crafting immersive digital experiences with cutting-edge technologies.",
+  },
+};
 
 export default function RootLayout({
   children,
@@ -19,11 +50,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <Header />
-        <main>{children}</main>
-        <Footer />
+    <html lang="en" className="scroll-smooth">
+      <body
+        className={`${inter.variable} ${spaceGrotesk.variable} antialiased bg-black text-white font-sans`}
+      >
+        <MusicProvider>
+          <Navigation />
+          <main>{children}</main>
+          <Footer />
+          <GlobalMusicPlayer />
+        </MusicProvider>
       </body>
     </html>
   );
