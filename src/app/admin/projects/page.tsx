@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import { useToast } from "@/context/ToastContext";
 import type { Project } from "@/lib/types";
 
 export default function ProjectsAdminPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -36,6 +38,7 @@ export default function ProjectsAdminPage() {
       setProjects(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch projects:", err);
+      toast.error("Failed to load projects list");
     } finally {
       setLoading(false);
     }
@@ -90,33 +93,48 @@ export default function ProjectsAdminPage() {
       featured: formFeatured,
     };
 
-    if (isCreating) {
-      await fetch("/api/admin/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    } else if (editingProject) {
-      await fetch("/api/admin/projects", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingProject.id, ...payload }),
-      });
+    try {
+      let res: Response;
+      if (isCreating) {
+        res = await fetch("/api/admin/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create project");
+        toast.success(`Project "${formTitle}" added successfully!`);
+      } else if (editingProject) {
+        res = await fetch("/api/admin/projects", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: editingProject.id, ...payload }),
+        });
+        if (!res.ok) throw new Error("Failed to update project");
+        toast.success(`Project "${formTitle}" updated successfully!`);
+      }
+      closeModal();
+      fetchProjects();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to save project";
+      toast.error(msg);
     }
-
-    closeModal();
-    fetchProjects();
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
 
-    await fetch(`/api/admin/projects?id=${deleteTarget.id}`, {
-      method: "DELETE",
-    });
-
-    setDeleteTarget(null);
-    fetchProjects();
+    try {
+      const res = await fetch(`/api/admin/projects?id=${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete project");
+      toast.success(`Project "${deleteTarget.title}" deleted successfully!`);
+      setDeleteTarget(null);
+      fetchProjects();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete project";
+      toast.error(msg);
+    }
   };
 
   if (loading) {

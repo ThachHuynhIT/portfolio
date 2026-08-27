@@ -5,11 +5,13 @@ import { useRouter, useParams } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import FormField from "@/components/admin/FormField";
 import MarkdownPreview from "@/components/admin/MarkdownPreview";
+import { useToast } from "@/context/ToastContext";
 
 export default function EditBlogPostPage() {
   const router = useRouter();
   const params = useParams();
   const slugParam = params?.slug as string;
+  const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -84,13 +86,12 @@ export default function EditBlogPostPage() {
         throw new Error(data.error || "Failed to update blog post");
       }
 
+      toast.success(`Blog post "${title}" updated successfully!`);
       router.push("/admin/blog");
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Failed to update blog post");
-      }
+      const msg = err instanceof Error ? err.message : "Failed to update blog post";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/context/ToastContext";
 
 type SourceMode = "upload" | "url";
 
@@ -46,6 +47,7 @@ function formatTime(seconds: number): string {
 
 export default function TrackForm({ initialData, mode }: TrackFormProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const audioInputRef = useRef<HTMLInputElement>(null);
   const thumbInputRef = useRef<HTMLInputElement>(null);
 
@@ -187,9 +189,16 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
       }
 
       setSuccess(true);
+      toast.success(
+        mode === "edit"
+          ? `Track "${formData.title}" updated successfully!`
+          : `Track "${formData.title}" published successfully!`
+      );
       setTimeout(() => router.push("/admin/music"), 900);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      const msg = err instanceof Error ? err.message : "Something went wrong.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }

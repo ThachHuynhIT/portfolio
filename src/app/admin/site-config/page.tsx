@@ -4,14 +4,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import FormField from "@/components/admin/FormField";
+import { useToast } from "@/context/ToastContext";
 import type { SiteConfig } from "@/lib/types";
 
 export default function SiteConfigAdminPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [config, setConfig] = useState<SiteConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     async function loadConfig() {
@@ -25,6 +26,7 @@ export default function SiteConfigAdminPage() {
         setConfig(data);
       } catch (err) {
         console.error("Failed to load site config:", err);
+        toast.error("Failed to load site configuration");
       } finally {
         setLoading(false);
       }
@@ -37,7 +39,6 @@ export default function SiteConfigAdminPage() {
     if (!config) return;
 
     setSaving(true);
-    setMessage(null);
 
     try {
       const res = await fetch("/api/admin/site-config", {
@@ -48,12 +49,12 @@ export default function SiteConfigAdminPage() {
 
       if (!res.ok) throw new Error("Failed to save changes");
 
-      setMessage({ type: "success", text: "Site configuration saved successfully!" });
+      toast.success("Site configuration saved successfully!");
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setMessage({ type: "error", text: err.message });
+        toast.error(err.message);
       } else {
-        setMessage({ type: "error", text: "Failed to save configuration" });
+        toast.error("Failed to save configuration");
       }
     } finally {
       setSaving(false);
@@ -75,18 +76,6 @@ export default function SiteConfigAdminPage() {
         description="Edit site branding, metadata, and author details."
         icon="settings"
       />
-
-      {message && (
-        <div
-          className={`mb-6 p-4 rounded-xl text-sm border ${
-            message.type === "success"
-              ? "bg-green-500/10 border-green-500/20 text-green-400"
-              : "bg-red-500/10 border-red-500/20 text-red-400"
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
         {/* General Site Info */}

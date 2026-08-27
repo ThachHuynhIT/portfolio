@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import FormField from "@/components/admin/FormField";
 import MarkdownPreview from "@/components/admin/MarkdownPreview";
+import { useToast } from "@/context/ToastContext";
 
 export default function NewBlogPostPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
@@ -16,18 +18,19 @@ export default function NewBlogPostPage() {
   const [slug, setSlug] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [category, setCategory] = useState("Tutorial");
-  const [tags, setTags] = useState("react, typescript");
+  const [category, setCategory] = useState("development");
+  const [tags, setTags] = useState("React, Next.js");
   const [readTime, setReadTime] = useState("5 min read");
-  const [content, setContent] = useState("# " + (title || "My New Post") + "\n\nWrite your MDX content here...");
+  const [content, setContent] = useState("# Welcome to my new post\n\nWrite your MDX content here...");
 
   const handleTitleChange = (val: string) => {
     setTitle(val);
-    if (!slug) {
+    if (!slug || slug === "") {
       setSlug(
         val
           .toLowerCase()
           .replace(/[^a-z0-9-]/g, "-")
+          .replace(/-+/g, "-")
           .replace(/-+/g, "-")
           .replace(/^-|-$/g, "")
       );
@@ -61,13 +64,12 @@ export default function NewBlogPostPage() {
         throw new Error(data.error || "Failed to create blog post");
       }
 
+      toast.success(`Blog post "${title}" created successfully!`);
       router.push("/admin/blog");
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Failed to create blog post");
-      }
+      const msg = err instanceof Error ? err.message : "Failed to create blog post";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

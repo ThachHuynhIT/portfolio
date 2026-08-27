@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import { useToast } from "@/context/ToastContext";
 import type { SocialLink } from "@/lib/types";
 
 export default function SocialLinksAdminPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [links, setLinks] = useState<SocialLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingLink, setEditingLink] = useState<SocialLink | null>(null);
@@ -30,6 +32,7 @@ export default function SocialLinksAdminPage() {
       setLinks(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch social links:", err);
+      toast.error("Failed to load social links");
     } finally {
       setLoading(false);
     }
@@ -69,33 +72,48 @@ export default function SocialLinksAdminPage() {
       icon: formIcon,
     };
 
-    if (isCreating) {
-      await fetch("/api/admin/social-links", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    } else if (editingLink) {
-      await fetch("/api/admin/social-links", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingLink.id, ...payload }),
-      });
+    try {
+      let res: Response;
+      if (isCreating) {
+        res = await fetch("/api/admin/social-links", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create social link");
+        toast.success(`Social link "${formName}" added successfully!`);
+      } else if (editingLink) {
+        res = await fetch("/api/admin/social-links", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: editingLink.id, ...payload }),
+        });
+        if (!res.ok) throw new Error("Failed to update social link");
+        toast.success(`Social link "${formName}" updated successfully!`);
+      }
+      closeModal();
+      fetchLinks();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to save social link";
+      toast.error(msg);
     }
-
-    closeModal();
-    fetchLinks();
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
 
-    await fetch(`/api/admin/social-links?id=${deleteTarget.id}`, {
-      method: "DELETE",
-    });
-
-    setDeleteTarget(null);
-    fetchLinks();
+    try {
+      const res = await fetch(`/api/admin/social-links?id=${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete social link");
+      toast.success(`Social link "${deleteTarget.name}" deleted successfully!`);
+      setDeleteTarget(null);
+      fetchLinks();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete social link";
+      toast.error(msg);
+    }
   };
 
   if (loading) {

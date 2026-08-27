@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import { useToast } from "@/context/ToastContext";
 import type { Skill } from "@/lib/types";
 
 export default function SkillsAdminPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
@@ -32,6 +34,7 @@ export default function SkillsAdminPage() {
       setSkills(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch skills:", err);
+      toast.error("Failed to load skills list");
     } finally {
       setLoading(false);
     }
@@ -74,33 +77,48 @@ export default function SkillsAdminPage() {
       level: formLevel,
     };
 
-    if (isCreating) {
-      await fetch("/api/admin/skills", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    } else if (editingSkill) {
-      await fetch("/api/admin/skills", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingSkill.id, ...payload }),
-      });
+    try {
+      let res: Response;
+      if (isCreating) {
+        res = await fetch("/api/admin/skills", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create skill");
+        toast.success(`Skill "${formName}" added successfully!`);
+      } else if (editingSkill) {
+        res = await fetch("/api/admin/skills", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: editingSkill.id, ...payload }),
+        });
+        if (!res.ok) throw new Error("Failed to update skill");
+        toast.success(`Skill "${formName}" updated successfully!`);
+      }
+      closeModal();
+      fetchSkills();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to save skill";
+      toast.error(msg);
     }
-
-    closeModal();
-    fetchSkills();
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
 
-    await fetch(`/api/admin/skills?id=${deleteTarget.id}`, {
-      method: "DELETE",
-    });
-
-    setDeleteTarget(null);
-    fetchSkills();
+    try {
+      const res = await fetch(`/api/admin/skills?id=${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete skill");
+      toast.success(`Skill "${deleteTarget.name}" deleted successfully!`);
+      setDeleteTarget(null);
+      fetchSkills();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete skill";
+      toast.error(msg);
+    }
   };
 
   if (loading) {

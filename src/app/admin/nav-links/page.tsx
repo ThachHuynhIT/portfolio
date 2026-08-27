@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import { useToast } from "@/context/ToastContext";
 import type { NavLink } from "@/lib/types";
 
 export default function NavLinksAdminPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [links, setLinks] = useState<NavLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingLink, setEditingLink] = useState<NavLink | null>(null);
@@ -29,6 +31,7 @@ export default function NavLinksAdminPage() {
       setLinks(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch nav links:", err);
+      toast.error("Failed to load navigation links");
     } finally {
       setLoading(false);
     }
@@ -65,33 +68,48 @@ export default function NavLinksAdminPage() {
       href: formHref,
     };
 
-    if (isCreating) {
-      await fetch("/api/admin/nav-links", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    } else if (editingLink) {
-      await fetch("/api/admin/nav-links", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingLink.id, ...payload }),
-      });
+    try {
+      let res: Response;
+      if (isCreating) {
+        res = await fetch("/api/admin/nav-links", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create nav link");
+        toast.success(`Nav link "${formLabel}" added successfully!`);
+      } else if (editingLink) {
+        res = await fetch("/api/admin/nav-links", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: editingLink.id, ...payload }),
+        });
+        if (!res.ok) throw new Error("Failed to update nav link");
+        toast.success(`Nav link "${formLabel}" updated successfully!`);
+      }
+      closeModal();
+      fetchLinks();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to save nav link";
+      toast.error(msg);
     }
-
-    closeModal();
-    fetchLinks();
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
 
-    await fetch(`/api/admin/nav-links?id=${deleteTarget.id}`, {
-      method: "DELETE",
-    });
-
-    setDeleteTarget(null);
-    fetchLinks();
+    try {
+      const res = await fetch(`/api/admin/nav-links?id=${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete nav link");
+      toast.success(`Nav link "${deleteTarget.label}" deleted successfully!`);
+      setDeleteTarget(null);
+      fetchLinks();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete nav link";
+      toast.error(msg);
+    }
   };
 
   if (loading) {

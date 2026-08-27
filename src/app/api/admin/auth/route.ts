@@ -1,5 +1,23 @@
 import { NextResponse } from "next/server";
-import { verifyPassword, createSession, destroySession } from "@/lib/admin-auth";
+import { verifyPassword, createSession, destroySession, verifySession } from "@/lib/admin-auth";
+
+/**
+ * GET /api/admin/auth — Check current session status
+ */
+export async function GET() {
+  try {
+    const isValid = await verifySession();
+    if (!isValid) {
+      return NextResponse.json({ authenticated: false }, { status: 401 });
+    }
+    return NextResponse.json({ authenticated: true });
+  } catch {
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
 
 /**
  * POST /api/admin/auth — Login
@@ -47,3 +65,4 @@ export async function DELETE() {
     );
   }
 }
+

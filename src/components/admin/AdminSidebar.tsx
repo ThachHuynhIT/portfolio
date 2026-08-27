@@ -85,14 +85,14 @@ export default function AdminSidebar() {
   return (
     <aside
       className={cn(
-        "flex flex-col min-h-screen border-r border-white/5 bg-slate-950 transition-all duration-200 ease-in-out flex-shrink-0",
+        "flex flex-col h-screen max-h-screen sticky top-0 border-r border-white/5 bg-slate-950 transition-all duration-200 ease-in-out flex-shrink-0 z-20 select-none",
         collapsed ? "w-[60px]" : "w-[220px]"
       )}
     >
       {/* ── Logo / Brand ── */}
       <div
         className={cn(
-          "flex items-center h-14 border-b border-white/5 px-3",
+          "flex items-center h-14 border-b border-white/5 px-3 flex-shrink-0",
           collapsed ? "justify-center" : "justify-between"
         )}
       >
@@ -129,7 +129,7 @@ export default function AdminSidebar() {
       </div>
 
       {/* ── Dashboard ── */}
-      <div className="px-2.5 pt-3">
+      <div className="px-2.5 pt-3 flex-shrink-0">
         <Link
           href="/admin"
           title={collapsed ? "Dashboard" : undefined}
@@ -153,7 +153,7 @@ export default function AdminSidebar() {
       </div>
 
       {/* ── Navigation items ── */}
-      <nav className="flex-1 px-2.5 pt-4 space-y-5 overflow-y-auto">
+      <nav className="flex-1 min-h-0 px-2.5 pt-4 space-y-5 overflow-y-auto">
         {/* Content section */}
         <div className="space-y-0.5">
           {!collapsed && (
@@ -190,7 +190,7 @@ export default function AdminSidebar() {
       </nav>
 
       {/* ── Footer ── */}
-      <div className="px-2.5 pb-3 pt-2 border-t border-white/5 space-y-0.5">
+      <div className="px-2.5 pb-3 pt-2 border-t border-white/5 space-y-0.5 flex-shrink-0">
         {/* Expand toggle when collapsed */}
         {collapsed && (
           <button
