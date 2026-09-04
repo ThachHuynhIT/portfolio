@@ -30,7 +30,7 @@ type ContactFormData = z.infer<typeof contactSchema>;
 
 export default function ContactSection() {
   const [isMounted, setIsMounted] = useState(false);
-  
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -55,10 +55,10 @@ export default function ContactSection() {
 
   const mailtoHref = submittedData
     ? `mailto:${siteConfig.author.email}?subject=${encodeURIComponent(
-        submittedData.subject
-      )}&body=${encodeURIComponent(
-        `${submittedData.message}\n\n— ${submittedData.name} (${submittedData.email})`
-      )}`
+      submittedData.subject
+    )}&body=${encodeURIComponent(
+      `${submittedData.message}\n\n— ${submittedData.name} (${submittedData.email})`
+    )}`
     : undefined;
 
   return (
@@ -138,7 +138,7 @@ export default function ContactSection() {
                     {...register("name")}
                     id="contact-name"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Thach Huynh"
                     aria-invalid={!!errors.name}
                     aria-describedby={
                       errors.name ? "contact-name-error" : undefined

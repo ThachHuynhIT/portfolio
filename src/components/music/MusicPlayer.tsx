@@ -302,11 +302,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 {/* Listen Together Quick Button */}
                 <button
                   onClick={() => setIsRoomModalOpen(true)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 border transition-all ${
-                    room
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 border transition-all ${room
                       ? "bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-500/20"
                       : "bg-white/5 hover:bg-white/10 text-white/90 border-white/10"
-                  }`}
+                    }`}
                   title="Listen together in a 5-character room"
                 >
                   <span>🎧</span>
@@ -405,7 +404,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       {currentTrack.thumbnailUrl ? (
                         <img src={currentTrack.thumbnailUrl} alt="" className="music-vinyl-art" />
                       ) : (
-                        <div className="music-vinyl-placeholder">JD</div>
+                        <div className="music-vinyl-placeholder">TH</div>
                       )}
                       <div className="music-vinyl-hole" />
                     </div>
@@ -870,9 +869,8 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     <span className="music-bar-title">{currentTrack.title}</span>
                     <button
                       onClick={() => toggleLike(currentTrack.id)}
-                      className={`text-xs transition-colors ${
-                        isCurrentLiked ? "text-red-400" : "text-white/30 hover:text-white"
-                      }`}
+                      className={`text-xs transition-colors ${isCurrentLiked ? "text-red-400" : "text-white/30 hover:text-white"
+                        }`}
                       title={isCurrentLiked ? "Liked!" : "Like track"}
                     >
                       {isCurrentLiked ? "❤️" : "🤍"}

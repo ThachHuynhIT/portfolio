@@ -2,7 +2,7 @@ import { getAllPosts, getAllCategories } from "@/lib/blog";
 import BlogList from "@/components/blog/BlogList";
 
 export const metadata = {
-  title: "Blog | John Doe",
+  title: "Blog | Thach Huynh",
   description: "Thoughts on web development, 3D graphics, and creative coding.",
 };
 

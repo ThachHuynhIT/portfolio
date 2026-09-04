@@ -73,3 +73,40 @@ export interface SiteConfig {
   ogImage: string;
   author: SiteAuthor;
 }
+
+// Photography / Visual Media Types
+export interface PhotoCameraExif {
+  make?: string;
+  model?: string;
+  lens?: string;
+  focalLength?: string;
+  aperture?: string;
+  shutterSpeed?: string;
+  iso?: string;
+}
+
+export interface PhotoEditingInfo {
+  software?: string;
+  colorGrade?: string;
+  notes?: string;
+}
+
+export interface PhotoItem {
+  id: string;
+  title: string;
+  description?: string;
+  category: string;
+  tags: string[];
+  image: string;
+  beforeImage?: string;
+  mediaType?: "image" | "video";
+  videoUrl?: string;
+  aspectRatio?: "portrait" | "landscape" | "square";
+  featured?: boolean;
+  date: string;
+  location?: string;
+  camera?: PhotoCameraExif;
+  editing?: PhotoEditingInfo;
+  order?: number;
+}
+

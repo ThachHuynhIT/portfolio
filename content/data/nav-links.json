@@ -25,6 +25,11 @@
     "href": "/music"
   },
   {
+    "id": "nav-photography",
+    "label": "Photography",
+    "href": "/photography"
+  },
+  {
     "id": "nav-5",
     "label": "Blog",
     "href": "/blog"

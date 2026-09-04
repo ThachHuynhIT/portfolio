@@ -6,12 +6,12 @@ import type { SiteConfig } from "@/lib/types";
 const FILE = "site-config.json";
 
 const defaultConfig: SiteConfig = {
-  name: "Developer Portfolio",
-  title: "John Doe | Creative Web Developer",
+  name: "ThachHuynh's Portfolio",
+  title: "Thach Huynh | Creative Web Developer",
   description: "A passionate web developer crafting immersive digital experiences with cutting-edge technologies.",
   url: "https://johndoe.dev",
   ogImage: "/og.jpg",
-  author: { name: "John Doe", title: "Creative Web Developer", bio: "", avatar: "/avatar.jpg", email: "hello@johndoe.dev", location: "San Francisco, CA" },
+  author: { name: "Thach Huynh", title: "Creative Web Developer", bio: "", avatar: "/avatar.jpg", email: "thachhuynhit.ut@gmail.com", location: "San Francisco, CA" },
 };
 
 export async function GET() {

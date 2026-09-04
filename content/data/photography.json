@@ -1,0 +1,302 @@
+[
+  {
+    "id": "photo-1",
+    "title": "Neon Rain in Shinjuku",
+    "description": "Rainy night in Tokyo, contrasting radiant neon reflections with deep pavement shadows and urban reflections.",
+    "category": "Night & Cyberpunk",
+    "tags": [
+      "Tokyo",
+      "Cyberpunk",
+      "Street",
+      "Night",
+      "Rain"
+    ],
+    "image": "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1600&q=85",
+    "beforeImage": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=1600&q=75",
+    "aspectRatio": "landscape",
+    "featured": true,
+    "date": "2024-11-14",
+    "location": "Shinjuku, Tokyo, Japan",
+    "camera": {
+      "make": "Sony",
+      "model": "A7 IV",
+      "lens": "FE 35mm f/1.4 GM",
+      "focalLength": "35mm",
+      "aperture": "f/1.6",
+      "shutterSpeed": "1/160s",
+      "iso": "1600"
+    },
+    "editing": {
+      "software": "Adobe Lightroom Classic",
+      "colorGrade": "Teal & Orange / Cyberpunk Glow",
+      "notes": "Enhanced neon cyan highlights, pushed lantern warm tones, reduced rain noise, and sharpened puddle reflections."
+    },
+    "order": 1
+  },
+  {
+    "id": "photo-2",
+    "title": "Golden Hour in the Mist",
+    "description": "Dawn breaking over pine hills, with golden sunlight piercing through the early morning mist to create ethereal rim light.",
+    "category": "Landscape & Nature",
+    "tags": [
+      "Sunrise",
+      "Nature",
+      "Mist",
+      "Dalat",
+      "Landscape"
+    ],
+    "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=85",
+    "beforeImage": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1600&q=75",
+    "aspectRatio": "landscape",
+    "featured": true,
+    "date": "2024-10-08",
+    "location": "Da Lat, Lam Dong, Vietnam",
+    "camera": {
+      "make": "Fujifilm",
+      "model": "X-T5",
+      "lens": "XF 16-55mm f/2.8 R LM WR",
+      "focalLength": "45mm",
+      "aperture": "f/4.0",
+      "shutterSpeed": "1/400s",
+      "iso": "200"
+    },
+    "editing": {
+      "software": "Capture One Pro",
+      "colorGrade": "Warm Film Nostalgia",
+      "notes": "Recovered pine tree shadow details, raised Kelvin color temperature to 6200K to warm up morning light rays."
+    },
+    "order": 2
+  },
+  {
+    "id": "photo-3",
+    "title": "Shadows & Soul Portrait",
+    "description": "Fine art portrait exploring dramatic chiaroscuro lighting, creating striking depth and serene mood.",
+    "category": "Portrait & People",
+    "tags": [
+      "Portrait",
+      "Studio",
+      "Cinematic",
+      "Chiaroscuro",
+      "Monochrome"
+    ],
+    "image": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=85",
+    "beforeImage": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=75",
+    "aspectRatio": "portrait",
+    "featured": true,
+    "date": "2024-09-22",
+    "location": "Saigon Studio, HCMC, Vietnam",
+    "camera": {
+      "make": "Canon",
+      "model": "EOS R6 Mark II",
+      "lens": "RF 85mm f/1.2 L USM",
+      "focalLength": "85mm",
+      "aperture": "f/1.4",
+      "shutterSpeed": "1/200s",
+      "iso": "100"
+    },
+    "editing": {
+      "software": "Photoshop & Lightroom",
+      "colorGrade": "High Fashion Tone / Frequency Separation",
+      "notes": "Skin retouching using Frequency Separation, Dodge & Burn sculpting to shape facial highlights."
+    },
+    "order": 3
+  },
+  {
+    "id": "photo-4",
+    "title": "Lines of Modernity",
+    "description": "Futuristic architecture with intersecting curves of concrete and steel, reflecting clear blue skies.",
+    "category": "Architecture",
+    "tags": [
+      "Architecture",
+      "Minimalism",
+      "Urban",
+      "Modern",
+      "Lines"
+    ],
+    "image": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=85",
+    "aspectRatio": "portrait",
+    "featured": false,
+    "date": "2024-08-15",
+    "location": "Landmark 81, HCMC, Vietnam",
+    "camera": {
+      "make": "Sony",
+      "model": "A7 IV",
+      "lens": "FE 16-35mm f/2.8 GM",
+      "focalLength": "16mm",
+      "aperture": "f/8.0",
+      "shutterSpeed": "1/500s",
+      "iso": "100"
+    },
+    "editing": {
+      "software": "Adobe Lightroom Classic",
+      "colorGrade": "Cool Architectural Clean",
+      "notes": "Lens geometry correction for precise parallel vertical perspective."
+    },
+    "order": 4
+  },
+  {
+    "id": "photo-5",
+    "title": "Saigon Monsoon Rush",
+    "description": "Hustle and bustle under an afternoon monsoon rain in Saigon, motion blur streaks bringing the street to life.",
+    "category": "Street & Urban",
+    "tags": [
+      "Street",
+      "Saigon",
+      "Rain",
+      "Motion",
+      "Urban Life"
+    ],
+    "image": "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1600&q=85",
+    "aspectRatio": "landscape",
+    "featured": true,
+    "date": "2024-07-30",
+    "location": "District 1, Ho Chi Minh City, Vietnam",
+    "camera": {
+      "make": "Ricoh",
+      "model": "GR IIIx",
+      "lens": "GR Lens 26.1mm f/2.8",
+      "focalLength": "40mm equiv",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/60s",
+      "iso": "800"
+    },
+    "editing": {
+      "software": "Lightroom Mobile",
+      "colorGrade": "Street Negative Film Emulation",
+      "notes": "Kodak Portra 400 negative film emulation with gentle contrast and subtle organic grain."
+    },
+    "order": 5
+  },
+  {
+    "id": "photo-6",
+    "title": "Midnight Alley Echoes",
+    "description": "Quiet midnight alleyway, dim fluorescent light casting emerald hues over weathered brick walls.",
+    "category": "Night & Cyberpunk",
+    "tags": [
+      "Night",
+      "Alley",
+      "Moody",
+      "Dark",
+      "Urban"
+    ],
+    "image": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=85",
+    "aspectRatio": "portrait",
+    "featured": false,
+    "date": "2024-06-12",
+    "location": "Cholon, District 5, HCMC, Vietnam",
+    "camera": {
+      "make": "Fujifilm",
+      "model": "X-T5",
+      "lens": "XF 23mm f/1.4 R LM WR",
+      "focalLength": "23mm",
+      "aperture": "f/1.4",
+      "shutterSpeed": "1/80s",
+      "iso": "3200"
+    },
+    "editing": {
+      "software": "Adobe Lightroom Classic",
+      "colorGrade": "Cinematic Moody Green",
+      "notes": "Desaturated overall tones with emphasis on Wong Kar-wai style cinematic moody green."
+    },
+    "order": 6
+  },
+  {
+    "id": "photo-7",
+    "title": "The Glass Pavilion",
+    "description": "Geometric glass architecture reflecting the twilight sky, forming an abstract and mesmerizing visual.",
+    "category": "Architecture",
+    "tags": [
+      "Architecture",
+      "Glass",
+      "Sunset",
+      "Abstract",
+      "Geometry"
+    ],
+    "image": "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1600&q=85",
+    "aspectRatio": "landscape",
+    "featured": false,
+    "date": "2024-05-18",
+    "location": "Hanoi, Vietnam",
+    "camera": {
+      "make": "Sony",
+      "model": "A7 IV",
+      "lens": "FE 24-70mm f/2.8 GM II",
+      "focalLength": "35mm",
+      "aperture": "f/5.6",
+      "shutterSpeed": "1/250s",
+      "iso": "100"
+    },
+    "editing": {
+      "software": "Photoshop",
+      "colorGrade": "Warm Amber & Steel Blue",
+      "notes": "Luminosity mask separation to illuminate the golden hour reflections across the glass panels."
+    },
+    "order": 7
+  },
+  {
+    "id": "photo-8",
+    "title": "Aura of Highlands",
+    "description": "Rolling sea of clouds drifting across mountain ridges at daybreak.",
+    "category": "Landscape & Nature",
+    "tags": [
+      "Mountains",
+      "Clouds",
+      "Highlands",
+      "Sunrise",
+      "Wilderness"
+    ],
+    "image": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1600&q=85",
+    "aspectRatio": "landscape",
+    "featured": true,
+    "date": "2024-04-05",
+    "location": "Ta Xua, Son La, Vietnam",
+    "camera": {
+      "make": "Canon",
+      "model": "EOS R6 Mark II",
+      "lens": "RF 24-105mm f/4 L IS USM",
+      "focalLength": "70mm",
+      "aperture": "f/8.0",
+      "shutterSpeed": "1/320s",
+      "iso": "100"
+    },
+    "editing": {
+      "software": "Adobe Lightroom Classic",
+      "colorGrade": "Atmospheric Blue & Rose",
+      "notes": "Balanced natural HDR dynamic range with slight dehaze to emphasize cloud texture."
+    },
+    "order": 8
+  },
+  {
+    "id": "photo-9",
+    "title": "Gaze of Serenity",
+    "description": "Capturing contemplative emotion in soft natural window light against rustic wooden frames.",
+    "category": "Portrait & People",
+    "tags": [
+      "Portrait",
+      "Natural Light",
+      "Window",
+      "Emotion",
+      "Fine Art"
+    ],
+    "image": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=85",
+    "aspectRatio": "portrait",
+    "featured": false,
+    "date": "2024-03-20",
+    "location": "Hoi An, Quang Nam, Vietnam",
+    "camera": {
+      "make": "Sony",
+      "model": "A7 IV",
+      "lens": "FE 50mm f/1.2 GM",
+      "focalLength": "50mm",
+      "aperture": "f/1.2",
+      "shutterSpeed": "1/500s",
+      "iso": "100"
+    },
+    "editing": {
+      "software": "Lightroom & Capture One",
+      "colorGrade": "Organic Warm Skin Tone",
+      "notes": "Preserved natural raw skin textures with smooth highlight roll-off transitions."
+    },
+    "order": 9
+  }
+]

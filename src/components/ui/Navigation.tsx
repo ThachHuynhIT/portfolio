@@ -153,7 +153,7 @@ export default function Navigation() {
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-500 to-cyan-400 p-[1.5px] transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3 shadow-md shadow-purple-500/20">
               <div className="w-full h-full bg-black/90 rounded-[10px] flex items-center justify-center">
                 <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-300 text-sm tracking-wider">
-                  JD
+                  TH
                 </span>
               </div>
             </div>

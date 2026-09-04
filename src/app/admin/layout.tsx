@@ -10,6 +10,7 @@ import { ToastProvider } from "@/context/ToastContext";
 const BREADCRUMBS: Record<string, { label: string; icon: string }> = {
   "/admin/skills": { label: "Skills", icon: "skills" },
   "/admin/projects": { label: "Projects", icon: "projects" },
+  "/admin/photography": { label: "Photography", icon: "camera" },
   "/admin/music": { label: "Music Tracks", icon: "music" },
   "/admin/blog": { label: "Blog Posts", icon: "blog" },
   "/admin/site-config": { label: "Site Config", icon: "settings" },
