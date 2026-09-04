@@ -126,7 +126,7 @@ export default function SocialLinksAdminPage() {
   }
 
   return (
-    <div className="max-w-3xl">
+    <>
       <AdminHeader
         title="Social Links"
         description="Manage your social media profiles and links."
@@ -142,7 +142,7 @@ export default function SocialLinksAdminPage() {
         }
       />
 
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden max-w-3xl">
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
         <table className="w-full text-left text-sm text-gray-300">
           <thead className="bg-gray-950 text-gray-400 uppercase text-xs border-b border-gray-800">
             <tr>
@@ -215,10 +215,10 @@ export default function SocialLinksAdminPage() {
                   category="general"
                   subType="social"
                   required
-                  helperText="Chọn icon từ Cloud, upload logo hoặc nhập từ khóa có sẵn bên dưới."
+                  helperText="Choose an icon from Cloud, upload a custom logo, or pick a preset keyword below."
                 />
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  <span className="text-[10px] text-slate-500 mr-1">Gợi ý từ khóa:</span>
+                  <span className="text-[10px] text-slate-500 mr-1">Suggested presets:</span>
                   {["github", "linkedin", "twitter", "facebook", "youtube", "instagram", "discord", "telegram"].map((key) => (
                     <button
                       key={key}
@@ -228,11 +228,10 @@ export default function SocialLinksAdminPage() {
                         e.stopPropagation();
                         setFormIcon(key);
                       }}
-                      className={`px-2 py-0.5 rounded text-[10px] border transition-all ${
-                        formIcon === key
-                          ? "bg-purple-600 text-white border-purple-500 font-semibold"
-                          : "bg-gray-800 text-gray-400 border-gray-700 hover:text-white"
-                      }`}
+                      className={`px-2 py-0.5 rounded text-[10px] border transition-all ${formIcon === key
+                        ? "bg-purple-600 text-white border-purple-500 font-semibold"
+                        : "bg-gray-800 text-gray-400 border-gray-700 hover:text-white"
+                        }`}
                     >
                       {key}
                     </button>
@@ -280,6 +279,6 @@ export default function SocialLinksAdminPage() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </>
   );
 }

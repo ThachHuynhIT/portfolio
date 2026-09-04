@@ -725,7 +725,7 @@ export default function PhotographyAdminPage() {
                       className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition-all border border-white/10"
                     >
                       <span>📁</span>
-                      <span>Chọn từ Cloud</span>
+                      <span>Choose from Cloud</span>
                     </button>
 
                     {formImage && (
@@ -810,7 +810,7 @@ export default function PhotographyAdminPage() {
                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition-all border border-white/10"
                       >
                         <span>📁</span>
-                        <span>Chọn từ Cloud</span>
+                        <span>Choose from Cloud</span>
                       </button>
 
                       {formBeforeImage && (
@@ -1134,7 +1134,7 @@ export default function PhotographyAdminPage() {
         isOpen={isMainPickerOpen}
         onClose={() => setIsMainPickerOpen(false)}
         onSelect={(url) => setFormImage(url)}
-        title="Chọn ảnh nghệ thuật từ Cloud / Thư viện"
+        title="Choose Art Photo from Cloud Library"
         defaultCategory="photo"
       />
 
@@ -1142,7 +1142,7 @@ export default function PhotographyAdminPage() {
         isOpen={isBeforePickerOpen}
         onClose={() => setIsBeforePickerOpen(false)}
         onSelect={(url) => setFormBeforeImage(url)}
-        title="Chọn ảnh RAW từ Cloud / Thư viện"
+        title="Choose RAW Photo from Cloud Library"
         defaultCategory="photo"
       />
     </div>

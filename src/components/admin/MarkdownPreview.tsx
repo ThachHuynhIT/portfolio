@@ -149,7 +149,7 @@ export default function MarkdownPreview({ content }: MarkdownPreviewProps) {
       {loading && (
         <div className="absolute top-0 right-0 flex items-center gap-2 text-xs text-purple-400 bg-gray-900/90 px-3 py-1 rounded-lg border border-purple-500/30 z-10">
           <div className="w-3 h-3 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-          <span>Đang render preview…</span>
+          <span>Rendering preview…</span>
         </div>
       )}
 
@@ -158,11 +158,11 @@ export default function MarkdownPreview({ content }: MarkdownPreviewProps) {
         <div className="p-4 mb-6 bg-red-950/40 border border-red-500/40 rounded-xl text-red-300 text-xs">
           <div className="flex items-center gap-2 font-bold mb-1">
             <span>⚠️</span>
-            <span>Lỗi cú pháp MDX:</span>
+            <span>MDX Syntax Error:</span>
           </div>
           <p className="font-mono whitespace-pre-wrap">{compileError}</p>
           <p className="mt-2 text-[11px] text-red-400/80">
-            Gợi ý: Kiểm tra xem các thẻ HTML/JSX đã được đóng đầy đủ chưa (ví dụ: &lt;img ... /&gt; hoặc &lt;div&gt;&lt;/div&gt;).
+            Tip: Check whether all JSX/HTML tags are properly closed (e.g., &lt;img ... /&gt; or &lt;div&gt;&lt;/div&gt;).
           </p>
         </div>
       )}
@@ -175,7 +175,7 @@ export default function MarkdownPreview({ content }: MarkdownPreviewProps) {
       ) : (
         !loading && !compileError && (
           <div className="text-gray-500 italic text-center py-12">
-            Không có nội dung để hiển thị.
+            No content to display.
           </div>
         )
       )}

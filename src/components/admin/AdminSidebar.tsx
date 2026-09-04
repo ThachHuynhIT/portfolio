@@ -12,6 +12,7 @@ const CONTENT_ITEMS = [
   { label: "Photography", href: "/admin/photography", icon: "camera" },
   { label: "Music Tracks", href: "/admin/music", icon: "music" },
   { label: "Blog Posts", href: "/admin/blog", icon: "blog" },
+  { label: "Couple & Kỷ niệm", href: "/admin/couple", icon: "heart" },
   { label: "Media Library", href: "/admin/media", icon: "image" },
 ];
 

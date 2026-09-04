@@ -216,7 +216,7 @@ export default function EditBlogPostPage() {
                 className="flex items-center gap-1.5 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-purple-300 hover:text-white rounded-lg text-xs font-medium border border-gray-700 transition-all shadow-sm"
               >
                 <span>🖼️</span>
-                <span>Chèn ảnh từ Cloud / Upload</span>
+                <span>Insert Image from Cloud / Upload</span>
               </button>
             </div>
             <div className="flex gap-2">
@@ -285,9 +285,9 @@ export default function EditBlogPostPage() {
         onSelect={(url, asset) => {
           const alt = asset?.filename ? asset.filename.split(".")[0] : "image";
           setContent((prev) => `${prev}\n\n![${alt}](${url})\n\n`);
-          toast.success("Đã chèn ảnh vào nội dung bài viết!");
+          toast.success("Image inserted into post content!");
         }}
-        title="Chọn ảnh hoặc tải ảnh mới để chèn vào bài viết"
+        title="Select or upload an image to insert into post"
         defaultCategory="blog"
       />
     </div>

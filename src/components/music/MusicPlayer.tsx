@@ -784,7 +784,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
       {!isZenMode && (
         <AnimatePresence mode="wait">
           {isPlayerCollapsed ? (
-            /* ── COLLAPSED MINI FLOATING DOCK (Thu gọn) ── */
+            /* ── COLLAPSED MINI FLOATING DOCK ── */
             <motion.div
               key="collapsed-player"
               initial={{ y: 80, opacity: 0, scale: 0.95 }}
@@ -846,7 +846,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
               </div>
             </motion.div>
           ) : (
-            /* ── EXPANDED FULL PRO STUDIO BAR (Mở rộng) ── */
+            /* ── EXPANDED FULL PRO STUDIO BAR ── */
             <motion.footer
               key="expanded-player"
               initial={{ y: 100, opacity: 0 }}
@@ -1027,7 +1027,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   </div>
                 </div>
 
-                {/* Collapse Player Button (Thu gọn) */}
+                {/* Collapse Player Button */}
                 <button
                   onClick={togglePlayerCollapsed}
                   className="music-collapse-btn"

@@ -62,14 +62,15 @@ export default function MediaImagePicker({
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Tải ảnh lên thất bại");
+      if (!res.ok) throw new Error(data.error || "Failed to upload image");
 
       if (data.asset?.secureUrl) {
         onChange(data.asset.secureUrl);
-        toast.success(`Đã tải lên và gán ảnh "${file.name}"!`);
+        toast.success(`Uploaded and set image "${file.name}"!`);
       }
-    } catch (err: any) {
-      toast.error(err.message || "Lỗi khi tải ảnh lên");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error uploading image";
+      toast.error(msg);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -101,7 +102,7 @@ export default function MediaImagePicker({
             }`}
           >
             <span>📁</span>
-            <span>Chọn từ Cloud</span>
+            <span>Cloud Library</span>
           </button>
 
           <button
@@ -118,7 +119,7 @@ export default function MediaImagePicker({
             }`}
           >
             <span>☁️</span>
-            <span>Upload Mới</span>
+            <span>Upload New</span>
           </button>
 
           <button
@@ -135,7 +136,7 @@ export default function MediaImagePicker({
             }`}
           >
             <span>🔗</span>
-            <span>Nhập URL</span>
+            <span>Image URL</span>
           </button>
         </div>
       </div>
@@ -148,7 +149,7 @@ export default function MediaImagePicker({
             type="url"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder="https://... (dán đường dẫn ảnh Cloudinary hoặc bên ngoài)"
+            placeholder="https://... (paste Cloudinary or external image URL)"
             className="w-full px-4 py-2 bg-slate-950/80 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 font-mono"
           />
         </div>
@@ -168,7 +169,7 @@ export default function MediaImagePicker({
           {isUploading ? (
             <div className="flex items-center gap-2 text-violet-400 text-xs py-2">
               <div className="w-4 h-4 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
-              <span>Đang tải lên Cloudinary…</span>
+              <span>Uploading to Cloudinary…</span>
             </div>
           ) : (
             <>
@@ -176,7 +177,7 @@ export default function MediaImagePicker({
                 ☁️
               </div>
               <p className="text-xs font-medium text-slate-300">
-                Click để chọn hoặc kéo thả ảnh vào đây
+                Click to select or drag and drop image here
               </p>
               <p className="text-[10px] text-slate-500 font-mono">
                 Prefix: {category}-{subType}-[timestamp]
@@ -197,7 +198,7 @@ export default function MediaImagePicker({
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-950/80 hover:bg-slate-900 border border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white rounded-xl text-xs font-medium transition-all group"
           >
             <span className="text-sm">📁</span>
-            <span>Mở Thư viện Cloud / Cloudinary để chọn ảnh…</span>
+            <span>Open Cloud Library to choose image…</span>
           </button>
         </div>
       )}
@@ -208,7 +209,7 @@ export default function MediaImagePicker({
           <div
             onClick={() => setShowLightbox(true)}
             className="w-14 h-14 rounded-lg bg-black/40 overflow-hidden flex-shrink-0 relative border border-white/10 cursor-zoom-in group/thumb"
-            title="Click để phóng to xem ảnh gốc"
+            title="Click to view full image"
           >
             <img
               src={value}
@@ -238,7 +239,7 @@ export default function MediaImagePicker({
                 }}
                 className="text-[11px] text-violet-400 hover:underline"
               >
-                Đổi ảnh khác
+                Change image
               </button>
               <span className="text-slate-600 text-xs">·</span>
               <button
@@ -250,7 +251,7 @@ export default function MediaImagePicker({
                 }}
                 className="text-[11px] text-slate-400 hover:text-white hover:underline transition-colors flex items-center gap-1"
               >
-                <span>Xem ảnh gốc</span>
+                <span>View original</span>
                 <span className="text-[10px]">🔍</span>
               </button>
             </div>
@@ -264,7 +265,7 @@ export default function MediaImagePicker({
               onChange("");
             }}
             className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-all text-xs"
-            title="Xóa ảnh"
+            title="Remove image"
           >
             ✕
           </button>
@@ -309,17 +310,17 @@ export default function MediaImagePicker({
                   type="button"
                   onClick={() => {
                     navigator.clipboard.writeText(value);
-                    toast.success("Đã sao chép link ảnh!");
+                    toast.success("Image URL copied to clipboard!");
                   }}
                   className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-xs transition-all shadow"
                 >
-                  Sao chép link
+                  Copy URL
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowLightbox(false)}
                   className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all text-sm flex items-center justify-center shadow"
-                  title="Đóng (Esc)"
+                  title="Close (Esc)"
                 >
                   ✕
                 </button>

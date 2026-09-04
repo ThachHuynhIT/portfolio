@@ -147,7 +147,7 @@ export default function ProjectsAdminPage() {
   }
 
   return (
-    <div className="max-w-5xl">
+    <>
       <AdminHeader
         title="Projects"
         description="Add, edit, or feature projects displayed on your portfolio homepage."
@@ -271,7 +271,7 @@ export default function ProjectsAdminPage() {
                   category="project"
                   subType="cover"
                   required
-                  helperText="Chọn ảnh đại diện cho dự án từ Cloud, tải lên mới hoặc nhập URL."
+                  helperText="Select a cover image from Cloud Library, upload a new image, or enter an image URL."
                 />
 
                 <FormField label="Tags (comma separated)" id="proj-tags" required>
@@ -351,6 +351,6 @@ export default function ProjectsAdminPage() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </>
   );
 }

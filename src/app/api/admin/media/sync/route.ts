@@ -11,14 +11,14 @@ export async function POST() {
     const result = await syncAssetsFromCloudinary();
     return NextResponse.json({
       success: true,
-      message: `Đã đồng bộ thành công ${result.added} tệp tin mới từ Cloudinary.`,
+      message: `Successfully synced ${result.added} new files from Cloudinary.`,
       added: result.added,
       total: result.total,
     });
   } catch (error: any) {
     console.error("[POST /api/admin/media/sync] Error:", error);
     return NextResponse.json(
-      { error: error?.message || "Đồng bộ từ Cloudinary thất bại" },
+      { error: error?.message || "Failed to sync from Cloudinary" },
       { status: 500 }
     );
   }

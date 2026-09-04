@@ -25,7 +25,7 @@ export default function JsonValidator() {
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Extract suffix from filename (phần sau dấu _ cuối cùng trước .json)
+  // Extract suffix from filename (part after the last _ before .json)
   const extractSuffix = (filename: string): string => {
     const nameWithoutExt = filename.replace(/\.json$/i, '');
     const parts = nameWithoutExt.split('_');
@@ -100,7 +100,7 @@ export default function JsonValidator() {
   // Validate all file pairs
   const validateAllFiles = async () => {
     if (files.length === 0) {
-      setError('Vui lòng chọn hoặc kéo thả files JSON');
+      setError('Please select or drop JSON files');
       return;
     }
 
@@ -112,7 +112,7 @@ export default function JsonValidator() {
       const groups = groupFilesBySuffix(files);
 
       if (groups.length === 0) {
-        setError('Không tìm thấy cặp file nào có thể mapping với nhau');
+        setError('No matching file pairs found');
         setLoading(false);
         return;
       }
@@ -168,7 +168,7 @@ export default function JsonValidator() {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('Có lỗi xảy ra khi xử lý JSON');
+        setError('An error occurred while processing JSON');
       }
     } finally {
       setLoading(false);
@@ -194,7 +194,7 @@ export default function JsonValidator() {
       setError('');
       setResults([]);
     } catch (err) {
-      setError('Không thể tải dữ liệu mẫu');
+      setError('Unable to load sample data');
     }
   };
 
@@ -206,7 +206,7 @@ export default function JsonValidator() {
           onClick={loadSampleData}
           className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
         >
-          Tải dữ liệu mẫu
+          Load Sample Data
         </button>
       </div>
 
@@ -226,10 +226,10 @@ export default function JsonValidator() {
         <div className="text-center space-y-4">
           <div className="text-6xl">📁</div>
           <h2 className="text-2xl font-bold text-white">
-            Kéo thả files hoặc folder vào đây
+            Drag and drop files or folder here
           </h2>
           <p className="text-gray-300">
-            Hỗ trợ nhiều file JSON cùng lúc. Tự động mapping dựa trên suffix cuối tên file.
+            Supports multiple JSON files at once. Automatically pairs files based on filename suffix.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
@@ -243,7 +243,7 @@ export default function JsonValidator() {
                 className="hidden"
               />
               <div className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
-                📄 Chọn nhiều files
+                📄 Choose Files
               </div>
             </label>
 
@@ -259,7 +259,7 @@ export default function JsonValidator() {
                 className="hidden"
               />
               <div className="px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white rounded-lg transition-colors">
-                📂 Chọn folder
+                📂 Choose Folder
               </div>
             </label>
           </div>
@@ -274,7 +274,7 @@ export default function JsonValidator() {
           className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20"
         >
           <h3 className="text-xl font-bold text-white mb-4">
-            Đã chọn {files.length} file(s):
+            Selected {files.length} file(s):
           </h3>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
             {files.map((file, index) => (
@@ -291,7 +291,7 @@ export default function JsonValidator() {
           {/* File Groups Preview */}
           <div className="mt-6">
             <h4 className="text-lg font-bold text-white mb-3">
-              Các cặp file được mapping:
+              Mapped File Pairs:
             </h4>
             {groupFilesBySuffix(files).map((group, index) => (
               <div
@@ -322,7 +322,7 @@ export default function JsonValidator() {
               disabled={loading}
               className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105"
             >
-              {loading ? '⏳ Đang kiểm tra...' : '🔍 Kiểm tra tất cả'}
+              {loading ? '⏳ Validating...' : '🔍 Validate All'}
             </button>
           </div>
         </motion.div>
@@ -335,7 +335,7 @@ export default function JsonValidator() {
           animate={{ opacity: 1 }}
           className="bg-red-500/20 border border-red-500 rounded-lg p-4"
         >
-          <p className="text-red-300 font-semibold">❌ Lỗi: {error}</p>
+          <p className="text-red-300 font-semibold">❌ Error: {error}</p>
         </motion.div>
       )}
 
@@ -351,21 +351,21 @@ export default function JsonValidator() {
             {/* Summary */}
             <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
               <h2 className="text-2xl font-bold text-white mb-4">
-                📊 Tổng quan kết quả
+                📊 Results Summary
               </h2>
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="bg-blue-500/20 rounded-lg p-4 border border-blue-500/30">
-                  <p className="text-blue-300 text-sm">Tổng số cặp</p>
+                  <p className="text-blue-300 text-sm">Total Pairs</p>
                   <p className="text-white text-3xl font-bold">{results.length}</p>
                 </div>
                 <div className="bg-green-500/20 rounded-lg p-4 border border-green-500/30">
-                  <p className="text-green-300 text-sm">Cặp hợp lệ</p>
+                  <p className="text-green-300 text-sm">Valid Pairs</p>
                   <p className="text-white text-3xl font-bold">
                     {results.filter((r) => r.missingIds.length === 0).length}
                   </p>
                 </div>
                 <div className="bg-red-500/20 rounded-lg p-4 border border-red-500/30">
-                  <p className="text-red-300 text-sm">Cặp có lỗi</p>
+                  <p className="text-red-300 text-sm">Pairs with Errors</p>
                   <p className="text-white text-3xl font-bold">
                     {results.filter((r) => r.missingIds.length > 0).length}
                   </p>
@@ -404,15 +404,15 @@ export default function JsonValidator() {
 
                 <div className="grid md:grid-cols-3 gap-4 mb-4">
                   <div className="bg-blue-500/20 rounded-lg p-3 border border-blue-500/30">
-                    <p className="text-blue-300 text-xs">ID kiểm tra</p>
+                    <p className="text-blue-300 text-xs">Checked IDs</p>
                     <p className="text-white text-2xl font-bold">{result.totalChecked}</p>
                   </div>
                   <div className="bg-green-500/20 rounded-lg p-3 border border-green-500/30">
-                    <p className="text-green-300 text-xs">ID hợp lệ</p>
+                    <p className="text-green-300 text-xs">Valid IDs</p>
                     <p className="text-white text-2xl font-bold">{result.totalAvailable}</p>
                   </div>
                   <div className="bg-red-500/20 rounded-lg p-3 border border-red-500/30">
-                    <p className="text-red-300 text-xs">ID không tồn tại</p>
+                    <p className="text-red-300 text-xs">Missing IDs</p>
                     <p className="text-white text-2xl font-bold">{result.missingIds.length}</p>
                   </div>
                 </div>
@@ -420,7 +420,7 @@ export default function JsonValidator() {
                 {result.missingIds.length > 0 ? (
                   <div>
                     <h3 className="text-lg font-bold text-red-300 mb-3">
-                      ⚠️ Các ID không tồn tại:
+                      ⚠️ Missing IDs:
                     </h3>
                     <div className="bg-gray-900/50 rounded-lg p-4 max-h-64 overflow-y-auto">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -438,7 +438,7 @@ export default function JsonValidator() {
                 ) : (
                   <div className="bg-green-500/20 border border-green-500 rounded-lg p-4">
                     <p className="text-green-300 font-semibold text-center">
-                      ✅ Tất cả ID đều hợp lệ!
+                      ✅ All IDs are valid!
                     </p>
                   </div>
                 )}

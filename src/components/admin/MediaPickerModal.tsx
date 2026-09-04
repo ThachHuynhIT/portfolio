@@ -17,7 +17,7 @@ export default function MediaPickerModal({
   isOpen,
   onClose,
   onSelect,
-  title = "Chọn hình ảnh từ Cloud / Thư viện",
+  title = "Select Image from Cloud Library",
   defaultCategory,
 }: MediaPickerModalProps) {
   const [mounted, setMounted] = useState(false);
@@ -90,13 +90,13 @@ export default function MediaPickerModal({
   };
 
   const categories = [
-    { id: "all", label: "Tất cả" },
+    { id: "all", label: "All" },
     { id: "project", label: "Projects" },
     { id: "photo", label: "Photography" },
     { id: "blog", label: "Blog" },
     { id: "site", label: "Site Config" },
     { id: "music", label: "Music" },
-    { id: "general", label: "Khác" },
+    { id: "general", label: "Other" },
   ];
 
   const modalContent = (
@@ -130,7 +130,7 @@ export default function MediaPickerModal({
             <div>
               <h3 className="text-sm font-bold text-white leading-tight">{title}</h3>
               <p className="text-[11px] text-slate-500">
-                Click vào ảnh để chọn và tự động áp dụng vào trường dữ liệu.
+                Click on any image to select and apply to field.
               </p>
             </div>
           </div>
@@ -150,7 +150,7 @@ export default function MediaPickerModal({
               ) : (
                 <Icon name="plus" size={13} />
               )}
-              <span>{uploading ? "Đang tải…" : "Upload ảnh mới"}</span>
+              <span>{uploading ? "Uploading..." : "Upload New"}</span>
             </label>
 
             <button
@@ -175,7 +175,7 @@ export default function MediaPickerModal({
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Tìm ảnh theo tên file, tag..."
+                placeholder="Search images by filename, tag..."
                 className="w-full bg-slate-950 border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
               />
               <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
@@ -212,14 +212,14 @@ export default function MediaPickerModal({
           {loading ? (
             <div className="flex flex-col items-center justify-center min-h-[260px]">
               <div className="w-7 h-7 border-2 border-violet-500 border-t-transparent rounded-full animate-spin mb-2" />
-              <p className="text-slate-400 text-xs">Đang nạp ảnh từ thư viện…</p>
+              <p className="text-slate-400 text-xs">Loading media from library…</p>
             </div>
           ) : assets.length === 0 ? (
             <div className="flex flex-col items-center justify-center min-h-[260px] text-center p-6 border border-dashed border-white/10 rounded-2xl">
               <p className="text-2xl mb-1">🖼️</p>
-              <p className="text-sm font-medium text-slate-300">Không tìm thấy ảnh nào</p>
+              <p className="text-sm font-medium text-slate-300">No images found</p>
               <p className="text-xs text-slate-500 mt-0.5">
-                Bạn có thể bấm nút &quot;Upload ảnh mới&quot; ở góc trên để tải ảnh lên.
+                Click &quot;Upload New&quot; button above to upload an image.
               </p>
             </div>
           ) : (
@@ -252,7 +252,7 @@ export default function MediaPickerModal({
                     {/* Selection overlay */}
                     <div className="absolute inset-0 bg-violet-600/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <span className="px-2.5 py-1 rounded-lg bg-violet-600 text-white text-[11px] font-semibold shadow-lg">
-                        Chọn ảnh này ✓
+                        Select this image ✓
                       </span>
                     </div>
                   </div>

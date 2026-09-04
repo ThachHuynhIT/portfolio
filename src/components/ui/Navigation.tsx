@@ -124,7 +124,11 @@ export default function Navigation() {
     }
   };
 
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/music")) {
+  if (
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/music") ||
+    pathname?.startsWith("/couple")
+  ) {
     return null;
   }
 

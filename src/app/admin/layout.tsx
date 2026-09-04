@@ -13,6 +13,7 @@ const BREADCRUMBS: Record<string, { label: string; icon: string }> = {
   "/admin/photography": { label: "Photography", icon: "camera" },
   "/admin/music": { label: "Music Tracks", icon: "music" },
   "/admin/blog": { label: "Blog Posts", icon: "blog" },
+  "/admin/couple": { label: "Couple & Kỷ niệm", icon: "heart" },
   "/admin/media": { label: "Media Library", icon: "image" },
   "/admin/site-config": { label: "Site Config", icon: "settings" },
   "/admin/social-links": { label: "Social Links", icon: "links" },

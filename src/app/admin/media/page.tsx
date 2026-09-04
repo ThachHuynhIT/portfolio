@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
@@ -28,7 +28,7 @@ function formatDuration(seconds?: number): string {
 
 // Category configuration
 const CATEGORIES: { id: string; label: string; icon: string; color: string }[] = [
-  { id: "all", label: "Tất cả", icon: "grid", color: "text-slate-300 bg-white/10" },
+  { id: "all", label: "All", icon: "grid", color: "text-slate-300 bg-white/10" },
   { id: "music", label: "Music", icon: "music", color: "text-purple-400 bg-purple-500/10 border-purple-500/20" },
   { id: "photo", label: "Photography", icon: "camera", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
   { id: "project", label: "Projects", icon: "projects", color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
@@ -75,7 +75,7 @@ export default function MediaAdminPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch media assets
-  const fetchMedia = async (showLoading = true) => {
+  const fetchMedia = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -84,26 +84,29 @@ export default function MediaAdminPage() {
       if (searchQuery.trim()) params.set("q", searchQuery.trim());
 
       const res = await fetch(`/api/admin/media?${params.toString()}`);
-      if (res.status === 401) {
-        router.push("/admin/login");
-        return;
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push("/admin/login");
+          return;
+        }
+        throw new Error("Failed to load media assets");
       }
-      if (!res.ok) throw new Error("Failed to load media assets");
 
       const data = await res.json();
       setAssets(data.assets || []);
       if (data.stats) setStats(data.stats);
     } catch (err: any) {
       console.error("[MediaAdminPage] Error:", err);
-      toast.error(err.message || "Không thể tải danh sách tệp tin");
+      const msg = err instanceof Error ? err.message : "Error loading media";
+      toast.error(msg);
     } finally {
       if (showLoading) setLoading(false);
     }
-  };
+  }, [categoryFilter, typeFilter, searchQuery, router, toast]);
 
   useEffect(() => {
     fetchMedia();
-  }, [categoryFilter, typeFilter]);
+  }, [fetchMedia]);
 
   // Handle search with debounce / enter
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -117,19 +120,20 @@ export default function MediaAdminPage() {
     try {
       const res = await fetch("/api/admin/media/sync", { method: "POST" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Đồng bộ thất bại");
+      if (!res.ok) throw new Error(data.error || "Sync failed");
 
-      toast.success(data.message || `Đã đồng bộ ${data.added} tệp tin từ Cloudinary!`);
+      toast.success(data.message || `Successfully synced ${data.added} files from Cloudinary!`);
       await fetchMedia(false);
     } catch (err: any) {
-      toast.error(err.message || "Lỗi khi đồng bộ từ Cloudinary");
+      const msg = err instanceof Error ? err.message : "Error syncing from Cloudinary";
+      toast.error(msg);
     } finally {
       setIsSyncing(false);
     }
   };
 
   // 1-Click Copy Link
-  const handleCopyLink = (url: string, id: string, text = "Đã sao chép liên kết!") => {
+  const handleCopyLink = (url: string, id: string, text = "Link copied to clipboard!") => {
     navigator.clipboard.writeText(url);
     setCopiedId(id);
     toast.success(text);
@@ -147,16 +151,17 @@ export default function MediaAdminPage() {
         `/api/admin/media?publicId=${encodeURIComponent(deleteTarget.publicId)}`,
         { method: "DELETE" }
       );
-      if (!res.ok) throw new Error("Xóa tệp thất bại");
+      if (!res.ok) throw new Error("Failed to delete file");
 
-      toast.success(`Đã xóa tệp "${deleteTarget.filename}"!`);
+      toast.success(`Deleted file "${deleteTarget.filename}"!`);
       if (selectedAsset?.publicId === deleteTarget.publicId) {
         setSelectedAsset(null);
       }
       setDeleteTarget(null);
       await fetchMedia(false);
     } catch (err: any) {
-      toast.error(err.message || "Lỗi khi xóa tệp");
+      const msg = err instanceof Error ? err.message : "Error deleting file";
+      toast.error(msg);
     } finally {
       setIsDeleting(false);
     }
@@ -181,7 +186,7 @@ export default function MediaAdminPage() {
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!uploadFile) {
-      toast.error("Vui lòng chọn một tệp để tải lên!");
+      toast.error("Please select a file to upload!");
       return;
     }
 
@@ -198,17 +203,18 @@ export default function MediaAdminPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Tải lên thất bại");
+      if (!res.ok) throw new Error(data.error || "Upload failed");
 
-      toast.success(`Tải lên tệp "${uploadFile.name}" thành công!`);
+      toast.success(`Uploaded file "${uploadFile.name}" successfully!`);
       setIsUploadOpen(false);
       setUploadFile(null);
       setUploadPreview(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
 
       await fetchMedia(false);
-    } catch (err: any) {
-      toast.error(err.message || "Lỗi khi tải lên tệp tin");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error uploading file";
+      toast.error(msg);
     } finally {
       setIsUploading(false);
     }
@@ -233,7 +239,7 @@ export default function MediaAdminPage() {
       {/* ── Page Header ── */}
       <AdminHeader
         title="Media Library"
-        description="Quản lý và tổ chức toàn bộ hình ảnh, âm thanh, video với prefix và category chuẩn hóa."
+        description="Manage and organize all images, audio, and video assets with standardized prefixes and categories."
         icon="image"
         action={
           <div className="flex items-center gap-3">
@@ -241,10 +247,10 @@ export default function MediaAdminPage() {
               onClick={handleSyncCloudinary}
               disabled={isSyncing}
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-900 border border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white transition-all shadow-sm disabled:opacity-50"
-              title="Quét và đồng bộ tệp tin cũ từ Cloudinary"
+              title="Scan and sync existing files from Cloudinary"
             >
               <span className={isSyncing ? "animate-spin" : ""}>🔄</span>
-              <span>{isSyncing ? "Đang đồng bộ…" : "Sync Cloudinary"}</span>
+              <span>{isSyncing ? "Syncing…" : "Sync Cloudinary"}</span>
             </button>
 
             <button
@@ -252,7 +258,7 @@ export default function MediaAdminPage() {
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-lg shadow-violet-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <Icon name="plus" size={14} />
-              <span>Tải Lên Tệp Mới</span>
+              <span>Upload New File</span>
             </button>
           </div>
         }
@@ -262,29 +268,29 @@ export default function MediaAdminPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
         <div className="bg-slate-900/60 border border-white/5 p-4 rounded-2xl backdrop-blur-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Tổng Số Tệp</span>
+            <span className="text-xs font-medium text-slate-400">Total Files</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 font-mono">
               All
             </span>
           </div>
           <p className="text-2xl font-bold text-white mt-1.5">{stats.totalFiles}</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Tệp tin trong thư viện</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">Files in registry</p>
         </div>
 
         <div className="bg-slate-900/60 border border-white/5 p-4 rounded-2xl backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Dung Lượng</span>
+            <span className="text-xs font-medium text-slate-400">Storage Used</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-mono">
               CDN
             </span>
           </div>
           <p className="text-2xl font-bold text-white mt-1.5">{formatBytes(stats.totalBytes)}</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Lưu trữ trên Cloudinary</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">Cloudinary storage</p>
         </div>
 
         <div className="bg-slate-900/60 border border-white/5 p-4 rounded-2xl backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Hình Ảnh</span>
+            <span className="text-xs font-medium text-slate-400">Images</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-mono">
               IMG
             </span>
@@ -295,7 +301,7 @@ export default function MediaAdminPage() {
 
         <div className="bg-slate-900/60 border border-white/5 p-4 rounded-2xl backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Âm Thanh & Video</span>
+            <span className="text-xs font-medium text-slate-400">Audio & Video</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-mono">
               AV
             </span>
@@ -318,7 +324,7 @@ export default function MediaAdminPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm theo tên file, publicId, tag..."
+              placeholder="Search by filename, publicId, tag..."
               className="w-full bg-slate-950/80 border border-white/10 rounded-xl pl-9 pr-8 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 transition-all"
             />
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
@@ -344,10 +350,10 @@ export default function MediaAdminPage() {
             <div className="flex items-center bg-slate-950/80 border border-white/10 rounded-xl p-0.5">
               {(
                 [
-                  { id: "all", label: "Tất cả" },
-                  { id: "image", label: "🖼️ Ảnh" },
-                  { id: "audio", label: "🎧 Nhạc" },
-                  { id: "video", label: "🎬 Video" },
+                  { id: "all", label: "All" },
+                  { id: "image", label: "🖼️ Images" },
+                  { id: "audio", label: "🎧 Audio" },
+                  { id: "video", label: "🎬 Videos" },
                 ] as const
               ).map((tab) => (
                 <button
@@ -368,7 +374,7 @@ export default function MediaAdminPage() {
             <div className="flex items-center bg-slate-950/80 border border-white/10 rounded-xl p-0.5">
               <button
                 onClick={() => setViewMode("grid")}
-                title="Chế độ Lưới"
+                title="Grid View"
                 className={`p-1.5 rounded-lg transition-all ${
                   viewMode === "grid" ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"
                 }`}
@@ -377,7 +383,7 @@ export default function MediaAdminPage() {
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                title="Chế độ Danh sách"
+                title="List View"
                 className={`p-1.5 rounded-lg transition-all ${
                   viewMode === "list" ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"
                 }`}
@@ -391,7 +397,7 @@ export default function MediaAdminPage() {
         {/* Category Pills Bar */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-1 border-t border-white/5">
           <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mr-1 flex-shrink-0">
-            Nơi upload:
+            Category:
           </span>
           {CATEGORIES.map((cat) => {
             const count =
@@ -428,32 +434,32 @@ export default function MediaAdminPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center min-h-[350px] bg-slate-900/30 rounded-2xl border border-white/5">
           <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-slate-400 text-sm font-medium">Đang tải danh sách tệp tin…</p>
+          <p className="text-slate-400 text-sm font-medium">Loading media assets…</p>
         </div>
       ) : assets.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[350px] bg-slate-900/20 rounded-2xl border border-dashed border-white/10 p-8 text-center">
           <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-slate-500 mb-3 text-2xl">
             📁
           </div>
-          <h3 className="text-base font-semibold text-white">Chưa có tệp tin nào</h3>
+          <h3 className="text-base font-semibold text-white">No media files found</h3>
           <p className="text-slate-500 text-xs mt-1 max-w-sm">
             {searchQuery || categoryFilter !== "all" || typeFilter !== "all"
-              ? "Không tìm thấy tệp nào phù hợp với bộ lọc hiện tại. Thử đổi từ khóa hoặc bộ lọc."
-              : "Bạn có thể tải lên tệp mới hoặc bấm nút 'Sync Cloudinary' để quét các tệp đã có sẵn."}
+              ? "No files match the current filters. Try changing keywords or filters."
+              : "You can upload a new file or click 'Sync Cloudinary' to scan existing files."}
           </p>
           <div className="flex items-center gap-3 mt-5">
             <button
               onClick={() => setIsUploadOpen(true)}
               className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold rounded-xl transition-all"
             >
-              Tải Lên Tệp Đầu Tiên
+              Upload First File
             </button>
             <button
               onClick={handleSyncCloudinary}
               disabled={isSyncing}
               className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-xl transition-all"
             >
-              Sync từ Cloudinary
+              Sync from Cloudinary
             </button>
           </div>
         </div>
@@ -544,7 +550,7 @@ export default function MediaAdminPage() {
                         e.stopPropagation();
                         handleCopyLink(asset.secureUrl, asset.id);
                       }}
-                      title="Sao chép liên kết trực tiếp"
+                      title="Copy direct link"
                       className="p-2 rounded-xl bg-white/15 hover:bg-violet-600 text-white transition-all transform hover:scale-110"
                     >
                       {isCopied ? "✓" : "🔗"}
@@ -554,7 +560,7 @@ export default function MediaAdminPage() {
                         e.stopPropagation();
                         setSelectedAsset(asset);
                       }}
-                      title="Xem chi tiết"
+                      title="View details"
                       className="p-2 rounded-xl bg-white/15 hover:bg-violet-600 text-white transition-all transform hover:scale-110"
                     >
                       👁️
@@ -564,7 +570,7 @@ export default function MediaAdminPage() {
                         e.stopPropagation();
                         setDeleteTarget(asset);
                       }}
-                      title="Xóa tệp"
+                      title="Delete file"
                       className="p-2 rounded-xl bg-red-500/20 hover:bg-red-600 text-red-300 hover:text-white transition-all transform hover:scale-110"
                     >
                       🗑️
@@ -594,7 +600,7 @@ export default function MediaAdminPage() {
                       {formatBytes(asset.bytes)}
                     </span>
                     <span className="text-[10px] text-slate-500">
-                      {new Date(asset.createdAt).toLocaleDateString("vi-VN")}
+                      {new Date(asset.createdAt).toLocaleDateString("en-US")}
                     </span>
                   </div>
                 </div>
@@ -609,13 +615,13 @@ export default function MediaAdminPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-950/80 border-b border-white/5 text-slate-400 uppercase tracking-wider font-semibold text-[10px]">
                 <tr>
-                  <th className="py-3 px-4">Tệp Tin</th>
-                  <th className="py-3 px-3">Danh Mục</th>
-                  <th className="py-3 px-3">Định Dạng</th>
-                  <th className="py-3 px-3">Kích Thước</th>
-                  <th className="py-3 px-3">Dung Lượng</th>
-                  <th className="py-3 px-3">Ngày Tải Lên</th>
-                  <th className="py-3 px-4 text-right">Thao Tác</th>
+                  <th className="py-3 px-4">File</th>
+                  <th className="py-3 px-3">Category</th>
+                  <th className="py-3 px-3">Format</th>
+                  <th className="py-3 px-3">Dimensions</th>
+                  <th className="py-3 px-3">Size</th>
+                  <th className="py-3 px-3">Uploaded Date</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-slate-300">
@@ -674,7 +680,7 @@ export default function MediaAdminPage() {
                         {formatBytes(asset.bytes)}
                       </td>
                       <td className="py-3 px-3 text-slate-500">
-                        {new Date(asset.createdAt).toLocaleDateString("vi-VN")}
+                        {new Date(asset.createdAt).toLocaleDateString("en-US")}
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div
@@ -691,14 +697,14 @@ export default function MediaAdminPage() {
                           <button
                             onClick={() => setSelectedAsset(asset)}
                             className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all"
-                            title="Xem chi tiết"
+                            title="View details"
                           >
                             👁️
                           </button>
                           <button
                             onClick={() => setDeleteTarget(asset)}
                             className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all"
-                            title="Xóa"
+                            title="Delete"
                           >
                             🗑️
                           </button>
@@ -794,7 +800,7 @@ export default function MediaAdminPage() {
                   </div>
 
                   <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-slate-500">Định dạng (Format):</span>
+                    <span className="text-slate-500">Format:</span>
                     <span className="text-slate-200 uppercase font-mono">
                       {selectedAsset.format}
                     </span>
@@ -802,7 +808,7 @@ export default function MediaAdminPage() {
 
                   {selectedAsset.width && selectedAsset.height ? (
                     <div className="flex justify-between py-1 border-b border-white/5">
-                      <span className="text-slate-500">Kích thước:</span>
+                      <span className="text-slate-500">Dimensions:</span>
                       <span className="text-slate-200 font-mono">
                         {selectedAsset.width} × {selectedAsset.height} px
                       </span>
@@ -811,7 +817,7 @@ export default function MediaAdminPage() {
 
                   {selectedAsset.duration ? (
                     <div className="flex justify-between py-1 border-b border-white/5">
-                      <span className="text-slate-500">Thời lượng:</span>
+                      <span className="text-slate-500">Duration:</span>
                       <span className="text-slate-200 font-mono">
                         {formatDuration(selectedAsset.duration)}
                       </span>
@@ -819,16 +825,16 @@ export default function MediaAdminPage() {
                   ) : null}
 
                   <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-slate-500">Dung lượng:</span>
+                    <span className="text-slate-500">File Size:</span>
                     <span className="text-slate-200 font-mono">
                       {formatBytes(selectedAsset.bytes)} ({selectedAsset.bytes.toLocaleString()} bytes)
                     </span>
                   </div>
 
                   <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-slate-500">Ngày tải lên:</span>
+                    <span className="text-slate-500">Uploaded Date:</span>
                     <span className="text-slate-200">
-                      {new Date(selectedAsset.createdAt).toLocaleString("vi-VN")}
+                      {new Date(selectedAsset.createdAt).toLocaleString("en-US")}
                     </span>
                   </div>
 
@@ -854,12 +860,12 @@ export default function MediaAdminPage() {
               <div className="space-y-2 pt-6 border-t border-white/5">
                 <button
                   onClick={() =>
-                    handleCopyLink(selectedAsset.secureUrl, selectedAsset.id, "Đã sao chép URL trực tiếp!")
+                    handleCopyLink(selectedAsset.secureUrl, selectedAsset.id, "Direct URL copied!")
                   }
                   className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-semibold transition-all shadow-md shadow-violet-600/20"
                 >
                   <span>🔗</span>
-                  <span>Sao Chép URL Trực Tiếp</span>
+                  <span>Copy Direct URL</span>
                 </button>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -868,7 +874,7 @@ export default function MediaAdminPage() {
                       handleCopyLink(
                         `![${selectedAsset.filename}](${selectedAsset.secureUrl})`,
                         selectedAsset.id,
-                        "Đã sao chép mã Markdown!"
+                        "Markdown code copied!"
                       )
                     }
                     className="py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition-all"
@@ -881,7 +887,7 @@ export default function MediaAdminPage() {
                       handleCopyLink(
                         `<img src="${selectedAsset.secureUrl}" alt="${selectedAsset.filename}" />`,
                         selectedAsset.id,
-                        "Đã sao chép mã HTML!"
+                        "HTML code copied!"
                       )
                     }
                     className="py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition-all"
@@ -897,13 +903,13 @@ export default function MediaAdminPage() {
                     rel="noreferrer"
                     className="flex-1 py-1.5 px-3 bg-white/5 hover:bg-white/10 text-slate-300 text-center rounded-xl text-xs font-medium transition-all"
                   >
-                    Mở tab mới ↗
+                    Open in new tab ↗
                   </a>
                   <button
                     onClick={() => setDeleteTarget(selectedAsset)}
                     className="py-1.5 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-medium transition-all"
                   >
-                    Xóa tệp
+                    Delete file
                   </button>
                 </div>
               </div>
@@ -923,9 +929,9 @@ export default function MediaAdminPage() {
           <div className="relative z-10 w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h3 className="text-lg font-bold text-white">Tải Lên Tệp Mới</h3>
+                <h3 className="text-lg font-bold text-white">Upload New File</h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Tự động gán prefix và lưu trữ vào thư mục Cloudinary theo danh mục.
+                  Standardized prefix auto-generated and stored into Cloudinary folder by category.
                 </p>
               </div>
               <button
@@ -942,7 +948,7 @@ export default function MediaAdminPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                    Nơi Upload (Category)
+                    Category
                   </label>
                   <select
                     value={uploadCategory}
@@ -958,24 +964,24 @@ export default function MediaAdminPage() {
                     }}
                     className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
                   >
-                    <option value="photo">Photography (Nhiếp ảnh)</option>
-                    <option value="music">Music (Âm nhạc)</option>
-                    <option value="project">Projects (Dự án)</option>
-                    <option value="blog">Blog Posts (Bài viết)</option>
-                    <option value="site">Site Config (Thương hiệu)</option>
-                    <option value="general">General (Chung)</option>
+                    <option value="photo">Photography</option>
+                    <option value="music">Music</option>
+                    <option value="project">Projects</option>
+                    <option value="blog">Blog Posts</option>
+                    <option value="site">Site Config</option>
+                    <option value="general">General Assets</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                    Phân loại con (SubType)
+                    Sub-type
                   </label>
                   <input
                     type="text"
                     value={uploadSubType}
                     onChange={(e) => setUploadSubType(e.target.value)}
-                    placeholder="ví dụ: audio, thumb, cover..."
+                    placeholder="e.g. audio, thumb, cover..."
                     className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
                   />
                 </div>
@@ -984,7 +990,7 @@ export default function MediaAdminPage() {
               {/* Dynamic Prefix Preview Box */}
               <div className="bg-slate-950/80 border border-violet-500/20 rounded-xl p-3">
                 <p className="text-[11px] text-slate-400">
-                  Tên file tự động sinh (Prefix):
+                  Auto-generated Filename Prefix:
                 </p>
                 <p className="text-xs font-mono text-violet-300 font-semibold mt-0.5 truncate">
                   {uploadPrefixPreview}
@@ -994,7 +1000,7 @@ export default function MediaAdminPage() {
               {/* Dropzone File Selector */}
               <div>
                 <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                  Chọn tệp tin (Ảnh, Video hoặc Audio MP3)
+                  Select File (Image, Video, or Audio MP3)
                 </label>
                 <div
                   onClick={() => fileInputRef.current?.click()}
@@ -1034,10 +1040,10 @@ export default function MediaAdminPage() {
                         ☁️
                       </div>
                       <p className="text-xs font-medium text-slate-300">
-                        Nhấn để chọn tệp hoặc kéo thả tệp vào đây
+                        Click to select file or drag and drop here
                       </p>
                       <p className="text-[10px] text-slate-500 mt-1">
-                        Hỗ trợ JPG, PNG, WebP, iPhone HEIC (tự động chuyển JPEG), MP3, MP4...
+                        Supports JPG, PNG, WebP, iPhone HEIC (auto-converts to JPEG), MP3, MP4...
                       </p>
                     </div>
                   )}
@@ -1052,7 +1058,7 @@ export default function MediaAdminPage() {
                   onClick={() => setIsUploadOpen(false)}
                   className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition-all"
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   type="submit"
@@ -1062,7 +1068,7 @@ export default function MediaAdminPage() {
                   {isUploading && (
                     <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   )}
-                  <span>{isUploading ? "Đang Tải Lên Cloudinary…" : "Bắt Đầu Tải Lên"}</span>
+                  <span>{isUploading ? "Uploading to Cloudinary…" : "Start Upload"}</span>
                 </button>
               </div>
             </form>
@@ -1073,10 +1079,10 @@ export default function MediaAdminPage() {
       {/* ── CONFIRM DELETE DIALOG ── */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        title="Xác nhận xóa tệp tin?"
-        message={`Bạn có chắc chắn muốn xóa tệp "${deleteTarget?.filename}" khỏi Cloudinary và hệ thống quản lý? Thao tác này không thể hoàn tác.`}
-        confirmLabel={isDeleting ? "Đang xóa…" : "Xóa vĩnh viễn"}
-        cancelLabel="Hủy"
+        title="Delete File Confirmation"
+        message={`Are you sure you want to delete "${deleteTarget?.filename}" from Cloudinary and the media library? This action cannot be undone.`}
+        confirmLabel={isDeleting ? "Deleting…" : "Delete permanently"}
+        cancelLabel="Cancel"
         isDangerous={true}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTarget(null)}

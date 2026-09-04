@@ -1,86 +1,89 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, createContext, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./couple.module.css";
+import type { CoupleData, CouplePhotoMemory } from "@/lib/types";
 
 // ============================================================
-// 📝 CẤU HÌNH - Thay đổi thông tin ở đây
+// 📝 DỮ LIỆU MẶC ĐỊNH (Fallback khi chưa tải xong API)
 // ============================================================
-const COUPLE_CONFIG = {
-  // Tên cặp đôi
+const DEFAULT_COUPLE_DATA: CoupleData = {
   person1: "Cục Đá",
   person2: "Bé Mèo",
-
-  // Ngày yêu nhau (YYYY-MM-DD)
   anniversary: "2025-05-30 21:00:00",
-
-  // Ngày sinh
+  footerQuote: "\"Tình yêu không phải là nhìn nhau, mà là cùng nhau nhìn về một hướng.\"",
   birthdays: [
     { name: "Anh", date: "2001-01-18", emoji: "🎂", zodiac: "♑ Ma Kết" },
     { name: "Em", date: "2002-07-28", emoji: "🎀", zodiac: "♌ Sư Tử" },
   ],
-
-  // Các ngày đặc biệt
   specialDates: [
-    // { name: "Ngày gặp nhau lần đầu", date: "2023-11-15", emoji: "✨" },
-    // { name: "Ngày hẹn hò đầu tiên", date: "2023-12-20", emoji: "🌹" },
     { name: "Ngày yêu nhau", date: "2025-05-30", emoji: "💕" },
-    // { name: "Valentine", date: "2026-02-14", emoji: "❤️" },
     { name: "Kỷ niệm 1 năm", date: "2026-05-30", emoji: "🎉" },
     { name: "Kỷ niệm 2 năm", date: "2027-05-30", emoji: "🥂" },
   ],
-
-  // Timeline kỷ niệm
   memories: [
     {
+      id: "mem-1",
       date: "15/11/2023",
       title: "Lần đầu gặp nhau",
-      description: "Khoảnh khắc định mệnh khi hai ta vô tình gặp nhau...",
+      description: "Khoảnh khắc định mệnh khi hai ta vô tình gặp nhau giữa dòng đời...",
       emoji: "✨",
     },
-    // {
-    //   date: "20/12/2023",
-    //   title: "Buổi hẹn hò đầu tiên",
-    //   description: "Cùng nhau đi dạo, uống cà phê và nói chuyện không ngừng.",
-    //   emoji: "☕",
-    // },
-    // {
-    //   date: "30/05/2025",
-    //   title: "Chính thức yêu nhau 💕",
-    //   description:
-    //     "Ngày đầu tiên của năm mới, cũng là ngày bắt đầu câu chuyện tình yêu của chúng ta.",
-    //   emoji: "💗",
-    // },
-    // {
-    //   date: "14/02/2026",
-    //   title: "Valentine đầu tiên",
-    //   description:
-    //     "Valentine đầu tiên bên nhau, tràn ngập hoa hồng và chocolate.",
-    //   emoji: "🌹",
-    // },
-    // {
-    //   date: "15/05/2024",
-    //   title: "Sinh nhật Anh",
-    //   description: "Em tổ chức sinh nhật surprise cho anh, hạnh phúc vô cùng!",
-    //   emoji: "🎂",
-    // },
-    // {
-    //   date: "22/09/2024",
-    //   title: "Sinh nhật Em",
-    //   description: "Anh chuẩn bị bất ngờ cho ngày sinh nhật của em.",
-    //   emoji: "🎀",
-    // },
-    // {
-    //   date: "01/01/2025",
-    //   title: "Kỷ niệm 1 năm yêu nhau",
-    //   description:
-    //     "365 ngày bên nhau - mỗi ngày đều là một ngày đáng nhớ!",
-    //   emoji: "🎉",
-    // },
+    {
+      id: "mem-2",
+      date: "30/05/2025",
+      title: "Chính thức yêu nhau 💕",
+      description: "Ngày bắt đầu câu chuyện tình yêu ngọt ngào của chúng ta.",
+      emoji: "💗",
+    },
   ],
-
-  // Bucket list
+  photos: [
+    {
+      id: "photo-1",
+      title: "Hoàng hôn rực rỡ bên bờ biển",
+      description: "Nắm tay nhau ngắm mặt trời lặn, nghe tiếng sóng vỗ và thấy bình yên lạ thường.",
+      image: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=1200&q=80",
+      date: "2024-06-15",
+      location: "Bãi biển Mỹ Khê, Đà Nẵng",
+      category: "Du lịch",
+      featured: true,
+      order: 1,
+    },
+    {
+      id: "photo-2",
+      title: "Buổi hẹn hò đầu tiên",
+      description: "Một ly latte ấm, một nụ cười ngượng ngùng và những câu chuyện không hồi kết.",
+      image: "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=1200&q=80",
+      date: "2023-12-20",
+      location: "The Coffee House quen thuộc",
+      category: "Hẹn hò",
+      featured: true,
+      order: 2,
+    },
+    {
+      id: "photo-3",
+      title: "Chuyến đi săn mây Đà Lạt",
+      description: "Sáng sớm lạnh tê tái nhưng có ai đó nắm tay thật chặt sưởi ấm.",
+      image: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=1200&q=80",
+      date: "2024-09-02",
+      location: "Đồi chè Cầu Đất, Đà Lạt",
+      category: "Du lịch",
+      featured: false,
+      order: 3,
+    },
+    {
+      id: "photo-4",
+      title: "Cùng nhau nấu ăn cuối tuần",
+      description: "Căn bếp nhỏ ngập tràn tiếng cười và mùi thức ăn thơm phức tự tay hai đứa nấu.",
+      image: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80",
+      date: "2024-11-12",
+      location: "Căn bếp nhỏ yêu thương",
+      category: "Đời thường",
+      featured: false,
+      order: 4,
+    },
+  ],
   bucketList: [
     { text: "Đi du lịch Đà Lạt cùng nhau", emoji: "🏔️", done: true },
     { text: "Xem hoàng hôn trên biển", emoji: "🌅", done: true },
@@ -89,12 +92,10 @@ const COUPLE_CONFIG = {
     { text: "Đi camping dưới trời sao", emoji: "⛺", done: false },
     { text: "Đi du lịch nước ngoài", emoji: "✈️", done: false },
     { text: "Cùng nuôi thú cưng", emoji: "🐱", done: false },
-    { text: "Cùng xem pháo hoa đêm giao thừa", emoji: "🎆", done: false },
+    { text: "Cùng xem pháo hoa đêm giao thừa", emoji: "🎆", done: true },
     { text: "Đạp xe quanh hồ", emoji: "🚲", done: false },
     { text: "Học nhảy cùng nhau", emoji: "💃", done: false },
   ],
-
-  // Love Letters
   loveLetters: [
     {
       from: "Anh",
@@ -115,8 +116,6 @@ const COUPLE_CONFIG = {
       date: "22/09/2024",
     },
   ],
-
-  // Favorites / Our Things
   favorites: [
     {
       category: "Bài hát của chúng ta",
@@ -155,16 +154,26 @@ const COUPLE_CONFIG = {
       emoji: "💝",
     },
   ],
-
-  // Quote cuối trang
-  footerQuote:
-    "\"Tình yêu không phải là nhìn nhau, mà là cùng nhau nhìn về một hướng.\"",
 };
 
 // ============================================================
-// 🧭 SECTIONS - dùng chung cho lưới menu trang chủ và bottom nav
+// 🌍 COUPLE CONTEXT
+// ============================================================
+const CoupleContext = createContext<{
+  data: CoupleData;
+  loading: boolean;
+}>({
+  data: DEFAULT_COUPLE_DATA,
+  loading: false,
+});
+
+const useCouple = () => useContext(CoupleContext);
+
+// ============================================================
+// 🧭 SECTIONS
 // ============================================================
 type SectionId =
+  | "photos"
   | "birthdays"
   | "specialDates"
   | "memories"
@@ -173,6 +182,7 @@ type SectionId =
   | "favorites";
 
 const SECTIONS: { id: SectionId; icon: string; title: string; subtitle: string }[] = [
+  { id: "photos", icon: "📸", title: "Hình ảnh kỷ niệm", subtitle: "Khoảnh khắc yêu thương & kỷ niệm" },
   { id: "birthdays", icon: "🎂", title: "Sinh nhật", subtitle: "Đếm ngược đến ngày đặc biệt" },
   { id: "specialDates", icon: "📅", title: "Ngày đặc biệt", subtitle: "Những cột mốc quan trọng" },
   { id: "memories", icon: "📖", title: "Hành trình tình yêu", subtitle: "Những khoảnh khắc đáng nhớ" },
@@ -184,9 +194,6 @@ const SECTIONS: { id: SectionId; icon: string; title: string; subtitle: string }
 // ============================================================
 // 🔧 HELPERS
 // ============================================================
-
-// Parses a "YYYY-MM-DD" string as a local-timezone date (avoids the
-// UTC-midnight parsing that plain `new Date(dateStr)` performs).
 function parseLocalDate(dateStr: string): Date {
   const [year, month, day] = dateStr.split("-").map(Number);
   return new Date(year, month - 1, day);
@@ -202,9 +209,6 @@ function getCountdown(targetDateStr: string) {
   const [, month, day] = targetDateStr.split("-").map(Number);
 
   let targetDate = new Date(now.getFullYear(), month - 1, day);
-  // Compare by calendar day, not by exact timestamp — otherwise the
-  // countdown rolls over to next year the moment midnight passes on
-  // the target's own day, even though it hasn't happened yet today.
   if (targetDate < today) {
     targetDate = new Date(now.getFullYear() + 1, month - 1, day);
   }
@@ -217,10 +221,6 @@ function getCountdown(targetDateStr: string) {
   return { days, hours, minutes, isPast: diff < 0 };
 }
 
-// Special dates are one-time historical milestones (each already has its
-// own explicit year), not recurring yearly events — so a past one should
-// simply read as "already happened", not get rolled forward into a fake
-// upcoming occurrence that can collide with a genuinely future entry.
 function getSpecialDateCountdown(dateStr: string) {
   const now = new Date();
   const today = startOfDay(now);
@@ -239,13 +239,13 @@ function getSpecialDateCountdown(dateStr: string) {
 function FloatingHearts() {
   const hearts = useMemo(() => {
     const heartEmojis = ["💕", "💗", "💖", "💝", "❤️", "💘", "💓", "🩷", "🩵"];
-    return Array.from({ length: 20 }, (_, i) => ({
+    return Array.from({ length: 18 }, (_, i) => ({
       id: i,
       emoji: heartEmojis[i % heartEmojis.length],
       left: `${Math.random() * 100}%`,
       delay: `${Math.random() * 10}s`,
-      duration: `${8 + Math.random() * 12}s`,
-      size: `${0.8 + Math.random() * 1.2}rem`,
+      duration: `${9 + Math.random() * 12}s`,
+      size: `${0.85 + Math.random() * 1.1}rem`,
     }));
   }, []);
 
@@ -273,11 +273,12 @@ function FloatingHearts() {
 // 🏠 HERO SECTION
 // ============================================================
 function HeroSection() {
+  const { data } = useCouple();
   const [elapsed, setElapsed] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
     const update = () => {
-      const start = new Date(COUPLE_CONFIG.anniversary);
+      const start = new Date(data.anniversary);
       const now = new Date();
       const diff = now.getTime() - start.getTime();
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -290,7 +291,7 @@ function HeroSection() {
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [data.anniversary]);
 
   const years = Math.floor(elapsed.days / 365);
   const months = Math.floor((elapsed.days % 365) / 30);
@@ -305,15 +306,15 @@ function HeroSection() {
         transition={{ duration: 0.8 }}
       >
         <div className={styles.coupleNames}>
-          <span className={styles.name}>{COUPLE_CONFIG.person1}</span>
+          <span className={styles.name}>{data.person1}</span>
           <motion.span
             className={styles.heartIcon}
-            animate={{ scale: [1, 1.2, 1] }}
+            animate={{ scale: [1, 1.25, 1] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
           >
             ❤️
           </motion.span>
-          <span className={styles.name}>{COUPLE_CONFIG.person2}</span>
+          <span className={styles.name}>{data.person2}</span>
         </div>
       </motion.div>
 
@@ -334,7 +335,7 @@ function HeroSection() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.5, duration: 0.6 }}
       >
-        📅 Bắt đầu từ {new Date(COUPLE_CONFIG.anniversary).toLocaleDateString("vi-VN", {
+        📅 Bắt đầu từ {new Date(data.anniversary).toLocaleDateString("vi-VN", {
           day: "numeric",
           month: "long",
           year: "numeric",
@@ -369,14 +370,259 @@ function HeroSection() {
 }
 
 // ============================================================
+// 📸 PHOTOS & MEMORIES SECTION (MỚI)
+// ============================================================
+function PhotosSection() {
+  const { data } = useCouple();
+  const photos = data.photos || [];
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  // Extract unique categories
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    photos.forEach((p) => {
+      if (p.category) set.add(p.category.trim());
+    });
+    return ["all", ...Array.from(set)];
+  }, [photos]);
+
+  const filteredPhotos = useMemo(() => {
+    if (selectedCategory === "all") return photos;
+    return photos.filter((p) => p.category === selectedCategory);
+  }, [photos, selectedCategory]);
+
+  const activePhoto = lightboxIndex !== null ? filteredPhotos[lightboxIndex] : null;
+
+  // Key navigation for lightbox
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxIndex(null);
+      if (e.key === "ArrowLeft") {
+        setLightboxIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : filteredPhotos.length - 1));
+      }
+      if (e.key === "ArrowRight") {
+        setLightboxIndex((prev) => (prev !== null && prev < filteredPhotos.length - 1 ? prev + 1 : 0));
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxIndex, filteredPhotos.length]);
+
+  return (
+    <section className={styles.section}>
+      <SectionHeader
+        icon="📸"
+        title="Hình ảnh kỷ niệm"
+        subtitle="Những khoảnh khắc ngọt ngào đã cùng nhau trải qua"
+      />
+
+      {/* Category filter pills */}
+      {categories.length > 1 && (
+        <div className={styles.photoFilterBar}>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              className={`${styles.photoFilterBtn} ${
+                selectedCategory === cat ? styles.photoFilterBtnActive : ""
+              }`}
+              onClick={() => setSelectedCategory(cat)}
+            >
+              {cat === "all" ? "Tất cả khoảnh khắc" : cat}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Photos Grid */}
+      {filteredPhotos.length === 0 ? (
+        <div className={styles.emptyGallery}>
+          <p className="text-xl mb-2">📸</p>
+          <p>Chưa có hình ảnh nào trong mục này.</p>
+        </div>
+      ) : (
+        <div className={styles.photosGrid}>
+          {filteredPhotos.map((photo, index) => (
+            <motion.div
+              key={photo.id || index}
+              className={styles.photoCard}
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.08, duration: 0.5 }}
+              onClick={() => setLightboxIndex(index)}
+            >
+              <div className={styles.photoMediaWrapper}>
+                <img
+                  src={photo.image}
+                  alt={photo.title}
+                  className={styles.photoImage}
+                  loading="lazy"
+                />
+                {photo.category && (
+                  <span className={styles.photoOverlayBadge}>{photo.category}</span>
+                )}
+                {photo.featured && (
+                  <span className={styles.photoFeaturedBadge}>❤️ Yêu thích</span>
+                )}
+              </div>
+
+              <div className={styles.photoContent}>
+                <div className={styles.photoMeta}>
+                  <span>
+                    {new Date(photo.date).toLocaleDateString("vi-VN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                  {photo.location && (
+                    <span className={styles.photoLocation}>📍 {photo.location}</span>
+                  )}
+                </div>
+                <h3 className={styles.photoTitle}>{photo.title}</h3>
+                {photo.description && (
+                  <p className={styles.photoDescription}>{photo.description}</p>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {/* Lightbox Modal */}
+      <AnimatePresence>
+        {activePhoto && (
+          <motion.div
+            className={styles.lightboxOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setLightboxIndex(null)}
+          >
+            <motion.div
+              className={styles.lightboxContainer}
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                type="button"
+                className={styles.lightboxCloseBtn}
+                onClick={() => setLightboxIndex(null)}
+                aria-label="Đóng"
+              >
+                ✕
+              </button>
+
+              {/* Prev / Next Arrows */}
+              {filteredPhotos.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    className={`${styles.lightboxNavBtn} ${styles.lightboxPrev}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setLightboxIndex((prev) =>
+                        prev !== null && prev > 0 ? prev - 1 : filteredPhotos.length - 1
+                      );
+                    }}
+                    aria-label="Ảnh trước"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.lightboxNavBtn} ${styles.lightboxNext}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setLightboxIndex((prev) =>
+                        prev !== null && prev < filteredPhotos.length - 1 ? prev + 1 : 0
+                      );
+                    }}
+                    aria-label="Ảnh tiếp"
+                  >
+                    ›
+                  </button>
+                </>
+              )}
+
+              {/* Image Container */}
+              <div className={styles.lightboxMedia}>
+                <img
+                  src={activePhoto.image}
+                  alt={activePhoto.title}
+                  className={styles.lightboxImage}
+                />
+              </div>
+
+              {/* Story & Details */}
+              <div className={styles.lightboxDetails}>
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    {activePhoto.category && (
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                        {activePhoto.category}
+                      </span>
+                    )}
+                    {activePhoto.featured && (
+                      <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                        ❤️ Featured
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="text-xl md:text-2xl font-bold text-white mb-2 leading-tight">
+                    {activePhoto.title}
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-white/50 mb-4 pb-3 border-b border-white/10">
+                    <span>
+                      📅{" "}
+                      {new Date(activePhoto.date).toLocaleDateString("vi-VN", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </span>
+                    {activePhoto.location && <span>📍 {activePhoto.location}</span>}
+                  </div>
+                  {activePhoto.description ? (
+                    <p className="text-white/80 text-sm md:text-base leading-relaxed whitespace-pre-wrap">
+                      {activePhoto.description}
+                    </p>
+                  ) : (
+                    <p className="text-white/40 italic text-sm">Khoảnh khắc đáng nhớ của chúng mình.</p>
+                  )}
+                </div>
+
+                <div className="pt-4 text-xs text-white/40 border-t border-white/5 flex justify-between items-center">
+                  <span>
+                    {lightboxIndex !== null ? lightboxIndex + 1 : 1} / {filteredPhotos.length}
+                  </span>
+                  <span>Nhấn ESC hoặc bấm ngoài để đóng</span>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
+  );
+}
+
+// ============================================================
 // 🎂 BIRTHDAY SECTION
 // ============================================================
 function BirthdaySection() {
+  const { data } = useCouple();
   return (
     <section className={styles.section}>
       <SectionHeader icon="🎂" title="Sinh nhật" subtitle="Đếm ngược đến ngày đặc biệt" />
       <div className={styles.birthdayGrid}>
-        {COUPLE_CONFIG.birthdays.map((person, i) => {
+        {data.birthdays.map((person, i) => {
           const countdown = getCountdown(person.date);
           return (
             <motion.div
@@ -423,11 +669,12 @@ function BirthdaySection() {
 // 📅 SPECIAL DATES SECTION
 // ============================================================
 function SpecialDatesSection() {
+  const { data } = useCouple();
   return (
     <section className={styles.section}>
       <SectionHeader icon="📅" title="Ngày đặc biệt" subtitle="Những cột mốc quan trọng" />
       <div className={styles.specialDatesGrid}>
-        {COUPLE_CONFIG.specialDates.map((item, i) => (
+        {data.specialDates.map((item, i) => (
           <motion.div
             key={item.name}
             className={styles.specialDateCard}
@@ -461,20 +708,21 @@ function SpecialDatesSection() {
 // 📖 MEMORY TIMELINE
 // ============================================================
 function MemoryTimeline() {
+  const { data } = useCouple();
   return (
     <section className={styles.section}>
       <SectionHeader icon="📖" title="Hành trình tình yêu" subtitle="Những khoảnh khắc đáng nhớ" />
       <div className={styles.timeline}>
-        {COUPLE_CONFIG.memories.map((memory, i) => (
+        {data.memories.map((memory, i) => (
           <motion.div
-            key={i}
+            key={memory.id || i}
             className={styles.timelineItem}
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.15, duration: 0.6 }}
           >
-            <div className={styles.timelineDot}>{memory.emoji}</div>
+            <div className={styles.timelineDot}>{memory.emoji || "💖"}</div>
             <div className={styles.timelineContent}>
               <div className={styles.timelineDate}>{memory.date}</div>
               <div className={styles.timelineTitle}>{memory.title}</div>
@@ -491,7 +739,12 @@ function MemoryTimeline() {
 // ✅ BUCKET LIST
 // ============================================================
 function BucketListSection() {
-  const [items, setItems] = useState(COUPLE_CONFIG.bucketList);
+  const { data } = useCouple();
+  const [items, setItems] = useState(data.bucketList);
+
+  useEffect(() => {
+    setItems(data.bucketList);
+  }, [data.bucketList]);
 
   const toggleItem = (index: number) => {
     setItems((prev) =>
@@ -500,7 +753,7 @@ function BucketListSection() {
   };
 
   const doneCount = items.filter((i) => i.done).length;
-  const progress = Math.round((doneCount / items.length) * 100);
+  const progress = items.length > 0 ? Math.round((doneCount / items.length) * 100) : 0;
 
   return (
     <section className={styles.section}>
@@ -544,9 +797,7 @@ function BucketListSection() {
       </div>
 
       <div className={styles.loveProgress}>
-        <div className={styles.progressTitle}>
-          Tiến độ hoàn thành 💪
-        </div>
+        <div className={styles.progressTitle}>Tiến độ hoàn thành 💪</div>
         <div className={styles.progressBar}>
           <motion.div
             className={styles.progressFill}
@@ -566,11 +817,12 @@ function BucketListSection() {
 // 💌 LOVE LETTERS
 // ============================================================
 function LoveLettersSection() {
+  const { data } = useCouple();
   return (
     <section className={styles.section}>
       <SectionHeader icon="💌" title="Những lời yêu thương" subtitle="Gửi gắm tình cảm" />
       <div className={styles.lettersGrid}>
-        {COUPLE_CONFIG.loveLetters.map((letter, i) => (
+        {data.loveLetters.map((letter, i) => (
           <motion.div
             key={i}
             className={styles.letterCard}
@@ -593,11 +845,12 @@ function LoveLettersSection() {
 // 🎵 FAVORITES / OUR THINGS
 // ============================================================
 function FavoritesSection() {
+  const { data } = useCouple();
   return (
     <section className={styles.section}>
       <SectionHeader icon="💝" title="Những thứ của chúng ta" subtitle="Our favorite things" />
       <div className={styles.favoritesGrid}>
-        {COUPLE_CONFIG.favorites.map((fav, i) => (
+        {data.favorites.map((fav, i) => (
           <motion.div
             key={i}
             className={styles.favoriteCard}
@@ -655,7 +908,7 @@ function SectionMenuGrid({ onSelect }: { onSelect: (id: SectionId) => void }) {
           onClick={() => onSelect(section.id)}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.08, duration: 0.5 }}
+          transition={{ delay: i * 0.07, duration: 0.4 }}
           whileHover={{ y: -6 }}
           whileTap={{ scale: 0.97 }}
         >
@@ -716,6 +969,7 @@ function BottomNav({
 // 🏗️ MAIN PAGE
 // ============================================================
 const SECTION_COMPONENTS: Record<SectionId, React.ComponentType> = {
+  photos: PhotosSection,
   birthdays: BirthdaySection,
   specialDates: SpecialDatesSection,
   memories: MemoryTimeline,
@@ -726,6 +980,24 @@ const SECTION_COMPONENTS: Record<SectionId, React.ComponentType> = {
 
 export default function CouplePage() {
   const [activeSection, setActiveSection] = useState<SectionId | "home">("home");
+  const [coupleData, setCoupleData] = useState<CoupleData>(DEFAULT_COUPLE_DATA);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch live couple data
+  useEffect(() => {
+    fetch("/api/couple")
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw new Error("Failed to fetch");
+      })
+      .then((data: CoupleData) => {
+        if (data && data.person1) {
+          setCoupleData(data);
+        }
+      })
+      .catch((err) => console.log("Using default couple data", err))
+      .finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -735,61 +1007,56 @@ export default function CouplePage() {
     activeSection === "home" ? null : SECTION_COMPONENTS[activeSection];
 
   return (
-    <div className={styles.couplePage}>
-      <FloatingHearts />
+    <CoupleContext.Provider value={{ data: coupleData, loading }}>
+      <div className={styles.couplePage}>
+        <FloatingHearts />
 
-      <AnimatePresence mode="wait">
-        {activeSection === "home" ? (
-          <motion.div
-            key="home"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
-          >
-            <HeroSection />
-
-            <div className={styles.sectionContainer}>
-              <SectionMenuGrid onSelect={setActiveSection} />
-            </div>
-
-            <footer className={styles.coupleFooter}>
-              <motion.p
-                className={styles.footerQuote}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
-              >
-                {COUPLE_CONFIG.footerQuote}
-              </motion.p>
-              <div className={styles.footerHeart}>❤️</div>
-            </footer>
-          </motion.div>
-        ) : (
-          <motion.div
-            key={activeSection}
-            className={styles.sectionView}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
-          >
-            <button
-              type="button"
-              className={styles.backButton}
-              onClick={() => setActiveSection("home")}
+        <AnimatePresence mode="wait">
+          {activeSection === "home" ? (
+            <motion.div
+              key="home"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
             >
-              ← Trang chủ
-            </button>
-            <div className={styles.sectionContainer}>
-              {ActiveComponent && <ActiveComponent />}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <HeroSection />
 
-      <BottomNav active={activeSection} onNavigate={setActiveSection} />
-    </div>
+              <div className={styles.sectionContainer}>
+                <SectionMenuGrid onSelect={setActiveSection} />
+              </div>
+
+              <footer className={styles.coupleFooter}>
+                <motion.p
+                  className={styles.footerQuote}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8 }}
+                >
+                  {coupleData.footerQuote}
+                </motion.p>
+                <div className={styles.footerHeart}>❤️</div>
+              </footer>
+            </motion.div>
+          ) : (
+            <motion.div
+              key={activeSection}
+              className={styles.sectionView}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+            >
+              <div className={styles.sectionContainer}>
+                {ActiveComponent && <ActiveComponent />}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <BottomNav active={activeSection} onNavigate={setActiveSection} />
+      </div>
+    </CoupleContext.Provider>
   );
 }

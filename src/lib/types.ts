@@ -111,7 +111,7 @@ export interface PhotoItem {
 }
 
 // Media Management Types
-export type MediaCategory = "music" | "photo" | "project" | "blog" | "site" | "general";
+export type MediaCategory = "music" | "photo" | "project" | "blog" | "site" | "couple" | "general";
 
 export interface MediaAsset {
   id: string;
@@ -130,4 +130,78 @@ export interface MediaAsset {
   tags: string[];
   createdAt: string;
 }
+
+// Couple & Memories Types
+export interface CouplePhotoMemory {
+  id: string;
+  title: string;
+  description?: string;
+  image: string;
+  date: string;
+  location?: string;
+  category?: string;
+  featured?: boolean;
+  order?: number;
+}
+
+export interface CoupleBirthday {
+  id?: string;
+  name: string;
+  date: string;
+  emoji: string;
+  zodiac: string;
+}
+
+export interface CoupleSpecialDate {
+  id?: string;
+  name: string;
+  date: string;
+  emoji: string;
+}
+
+export interface CoupleTimelineMemory {
+  id?: string;
+  date: string;
+  title: string;
+  description: string;
+  emoji?: string;
+  image?: string;
+}
+
+export interface CoupleBucketItem {
+  id?: string;
+  text: string;
+  emoji: string;
+  done: boolean;
+}
+
+export interface CoupleLoveLetter {
+  id?: string;
+  from: string;
+  content: string;
+  date: string;
+}
+
+export interface CoupleFavorite {
+  id?: string;
+  category: string;
+  title: string;
+  description: string;
+  emoji: string;
+}
+
+export interface CoupleData {
+  person1: string;
+  person2: string;
+  anniversary: string;
+  footerQuote: string;
+  birthdays: CoupleBirthday[];
+  specialDates: CoupleSpecialDate[];
+  memories: CoupleTimelineMemory[];
+  photos: CouplePhotoMemory[];
+  bucketList: CoupleBucketItem[];
+  loveLetters: CoupleLoveLetter[];
+  favorites: CoupleFavorite[];
+}
+
 

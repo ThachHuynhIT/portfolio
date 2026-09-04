@@ -236,7 +236,7 @@ export default function SkillsAdminPage() {
                 category="general"
                 subType="skill"
                 required
-                helperText="Chọn logo từ Cloud, tải lên ảnh mới hoặc dán URL / Emoji (⚛️, ▲, 📘...)."
+                helperText="Select a logo from Cloud, upload a new image, or paste an image URL / Emoji (⚛️, ▲, 📘...)."
               />
 
               <FormField label="Category" id="skill-category" required>

@@ -133,7 +133,7 @@ export default function SiteConfigAdminPage() {
                 onChange={(url) => setConfig({ ...config, ogImage: url })}
                 category="site"
                 subType="og"
-                helperText="Ảnh hiển thị khi chia sẻ trang web lên mạng xã hội (Facebook, Zalo, Twitter...)"
+                helperText="Image preview displayed when sharing your site link on social networks (Facebook, Twitter, LinkedIn...)."
               />
             </div>
           </div>
@@ -204,7 +204,7 @@ export default function SiteConfigAdminPage() {
               }
               category="site"
               subType="avatar"
-              helperText="Ảnh chân dung cá nhân / đại diện tác giả."
+              helperText="Personal portrait photo / author profile avatar."
             />
           </div>
 

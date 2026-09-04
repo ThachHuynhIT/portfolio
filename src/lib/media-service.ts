@@ -53,6 +53,8 @@ export function getCloudinaryFolder(category: MediaCategory, subType?: string): 
       return "portfolio/blog";
     case "site":
       return "portfolio/site";
+    case "couple":
+      return "portfolio/couple";
     case "general":
     default:
       return "portfolio/general";

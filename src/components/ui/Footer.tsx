@@ -8,7 +8,11 @@ export default function Footer() {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
 
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/music")) {
+  if (
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/music") ||
+    pathname?.startsWith("/couple")
+  ) {
     return null;
   }
 

@@ -489,7 +489,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gray-800/60 hover:bg-gray-800 border border-dashed border-gray-700 hover:border-purple-500 text-purple-300 rounded-xl text-xs font-semibold transition-all"
               >
                 <span>📁</span>
-                <span>Mở Thư viện Cloud để chọn ảnh bìa bài hát…</span>
+                <span>Open Cloud Library to choose track cover art…</span>
               </button>
             </div>
           ) : (
@@ -540,7 +540,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                   onClick={() => setIsThumbPickerOpen(true)}
                   className="text-[11px] text-purple-400 hover:underline mt-0.5"
                 >
-                  Đổi ảnh từ thư viện
+                  Change image from library
                 </button>
               </div>
               <button
@@ -551,7 +551,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                   setThumbPreviewUrl(null);
                 }}
                 className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-white/5 transition-all text-xs"
-                title="Xóa ảnh"
+                title="Remove image"
               >
                 ✕
               </button>
@@ -693,7 +693,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
           setThumbFile(null);
           setThumbPreviewUrl(url);
         }}
-        title="Chọn ảnh bìa từ Cloud / Thư viện"
+        title="Choose cover art from Cloud Library"
         defaultCategory="music"
       />
     </div>

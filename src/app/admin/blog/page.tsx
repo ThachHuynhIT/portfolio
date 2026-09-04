@@ -64,7 +64,7 @@ export default function BlogAdminPage() {
   }
 
   return (
-    <div className="max-w-5xl">
+    <>
       <AdminHeader
         title="Blog Posts"
         description="Write new MDX posts, edit existing content, or manage post categories."
@@ -142,6 +142,6 @@ export default function BlogAdminPage() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </>
   );
 }
