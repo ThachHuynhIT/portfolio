@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
+import AdminModal from "@/components/admin/AdminModal";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import { useToast } from "@/context/ToastContext";
@@ -13,6 +14,7 @@ export default function NavLinksAdminPage() {
   const { toast } = useToast();
   const [links, setLinks] = useState<NavLink[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [editingLink, setEditingLink] = useState<NavLink | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<NavLink | null>(null);
@@ -82,6 +84,7 @@ export default function NavLinksAdminPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
 
     const payload = {
       label: formLabel,
@@ -113,6 +116,8 @@ export default function NavLinksAdminPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save nav link";
       toast.error(msg);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -282,70 +287,59 @@ export default function NavLinksAdminPage() {
         </table>
       </div>
 
-      {(isCreating || editingLink) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative z-10 w-full max-w-lg bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl">
-            <h3 className="text-xl font-bold text-white mb-6">
-              {isCreating ? "Add Nav Link" : "Edit Nav Link"}
-            </h3>
+      {/* Modal for Create/Edit */}
+      <AdminModal
+        isOpen={isCreating || !!editingLink}
+        onClose={closeModal}
+        title={isCreating ? "Add Nav Link" : "Edit Nav Link"}
+        subtitle={
+          isCreating
+            ? "Configure link label, URL/anchor target, and header visibility."
+            : `Editing "${editingLink?.label}".`
+        }
+        icon="nav"
+        onSubmit={handleSave}
+        saveLabel={isCreating ? "Save Link" : "Save Changes"}
+        closeLabel="Close"
+        isSaving={isSaving}
+        maxWidth="max-w-lg"
+      >
+        <FormField label="Link Label" id="nav-label" required>
+          <input
+            id="nav-label"
+            type="text"
+            value={formLabel}
+            onChange={(e) => setFormLabel(e.target.value)}
+            placeholder="Home, Projects, Blog..."
+            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            required
+          />
+        </FormField>
 
-            <form onSubmit={handleSave} className="space-y-4">
-              <FormField label="Link Label" id="nav-label" required>
-                <input
-                  id="nav-label"
-                  type="text"
-                  value={formLabel}
-                  onChange={(e) => setFormLabel(e.target.value)}
-                  placeholder="Home, Projects, Blog..."
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  required
-                />
-              </FormField>
+        <FormField label="Target Href" id="nav-href" required hint="e.g. #projects or /blog">
+          <input
+            id="nav-href"
+            type="text"
+            value={formHref}
+            onChange={(e) => setFormHref(e.target.value)}
+            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            required
+          />
+        </FormField>
 
-              <FormField label="Target Href" id="nav-href" required hint="e.g. #projects or /blog">
-                <input
-                  id="nav-href"
-                  type="text"
-                  value={formHref}
-                  onChange={(e) => setFormHref(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  required
-                />
-              </FormField>
-
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="nav-published"
-                  checked={formPublished}
-                  onChange={(e) => setFormPublished(e.target.checked)}
-                  className="rounded border-gray-700 bg-gray-800 text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer"
-                />
-                <label htmlFor="nav-published" className="text-sm text-gray-200 cursor-pointer">
-                  Published (Visible on header navbar)
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-4 py-2 text-sm text-gray-400 hover:text-white bg-gray-800 rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-500 rounded-xl"
-                >
-                  Save Link
-                </button>
-              </div>
-            </form>
-          </div>
+        <div className="flex items-center gap-2 pt-1">
+          <input
+            type="checkbox"
+            id="nav-published"
+            checked={formPublished}
+            onChange={(e) => setFormPublished(e.target.checked)}
+            className="rounded border-white/20 bg-slate-950 text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer"
+          />
+          <label htmlFor="nav-published" className="text-sm text-gray-200 cursor-pointer">
+            Published (Visible on header navbar)
+          </label>
         </div>
-      )}
+      </AdminModal>
 
       <ConfirmDialog
         isOpen={!!deleteTarget}

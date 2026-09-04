@@ -160,9 +160,10 @@ export default function MediaPickerModal({
                 e.stopPropagation();
                 onClose();
               }}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all text-xs"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all text-xs flex items-center justify-center"
+              aria-label="Close modal"
             >
-              ✕
+              <Icon name="close" size={16} />
             </button>
           </div>
         </div>
@@ -274,6 +275,17 @@ export default function MediaPickerModal({
               ))}
             </div>
           )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-3 px-6 py-3 border-t border-white/5 bg-slate-950/60">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

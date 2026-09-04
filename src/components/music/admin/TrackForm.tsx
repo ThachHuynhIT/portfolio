@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
+import AdminFormFooter from "@/components/admin/AdminFormFooter";
 
 type SourceMode = "upload" | "url" | "library";
 
@@ -587,28 +588,21 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
         )}
 
         {/* ── Buttons ── */}
-        <div className="flex items-center gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={isSubmitting || isUploading}
-            className="flex-1 py-3 px-6 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-bold text-sm shadow-lg shadow-purple-500/25 transition-all disabled:opacity-50"
-          >
-            {isUploading
-              ? "☁️ Uploading Media…"
+        <AdminFormFooter
+          closeHref="/admin/music"
+          closeLabel="Cancel"
+          saveLabel={
+            isUploading
+              ? "Uploading Media…"
               : isSubmitting
               ? "Saving Track…"
               : mode === "edit"
               ? "Save Changes"
-              : "Publish Track"}
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push("/admin/music")}
-            className="py-3 px-5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-semibold transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
+              : "Publish Track"
+          }
+          isSaving={isSubmitting || isUploading}
+          className="mt-4 pt-4 border-t border-gray-800"
+        />
       </form>
 
       {/* ── RIGHT: REAL-TIME LIVE PREVIEW ── */}

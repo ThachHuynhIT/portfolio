@@ -19,22 +19,6 @@ export default function BlogPage() {
       </div>
 
       <div className="container mx-auto px-6">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <span className="text-sm text-purple-500 font-medium tracking-wider uppercase mb-4 block">
-            Blog
-          </span>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Thoughts &{" "}
-            <span className="bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent">
-              Insights
-            </span>
-          </h1>
-          <p className="text-white/60 max-w-2xl mx-auto">
-            Exploring web development, 3D graphics, and the future of creative coding.
-          </p>
-        </div>
-
         <BlogList posts={posts} categories={categories} />
       </div>
     </div>

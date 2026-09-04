@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
+import AdminFormFooter from "@/components/admin/AdminFormFooter";
 import FormField from "@/components/admin/FormField";
 import MarkdownPreview from "@/components/admin/MarkdownPreview";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
@@ -83,6 +84,7 @@ export default function NewBlogPostPage() {
         title="Write New Post"
         description="Create a new MDX blog post with frontmatter metadata and live preview."
         icon="blog"
+        closeHref="/admin/blog"
       />
 
       {error && (
@@ -233,22 +235,12 @@ export default function NewBlogPostPage() {
         </div>
 
         {/* Submit Actions */}
-        <div className="flex justify-end gap-4">
-          <button
-            type="button"
-            onClick={() => router.push("/admin/blog")}
-            className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-xl text-sm transition-all"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-medium rounded-xl text-sm shadow-lg shadow-purple-500/25 hover:opacity-90 disabled:opacity-50 transition-all"
-          >
-            {saving ? "Publishing Post..." : "Publish Post"}
-          </button>
-        </div>
+        <AdminFormFooter
+          closeHref="/admin/blog"
+          closeLabel="Cancel"
+          saveLabel="Publish Post"
+          isSaving={saving}
+        />
       </form>
 
       {/* Image Picker Modal for Blog */}

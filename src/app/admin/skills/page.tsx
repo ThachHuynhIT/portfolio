@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
+import AdminModal from "@/components/admin/AdminModal";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
@@ -14,6 +15,7 @@ export default function SkillsAdminPage() {
   const { toast } = useToast();
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Skill | null>(null);
@@ -90,6 +92,7 @@ export default function SkillsAdminPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
 
     const payload = {
       name: formName,
@@ -123,6 +126,8 @@ export default function SkillsAdminPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save skill";
       toast.error(msg);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -263,94 +268,82 @@ export default function SkillsAdminPage() {
       </div>
 
       {/* Modal for Create/Edit */}
-      {(isCreating || editingSkill) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative z-10 w-full max-w-xl bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-white mb-6">
-              {isCreating ? "Add New Skill" : "Edit Skill"}
-            </h3>
+      <AdminModal
+        isOpen={isCreating || !!editingSkill}
+        onClose={closeModal}
+        title={isCreating ? "Add New Skill" : "Edit Skill"}
+        subtitle={
+          isCreating
+            ? "Configure skill title, category, proficiency level, and icon."
+            : `Updating "${editingSkill?.name}".`
+        }
+        icon="skills"
+        onSubmit={handleSave}
+        saveLabel={isCreating ? "Save Skill" : "Save Changes"}
+        closeLabel="Close"
+        isSaving={isSaving}
+        maxWidth="max-w-xl"
+      >
+        <FormField label="Skill Name" id="skill-name" required>
+          <input
+            id="skill-name"
+            type="text"
+            value={formName}
+            onChange={(e) => setFormName(e.target.value)}
+            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            required
+          />
+        </FormField>
 
-            <form onSubmit={handleSave} className="space-y-4">
-              <FormField label="Skill Name" id="skill-name" required>
-                <input
-                  id="skill-name"
-                  type="text"
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  required
-                />
-              </FormField>
+        <MediaImagePicker
+          label="Skill Icon / Image"
+          value={formIcon}
+          onChange={setFormIcon}
+          category="general"
+          subType="skill"
+          required
+          helperText="Select a logo from Cloud, upload a new image, or paste an image URL / Emoji (⚛️, ▲, 📘...)."
+        />
 
-              <MediaImagePicker
-                label="Skill Icon / Image"
-                value={formIcon}
-                onChange={setFormIcon}
-                category="general"
-                subType="skill"
-                required
-                helperText="Select a logo from Cloud, upload a new image, or paste an image URL / Emoji (⚛️, ▲, 📘...)."
-              />
+        <FormField label="Category" id="skill-category" required>
+          <select
+            id="skill-category"
+            value={formCategory}
+            onChange={(e) => setFormCategory(e.target.value as Skill["category"])}
+            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+          >
+            <option value="frontend">Frontend</option>
+            <option value="backend">Backend</option>
+            <option value="tools">Tools</option>
+            <option value="design">Design</option>
+          </select>
+        </FormField>
 
-              <FormField label="Category" id="skill-category" required>
-                <select
-                  id="skill-category"
-                  value={formCategory}
-                  onChange={(e) => setFormCategory(e.target.value as Skill["category"])}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                >
-                  <option value="frontend">Frontend</option>
-                  <option value="backend">Backend</option>
-                  <option value="tools">Tools</option>
-                  <option value="design">Design</option>
-                </select>
-              </FormField>
+        <FormField label={`Proficiency Level (${formLevel}%)`} id="skill-level" required>
+          <input
+            id="skill-level"
+            type="range"
+            min={1}
+            max={100}
+            value={formLevel}
+            onChange={(e) => setFormLevel(Number(e.target.value))}
+            className="w-full accent-purple-500 cursor-pointer"
+          />
+        </FormField>
 
-              <FormField label={`Proficiency Level (${formLevel}%)`} id="skill-level" required>
-                <input
-                  id="skill-level"
-                  type="range"
-                  min={1}
-                  max={100}
-                  value={formLevel}
-                  onChange={(e) => setFormLevel(Number(e.target.value))}
-                  className="w-full accent-purple-500 cursor-pointer"
-                />
-              </FormField>
-
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="skill-published"
-                  checked={formPublished}
-                  onChange={(e) => setFormPublished(e.target.checked)}
-                  className="rounded border-gray-700 bg-gray-800 text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer"
-                />
-                <label htmlFor="skill-published" className="text-sm text-gray-200 cursor-pointer">
-                  Published (Visible on portfolio)
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-4 py-2 text-sm text-gray-400 hover:text-white bg-gray-800 rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-500 rounded-xl"
-                >
-                  Save Skill
-                </button>
-              </div>
-            </form>
-          </div>
+        <div className="flex items-center gap-2 pt-1">
+          <input
+            type="checkbox"
+            id="skill-published"
+            checked={formPublished}
+            onChange={(e) => setFormPublished(e.target.checked)}
+            className="rounded border-white/20 bg-slate-950 text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer"
+          />
+          <label htmlFor="skill-published" className="text-sm text-gray-200 cursor-pointer">
+            Published (Visible on portfolio)
+          </label>
         </div>
-      )}
+      </AdminModal>
 
       {/* Delete Confirmation */}
       <ConfirmDialog

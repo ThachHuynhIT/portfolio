@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import dynamic from "next/dynamic";
 import { AnimatedSection, GlassCard, Button } from "@/components/ui";
 import { siteConfig } from "@/lib/constants";
+import { useTranslation } from "@/context/LanguageContext";
 
 // Dynamic imports for 3D components
 const SceneContainer = dynamic(
@@ -19,21 +20,31 @@ const ParticleField = dynamic(
   { ssr: false }
 );
 
-const contactSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email"),
-  subject: z.string().min(5, "Subject must be at least 5 characters"),
-  message: z.string().min(20, "Message must be at least 20 characters"),
-});
-
-type ContactFormData = z.infer<typeof contactSchema>;
+interface ContactFormData {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
 
 export default function ContactSection() {
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const contactSchema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(2, t("contact.validation.nameMin")),
+        email: z.string().email(t("contact.validation.emailValid")),
+        subject: z.string().min(5, t("contact.validation.subjectMin")),
+        message: z.string().min(20, t("contact.validation.messageMin")),
+      }),
+    [t]
+  );
 
   const {
     register,
@@ -77,17 +88,16 @@ export default function ContactSection() {
         <AnimatedSection>
           <div className="text-center mb-16">
             <span className="text-sm text-cyan-500 font-medium tracking-wider uppercase mb-4 block">
-              Get in Touch
+              {t("contact.badge")}
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Let&apos;s Work{" "}
+              {t("contact.titlePrefix")}
               <span className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
-                Together
+                {t("contact.titleHighlight")}
               </span>
             </h2>
             <p className="text-white/60 max-w-2xl mx-auto">
-              Have a project in mind? I&apos;d love to hear about it. Drop me a message
-              and let&apos;s create something amazing together.
+              {t("contact.subtitle")}
             </p>
           </div>
         </AnimatedSection>
@@ -103,18 +113,17 @@ export default function ContactSection() {
                   className="mb-6 p-4 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-sm text-white/80"
                 >
                   <p>
-                    This form isn&apos;t connected to a live inbox yet, so
-                    nothing was sent automatically.
+                    {t("contact.unconnectedNotice")}
                   </p>
                   <p className="mt-2">
-                    Please{" "}
+                    {t("contact.mailtoPrefix")}
                     <a
                       href={mailtoHref}
                       className="text-cyan-400 underline hover:text-cyan-300"
                     >
-                      click here to send it via your email client
-                    </a>{" "}
-                    instead, or reach me directly at{" "}
+                      {t("contact.mailtoLinkText")}
+                    </a>
+                    {t("contact.mailtoSuffix")}
                     <a
                       href={`mailto:${siteConfig.author.email}`}
                       className="text-cyan-400 underline hover:text-cyan-300"
@@ -132,13 +141,13 @@ export default function ContactSection() {
                     htmlFor="contact-name"
                     className="block text-sm font-medium text-white/70 mb-2"
                   >
-                    Name
+                    {t("contact.nameLabel")}
                   </label>
                   <input
                     {...register("name")}
                     id="contact-name"
                     type="text"
-                    placeholder="Thach Huynh"
+                    placeholder={t("contact.namePlaceholder")}
                     aria-invalid={!!errors.name}
                     aria-describedby={
                       errors.name ? "contact-name-error" : undefined
@@ -161,13 +170,13 @@ export default function ContactSection() {
                     htmlFor="contact-email"
                     className="block text-sm font-medium text-white/70 mb-2"
                   >
-                    Email
+                    {t("contact.emailLabel")}
                   </label>
                   <input
                     {...register("email")}
                     id="contact-email"
                     type="email"
-                    placeholder="john@example.com"
+                    placeholder={t("contact.emailPlaceholder")}
                     aria-invalid={!!errors.email}
                     aria-describedby={
                       errors.email ? "contact-email-error" : undefined
@@ -190,13 +199,13 @@ export default function ContactSection() {
                     htmlFor="contact-subject"
                     className="block text-sm font-medium text-white/70 mb-2"
                   >
-                    Subject
+                    {t("contact.subjectLabel")}
                   </label>
                   <input
                     {...register("subject")}
                     id="contact-subject"
                     type="text"
-                    placeholder="Project Inquiry"
+                    placeholder={t("contact.subjectPlaceholder")}
                     aria-invalid={!!errors.subject}
                     aria-describedby={
                       errors.subject ? "contact-subject-error" : undefined
@@ -219,13 +228,13 @@ export default function ContactSection() {
                     htmlFor="contact-message"
                     className="block text-sm font-medium text-white/70 mb-2"
                   >
-                    Message
+                    {t("contact.messageLabel")}
                   </label>
                   <textarea
                     {...register("message")}
                     id="contact-message"
                     rows={5}
-                    placeholder="Tell me about your project..."
+                    placeholder={t("contact.messagePlaceholder")}
                     aria-invalid={!!errors.message}
                     aria-describedby={
                       errors.message ? "contact-message-error" : undefined
@@ -250,7 +259,7 @@ export default function ContactSection() {
                   className="w-full"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Sending..." : "Send Message"}
+                  {isSubmitting ? t("contact.sendingButton") : t("contact.sendButton")}
                 </Button>
               </form>
             </GlassCard>
@@ -267,7 +276,7 @@ export default function ContactSection() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-1">Email</h3>
+                    <h3 className="text-lg font-semibold text-white mb-1">{t("contact.emailInfo")}</h3>
                     <a
                       href={`mailto:${siteConfig.author.email}`}
                       className="text-white/60 hover:text-white transition-colors"
@@ -287,7 +296,7 @@ export default function ContactSection() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-1">Location</h3>
+                    <h3 className="text-lg font-semibold text-white mb-1">{t("contact.locationInfo")}</h3>
                     <p className="text-white/60">{siteConfig.author.location}</p>
                   </div>
                 </div>
@@ -301,9 +310,9 @@ export default function ContactSection() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-1">Availability</h3>
-                    <p className="text-white/60">Mon - Fri, 9AM - 6PM PST</p>
-                    <p className="text-green-500 text-sm mt-1">● Open for projects</p>
+                    <h3 className="text-lg font-semibold text-white mb-1">{t("contact.availabilityInfo")}</h3>
+                    <p className="text-white/60">{t("contact.workHours")}</p>
+                    <p className="text-green-500 text-sm mt-1">● {t("contact.openForProjects")}</p>
                   </div>
                 </div>
               </GlassCard>

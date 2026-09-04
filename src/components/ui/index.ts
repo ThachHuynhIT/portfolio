@@ -4,3 +4,4 @@ export { default as Button } from "./Button";
 export { default as Navigation } from "./Navigation";
 export { default as Footer } from "./Footer";
 export { default as TiltCard } from "./TiltCard";
+export { default as LanguageSwitcher } from "./LanguageSwitcher";

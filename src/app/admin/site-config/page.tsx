@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
+import AdminFormFooter from "@/components/admin/AdminFormFooter";
 import FormField from "@/components/admin/FormField";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
 import { useToast } from "@/context/ToastContext";
@@ -76,6 +77,7 @@ export default function SiteConfigAdminPage() {
         title="Site Configuration"
         description="Edit site branding, metadata, and author details."
         icon="settings"
+        closeHref="/admin"
       />
 
       <form onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
@@ -242,13 +244,12 @@ export default function SiteConfigAdminPage() {
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-medium rounded-xl shadow-lg shadow-purple-500/25 hover:opacity-90 disabled:opacity-50 transition-all"
-        >
-          {saving ? "Saving Changes..." : "Save Configuration"}
-        </button>
+        <AdminFormFooter
+          closeHref="/admin"
+          closeLabel="Cancel"
+          saveLabel="Save Configuration"
+          isSaving={saving}
+        />
       </form>
     </div>
   );

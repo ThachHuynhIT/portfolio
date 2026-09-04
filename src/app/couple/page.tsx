@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, createContext, useContext } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./couple.module.css";
 import type { CoupleData, CouplePhotoMemory } from "@/lib/types";
+import { useTranslation } from "@/context/LanguageContext";
+import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 
 // ============================================================
 // 📝 DỮ LIỆU MẶC ĐỊNH (Fallback khi chưa tải xong API)
@@ -273,6 +276,7 @@ function FloatingHearts() {
 // 🏠 HERO SECTION
 // ============================================================
 function HeroSection() {
+  const { t, locale } = useTranslation();
   const { data } = useCouple();
   const [elapsed, setElapsed] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
@@ -324,9 +328,9 @@ function HeroSection() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.8 }}
       >
-        {years > 0 ? `${years} năm ` : ""}
-        {months > 0 ? `${months} tháng ` : ""}
-        {remainingDays} ngày bên nhau 💕
+        {years > 0 ? `${years} ${locale === "vi" ? "năm" : "years"} ` : ""}
+        {months > 0 ? `${months} ${locale === "vi" ? "tháng" : "months"} ` : ""}
+        {remainingDays} {locale === "vi" ? "ngày bên nhau 💕" : "days in love 💕"}
       </motion.p>
 
       <motion.div
@@ -335,11 +339,15 @@ function HeroSection() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.5, duration: 0.6 }}
       >
-        📅 Bắt đầu từ {new Date(data.anniversary).toLocaleDateString("vi-VN", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        })}
+        📅 {locale === "vi" ? "Bắt đầu từ" : "Started on"}{" "}
+        {new Date(data.anniversary).toLocaleDateString(
+          locale === "vi" ? "vi-VN" : "en-US",
+          {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          }
+        )}
       </motion.div>
 
       <motion.div
@@ -350,19 +358,19 @@ function HeroSection() {
       >
         <div className={styles.statCard}>
           <div className={styles.statNumber}>{elapsed.days}</div>
-          <div className={styles.statLabel}>Ngày</div>
+          <div className={styles.statLabel}>{t("couple.days")}</div>
         </div>
         <div className={styles.statCard}>
           <div className={styles.statNumber}>{elapsed.hours}</div>
-          <div className={styles.statLabel}>Giờ</div>
+          <div className={styles.statLabel}>{t("couple.hours")}</div>
         </div>
         <div className={styles.statCard}>
           <div className={styles.statNumber}>{elapsed.minutes}</div>
-          <div className={styles.statLabel}>Phút</div>
+          <div className={styles.statLabel}>{t("couple.minutes")}</div>
         </div>
         <div className={styles.statCard}>
           <div className={styles.statNumber}>{elapsed.seconds}</div>
-          <div className={styles.statLabel}>Giây</div>
+          <div className={styles.statLabel}>{t("couple.seconds")}</div>
         </div>
       </motion.div>
     </section>
@@ -979,6 +987,7 @@ const SECTION_COMPONENTS: Record<SectionId, React.ComponentType> = {
 };
 
 export default function CouplePage() {
+  const { t } = useTranslation();
   const [activeSection, setActiveSection] = useState<SectionId | "home">("home");
   const [coupleData, setCoupleData] = useState<CoupleData>(DEFAULT_COUPLE_DATA);
   const [loading, setLoading] = useState(true);
@@ -1010,6 +1019,20 @@ export default function CouplePage() {
     <CoupleContext.Provider value={{ data: coupleData, loading }}>
       <div className={styles.couplePage}>
         <FloatingHearts />
+
+        {/* Floating Top Controls: Back to Portfolio & Language Switcher */}
+        <div className="fixed top-4 left-4 right-4 z-40 flex items-center justify-between pointer-events-none">
+          <Link
+            href="/"
+            className="pointer-events-auto inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/60 hover:bg-black/80 border border-white/10 text-white/80 hover:text-white text-xs backdrop-blur-xl shadow-lg transition-all active:scale-95"
+          >
+            <span>←</span>
+            <span>{t("couple.returnHome")}</span>
+          </Link>
+          <div className="pointer-events-auto">
+            <LanguageSwitcher variant="pill" size="sm" />
+          </div>
+        </div>
 
         <AnimatePresence mode="wait">
           {activeSection === "home" ? (

@@ -5,8 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMusic, TabView } from "@/context/MusicContext";
+import { useTranslation } from "@/context/LanguageContext";
+import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 
 export default function MusicSidebar() {
+  const { t, locale } = useTranslation();
   const {
     tracks,
     genres,
@@ -55,7 +58,7 @@ export default function MusicSidebar() {
           <Link
             href="/"
             className="music-sidebar-brand"
-            title="Return to Main Portfolio"
+            title={t("music.returnHome")}
           >
             <div className="music-sidebar-logo-icon">
               <span>🎧</span>
@@ -70,19 +73,22 @@ export default function MusicSidebar() {
               )}
             </div>
             <div>
-              <h2 className="music-sidebar-title">Vibe Lounge</h2>
-              <span className="music-sidebar-subtitle">Studio & Soundtracks</span>
+              <h2 className="music-sidebar-title">{t("music.title")}</h2>
+              <span className="music-sidebar-subtitle">{t("music.subtitle")}</span>
             </div>
           </Link>
 
-          {/* Close button for mobile drawer */}
-          <button
-            onClick={() => setIsMobileSidebarOpen(false)}
-            className="md:hidden p-2 text-white/60 hover:text-white rounded-lg bg-white/5"
-            aria-label="Close sidebar"
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-1.5">
+            <LanguageSwitcher variant="pill" size="sm" />
+            {/* Close button for mobile drawer */}
+            <button
+              onClick={() => setIsMobileSidebarOpen(false)}
+              className="md:hidden p-2 text-white/60 hover:text-white rounded-lg bg-white/5"
+              aria-label="Close sidebar"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Listen Together Room Trigger Button */}
@@ -96,33 +102,41 @@ export default function MusicSidebar() {
               ? "bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-md shadow-purple-500/20"
               : "bg-gradient-to-r from-purple-600/30 via-indigo-600/30 to-cyan-500/30 hover:from-purple-600/50 hover:to-cyan-500/50 text-white border-white/10"
           }`}
-          title="Create or join a 5-character shared music room"
+          title={t("music.roomTooltip")}
         >
           <span>🎧</span>
-          <span>{room ? `Room #${room.code} (${room.members.length} listening)` : "Listen Together (Room)"}</span>
+          <span>
+            {room
+              ? `Room #${room.code} (${room.members.length})`
+              : t("music.roomButton")}
+          </span>
         </button>
 
         {/* Back to Portfolio Button */}
         <Link
           href="/"
           className="music-back-portfolio-btn"
-          title="Go back to portfolio homepage"
+          title={t("music.returnHome")}
         >
           <span className="text-xs">←</span>
-          <span>Back to Portfolio</span>
+          <span>{t("common.backToPortfolio")}</span>
         </Link>
       </div>
 
       {/* ── 2. Navigation Hub Tabs ── */}
       <div className="music-sidebar-section">
-        <span className="music-sidebar-heading">STUDIO NAVIGATION</span>
+        <span className="music-sidebar-heading">
+          {locale === "vi" ? "ĐIỀU HƯỚNG STUDIO" : "STUDIO NAVIGATION"}
+        </span>
         <nav className="music-sidebar-nav">
           <button
             onClick={() => handleTabClick("player")}
             className={`music-nav-item ${activeTab === "player" ? "music-nav-item--active" : ""}`}
           >
             <span className="music-nav-icon">🎛️</span>
-            <span className="flex-1 text-left font-medium">Turntable Deck</span>
+            <span className="flex-1 text-left font-medium">
+              {locale === "vi" ? "Đĩa Than Vinyl" : "Turntable Deck"}
+            </span>
             {activeTab === "player" && isPlaying && (
               <span className="music-nav-live-dot" />
             )}
@@ -133,7 +147,9 @@ export default function MusicSidebar() {
             className={`music-nav-item ${activeTab === "charts" ? "music-nav-item--active" : ""}`}
           >
             <span className="music-nav-icon">🏆</span>
-            <span className="flex-1 text-left font-medium">Bảng Xếp Hạng</span>
+            <span className="flex-1 text-left font-medium">
+              {locale === "vi" ? "Bảng Xếp Hạng" : "Top Charts"}
+            </span>
             <span className="music-nav-badge text-emerald-400 font-bold bg-emerald-500/15 border border-emerald-500/30">Top</span>
           </button>
 
@@ -142,7 +158,9 @@ export default function MusicSidebar() {
             className={`music-nav-item ${activeTab === "queue" ? "music-nav-item--active" : ""}`}
           >
             <span className="music-nav-icon">📑</span>
-            <span className="flex-1 text-left font-medium">Up Next Queue</span>
+            <span className="flex-1 text-left font-medium">
+              {locale === "vi" ? "Hàng Đợi Bài Hát" : "Up Next Queue"}
+            </span>
             <span className="music-nav-badge">{tracks.length}</span>
           </button>
 
@@ -151,7 +169,9 @@ export default function MusicSidebar() {
             className={`music-nav-item ${activeTab === "info" ? "music-nav-item--active" : ""}`}
           >
             <span className="music-nav-icon">ℹ️</span>
-            <span className="flex-1 text-left font-medium">Audio Specs</span>
+            <span className="flex-1 text-left font-medium">
+              {locale === "vi" ? "Thông Số Âm Thanh" : "Audio Specs"}
+            </span>
           </button>
 
           <button
@@ -159,7 +179,9 @@ export default function MusicSidebar() {
             className={`music-nav-item ${activeTab === "favorites" ? "music-nav-item--active music-nav-item--liked" : ""}`}
           >
             <span className="music-nav-icon">❤️</span>
-            <span className="flex-1 text-left font-medium">Favorite Tracks</span>
+            <span className="flex-1 text-left font-medium">
+              {locale === "vi" ? "Bài Hát Yêu Thích" : "Favorite Tracks"}
+            </span>
             <span className="music-nav-badge music-nav-badge--liked">
               {likedTrackIds.size}
             </span>
@@ -170,13 +192,15 @@ export default function MusicSidebar() {
       {/* ── 3. Mood & Genre Filters ── */}
       <div className="music-sidebar-section flex-1 min-h-0 flex flex-col">
         <div className="flex items-center justify-between mb-2">
-          <span className="music-sidebar-heading !mb-0">GENRES & MOODS</span>
+          <span className="music-sidebar-heading !mb-0">
+            {locale === "vi" ? "THỂ LOẠI & TÂM TRẠNG" : "GENRES & MOODS"}
+          </span>
           {selectedGenre !== "All" && (
             <button
               onClick={() => setSelectedGenre("All")}
               className="text-[11px] text-purple-400 hover:text-purple-300 underline"
             >
-              Reset
+              {locale === "vi" ? "Đặt lại" : "Reset"}
             </button>
           )}
         </div>

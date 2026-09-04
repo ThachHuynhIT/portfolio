@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
+import AdminModal from "@/components/admin/AdminModal";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
@@ -14,6 +15,7 @@ export default function ProjectsAdminPage() {
   const { toast } = useToast();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
@@ -102,6 +104,7 @@ export default function ProjectsAdminPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
 
     const payload = {
       title: formTitle,
@@ -139,6 +142,8 @@ export default function ProjectsAdminPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save project";
       toast.error(msg);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -275,133 +280,121 @@ export default function ProjectsAdminPage() {
       </div>
 
       {/* Modal for Create/Edit */}
-      {(isCreating || editingProject) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative z-10 w-full max-w-2xl bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-white mb-6">
-              {isCreating ? "Add New Project" : "Edit Project"}
-            </h3>
+      <AdminModal
+        isOpen={isCreating || !!editingProject}
+        onClose={closeModal}
+        title={isCreating ? "Add New Project" : "Edit Project"}
+        subtitle={
+          isCreating
+            ? "Fill in project details, tech stack, and URLs to feature in your portfolio."
+            : `Editing "${editingProject?.title}".`
+        }
+        icon="projects"
+        onSubmit={handleSave}
+        saveLabel={isCreating ? "Save Project" : "Save Changes"}
+        closeLabel="Close"
+        isSaving={isSaving}
+        maxWidth="max-w-2xl"
+      >
+        <FormField label="Project Title" id="proj-title" required>
+          <input
+            id="proj-title"
+            type="text"
+            value={formTitle}
+            onChange={(e) => setFormTitle(e.target.value)}
+            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            required
+          />
+        </FormField>
 
-            <form onSubmit={handleSave} className="space-y-4">
-              <FormField label="Project Title" id="proj-title" required>
-                <input
-                  id="proj-title"
-                  type="text"
-                  value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  required
-                />
-              </FormField>
+        <FormField label="Short Description" id="proj-desc" required>
+          <textarea
+            id="proj-desc"
+            rows={2}
+            value={formDesc}
+            onChange={(e) => setFormDesc(e.target.value)}
+            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            required
+          />
+        </FormField>
 
-              <FormField label="Short Description" id="proj-desc" required>
-                <textarea
-                  id="proj-desc"
-                  rows={2}
-                  value={formDesc}
-                  onChange={(e) => setFormDesc(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  required
-                />
-              </FormField>
+        <FormField label="Long Description (Optional Markdown/Details)" id="proj-long-desc">
+          <textarea
+            id="proj-long-desc"
+            rows={4}
+            value={formLongDesc}
+            onChange={(e) => setFormLongDesc(e.target.value)}
+            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+          />
+        </FormField>
 
-              <FormField label="Long Description (Optional Markdown/Details)" id="proj-long-desc">
-                <textarea
-                  id="proj-long-desc"
-                  rows={4}
-                  value={formLongDesc}
-                  onChange={(e) => setFormLongDesc(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                />
-              </FormField>
+        <MediaImagePicker
+          label="Cover Image"
+          value={formImage}
+          onChange={setFormImage}
+          category="project"
+          subType="cover"
+          required
+          helperText="Select or upload a high-resolution screenshot or mockup of your project."
+        />
 
-              <MediaImagePicker
-                label="Cover Image"
-                value={formImage}
-                onChange={setFormImage}
-                category="project"
-                subType="cover"
-                required
-                helperText="Select or upload a high-resolution screenshot or mockup of your project."
-              />
+        <FormField label="Tech Stack Tags (Comma separated)" id="proj-tags" required>
+          <input
+            id="proj-tags"
+            type="text"
+            value={formTags}
+            onChange={(e) => setFormTags(e.target.value)}
+            placeholder="Next.js, TypeScript, TailwindCSS, Three.js"
+            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            required
+          />
+        </FormField>
 
-              <FormField label="Tech Stack Tags (Comma separated)" id="proj-tags" required>
-                <input
-                  id="proj-tags"
-                  type="text"
-                  value={formTags}
-                  onChange={(e) => setFormTags(e.target.value)}
-                  placeholder="Next.js, TypeScript, TailwindCSS, Three.js"
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  required
-                />
-              </FormField>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField label="Live Demo URL" id="proj-live">
-                  <input
-                    id="proj-live"
-                    type="url"
-                    value={formLiveUrl}
-                    onChange={(e) => setFormLiveUrl(e.target.value)}
-                    placeholder="https://myproject.com"
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  />
-                </FormField>
-                <FormField label="GitHub Repository URL" id="proj-github">
-                  <input
-                    id="proj-github"
-                    type="url"
-                    value={formGithubUrl}
-                    onChange={(e) => setFormGithubUrl(e.target.value)}
-                    placeholder="https://github.com/username/repo"
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  />
-                </FormField>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-6 pt-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formFeatured}
-                    onChange={(e) => setFormFeatured(e.target.checked)}
-                    className="rounded border-gray-700 bg-gray-800 text-purple-600 focus:ring-purple-500 w-4 h-4"
-                  />
-                  <span className="text-sm font-medium text-gray-300">Feature this project</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formPublished}
-                    onChange={(e) => setFormPublished(e.target.checked)}
-                    className="rounded border-gray-700 bg-gray-800 text-purple-600 focus:ring-purple-500 w-4 h-4"
-                  />
-                  <span className="text-sm font-medium text-emerald-400">Published (Visible on portfolio)</span>
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-4 py-2 text-sm text-gray-400 hover:text-white bg-gray-800 rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-500 rounded-xl"
-                >
-                  Save Project
-                </button>
-              </div>
-            </form>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField label="Live Demo URL" id="proj-live">
+            <input
+              id="proj-live"
+              type="url"
+              value={formLiveUrl}
+              onChange={(e) => setFormLiveUrl(e.target.value)}
+              placeholder="https://myproject.com"
+              className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            />
+          </FormField>
+          <FormField label="GitHub Repository URL" id="proj-github">
+            <input
+              id="proj-github"
+              type="url"
+              value={formGithubUrl}
+              onChange={(e) => setFormGithubUrl(e.target.value)}
+              placeholder="https://github.com/username/repo"
+              className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            />
+          </FormField>
         </div>
-      )}
+
+        <div className="flex flex-wrap items-center gap-6 pt-2">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formFeatured}
+              onChange={(e) => setFormFeatured(e.target.checked)}
+              className="rounded border-white/20 bg-slate-950 text-purple-600 focus:ring-purple-500 w-4 h-4"
+            />
+            <span className="text-sm font-medium text-gray-300">Feature this project</span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formPublished}
+              onChange={(e) => setFormPublished(e.target.checked)}
+              className="rounded border-white/20 bg-slate-950 text-purple-600 focus:ring-purple-500 w-4 h-4"
+            />
+            <span className="text-sm font-medium text-emerald-400">Published (Visible on portfolio)</span>
+          </label>
+        </div>
+      </AdminModal>
 
       {/* Delete Confirmation */}
       <ConfirmDialog

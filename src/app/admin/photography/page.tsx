@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import AdminHeader from "@/components/admin/AdminHeader";
+import AdminModal from "@/components/admin/AdminModal";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import { useToast } from "@/context/ToastContext";
@@ -28,6 +29,7 @@ export default function PhotographyAdminPage() {
   const { toast } = useToast();
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [editingPhoto, setEditingPhoto] = useState<PhotoItem | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<PhotoItem | null>(null);
@@ -351,6 +353,7 @@ export default function PhotographyAdminPage() {
       return;
     }
 
+    setIsSaving(true);
     const payload = {
       title: formTitle.trim(),
       category,
@@ -414,6 +417,8 @@ export default function PhotographyAdminPage() {
     } catch (err) {
       console.error(err);
       toast.error("Server connection error.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -646,66 +651,60 @@ export default function PhotographyAdminPage() {
       )}
 
       {/* ── Create / Edit Modal ── */}
-      {(isCreating || editingPhoto) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-950 border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl my-8">
-            <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-6">
-              <div>
-                <h2 className="text-lg font-bold text-white">
-                  {isCreating ? "Add New Artwork" : "Edit Artwork"}
-                </h2>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Upload photos (supports JPG, PNG, iPhone HEIC auto-converted) or videos directly to Cloudinary.
-                </p>
-              </div>
-              <button
-                onClick={closeModal}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/5"
-              >
-                <Icon name="close" size={16} />
-              </button>
-            </div>
+      {/* ── Create / Edit Modal ── */}
+      <AdminModal
+        isOpen={isCreating || !!editingPhoto}
+        onClose={closeModal}
+        title={isCreating ? "Add New Artwork" : "Edit Artwork"}
+        subtitle="Upload photos (supports JPG, PNG, iPhone HEIC auto-converted) or videos directly to Cloudinary."
+        icon="camera"
+        onSubmit={handleSave}
+        saveLabel={isCreating ? "Create Artwork" : "Save Changes"}
+        closeLabel="Close"
+        isSaving={isSaving}
+        saveDisabled={uploadingImage || uploadingBeforeImage || uploadingVideo}
+        maxWidth="max-w-2xl"
+      >
+        {/* Media Type Switcher: Photo vs Video */}
+        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white/[0.03] border border-white/10 mb-6">
+          <button
+            type="button"
+            onClick={() => setFormMediaType("image")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-semibold transition-all ${
+              formMediaType === "image"
+                ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Icon name="image" size={14} />
+            <span>Photo / Image</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setFormMediaType("video");
+              if (!formCategory) setFormCategory("Video & Motion");
+            }}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-semibold transition-all ${
+              formMediaType === "video"
+                ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Icon name="video" size={14} />
+            <span>Video / Motion</span>
+          </button>
+        </div>
 
-            {/* Media Type Switcher: Photo vs Video */}
-            <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white/[0.03] border border-white/10 mb-6">
-              <button
-                type="button"
-                onClick={() => setFormMediaType("image")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  formMediaType === "image"
-                    ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                <Icon name="image" size={14} />
-                <span>Photo / Image</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setFormMediaType("video");
-                  if (!formCategory) setFormCategory("Video & Motion");
-                }}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  formMediaType === "video"
-                    ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                <Icon name="video" size={14} />
-                <span>Video / Motion</span>
-              </button>
-            </div>
+        {/* EXIF auto-fill notification banner */}
+        {exifNotice && (
+          <div className="mb-6 p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs flex items-center gap-2.5">
+            <Icon name="aperture" size={16} className="text-cyan-400 flex-shrink-0" />
+            <span>{exifNotice}</span>
+          </div>
+        )}
 
-            {/* EXIF auto-fill notification banner */}
-            {exifNotice && (
-              <div className="mb-6 p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs flex items-center gap-2.5">
-                <Icon name="aperture" size={16} className="text-cyan-400 flex-shrink-0" />
-                <span>{exifNotice}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSave} className="space-y-6">
+        <div className="space-y-6">
               {/* ── Section 1: Upload File & Media to Cloudinary ── */}
               <div className="space-y-4">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
@@ -1212,27 +1211,8 @@ export default function PhotographyAdminPage() {
                 </FormField>
               </div>
 
-              {/* Modal Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={uploadingImage || uploadingBeforeImage || uploadingVideo}
-                  className="px-5 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-600 to-cyan-500 text-white shadow-lg shadow-purple-500/20 active:scale-95 transition-all disabled:opacity-50"
-                >
-                  {isCreating ? "Create Artwork" : "Save Changes"}
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
-      )}
+      </AdminModal>
 
       {/* ── Confirm Delete Dialog ── */}
       <ConfirmDialog

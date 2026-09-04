@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui";
 import { siteConfig } from "@/lib/constants";
+import { useTranslation } from "@/context/LanguageContext";
 
 // Dynamic imports for 3D components to avoid SSR issues with Three.js
 const SceneContainer = dynamic(
@@ -18,6 +19,7 @@ const Hero3DScene = dynamic(
 );
 
 export default function HeroSection() {
+  const { t } = useTranslation();
   // Mutable ref instead of React state: Hero3DScene reads x/y inside an
   // r3f useFrame loop every animation frame, so mutating this object in
   // place avoids re-rendering the whole Hero tree on every mousemove.
@@ -74,7 +76,7 @@ export default function HeroSection() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-8"
           >
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-sm text-white/70">Available for projects</span>
+            <span className="text-sm text-white/70">{t("hero.available")}</span>
           </motion.div>
 
           {/* Heading */}
@@ -84,7 +86,7 @@ export default function HeroSection() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6"
           >
-            <span className="text-white">Hi, I&apos;m </span>
+            <span className="text-white">{t("hero.greetingPrefix")}</span>
             <span className="bg-gradient-to-r from-purple-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent">
               {siteConfig.author.name.split(" ")[0]}
             </span>
@@ -97,7 +99,7 @@ export default function HeroSection() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-xl md:text-2xl text-white/60 mb-12 max-w-2xl mx-auto"
           >
-            {siteConfig.author.bio}
+            {t("hero.bio")}
           </motion.p>
 
           {/* CTA Buttons */}
@@ -108,10 +110,10 @@ export default function HeroSection() {
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Button size="lg" variant="primary" onClick={handleViewWork}>
-              View My Work
+              {t("hero.viewWork")}
             </Button>
             <Button size="lg" variant="outline" onClick={handleDownloadCV}>
-              Download CV
+              {t("hero.downloadCV")}
             </Button>
           </motion.div>
         </div>

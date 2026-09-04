@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
+import AdminModal from "@/components/admin/AdminModal";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
@@ -14,6 +15,7 @@ export default function SocialLinksAdminPage() {
   const { toast } = useToast();
   const [links, setLinks] = useState<SocialLink[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [editingLink, setEditingLink] = useState<SocialLink | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<SocialLink | null>(null);
@@ -86,6 +88,7 @@ export default function SocialLinksAdminPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
 
     const payload = {
       name: formName,
@@ -118,6 +121,8 @@ export default function SocialLinksAdminPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save social link";
       toast.error(msg);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -240,103 +245,92 @@ export default function SocialLinksAdminPage() {
         </table>
       </div>
 
-      {(isCreating || editingLink) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative z-10 w-full max-w-xl bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-white mb-6">
-              {isCreating ? "Add Social Link" : "Edit Social Link"}
-            </h3>
+      {/* Modal for Create/Edit */}
+      <AdminModal
+        isOpen={isCreating || !!editingLink}
+        onClose={closeModal}
+        title={isCreating ? "Add Social Link" : "Edit Social Link"}
+        subtitle={
+          isCreating
+            ? "Configure social link platform name, icon, and external destination URL."
+            : `Editing "${editingLink?.name}".`
+        }
+        icon="links"
+        onSubmit={handleSave}
+        saveLabel={isCreating ? "Save Link" : "Save Changes"}
+        closeLabel="Close"
+        isSaving={isSaving}
+        maxWidth="max-w-xl"
+      >
+        <FormField label="Platform Name" id="social-name" required>
+          <input
+            id="social-name"
+            type="text"
+            value={formName}
+            onChange={(e) => setFormName(e.target.value)}
+            placeholder="GitHub, LinkedIn, Twitter, Facebook..."
+            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            required
+          />
+        </FormField>
 
-            <form onSubmit={handleSave} className="space-y-4">
-              <FormField label="Platform Name" id="social-name" required>
-                <input
-                  id="social-name"
-                  type="text"
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  placeholder="GitHub, LinkedIn, Twitter, Facebook..."
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  required
-                />
-              </FormField>
-
-              <div className="space-y-1.5">
-                <MediaImagePicker
-                  label="Icon / Logo"
-                  value={formIcon}
-                  onChange={setFormIcon}
-                  category="general"
-                  subType="social"
-                  required
-                  helperText="Choose an icon from Cloud, upload a custom logo, or pick a preset keyword below."
-                />
-                <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  <span className="text-[10px] text-slate-500 mr-1">Suggested presets:</span>
-                  {["github", "linkedin", "twitter", "facebook", "youtube", "instagram", "discord", "telegram"].map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setFormIcon(key);
-                      }}
-                      className={`px-2 py-0.5 rounded text-[10px] border transition-all ${
-                        formIcon === key
-                          ? "bg-purple-600 text-white border-purple-500 font-semibold"
-                          : "bg-gray-800 text-gray-400 border-gray-700 hover:text-white"
-                      }`}
-                    >
-                      {key}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <FormField label="URL" id="social-url" required>
-                <input
-                  id="social-url"
-                  type="url"
-                  value={formUrl}
-                  onChange={(e) => setFormUrl(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  required
-                />
-              </FormField>
-
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="social-published"
-                  checked={formPublished}
-                  onChange={(e) => setFormPublished(e.target.checked)}
-                  className="rounded border-gray-700 bg-gray-800 text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer"
-                />
-                <label htmlFor="social-published" className="text-sm text-gray-200 cursor-pointer">
-                  Published (Visible publicly on website)
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-4 py-2 text-sm text-gray-400 hover:text-white bg-gray-800 rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-500 rounded-xl"
-                >
-                  Save Link
-                </button>
-              </div>
-            </form>
+        <div className="space-y-1.5">
+          <MediaImagePicker
+            label="Icon / Logo"
+            value={formIcon}
+            onChange={setFormIcon}
+            category="general"
+            subType="social"
+            required
+            helperText="Choose an icon from Cloud, upload a custom logo, or pick a preset keyword below."
+          />
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            <span className="text-[10px] text-slate-500 mr-1">Suggested presets:</span>
+            {["github", "linkedin", "twitter", "facebook", "youtube", "instagram", "discord", "telegram"].map((key) => (
+              <button
+                key={key}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setFormIcon(key);
+                }}
+                className={`px-2 py-0.5 rounded text-[10px] border transition-all ${
+                  formIcon === key
+                    ? "bg-purple-600 text-white border-purple-500 font-semibold"
+                    : "bg-slate-950 text-gray-400 border-white/10 hover:text-white"
+                }`}
+              >
+                {key}
+              </button>
+            ))}
           </div>
         </div>
-      )}
+
+        <FormField label="URL" id="social-url" required>
+          <input
+            id="social-url"
+            type="url"
+            value={formUrl}
+            onChange={(e) => setFormUrl(e.target.value)}
+            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            required
+          />
+        </FormField>
+
+        <div className="flex items-center gap-2 pt-1">
+          <input
+            type="checkbox"
+            id="social-published"
+            checked={formPublished}
+            onChange={(e) => setFormPublished(e.target.checked)}
+            className="rounded border-white/20 bg-slate-950 text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer"
+          />
+          <label htmlFor="social-published" className="text-sm text-gray-200 cursor-pointer">
+            Published (Visible publicly on website)
+          </label>
+        </div>
+      </AdminModal>
 
       <ConfirmDialog
         isOpen={!!deleteTarget}

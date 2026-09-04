@@ -10,6 +10,7 @@ import CompareLayout from "./CompareLayout";
 import StoryLayout from "./StoryLayout";
 import PhotoLightboxModal from "./PhotoLightboxModal";
 import Icon from "@/components/ui/Icon";
+import { useTranslation } from "@/context/LanguageContext";
 
 type LayoutMode = "masonry" | "grid" | "compare" | "story";
 
@@ -18,6 +19,7 @@ interface PhotographyGalleryProps {
 }
 
 export default function PhotographyGallery({ initialPhotos }: PhotographyGalleryProps) {
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("masonry");
   const [searchQuery, setSearchQuery] = useState("");
@@ -114,39 +116,39 @@ export default function PhotographyGallery({ initialPhotos }: PhotographyGallery
           >
             <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest bg-black/60 text-cyan-300 border border-cyan-500/30 backdrop-blur-md mb-5 shadow-sm">
               <Icon name="camera" size={14} />
-              <span>Visual Showcase & Color Grading</span>
+              <span>{t("photography.badge")}</span>
             </span>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-6 text-white drop-shadow-lg">
-              Captured Moments &{" "}
+              {t("photography.titlePrefix")}
               <span className="bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">
-                Color Grading Art
+                {t("photography.titleHighlight")}
               </span>
             </h1>
 
             <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto font-light drop-shadow">
-              A curated collection of photography and visual stories — spanning street, portrait, landscape, and in-depth color grading experiments.
+              {t("photography.subtitle")}
             </p>
 
             {/* Quick Stats Badges */}
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mt-8 text-xs font-mono">
               <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-slate-300 shadow-md">
                 <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-                <span><strong>{stats.total}</strong> Artworks</span>
+                <span><strong>{stats.total}</strong> {t("photography.totalPhotos")}</span>
               </div>
               {stats.featuredCount > 0 && (
                 <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 backdrop-blur-md text-amber-300 shadow-md">
                   <span className="text-amber-400">⭐</span>
-                  <span><strong>{stats.featuredCount}</strong> Featured</span>
+                  <span><strong>{stats.featuredCount}</strong> {t("photography.featured")}</span>
                 </div>
               )}
               <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-slate-300 shadow-md">
                 <span className="w-2 h-2 rounded-full bg-cyan-400" />
-                <span><strong>{stats.catsCount}</strong> Categories</span>
+                <span><strong>{stats.catsCount}</strong> {t("photography.categoriesCount")}</span>
               </div>
               <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-slate-300 shadow-md">
                 <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                <span><strong>{stats.withBeforeAfter}</strong> Before/After Sets</span>
+                <span><strong>{stats.withBeforeAfter}</strong> {t("photography.beforeAfterCount")}</span>
               </div>
               {stats.videosCount > 0 && (
                 <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-cyan-500/30 backdrop-blur-md text-cyan-300 shadow-md">
@@ -173,7 +175,7 @@ export default function PhotographyGallery({ initialPhotos }: PhotographyGallery
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search artworks, locations, gear..."
+                placeholder={t("photography.searchPlaceholder")}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 transition-all"
               />
               {searchQuery && (
@@ -200,7 +202,7 @@ export default function PhotographyGallery({ initialPhotos }: PhotographyGallery
                 }`}
               >
                 <Icon name="masonry" size={14} />
-                <span className="hidden sm:inline">Masonry</span>
+                <span className="hidden sm:inline">{t("photography.layouts.masonry")}</span>
               </button>
 
               <button
@@ -214,7 +216,7 @@ export default function PhotographyGallery({ initialPhotos }: PhotographyGallery
                 }`}
               >
                 <Icon name="grid" size={14} />
-                <span className="hidden sm:inline">Grid</span>
+                <span className="hidden sm:inline">{t("photography.layouts.grid")}</span>
               </button>
 
               <button
@@ -228,7 +230,7 @@ export default function PhotographyGallery({ initialPhotos }: PhotographyGallery
                 }`}
               >
                 <Icon name="compare" size={14} />
-                <span className="hidden sm:inline">Before/After</span>
+                <span className="hidden sm:inline">{t("photography.layouts.compare")}</span>
               </button>
 
               <button
@@ -242,7 +244,7 @@ export default function PhotographyGallery({ initialPhotos }: PhotographyGallery
                 }`}
               >
                 <Icon name="image" size={14} />
-                <span className="hidden sm:inline">Editorial</span>
+                <span className="hidden sm:inline">{t("photography.layouts.story")}</span>
               </button>
             </div>
           </div>
@@ -258,7 +260,7 @@ export default function PhotographyGallery({ initialPhotos }: PhotographyGallery
                   : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5"
               }`}
             >
-              All ({initialPhotos.length})
+              {t("photography.all")} ({initialPhotos.length})
             </button>
 
             {stats.featuredCount > 0 && (
@@ -271,7 +273,7 @@ export default function PhotographyGallery({ initialPhotos }: PhotographyGallery
                     : "bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/30"
                 }`}
               >
-                <span>⭐ Nổi bật</span>
+                <span>⭐ {t("photography.featured")}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full ${
                     selectedCategory === "featured"

@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
+import AdminModal from "@/components/admin/AdminModal";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
@@ -784,9 +785,11 @@ export default function MediaAdminPage() {
                   </div>
                   <button
                     onClick={() => setSelectedAsset(null)}
-                    className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all text-sm"
+                    className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 active:scale-95 transition-all focus:outline-none"
+                    title="Close"
+                    aria-label="Close"
                   >
-                    ✕
+                    <Icon name="close" size={18} />
                   </button>
                 </div>
 
@@ -901,15 +904,21 @@ export default function MediaAdminPage() {
                     href={selectedAsset.secureUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex-1 py-1.5 px-3 bg-white/5 hover:bg-white/10 text-slate-300 text-center rounded-xl text-xs font-medium transition-all"
+                    className="flex-1 py-2 px-3 bg-white/5 hover:bg-white/10 text-slate-300 text-center rounded-xl text-xs font-medium transition-all"
                   >
                     Open in new tab ↗
                   </a>
                   <button
                     onClick={() => setDeleteTarget(selectedAsset)}
-                    className="py-1.5 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-medium transition-all"
+                    className="py-2 px-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-medium transition-all"
                   >
                     Delete file
+                  </button>
+                  <button
+                    onClick={() => setSelectedAsset(null)}
+                    className="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition-all"
+                  >
+                    Close
                   </button>
                 </div>
               </div>
@@ -919,162 +928,157 @@ export default function MediaAdminPage() {
       )}
 
       {/* ── UNIVERSAL UPLOAD MODAL ── */}
-      {isUploadOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            onClick={() => !isUploading && setIsUploadOpen(false)}
-          />
+      <AdminModal
+        isOpen={isUploadOpen}
+        onClose={() => !isUploading && setIsUploadOpen(false)}
+        title="Upload New File"
+        subtitle="Standardized prefix auto-generated and stored into Cloudinary folder by category."
+        icon="camera"
+        onSubmit={handleUploadSubmit}
+        saveLabel={isUploading ? "Uploading to Cloudinary…" : "Start Upload"}
+        closeLabel="Close"
+        isSaving={isUploading}
+        saveDisabled={!uploadFile}
+        maxWidth="max-w-lg"
+      >
+        {/* Category selector */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">
+              Category
+            </label>
+            <select
+              value={uploadCategory}
+              onChange={(e) => {
+                const cat = e.target.value as MediaCategory;
+                setUploadCategory(cat);
+                if (cat === "music") setUploadSubType("audio");
+                else if (cat === "photo") setUploadSubType("processed");
+                else if (cat === "project") setUploadSubType("cover");
+                else if (cat === "blog") setUploadSubType("cover");
+                else if (cat === "site") setUploadSubType("avatar");
+                else setUploadSubType("asset");
+              }}
+              className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
+            >
+              <option value="photo">Photography</option>
+              <option value="music">Music</option>
+              <option value="project">Projects</option>
+              <option value="blog">Blog Posts</option>
+              <option value="site">Site Config</option>
+              <option value="general">General Assets</option>
+            </select>
+          </div>
 
-          <div className="relative z-10 w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h3 className="text-lg font-bold text-white">Upload New File</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Standardized prefix auto-generated and stored into Cloudinary folder by category.
-                </p>
-              </div>
-              <button
-                disabled={isUploading}
-                onClick={() => setIsUploadOpen(false)}
-                className="p-1.5 rounded-lg text-slate-500 hover:text-white"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleUploadSubmit} className="space-y-4">
-              {/* Category selector */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                    Category
-                  </label>
-                  <select
-                    value={uploadCategory}
-                    onChange={(e) => {
-                      const cat = e.target.value as MediaCategory;
-                      setUploadCategory(cat);
-                      if (cat === "music") setUploadSubType("audio");
-                      else if (cat === "photo") setUploadSubType("processed");
-                      else if (cat === "project") setUploadSubType("cover");
-                      else if (cat === "blog") setUploadSubType("cover");
-                      else if (cat === "site") setUploadSubType("avatar");
-                      else setUploadSubType("asset");
-                    }}
-                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
-                  >
-                    <option value="photo">Photography</option>
-                    <option value="music">Music</option>
-                    <option value="project">Projects</option>
-                    <option value="blog">Blog Posts</option>
-                    <option value="site">Site Config</option>
-                    <option value="general">General Assets</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                    Sub-type
-                  </label>
-                  <input
-                    type="text"
-                    value={uploadSubType}
-                    onChange={(e) => setUploadSubType(e.target.value)}
-                    placeholder="e.g. audio, thumb, cover..."
-                    className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
-                  />
-                </div>
-              </div>
-
-              {/* Dynamic Prefix Preview Box */}
-              <div className="bg-slate-950/80 border border-violet-500/20 rounded-xl p-3">
-                <p className="text-[11px] text-slate-400">
-                  Auto-generated Filename Prefix:
-                </p>
-                <p className="text-xs font-mono text-violet-300 font-semibold mt-0.5 truncate">
-                  {uploadPrefixPreview}
-                </p>
-              </div>
-
-              {/* Dropzone File Selector */}
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                  Select File (Image, Video, or Audio MP3)
-                </label>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-white/15 hover:border-violet-500/60 bg-slate-950/50 rounded-2xl p-6 text-center cursor-pointer transition-all"
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*,video/*,audio/*,.heic,.heif"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-
-                  {uploadPreview ? (
-                    <div className="flex flex-col items-center">
-                      <img
-                        src={uploadPreview}
-                        alt="Preview"
-                        className="w-24 h-24 object-cover rounded-xl shadow-lg mb-2"
-                      />
-                      <p className="text-xs font-medium text-white">{uploadFile?.name}</p>
-                      <p className="text-[10px] text-slate-500">
-                        {uploadFile ? formatBytes(uploadFile.size) : ""}
-                      </p>
-                    </div>
-                  ) : uploadFile ? (
-                    <div className="flex flex-col items-center">
-                      <span className="text-3xl mb-1">📄</span>
-                      <p className="text-xs font-medium text-white">{uploadFile.name}</p>
-                      <p className="text-[10px] text-slate-500">
-                        {formatBytes(uploadFile.size)} · {uploadFile.type || "file"}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400 mb-2">
-                        ☁️
-                      </div>
-                      <p className="text-xs font-medium text-slate-300">
-                        Click to select file or drag and drop here
-                      </p>
-                      <p className="text-[10px] text-slate-500 mt-1">
-                        Supports JPG, PNG, WebP, iPhone HEIC (auto-converts to JPEG), MP3, MP4...
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Submit Buttons */}
-              <div className="flex justify-end gap-3 pt-3">
-                <button
-                  type="button"
-                  disabled={isUploading}
-                  onClick={() => setIsUploadOpen(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isUploading || !uploadFile}
-                  className="px-5 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-violet-500/20 transition-all disabled:opacity-50 flex items-center gap-2"
-                >
-                  {isUploading && (
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  )}
-                  <span>{isUploading ? "Uploading to Cloudinary…" : "Start Upload"}</span>
-                </button>
-              </div>
-            </form>
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1.5">
+              Sub-type
+            </label>
+            <input
+              type="text"
+              value={uploadSubType}
+              onChange={(e) => setUploadSubType(e.target.value)}
+              placeholder="e.g. audio, thumb, cover..."
+              className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
+            />
           </div>
         </div>
-      )}
+
+        {/* Dynamic Prefix Preview Box */}
+        <div className="bg-slate-950/80 border border-violet-500/20 rounded-xl p-3">
+          <p className="text-[11px] text-slate-400">
+            Auto-generated Filename Prefix:
+          </p>
+          <p className="text-xs font-mono text-violet-300 font-semibold mt-0.5 truncate">
+            {uploadPrefixPreview}
+          </p>
+        </div>
+
+        {/* Dropzone File Selector */}
+        <div>
+          <label className="block text-xs font-medium text-slate-400 mb-1.5">
+            Select File (Photo, Video, Audio, Doc)
+          </label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            onChange={handleFileChange}
+            className="hidden"
+            accept="image/*,video/*,audio/*,.pdf,.webp"
+          />
+
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
+              uploadFile
+                ? "border-violet-500/60 bg-violet-500/5"
+                : "border-white/10 hover:border-violet-500/40 hover:bg-white/[0.02]"
+            }`}
+          >
+            {uploadPreview ? (
+              <div className="space-y-3">
+                <div className="w-24 h-24 mx-auto rounded-xl overflow-hidden bg-slate-950 border border-white/10 shadow-lg">
+                  <img
+                    src={uploadPreview}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-white">
+                    {uploadFile?.name}
+                  </p>
+                  <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                    {uploadFile && formatBytes(uploadFile.size)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                  className="text-[11px] text-violet-400 hover:text-violet-300 underline"
+                >
+                  Change file
+                </button>
+              </div>
+            ) : uploadFile ? (
+              <div className="space-y-2">
+                <div className="text-3xl">📁</div>
+                <p className="text-xs font-medium text-white">
+                  {uploadFile.name}
+                </p>
+                <p className="text-[10px] text-slate-400 font-mono">
+                  {formatBytes(uploadFile.size)}
+                </p>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                  className="text-[11px] text-violet-400 hover:text-violet-300 underline"
+                >
+                  Change file
+                </button>
+              </div>
+            ) : (
+              <div className="py-4">
+                <div className="w-10 h-10 rounded-2xl bg-violet-500/10 border border-violet-500/20 text-violet-400 flex items-center justify-center mx-auto mb-2 text-xl">
+                  ☁️
+                </div>
+                <p className="text-xs font-medium text-slate-300">
+                  Click to select file or drag and drop here
+                </p>
+                <p className="text-[10px] text-slate-500 mt-1">
+                  Supports JPG, PNG, WebP, iPhone HEIC (auto-converts to JPEG), MP3, MP4...
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </AdminModal>
 
       {/* ── CONFIRM DELETE DIALOG ── */}
       <ConfirmDialog

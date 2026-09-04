@@ -6,6 +6,7 @@ import { AnimatedSection, TiltCard, Button, GlassCard } from "@/components/ui";
 import { projects } from "@/lib/constants";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { Project } from "@/lib/types";
+import { useTranslation } from "@/context/LanguageContext";
 
 interface ProjectModalProps {
   project: Project | null;
@@ -62,6 +63,8 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
     };
   }, [project, onClose]);
 
+  const { t } = useTranslation();
+
   if (!project) return null;
 
   return (
@@ -96,7 +99,7 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
           {/* Close button */}
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("projects.closeModal")}
             className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all"
           >
             ✕
@@ -134,7 +137,7 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
                   window.open(project.liveUrl, "_blank", "noopener,noreferrer")
                 }
               >
-                View Live
+                {t("projects.viewLive")}
               </Button>
             )}
             {project.githubUrl && (
@@ -144,7 +147,7 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
                   window.open(project.githubUrl, "_blank", "noopener,noreferrer")
                 }
               >
-                Source Code
+                {t("projects.sourceCode")}
               </Button>
             )}
           </div>
@@ -155,6 +158,7 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
 }
 
 export default function ProjectsSection() {
+  const { t } = useTranslation();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   return (
@@ -166,17 +170,16 @@ export default function ProjectsSection() {
         <AnimatedSection>
           <div className="text-center mb-16">
             <span className="text-sm text-purple-500 font-medium tracking-wider uppercase mb-4 block">
-              My Work
+              {t("projects.badge")}
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Featured{" "}
+              {t("projects.titlePrefix")}
               <span className="bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent">
-                Projects
+                {t("projects.titleHighlight")}
               </span>
             </h2>
             <p className="text-white/60 max-w-2xl mx-auto">
-              A selection of projects that showcase my skills and passion for creating
-              exceptional digital experiences
+              {t("projects.subtitle")}
             </p>
           </div>
         </AnimatedSection>
@@ -202,7 +205,7 @@ export default function ProjectsSection() {
                     </div>
                     {project.featured && (
                       <div className="absolute top-3 right-3 px-2 py-1 text-xs font-medium text-white bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full">
-                        Featured
+                        {t("projects.featuredBadge")}
                       </div>
                     )}
                   </div>

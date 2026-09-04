@@ -6,16 +6,26 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { navLinks } from "@/lib/constants";
+import { useTranslation } from "@/context/LanguageContext";
+import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 
 const SECTION_IDS = ["home", "about", "skills", "projects", "contact"];
 
 export default function Navigation() {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("home");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+  const getNavLabel = (link: { href: string; label: string }) => {
+    const cleanKey = link.href.replace(/^[/#]+/, "");
+    const translationKey = `nav.${cleanKey || "home"}`;
+    const translated = t(translationKey);
+    return translated !== translationKey ? translated : link.label;
+  };
 
   // Lock scroll spy while smooth scrolling after clicking a nav link to prevent stutter
   const isClickScrollingRef = useRef(false);
@@ -200,7 +210,7 @@ export default function Navigation() {
                         />
                       </span>
                     )}
-                    {link.label}
+                    {getNavLabel(link)}
                     {active && (
                       <motion.span
                         layoutId="activeNavTab"
@@ -214,8 +224,9 @@ export default function Navigation() {
             })}
           </ul>
 
-          {/* Contact Button */}
+          {/* Desktop Right: Language Switcher & Contact Button */}
           <div className="hidden md:flex items-center gap-3">
+            <LanguageSwitcher variant="pill" size="sm" />
             <Link
               href={getResolvedHref("#contact")}
               onClick={(e) => handleNavClick(e, "#contact")}
@@ -228,7 +239,7 @@ export default function Navigation() {
             >
               <span className="absolute inset-0 bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 transition-all duration-300 group-hover:scale-105" />
               <span className="relative flex items-center gap-1.5">
-                <span>Get in Touch</span>
+                <span>{t("nav.getInTouch")}</span>
                 <span className="transition-transform duration-200 group-hover:translate-x-0.5">
                   →
                 </span>
@@ -236,34 +247,37 @@ export default function Navigation() {
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            ref={menuButtonRef}
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden relative w-10 h-10 flex flex-col justify-center items-center rounded-xl bg-white/[0.05] border border-white/10 text-white"
-            aria-label="Toggle menu"
-            aria-expanded={isMobileMenuOpen}
-            aria-controls="mobile-menu"
-          >
-            <span
-              className={cn(
-                "w-5 h-0.5 bg-white transition-all duration-300",
-                isMobileMenuOpen && "rotate-45 translate-y-1.5"
-              )}
-            />
-            <span
-              className={cn(
-                "w-5 h-0.5 bg-white my-1 transition-all duration-300",
-                isMobileMenuOpen && "opacity-0"
-              )}
-            />
-            <span
-              className={cn(
-                "w-5 h-0.5 bg-white transition-all duration-300",
-                isMobileMenuOpen && "-rotate-45 -translate-y-1.5"
-              )}
-            />
-          </button>
+          {/* Mobile Right Controls: Language Switcher & Hamburger */}
+          <div className="flex md:hidden items-center gap-2">
+            <LanguageSwitcher variant="pill" size="sm" />
+            <button
+              ref={menuButtonRef}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="relative w-10 h-10 flex flex-col justify-center items-center rounded-xl bg-white/[0.05] border border-white/10 text-white"
+              aria-label="Toggle menu"
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu"
+            >
+              <span
+                className={cn(
+                  "w-5 h-0.5 bg-white transition-all duration-300",
+                  isMobileMenuOpen && "rotate-45 translate-y-1.5"
+                )}
+              />
+              <span
+                className={cn(
+                  "w-5 h-0.5 bg-white my-1 transition-all duration-300",
+                  isMobileMenuOpen && "opacity-0"
+                )}
+              />
+              <span
+                className={cn(
+                  "w-5 h-0.5 bg-white transition-all duration-300",
+                  isMobileMenuOpen && "-rotate-45 -translate-y-1.5"
+                )}
+              />
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
@@ -302,7 +316,7 @@ export default function Navigation() {
                       >
                         <span className="flex items-center gap-2">
                           {isMusic && <span>🎵</span>}
-                          {link.label}
+                          {getNavLabel(link)}
                         </span>
                         {active && (
                           <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400" />
@@ -322,7 +336,7 @@ export default function Navigation() {
                         : "shadow-purple-500/20"
                     )}
                   >
-                    Get in Touch
+                    {t("nav.getInTouch")}
                   </Link>
                 </li>
               </ul>

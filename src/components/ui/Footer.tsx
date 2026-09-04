@@ -3,10 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navLinks, socialLinks, siteConfig } from "@/lib/constants";
+import { useTranslation } from "@/context/LanguageContext";
 
 export default function Footer() {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
+
+  const getNavLabel = (link: { href: string; label: string }) => {
+    const cleanKey = link.href.replace(/^[/#]+/, "");
+    const translationKey = `nav.${cleanKey || "home"}`;
+    const translated = t(translationKey);
+    return translated !== translationKey ? translated : link.label;
+  };
 
   if (
     pathname?.startsWith("/admin") ||
@@ -32,7 +41,7 @@ export default function Footer() {
               {siteConfig.author.name}
             </Link>
             <p className="text-white/60 max-w-md mb-6">
-              {siteConfig.description}
+              {t("hero.bio")}
             </p>
             <div className="flex gap-4">
               {socialLinks.map((social) => (
@@ -84,7 +93,7 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Quick Links</h4>
+            <h4 className="text-white font-semibold mb-4">{t("footer.quickLinks")}</h4>
             <ul className="space-y-3">
               {navLinks.map((link) => {
                 const resolvedHref = link.href.startsWith("#")
@@ -99,7 +108,7 @@ export default function Footer() {
                       href={resolvedHref}
                       className="text-white/60 hover:text-white transition-colors duration-300"
                     >
-                      {link.label}
+                      {getNavLabel(link)}
                     </Link>
                   </li>
                 );
@@ -109,7 +118,7 @@ export default function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Get in Touch</h4>
+            <h4 className="text-white font-semibold mb-4">{t("footer.getInTouch")}</h4>
             <ul className="space-y-3">
               <li>
                 <a
@@ -127,14 +136,14 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-white/40 text-sm">
-            © {currentYear} {siteConfig.author.name}. All rights reserved.
+            © {currentYear} {siteConfig.author.name}. {t("footer.rightsReserved")}
           </p>
           <p className="text-white/40 text-sm">
-            Built with{" "}
+            {t("footer.builtWith")}{" "}
             <span className="text-transparent bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text">
               Next.js
             </span>{" "}
-            &{" "}
+            {t("footer.and")}{" "}
             <span className="text-transparent bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text">
               Three.js
             </span>

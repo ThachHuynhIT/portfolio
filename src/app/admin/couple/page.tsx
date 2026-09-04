@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
+import AdminModal from "@/components/admin/AdminModal";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
@@ -1442,627 +1443,494 @@ export default function CoupleAdminPage() {
       )}
 
       {/* ═════════════════ MODAL: ẢNH KỶ NIỆM ═════════════════ */}
-      {isPhotoModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsPhotoModalOpen(false)} />
-          <div className="relative z-10 w-full max-w-2xl bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
-              <h2 className="text-base font-bold text-white">
-                {editingPhoto ? "Chỉnh sửa ảnh kỷ niệm" : "Thêm ảnh kỷ niệm mới"}
-              </h2>
-              <button onClick={() => setIsPhotoModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
-            </div>
-            <form onSubmit={handleSavePhoto} className="space-y-4">
-              <MediaImagePicker
-                label="Hình ảnh kỷ niệm"
-                value={photoForm.image}
-                onChange={(url) => setPhotoForm({ ...photoForm, image: url })}
-                category="couple"
-                subType="photo"
-                required
-              />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField label="Tiêu đề khoảnh khắc" id="photoTitle" required>
-                  <input
-                    type="text"
-                    id="photoTitle"
-                    value={photoForm.title}
-                    onChange={(e) => setPhotoForm({ ...photoForm, title: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                    placeholder="VD: Hoàng hôn bên biển"
-                    required
-                  />
-                </FormField>
-                <FormField label="Ngày chụp / kỷ niệm" id="photoDate" required>
-                  <input
-                    type="date"
-                    id="photoDate"
-                    value={photoForm.date}
-                    onChange={(e) => setPhotoForm({ ...photoForm, date: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                    required
-                  />
-                </FormField>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField label="Địa điểm" id="photoLocation">
-                  <input
-                    type="text"
-                    id="photoLocation"
-                    value={photoForm.location}
-                    onChange={(e) => setPhotoForm({ ...photoForm, location: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                    placeholder="VD: Đà Lạt"
-                  />
-                </FormField>
-                <FormField label="Thể loại" id="photoCategory">
-                  <input
-                    type="text"
-                    id="photoCategory"
-                    value={photoForm.category}
-                    onChange={(e) => setPhotoForm({ ...photoForm, category: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  />
-                </FormField>
-              </div>
-              <FormField label="Ghi chú / Lời nhắn" id="photoDescription">
-                <textarea
-                  id="photoDescription"
-                  rows={3}
-                  value={photoForm.description}
-                  onChange={(e) => setPhotoForm({ ...photoForm, description: e.target.value })}
-                  className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                />
-              </FormField>
-              <div className="flex flex-wrap items-center gap-6">
-                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
-                  <input
-                    type="checkbox"
-                    checked={photoForm.published}
-                    onChange={(e) => setPhotoForm({ ...photoForm, published: e.target.checked })}
-                    className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
-                  />
-                  <span>Published (Hiển thị công khai)</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
-                  <input
-                    type="checkbox"
-                    checked={photoForm.featured}
-                    onChange={(e) => setPhotoForm({ ...photoForm, featured: e.target.checked })}
-                    className="rounded border-white/20 text-pink-600 focus:ring-pink-500 bg-slate-950 w-4 h-4"
-                  />
-                  <span>Đánh dấu ảnh nổi bật (❤️ Featured)</span>
-                </label>
-              </div>
-              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={() => setIsPhotoModalOpen(false)}
-                  className="px-4 py-2 text-sm text-slate-400 hover:text-white bg-white/5 rounded-xl"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl shadow-lg"
-                >
-                  Lưu ảnh
-                </button>
-              </div>
-            </form>
-          </div>
+      <AdminModal
+        isOpen={isPhotoModalOpen}
+        onClose={() => setIsPhotoModalOpen(false)}
+        title={editingPhoto ? "Chỉnh sửa ảnh kỷ niệm" : "Thêm ảnh kỷ niệm mới"}
+        icon="heart"
+        onSubmit={handleSavePhoto}
+        saveLabel="Lưu ảnh"
+        closeLabel="Đóng"
+        maxWidth="max-w-2xl"
+      >
+        <MediaImagePicker
+          label="Hình ảnh kỷ niệm"
+          value={photoForm.image}
+          onChange={(url) => setPhotoForm({ ...photoForm, image: url })}
+          category="couple"
+          subType="photo"
+          required
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField label="Tiêu đề khoảnh khắc" id="photoTitle" required>
+            <input
+              type="text"
+              id="photoTitle"
+              value={photoForm.title}
+              onChange={(e) => setPhotoForm({ ...photoForm, title: e.target.value })}
+              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              placeholder="VD: Hoàng hôn bên biển"
+              required
+            />
+          </FormField>
+          <FormField label="Ngày chụp / kỷ niệm" id="photoDate" required>
+            <input
+              type="date"
+              id="photoDate"
+              value={photoForm.date}
+              onChange={(e) => setPhotoForm({ ...photoForm, date: e.target.value })}
+              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              required
+            />
+          </FormField>
         </div>
-      )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField label="Địa điểm" id="photoLocation">
+            <input
+              type="text"
+              id="photoLocation"
+              value={photoForm.location}
+              onChange={(e) => setPhotoForm({ ...photoForm, location: e.target.value })}
+              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              placeholder="VD: Đà Lạt"
+            />
+          </FormField>
+          <FormField label="Thể loại" id="photoCategory">
+            <input
+              type="text"
+              id="photoCategory"
+              value={photoForm.category}
+              onChange={(e) => setPhotoForm({ ...photoForm, category: e.target.value })}
+              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            />
+          </FormField>
+        </div>
+        <FormField label="Ghi chú / Lời nhắn" id="photoDescription">
+          <textarea
+            id="photoDescription"
+            rows={3}
+            value={photoForm.description}
+            onChange={(e) => setPhotoForm({ ...photoForm, description: e.target.value })}
+            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+          />
+        </FormField>
+        <div className="flex flex-wrap items-center gap-6">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+            <input
+              type="checkbox"
+              checked={photoForm.published}
+              onChange={(e) => setPhotoForm({ ...photoForm, published: e.target.checked })}
+              className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
+            />
+            <span>Published (Hiển thị công khai)</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+            <input
+              type="checkbox"
+              checked={photoForm.featured}
+              onChange={(e) => setPhotoForm({ ...photoForm, featured: e.target.checked })}
+              className="rounded border-white/20 text-pink-600 focus:ring-pink-500 bg-slate-950 w-4 h-4"
+            />
+            <span>Đánh dấu ảnh nổi bật (❤️ Featured)</span>
+          </label>
+        </div>
+      </AdminModal>
 
       {/* ═════════════════ MODAL: TIMELINE MEMORY ═════════════════ */}
-      {isMemoryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsMemoryModalOpen(false)} />
-          <div className="relative z-10 w-full max-w-lg bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
-              <h2 className="text-base font-bold text-white">
-                {editingMemory ? "Sửa cột mốc hành trình" : "Thêm cột mốc hành trình"}
-              </h2>
-              <button onClick={() => setIsMemoryModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
+      <AdminModal
+        isOpen={isMemoryModalOpen}
+        onClose={() => setIsMemoryModalOpen(false)}
+        title={editingMemory ? "Sửa cột mốc hành trình" : "Thêm cột mốc hành trình"}
+        icon="heart"
+        onSubmit={handleSaveMemory}
+        saveLabel="Lưu cột mốc"
+        closeLabel="Đóng"
+        maxWidth="max-w-lg"
+      >
+        <FormField label="Tiêu đề cột mốc" id="memTitle" required>
+          <input
+            type="text"
+            id="memTitle"
+            value={memoryForm.title}
+            onChange={(e) => setMemoryForm({ ...memoryForm, title: e.target.value })}
+            placeholder="VD: Lần đầu gặp nhau, Buổi hẹn hò đầu tiên..."
+            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            required
+          />
+        </FormField>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Ngày / Thời điểm" id="memDate" required>
+            <input
+              type="text"
+              id="memDate"
+              value={memoryForm.date}
+              onChange={(e) => setMemoryForm({ ...memoryForm, date: e.target.value })}
+              placeholder="VD: 15/11/2023"
+              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              required
+            />
+          </FormField>
+          <FormField label="Emoji biểu tượng" id="memEmoji">
+            <div className="space-y-1">
+              <input
+                type="text"
+                id="memEmoji"
+                value={memoryForm.emoji}
+                onChange={(e) => setMemoryForm({ ...memoryForm, emoji: e.target.value })}
+                className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              />
+              <div className="flex gap-1 overflow-x-auto py-1">
+                {SUGGESTED_EMOJIS.slice(0, 7).map((em) => (
+                  <button
+                    key={em}
+                    type="button"
+                    onClick={() => setMemoryForm({ ...memoryForm, emoji: em })}
+                    className="px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/10 text-xs"
+                  >
+                    {em}
+                  </button>
+                ))}
+              </div>
             </div>
-            <form onSubmit={handleSaveMemory} className="space-y-4">
-              <FormField label="Tiêu đề cột mốc" id="memTitle" required>
-                <input
-                  type="text"
-                  id="memTitle"
-                  value={memoryForm.title}
-                  onChange={(e) => setMemoryForm({ ...memoryForm, title: e.target.value })}
-                  placeholder="VD: Lần đầu gặp nhau, Buổi hẹn hò đầu tiên..."
-                  className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  required
-                />
-              </FormField>
-              <div className="grid grid-cols-2 gap-3">
-                <FormField label="Ngày / Thời điểm" id="memDate" required>
-                  <input
-                    type="text"
-                    id="memDate"
-                    value={memoryForm.date}
-                    onChange={(e) => setMemoryForm({ ...memoryForm, date: e.target.value })}
-                    placeholder="VD: 15/11/2023"
-                    className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                    required
-                  />
-                </FormField>
-                <FormField label="Emoji biểu tượng" id="memEmoji">
-                  <div className="space-y-1">
-                    <input
-                      type="text"
-                      id="memEmoji"
-                      value={memoryForm.emoji}
-                      onChange={(e) => setMemoryForm({ ...memoryForm, emoji: e.target.value })}
-                      className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                    />
-                    <div className="flex gap-1 overflow-x-auto py-1">
-                      {SUGGESTED_EMOJIS.slice(0, 7).map((em) => (
-                        <button
-                          key={em}
-                          type="button"
-                          onClick={() => setMemoryForm({ ...memoryForm, emoji: em })}
-                          className="px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/10 text-xs"
-                        >
-                          {em}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </FormField>
-              </div>
-              <FormField label="Nội dung kỷ niệm" id="memDesc" required>
-                <textarea
-                  id="memDesc"
-                  rows={3}
-                  value={memoryForm.description}
-                  onChange={(e) => setMemoryForm({ ...memoryForm, description: e.target.value })}
-                  placeholder="Kể lại cảm xúc khoảnh khắc ấy..."
-                  className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  required
-                />
-              </FormField>
-              <div className="flex items-center gap-2">
-                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
-                  <input
-                    type="checkbox"
-                    checked={memoryForm.published}
-                    onChange={(e) => setMemoryForm({ ...memoryForm, published: e.target.checked })}
-                    className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
-                  />
-                  <span>Published (Hiển thị công khai trên dòng thời gian)</span>
-                </label>
-              </div>
-              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={() => setIsMemoryModalOpen(false)}
-                  className="px-4 py-2 text-sm text-slate-400 hover:text-white bg-white/5 rounded-xl"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl shadow-lg"
-                >
-                  Lưu cột mốc
-                </button>
-              </div>
-            </form>
-          </div>
+          </FormField>
         </div>
-      )}
+        <FormField label="Nội dung kỷ niệm" id="memDesc" required>
+          <textarea
+            id="memDesc"
+            rows={3}
+            value={memoryForm.description}
+            onChange={(e) => setMemoryForm({ ...memoryForm, description: e.target.value })}
+            placeholder="Kể lại cảm xúc khoảnh khắc ấy..."
+            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            required
+          />
+        </FormField>
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+            <input
+              type="checkbox"
+              checked={memoryForm.published}
+              onChange={(e) => setMemoryForm({ ...memoryForm, published: e.target.checked })}
+              className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
+            />
+            <span>Published (Hiển thị công khai trên dòng thời gian)</span>
+          </label>
+        </div>
+      </AdminModal>
 
       {/* ═════════════════ MODAL: BIRTHDAY ═════════════════ */}
-      {isBirthdayModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsBirthdayModalOpen(false)} />
-          <div className="relative z-10 w-full max-w-md bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
-              <h2 className="text-base font-bold text-white">
-                {editingBirthday ? "Sửa ngày sinh" : "Thêm ngày sinh"}
-              </h2>
-              <button onClick={() => setIsBirthdayModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
-            </div>
-            <form onSubmit={handleSaveBirthday} className="space-y-4">
-              <FormField label="Tên người (Anh / Em / Tên)" id="bdayName" required>
-                <input
-                  type="text"
-                  id="bdayName"
-                  value={birthdayForm.name}
-                  onChange={(e) => setBirthdayForm({ ...birthdayForm, name: e.target.value })}
-                  className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  required
-                />
-              </FormField>
-              <FormField label="Ngày sinh (YYYY-MM-DD)" id="bdayDate" required>
-                <input
-                  type="date"
-                  id="bdayDate"
-                  value={birthdayForm.date}
-                  onChange={(e) => setBirthdayForm({ ...birthdayForm, date: e.target.value })}
-                  className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  required
-                />
-              </FormField>
-              <div className="grid grid-cols-2 gap-3">
-                <FormField label="Cung hoàng đạo" id="bdayZodiac">
-                  <input
-                    type="text"
-                    id="bdayZodiac"
-                    value={birthdayForm.zodiac}
-                    onChange={(e) => setBirthdayForm({ ...birthdayForm, zodiac: e.target.value })}
-                    placeholder="VD: ♑ Ma Kết"
-                    className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  />
-                </FormField>
-                <FormField label="Emoji" id="bdayEmoji">
-                  <input
-                    type="text"
-                    id="bdayEmoji"
-                    value={birthdayForm.emoji}
-                    onChange={(e) => setBirthdayForm({ ...birthdayForm, emoji: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  />
-                </FormField>
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
-                  <input
-                    type="checkbox"
-                    checked={birthdayForm.published}
-                    onChange={(e) => setBirthdayForm({ ...birthdayForm, published: e.target.checked })}
-                    className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
-                  />
-                  <span>Published (Hiển thị công khai)</span>
-                </label>
-              </div>
-              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={() => setIsBirthdayModalOpen(false)}
-                  className="px-4 py-2 text-sm text-slate-400 hover:text-white bg-white/5 rounded-xl"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl shadow-lg"
-                >
-                  Lưu ngày sinh
-                </button>
-              </div>
-            </form>
-          </div>
+      <AdminModal
+        isOpen={isBirthdayModalOpen}
+        onClose={() => setIsBirthdayModalOpen(false)}
+        title={editingBirthday ? "Sửa ngày sinh" : "Thêm ngày sinh"}
+        icon="heart"
+        onSubmit={handleSaveBirthday}
+        saveLabel="Lưu ngày sinh"
+        closeLabel="Đóng"
+        maxWidth="max-w-md"
+      >
+        <FormField label="Tên người (Anh / Em / Tên)" id="bdayName" required>
+          <input
+            type="text"
+            id="bdayName"
+            value={birthdayForm.name}
+            onChange={(e) => setBirthdayForm({ ...birthdayForm, name: e.target.value })}
+            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            required
+          />
+        </FormField>
+        <FormField label="Ngày sinh (YYYY-MM-DD)" id="bdayDate" required>
+          <input
+            type="date"
+            id="bdayDate"
+            value={birthdayForm.date}
+            onChange={(e) => setBirthdayForm({ ...birthdayForm, date: e.target.value })}
+            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            required
+          />
+        </FormField>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Cung hoàng đạo" id="bdayZodiac">
+            <input
+              type="text"
+              id="bdayZodiac"
+              value={birthdayForm.zodiac}
+              onChange={(e) => setBirthdayForm({ ...birthdayForm, zodiac: e.target.value })}
+              placeholder="VD: ♑ Ma Kết"
+              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            />
+          </FormField>
+          <FormField label="Emoji" id="bdayEmoji">
+            <input
+              type="text"
+              id="bdayEmoji"
+              value={birthdayForm.emoji}
+              onChange={(e) => setBirthdayForm({ ...birthdayForm, emoji: e.target.value })}
+              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            />
+          </FormField>
         </div>
-      )}
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+            <input
+              type="checkbox"
+              checked={birthdayForm.published}
+              onChange={(e) => setBirthdayForm({ ...birthdayForm, published: e.target.checked })}
+              className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
+            />
+            <span>Published (Hiển thị công khai)</span>
+          </label>
+        </div>
+      </AdminModal>
 
       {/* ═════════════════ MODAL: SPECIAL DATE ═════════════════ */}
-      {isDateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsDateModalOpen(false)} />
-          <div className="relative z-10 w-full max-w-md bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
-              <h2 className="text-base font-bold text-white">
-                {editingDate ? "Sửa ngày đặc biệt" : "Thêm ngày đặc biệt"}
-              </h2>
-              <button onClick={() => setIsDateModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
-            </div>
-            <form onSubmit={handleSaveDate} className="space-y-4">
-              <FormField label="Tên dịp / sự kiện" id="dateName" required>
-                <input
-                  type="text"
-                  id="dateName"
-                  value={dateForm.name}
-                  onChange={(e) => setDateForm({ ...dateForm, name: e.target.value })}
-                  placeholder="VD: Kỷ niệm 1 năm, Valentine..."
-                  className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  required
-                />
-              </FormField>
-              <div className="grid grid-cols-2 gap-3">
-                <FormField label="Ngày diễn ra (YYYY-MM-DD)" id="dateVal" required>
-                  <input
-                    type="date"
-                    id="dateVal"
-                    value={dateForm.date}
-                    onChange={(e) => setDateForm({ ...dateForm, date: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                    required
-                  />
-                </FormField>
-                <FormField label="Emoji" id="dateEmoji">
-                  <input
-                    type="text"
-                    id="dateEmoji"
-                    value={dateForm.emoji}
-                    onChange={(e) => setDateForm({ ...dateForm, emoji: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  />
-                </FormField>
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
-                  <input
-                    type="checkbox"
-                    checked={dateForm.published}
-                    onChange={(e) => setDateForm({ ...dateForm, published: e.target.checked })}
-                    className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
-                  />
-                  <span>Published (Hiển thị công khai)</span>
-                </label>
-              </div>
-              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={() => setIsDateModalOpen(false)}
-                  className="px-4 py-2 text-sm text-slate-400 hover:text-white bg-white/5 rounded-xl"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl shadow-lg"
-                >
-                  Lưu sự kiện
-                </button>
-              </div>
-            </form>
-          </div>
+      <AdminModal
+        isOpen={isDateModalOpen}
+        onClose={() => setIsDateModalOpen(false)}
+        title={editingDate ? "Sửa ngày đặc biệt" : "Thêm ngày đặc biệt"}
+        icon="heart"
+        onSubmit={handleSaveDate}
+        saveLabel="Lưu sự kiện"
+        closeLabel="Đóng"
+        maxWidth="max-w-md"
+      >
+        <FormField label="Tên dịp / sự kiện" id="dateName" required>
+          <input
+            type="text"
+            id="dateName"
+            value={dateForm.name}
+            onChange={(e) => setDateForm({ ...dateForm, name: e.target.value })}
+            placeholder="VD: Kỷ niệm 1 năm, Valentine..."
+            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            required
+          />
+        </FormField>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Ngày diễn ra (YYYY-MM-DD)" id="dateVal" required>
+            <input
+              type="date"
+              id="dateVal"
+              value={dateForm.date}
+              onChange={(e) => setDateForm({ ...dateForm, date: e.target.value })}
+              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              required
+            />
+          </FormField>
+          <FormField label="Emoji" id="dateEmoji">
+            <input
+              type="text"
+              id="dateEmoji"
+              value={dateForm.emoji}
+              onChange={(e) => setDateForm({ ...dateForm, emoji: e.target.value })}
+              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            />
+          </FormField>
         </div>
-      )}
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+            <input
+              type="checkbox"
+              checked={dateForm.published}
+              onChange={(e) => setDateForm({ ...dateForm, published: e.target.checked })}
+              className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
+            />
+            <span>Published (Hiển thị công khai)</span>
+          </label>
+        </div>
+      </AdminModal>
 
       {/* ═════════════════ MODAL: BUCKET LIST ═════════════════ */}
-      {isBucketModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsBucketModalOpen(false)} />
-          <div className="relative z-10 w-full max-w-md bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
-              <h2 className="text-base font-bold text-white">
-                {editingBucket ? "Sửa dự định Bucket List" : "Thêm dự định mới"}
-              </h2>
-              <button onClick={() => setIsBucketModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
-            </div>
-            <form onSubmit={handleSaveBucket} className="space-y-4">
-              <FormField label="Nội dung điều muốn cùng làm" id="bucketText" required>
-                <input
-                  type="text"
-                  id="bucketText"
-                  value={bucketForm.text}
-                  onChange={(e) => setBucketForm({ ...bucketForm, text: e.target.value })}
-                  placeholder="VD: Cùng nhau đi ngắm hoàng hôn, Học nhảy cùng nhau..."
-                  className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  required
-                />
-              </FormField>
-              <FormField label="Emoji biểu tượng" id="bucketEmoji">
-                <div className="space-y-1">
-                  <input
-                    type="text"
-                    id="bucketEmoji"
-                    value={bucketForm.emoji}
-                    onChange={(e) => setBucketForm({ ...bucketForm, emoji: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  />
-                  <div className="flex gap-1 overflow-x-auto py-1">
-                    {SUGGESTED_EMOJIS.slice(0, 10).map((em) => (
-                      <button
-                        key={em}
-                        type="button"
-                        onClick={() => setBucketForm({ ...bucketForm, emoji: em })}
-                        className="px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/10 text-xs"
-                      >
-                        {em}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </FormField>
-              <div className="flex flex-wrap items-center gap-6">
-                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
-                  <input
-                    type="checkbox"
-                    checked={bucketForm.published}
-                    onChange={(e) => setBucketForm({ ...bucketForm, published: e.target.checked })}
-                    className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
-                  />
-                  <span>Published (Hiển thị công khai)</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
-                  <input
-                    type="checkbox"
-                    checked={bucketForm.done}
-                    onChange={(e) => setBucketForm({ ...bucketForm, done: e.target.checked })}
-                    className="rounded border-white/20 text-pink-600 focus:ring-pink-500 bg-slate-950 w-4 h-4"
-                  />
-                  <span>Đã hoàn thành điều này</span>
-                </label>
-              </div>
-              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
+      <AdminModal
+        isOpen={isBucketModalOpen}
+        onClose={() => setIsBucketModalOpen(false)}
+        title={editingBucket ? "Sửa dự định Bucket List" : "Thêm dự định mới"}
+        icon="heart"
+        onSubmit={handleSaveBucket}
+        saveLabel="Lưu dự định"
+        closeLabel="Đóng"
+        maxWidth="max-w-md"
+      >
+        <FormField label="Nội dung điều muốn cùng làm" id="bucketText" required>
+          <input
+            type="text"
+            id="bucketText"
+            value={bucketForm.text}
+            onChange={(e) => setBucketForm({ ...bucketForm, text: e.target.value })}
+            placeholder="VD: Cùng nhau đi ngắm hoàng hôn, Học nhảy cùng nhau..."
+            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            required
+          />
+        </FormField>
+        <FormField label="Emoji biểu tượng" id="bucketEmoji">
+          <div className="space-y-1">
+            <input
+              type="text"
+              id="bucketEmoji"
+              value={bucketForm.emoji}
+              onChange={(e) => setBucketForm({ ...bucketForm, emoji: e.target.value })}
+              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            />
+            <div className="flex gap-1 overflow-x-auto py-1">
+              {SUGGESTED_EMOJIS.slice(0, 10).map((em) => (
                 <button
+                  key={em}
                   type="button"
-                  onClick={() => setIsBucketModalOpen(false)}
-                  className="px-4 py-2 text-sm text-slate-400 hover:text-white bg-white/5 rounded-xl"
+                  onClick={() => setBucketForm({ ...bucketForm, emoji: em })}
+                  className="px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/10 text-xs"
                 >
-                  Hủy
+                  {em}
                 </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl shadow-lg"
-                >
-                  Lưu dự định
-                </button>
-              </div>
-            </form>
+              ))}
+            </div>
           </div>
+        </FormField>
+        <div className="flex flex-wrap items-center gap-6">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+            <input
+              type="checkbox"
+              checked={bucketForm.published}
+              onChange={(e) => setBucketForm({ ...bucketForm, published: e.target.checked })}
+              className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
+            />
+            <span>Published (Hiển thị công khai)</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+            <input
+              type="checkbox"
+              checked={bucketForm.done}
+              onChange={(e) => setBucketForm({ ...bucketForm, done: e.target.checked })}
+              className="rounded border-white/20 text-pink-600 focus:ring-pink-500 bg-slate-950 w-4 h-4"
+            />
+            <span>Đã hoàn thành điều này</span>
+          </label>
         </div>
-      )}
+      </AdminModal>
 
       {/* ═════════════════ MODAL: LOVE LETTER ═════════════════ */}
-      {isLetterModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsLetterModalOpen(false)} />
-          <div className="relative z-10 w-full max-w-lg bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
-              <h2 className="text-base font-bold text-white">
-                {editingLetter ? "Sửa thư tình" : "Viết thư tình mới"}
-              </h2>
-              <button onClick={() => setIsLetterModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
-            </div>
-            <form onSubmit={handleSaveLetter} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <FormField label="Người gửi" id="letterFrom" required>
-                  <input
-                    type="text"
-                    id="letterFrom"
-                    value={letterForm.from}
-                    onChange={(e) => setLetterForm({ ...letterForm, from: e.target.value })}
-                    placeholder="VD: Anh hoặc Em"
-                    className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                    required
-                  />
-                </FormField>
-                <FormField label="Ngày viết" id="letterDate" required>
-                  <input
-                    type="text"
-                    id="letterDate"
-                    value={letterForm.date}
-                    onChange={(e) => setLetterForm({ ...letterForm, date: e.target.value })}
-                    placeholder="VD: 14/02/2024"
-                    className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                    required
-                  />
-                </FormField>
-              </div>
-              <FormField label="Nội dung bức thư" id="letterContent" required>
-                <textarea
-                  id="letterContent"
-                  rows={4}
-                  value={letterForm.content}
-                  onChange={(e) => setLetterForm({ ...letterForm, content: e.target.value })}
-                  placeholder="Viết những lời yêu thương chân thành..."
-                  className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  required
-                />
-              </FormField>
-              <div className="flex items-center gap-2">
-                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
-                  <input
-                    type="checkbox"
-                    checked={letterForm.published}
-                    onChange={(e) => setLetterForm({ ...letterForm, published: e.target.checked })}
-                    className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
-                  />
-                  <span>Published (Hiển thị công khai bức thư)</span>
-                </label>
-              </div>
-              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={() => setIsLetterModalOpen(false)}
-                  className="px-4 py-2 text-sm text-slate-400 hover:text-white bg-white/5 rounded-xl"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl shadow-lg"
-                >
-                  Lưu thư tình
-                </button>
-              </div>
-            </form>
-          </div>
+      <AdminModal
+        isOpen={isLetterModalOpen}
+        onClose={() => setIsLetterModalOpen(false)}
+        title={editingLetter ? "Sửa thư tình" : "Viết thư tình mới"}
+        icon="heart"
+        onSubmit={handleSaveLetter}
+        saveLabel="Lưu thư tình"
+        closeLabel="Đóng"
+        maxWidth="max-w-lg"
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Người gửi" id="letterFrom" required>
+            <input
+              type="text"
+              id="letterFrom"
+              value={letterForm.from}
+              onChange={(e) => setLetterForm({ ...letterForm, from: e.target.value })}
+              placeholder="VD: Anh hoặc Em"
+              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              required
+            />
+          </FormField>
+          <FormField label="Ngày viết" id="letterDate" required>
+            <input
+              type="text"
+              id="letterDate"
+              value={letterForm.date}
+              onChange={(e) => setLetterForm({ ...letterForm, date: e.target.value })}
+              placeholder="VD: 14/02/2024"
+              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              required
+            />
+          </FormField>
         </div>
-      )}
+        <FormField label="Nội dung bức thư" id="letterContent" required>
+          <textarea
+            id="letterContent"
+            rows={4}
+            value={letterForm.content}
+            onChange={(e) => setLetterForm({ ...letterForm, content: e.target.value })}
+            placeholder="Viết những lời yêu thương chân thành..."
+            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            required
+          />
+        </FormField>
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+            <input
+              type="checkbox"
+              checked={letterForm.published}
+              onChange={(e) => setLetterForm({ ...letterForm, published: e.target.checked })}
+              className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
+            />
+            <span>Published (Hiển thị công khai bức thư)</span>
+          </label>
+        </div>
+      </AdminModal>
 
       {/* ═════════════════ MODAL: FAVORITE ═════════════════ */}
-      {isFavoriteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsFavoriteModalOpen(false)} />
-          <div className="relative z-10 w-full max-w-lg bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
-              <h2 className="text-base font-bold text-white">
-                {editingFavorite ? "Sửa sở thích chung" : "Thêm sở thích chung"}
-              </h2>
-              <button onClick={() => setIsFavoriteModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
-            </div>
-            <form onSubmit={handleSaveFavorite} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <FormField label="Thể loại" id="favCategory" required>
-                  <input
-                    type="text"
-                    id="favCategory"
-                    value={favoriteForm.category}
-                    onChange={(e) => setFavoriteForm({ ...favoriteForm, category: e.target.value })}
-                    placeholder="VD: Bài hát, Món ăn, Phim..."
-                    className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                    required
-                  />
-                </FormField>
-                <FormField label="Emoji" id="favEmoji">
-                  <input
-                    type="text"
-                    id="favEmoji"
-                    value={favoriteForm.emoji}
-                    onChange={(e) => setFavoriteForm({ ...favoriteForm, emoji: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  />
-                </FormField>
-              </div>
-              <FormField label="Tên điều yêu thích (Tiêu đề)" id="favTitle" required>
-                <input
-                  type="text"
-                  id="favTitle"
-                  value={favoriteForm.title}
-                  onChange={(e) => setFavoriteForm({ ...favoriteForm, title: e.target.value })}
-                  placeholder="VD: Perfect - Ed Sheeran, Lẩu Thái..."
-                  className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  required
-                />
-              </FormField>
-              <FormField label="Mô tả / Ý nghĩa" id="favDesc">
-                <textarea
-                  id="favDesc"
-                  rows={2}
-                  value={favoriteForm.description}
-                  onChange={(e) => setFavoriteForm({ ...favoriteForm, description: e.target.value })}
-                  placeholder="Lý do hai bạn yêu thích điều này..."
-                  className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                />
-              </FormField>
-              <div className="flex items-center gap-2">
-                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
-                  <input
-                    type="checkbox"
-                    checked={favoriteForm.published}
-                    onChange={(e) => setFavoriteForm({ ...favoriteForm, published: e.target.checked })}
-                    className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
-                  />
-                  <span>Published (Hiển thị công khai)</span>
-                </label>
-              </div>
-              <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={() => setIsFavoriteModalOpen(false)}
-                  className="px-4 py-2 text-sm text-slate-400 hover:text-white bg-white/5 rounded-xl"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl shadow-lg"
-                >
-                  Lưu sở thích
-                </button>
-              </div>
-            </form>
-          </div>
+      <AdminModal
+        isOpen={isFavoriteModalOpen}
+        onClose={() => setIsFavoriteModalOpen(false)}
+        title={editingFavorite ? "Sửa sở thích chung" : "Thêm sở thích chung"}
+        icon="heart"
+        onSubmit={handleSaveFavorite}
+        saveLabel="Lưu sở thích"
+        closeLabel="Đóng"
+        maxWidth="max-w-lg"
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Thể loại" id="favCategory" required>
+            <input
+              type="text"
+              id="favCategory"
+              value={favoriteForm.category}
+              onChange={(e) => setFavoriteForm({ ...favoriteForm, category: e.target.value })}
+              placeholder="VD: Bài hát, Món ăn, Phim..."
+              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              required
+            />
+          </FormField>
+          <FormField label="Emoji" id="favEmoji">
+            <input
+              type="text"
+              id="favEmoji"
+              value={favoriteForm.emoji}
+              onChange={(e) => setFavoriteForm({ ...favoriteForm, emoji: e.target.value })}
+              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            />
+          </FormField>
         </div>
-      )}
+        <FormField label="Tên điều yêu thích (Tiêu đề)" id="favTitle" required>
+          <input
+            type="text"
+            id="favTitle"
+            value={favoriteForm.title}
+            onChange={(e) => setFavoriteForm({ ...favoriteForm, title: e.target.value })}
+            placeholder="VD: Perfect - Ed Sheeran, Lẩu Thái..."
+            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            required
+          />
+        </FormField>
+        <FormField label="Mô tả / Ý nghĩa" id="favDesc">
+          <textarea
+            id="favDesc"
+            rows={2}
+            value={favoriteForm.description}
+            onChange={(e) => setFavoriteForm({ ...favoriteForm, description: e.target.value })}
+            placeholder="Lý do hai bạn yêu thích điều này..."
+            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+          />
+        </FormField>
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+            <input
+              type="checkbox"
+              checked={favoriteForm.published}
+              onChange={(e) => setFavoriteForm({ ...favoriteForm, published: e.target.checked })}
+              className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
+            />
+            <span>Published (Hiển thị công khai)</span>
+          </label>
+        </div>
+      </AdminModal>
 
       {/* ═════════════════ CONFIRM DELETE DIALOG ═════════════════ */}
       <ConfirmDialog
