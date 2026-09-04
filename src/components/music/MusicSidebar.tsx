@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useMusic } from "@/context/MusicContext";
+import { useMusic, TabView } from "@/context/MusicContext";
 
 export default function MusicSidebar() {
   const {
@@ -12,6 +12,8 @@ export default function MusicSidebar() {
     genres,
     activeTab,
     setActiveTab,
+    deckMode,
+    setDeckMode,
     selectedGenre,
     setSelectedGenre,
     showOnlyLiked,
@@ -29,15 +31,15 @@ export default function MusicSidebar() {
 
   const pathname = usePathname();
 
-  const handleTabClick = (tab: "player" | "queue" | "info" | "lyrics") => {
+  const handleTabClick = (tab: TabView) => {
     setActiveTab(tab);
-    setShowOnlyLiked(false);
+    if (tab === "player") setDeckMode("vinyl");
+    setShowOnlyLiked(tab === "favorites");
     setIsMobileSidebarOpen(false);
   };
 
   const handleLikedClick = () => {
-    setShowOnlyLiked((prev) => !prev);
-    setIsMobileSidebarOpen(false);
+    handleTabClick("favorites");
   };
 
   const handleGenreClick = (genre: string) => {
@@ -117,7 +119,7 @@ export default function MusicSidebar() {
         <nav className="music-sidebar-nav">
           <button
             onClick={() => handleTabClick("player")}
-            className={`music-nav-item ${activeTab === "player" && !showOnlyLiked ? "music-nav-item--active" : ""}`}
+            className={`music-nav-item ${activeTab === "player" ? "music-nav-item--active" : ""}`}
           >
             <span className="music-nav-icon">🎛️</span>
             <span className="flex-1 text-left font-medium">Turntable Deck</span>
@@ -127,12 +129,12 @@ export default function MusicSidebar() {
           </button>
 
           <button
-            onClick={() => handleTabClick("lyrics")}
-            className={`music-nav-item ${activeTab === "lyrics" && !showOnlyLiked ? "music-nav-item--active" : ""}`}
+            onClick={() => handleTabClick("charts")}
+            className={`music-nav-item ${activeTab === "charts" ? "music-nav-item--active" : ""}`}
           >
-            <span className="music-nav-icon">🎤</span>
-            <span className="flex-1 text-left font-medium">Karaoke Lyrics</span>
-            <span className="music-nav-badge text-cyan-400">Live</span>
+            <span className="music-nav-icon">🏆</span>
+            <span className="flex-1 text-left font-medium">Bảng Xếp Hạng</span>
+            <span className="music-nav-badge text-emerald-400 font-bold bg-emerald-500/15 border border-emerald-500/30">Top</span>
           </button>
 
           <button
@@ -154,7 +156,7 @@ export default function MusicSidebar() {
 
           <button
             onClick={handleLikedClick}
-            className={`music-nav-item ${showOnlyLiked ? "music-nav-item--active music-nav-item--liked" : ""}`}
+            className={`music-nav-item ${activeTab === "favorites" ? "music-nav-item--active music-nav-item--liked" : ""}`}
           >
             <span className="music-nav-icon">❤️</span>
             <span className="flex-1 text-left font-medium">Favorite Tracks</span>
@@ -165,32 +167,7 @@ export default function MusicSidebar() {
         </nav>
       </div>
 
-      {/* ── 3. Visualizer Modes ── */}
-      <div className="music-sidebar-section">
-        <span className="music-sidebar-heading">AUDIO VISUALIZER</span>
-        <div className="grid grid-cols-3 gap-1.5 p-1 bg-white/[0.04] rounded-xl border border-white/[0.08]">
-          <button
-            onClick={() => setVisualizerStyle("bars")}
-            className={`music-vis-btn ${visualizerStyle === "bars" ? "music-vis-btn--active" : ""}`}
-          >
-            Bars
-          </button>
-          <button
-            onClick={() => setVisualizerStyle("wave")}
-            className={`music-vis-btn ${visualizerStyle === "wave" ? "music-vis-btn--active" : ""}`}
-          >
-            Wave
-          </button>
-          <button
-            onClick={() => setVisualizerStyle("pulsar")}
-            className={`music-vis-btn ${visualizerStyle === "pulsar" ? "music-vis-btn--active" : ""}`}
-          >
-            Pulsar
-          </button>
-        </div>
-      </div>
-
-      {/* ── 4. Mood & Genre Filters ── */}
+      {/* ── 3. Mood & Genre Filters ── */}
       <div className="music-sidebar-section flex-1 min-h-0 flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <span className="music-sidebar-heading !mb-0">GENRES & MOODS</span>
@@ -226,60 +203,6 @@ export default function MusicSidebar() {
         </div>
       </div>
 
-      {/* ── 5. Main Site Navigation (Replaces general header/footer) ── */}
-      <div className="music-sidebar-section music-sidebar-sitelinks">
-        <span className="music-sidebar-heading">EXPLORE PORTFOLIO</span>
-        <div className="grid grid-cols-2 gap-1.5 text-xs">
-          <Link
-            href="/"
-            className="music-sitelink"
-            onClick={() => setIsMobileSidebarOpen(false)}
-          >
-            <span>🏠</span>
-            <span>Home</span>
-          </Link>
-          <Link
-            href="/#projects"
-            className="music-sitelink"
-            onClick={() => setIsMobileSidebarOpen(false)}
-          >
-            <span>💼</span>
-            <span>Projects</span>
-          </Link>
-          <Link
-            href="/blog"
-            className="music-sitelink"
-            onClick={() => setIsMobileSidebarOpen(false)}
-          >
-            <span>📝</span>
-            <span>Blog</span>
-          </Link>
-          <Link
-            href="/tools/json-validator"
-            className="music-sitelink"
-            onClick={() => setIsMobileSidebarOpen(false)}
-          >
-            <span>🛠️</span>
-            <span>Tools</span>
-          </Link>
-          <Link
-            href="/contra"
-            className="music-sitelink"
-            onClick={() => setIsMobileSidebarOpen(false)}
-          >
-            <span>🎮</span>
-            <span>Arcade</span>
-          </Link>
-          <Link
-            href="/admin/music"
-            className="music-sitelink music-sitelink--admin"
-            onClick={() => setIsMobileSidebarOpen(false)}
-          >
-            <span>⚙️</span>
-            <span>Admin</span>
-          </Link>
-        </div>
-      </div>
 
       {/* ── 6. Audio Engine Status Indicator Footer ── */}
       <div className="music-sidebar-footer">

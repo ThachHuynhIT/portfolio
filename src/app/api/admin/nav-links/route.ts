@@ -34,6 +34,18 @@ export async function PUT(request: Request) {
   }
   try {
     const body = await request.json();
+
+    // 1. Bulk reordering support
+    if (Array.isArray(body.items)) {
+      const itemsWithOrder: NavLink[] = body.items.map((item: NavLink, idx: number) => ({
+        ...item,
+        order: idx,
+      }));
+      writeJsonFile(FILE, itemsWithOrder);
+      return NextResponse.json(itemsWithOrder);
+    }
+
+    // 2. Single item update
     const { id, ...updates } = body;
     if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
 

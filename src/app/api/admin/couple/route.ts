@@ -72,6 +72,7 @@ export async function POST(req: NextRequest) {
           location: body.location || "",
           category: body.category || "Kỷ niệm",
           featured: Boolean(body.featured),
+          published: body.published !== undefined ? Boolean(body.published) : true,
           order: (data.photos.length > 0 ? Math.max(...data.photos.map((p) => p.order || 0)) : 0) + 1,
         };
         data.photos.unshift(newPhoto);
@@ -86,6 +87,7 @@ export async function POST(req: NextRequest) {
           title: body.title || "Cột mốc mới",
           description: body.description || "",
           emoji: body.emoji || "✨",
+          published: body.published !== undefined ? Boolean(body.published) : true,
         };
         data.memories.unshift(newMemory);
         writeJsonFile(FILE, data);
@@ -98,6 +100,7 @@ export async function POST(req: NextRequest) {
           date: body.date || "2000-01-01",
           emoji: body.emoji || "🎂",
           zodiac: body.zodiac || "✨",
+          published: body.published !== undefined ? Boolean(body.published) : true,
         };
         data.birthdays.push(newBirthday);
         writeJsonFile(FILE, data);
@@ -109,6 +112,7 @@ export async function POST(req: NextRequest) {
           name: body.name || "Ngày kỷ niệm",
           date: body.date || new Date().toISOString().split("T")[0],
           emoji: body.emoji || "🎉",
+          published: body.published !== undefined ? Boolean(body.published) : true,
         };
         data.specialDates.push(newSpecialDate);
         writeJsonFile(FILE, data);
@@ -121,6 +125,7 @@ export async function POST(req: NextRequest) {
           text: body.text || "Dự định mới",
           emoji: body.emoji || "🌟",
           done: Boolean(body.done),
+          published: body.published !== undefined ? Boolean(body.published) : true,
         };
         data.bucketList.push(newBucketItem);
         writeJsonFile(FILE, data);
@@ -133,6 +138,7 @@ export async function POST(req: NextRequest) {
           from: body.from || data.person1 || "Anh",
           content: body.content || "",
           date: body.date || new Date().toISOString().split("T")[0],
+          published: body.published !== undefined ? Boolean(body.published) : true,
         };
         data.loveLetters.unshift(newLetter);
         writeJsonFile(FILE, data);
@@ -146,6 +152,7 @@ export async function POST(req: NextRequest) {
           title: body.title || "Điều yêu thích",
           description: body.description || "",
           emoji: body.emoji || "💝",
+          published: body.published !== undefined ? Boolean(body.published) : true,
         };
         data.favorites.push(newFav);
         writeJsonFile(FILE, data);
@@ -196,8 +203,11 @@ export async function PUT(req: NextRequest) {
     const itemId = body.id || body.item?.id;
 
     if (section === "birthdays") {
-      // Birthdays match by name or index
-      const index = body.index !== undefined ? body.index : data.birthdays.findIndex((b) => b.name === body.name);
+      // Birthdays match by index, id or name
+      const index =
+        body.index !== undefined
+          ? body.index
+          : data.birthdays.findIndex((b) => (itemId && b.id === itemId) || b.name === body.name);
       if (index >= 0 && index < data.birthdays.length) {
         data.birthdays[index] = { ...data.birthdays[index], ...(body.item || body) };
         writeJsonFile(FILE, data);
@@ -207,7 +217,10 @@ export async function PUT(req: NextRequest) {
     }
 
     if (section === "specialDates") {
-      const index = body.index !== undefined ? body.index : data.specialDates.findIndex((s) => s.name === body.name);
+      const index =
+        body.index !== undefined
+          ? body.index
+          : data.specialDates.findIndex((s) => (itemId && s.id === itemId) || s.name === body.name);
       if (index >= 0 && index < data.specialDates.length) {
         data.specialDates[index] = { ...data.specialDates[index], ...(body.item || body) };
         writeJsonFile(FILE, data);

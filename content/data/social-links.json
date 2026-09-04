@@ -3,18 +3,21 @@
     "id": "social-1",
     "name": "GitHub",
     "url": "https://github.com/ThachHuynhIT",
-    "icon": "github"
+    "icon": "github",
+    "published": true
   },
   {
     "id": "social-2",
     "name": "LinkedIn",
     "url": "https://www.linkedin.com/in/huynh-thach-web-dev/",
-    "icon": "linkedin"
+    "icon": "linkedin",
+    "published": true
   },
   {
     "id": "social-3",
     "name": "Twitter",
     "url": "https://twitter.com",
-    "icon": "twitter"
+    "icon": "twitter",
+    "published": true
   }
 ]

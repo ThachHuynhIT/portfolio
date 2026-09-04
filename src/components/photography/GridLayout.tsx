@@ -48,6 +48,11 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
 
               {/* Category badge */}
               <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
+                {photo.featured && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-black shadow-md flex items-center gap-1">
+                    <span>⭐ Nổi bật</span>
+                  </span>
+                )}
                 {photo.category && (
                   <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-black/60 text-white/90 backdrop-blur-md border border-white/15">
                     {photo.category}

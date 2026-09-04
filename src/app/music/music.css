@@ -21,19 +21,22 @@
 
 /* ── Page Root & Overall Studio Layout ───────────────────── */
 .music-page-root {
-  min-height: 100vh;
+  height: 100vh;
+  max-height: 100vh;
   background-color: var(--music-bg);
   color: var(--music-text);
-  overflow-x: hidden;
+  overflow: hidden;
   position: relative;
 }
 
 .music-studio-app {
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .music-studio-app--zen {
@@ -71,7 +74,23 @@
   z-index: 1;
   display: grid;
   grid-template-columns: 290px 1fr;
-  min-height: 100vh;
+  flex: 1;
+  min-height: 0;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+/* Right Stage Wrapper (Main Stage + Bottom Bar) */
+.music-stage-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-height: 100vh;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
 }
 
 @media (max-width: 1024px) {
@@ -81,23 +100,49 @@
 }
 
 @media (max-width: 768px) {
+  .music-page-root {
+    height: auto;
+    max-height: none;
+    overflow-y: auto;
+  }
+  .music-studio-app {
+    height: auto;
+    max-height: none;
+    overflow-y: auto;
+  }
   .music-studio-layout {
     grid-template-columns: 1fr;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+  .music-stage-wrapper {
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+    overflow: visible;
+  }
+  .music-top-bar {
+    padding: 0.65rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 50;
   }
 }
 
 /* ── Left Dedicated Studio Sidebar ───────────────────────── */
 .music-sidebar-desktop {
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden; /* Never allow outer scrollbar or layout thrashing */
   border-right: 1px solid var(--music-border);
   background: var(--music-sidebar-bg);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
-  padding: 1.25rem 1rem;
+  padding: 1.15rem 0.85rem;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
   z-index: 20;
 }
 
@@ -105,10 +150,16 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: 1.15rem;
+  max-height: 100%;
+  min-height: 0;
+  flex: 1;
+  gap: 0.9rem;
   overflow-y: auto;
+  overflow-x: hidden;
   scrollbar-width: thin;
+  scrollbar-gutter: stable; /* Prevents layout jitter when scrollbar appears */
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  padding-right: 2px;
 }
 
 .music-sidebar-inner::-webkit-scrollbar {
@@ -440,25 +491,48 @@
 
 /* ── Main Stage Area ─────────────────────────────────────── */
 .music-main-stage {
-  padding: 1.25rem 1.75rem 8rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1.5rem 1.75rem 2.5rem;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
-/* Top Bar */
+.music-main-stage::-webkit-scrollbar {
+  width: 6px;
+}
+.music-main-stage::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+}
+.music-main-stage::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Top Stage Bar (Sticky on Top) */
 .music-top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(8, 8, 14, 0.94);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding-bottom: 1.25rem;
+  padding: 0.85rem 1.75rem;
   border-bottom: 1px solid var(--music-border);
-  margin-bottom: 1.75rem;
-  flex-wrap: wrap;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .music-mobile-menu-btn {
@@ -522,6 +596,105 @@
 
 .music-search-clear-btn:hover {
   color: #fff;
+}
+
+/* Search Floating Results Dropdown */
+.music-search-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  min-width: 320px;
+  max-width: 460px;
+  max-height: 380px;
+  background: rgba(14, 14, 20, 0.96);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 1rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 20px rgba(168, 85, 247, 0.15);
+  z-index: 100;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.music-search-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.music-search-dropdown-list {
+  overflow-y: auto;
+  max-height: 320px;
+  padding: 0.4rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.music-search-dropdown-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.music-search-dropdown-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.music-search-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.music-search-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.music-search-item--active {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.music-search-item-thumb {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.music-search-item-play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.music-search-item:hover .music-search-item-play-overlay {
+  opacity: 1;
+}
+
+.music-search-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .music-active-chip {
@@ -1694,16 +1867,16 @@
 
 /* ── COLLAPSIBLE PLAYER: COLLAPSED MINI FLOATING DOCK ────── */
 .music-collapsed-dock {
-  position: fixed;
+  position: absolute;
   bottom: 1.5rem;
   right: 1.5rem;
-  z-index: 100;
+  z-index: 40;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.55rem 0.85rem;
   border-radius: 100px;
-  background: rgba(12, 12, 18, 0.9);
+  background: rgba(12, 12, 18, 0.92);
   border: 1px solid rgba(168, 85, 247, 0.4);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
@@ -1713,10 +1886,12 @@
 
 @media (max-width: 640px) {
   .music-collapsed-dock {
+    position: fixed;
     bottom: 1rem;
     right: 1rem;
     left: 1rem;
     max-width: calc(100vw - 2rem);
+    z-index: 90;
   }
 }
 
@@ -1789,13 +1964,11 @@
 
 /* ── COLLAPSIBLE PLAYER: EXPANDED PRO BOTTOM BAR ─────────── */
 .music-bottom-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 90;
+  position: relative;
+  width: 100%;
   height: 86px;
-  background: rgba(8, 8, 14, 0.92);
+  flex-shrink: 0;
+  background: rgba(8, 8, 14, 0.95);
   border-top: 1px solid var(--music-border);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
@@ -1805,14 +1978,18 @@
   justify-content: space-between;
   gap: 1.5rem;
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+  z-index: 30;
 }
 
 @media (max-width: 768px) {
   .music-bottom-bar {
+    position: sticky;
+    bottom: 0;
     height: auto;
     padding: 0.75rem 1rem;
     flex-direction: column;
     gap: 0.5rem;
+    z-index: 90;
   }
 }
 
@@ -2146,3 +2323,123 @@
   border: 2px solid #fbbf24;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
 }
+
+/* ============================================================
+   SPOTIFY EDITION — Leaderboard, Top Charts & UI Components
+   ============================================================ */
+
+.spotify-charts-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.spotify-charts-hero {
+  position: relative;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.18) 0%, rgba(18, 18, 18, 0.95) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+  margin-bottom: 1.5rem;
+}
+
+.spotify-charts-hero-backdrop {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 10% 20%, rgba(29, 185, 84, 0.25) 0%, transparent 50%),
+              radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.12) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.spotify-track-table {
+  background: rgba(18, 18, 18, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.25rem;
+  padding: 1rem;
+}
+
+.spotify-table-header {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+}
+
+.spotify-table-row {
+  display: flex;
+  align-items: center;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.spotify-table-row:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.spotify-table-row--active {
+  background: rgba(29, 185, 84, 0.12) !important;
+  border-color: rgba(29, 185, 84, 0.3) !important;
+  box-shadow: 0 4px 15px rgba(29, 185, 84, 0.1);
+}
+
+.spotify-table-row--active:hover {
+  background: rgba(29, 185, 84, 0.18) !important;
+}
+
+/* Animated Mini Equalizer Bars for Active Track */
+.music-mini-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  height: 14px;
+  width: 14px;
+  margin: 0 auto;
+}
+
+.music-mini-bars span {
+  width: 3px;
+  height: 100%;
+  background-color: #1db954;
+  border-radius: 1px;
+  animation: miniBarBounce 1s ease-in-out infinite alternate;
+}
+
+.music-mini-bars span:nth-child(1) {
+  animation-duration: 0.6s;
+  animation-delay: 0.1s;
+}
+
+.music-mini-bars span:nth-child(2) {
+  animation-duration: 0.8s;
+  animation-delay: 0.3s;
+}
+
+.music-mini-bars span:nth-child(3) {
+  animation-duration: 0.5s;
+  animation-delay: 0.2s;
+}
+
+@keyframes miniBarBounce {
+  0% {
+    height: 20%;
+  }
+  100% {
+    height: 100%;
+  }
+}
+

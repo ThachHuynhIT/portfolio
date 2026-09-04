@@ -28,7 +28,18 @@ const DEFAULT_COUPLE_DATA: CoupleData = {
 export async function GET() {
   try {
     const data = readJsonFile<CoupleData>(FILE, DEFAULT_COUPLE_DATA);
-    return NextResponse.json(data, {
+    const publicData: CoupleData = {
+      ...data,
+      photos: (data.photos || []).filter((p) => p.published !== false),
+      memories: (data.memories || []).filter((m) => m.published !== false),
+      birthdays: (data.birthdays || []).filter((b) => b.published !== false),
+      specialDates: (data.specialDates || []).filter((d) => d.published !== false),
+      bucketList: (data.bucketList || []).filter((b) => b.published !== false),
+      loveLetters: (data.loveLetters || []).filter((l) => l.published !== false),
+      favorites: (data.favorites || []).filter((f) => f.published !== false),
+    };
+
+    return NextResponse.json(publicData, {
       headers: {
         "Cache-Control": "public, s-maxage=10, stale-while-revalidate=59",
       },

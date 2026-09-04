@@ -9,14 +9,16 @@
       "name": "Anh",
       "date": "2001-01-18",
       "emoji": "🎂",
-      "zodiac": "♑ Ma Kết"
+      "zodiac": "♑ Ma Kết",
+      "published": true
     },
     {
       "id": "bday-2",
       "name": "Em",
       "date": "2002-07-28",
       "emoji": "🎀",
-      "zodiac": "♌ Sư Tử"
+      "zodiac": "♌ Sư Tử",
+      "published": true
     }
   ],
   "specialDates": [
@@ -24,19 +26,22 @@
       "id": "date-1",
       "name": "Ngày yêu nhau",
       "date": "2025-05-30",
-      "emoji": "💕"
+      "emoji": "💕",
+      "published": true
     },
     {
       "id": "date-2",
       "name": "Kỷ niệm 1 năm",
       "date": "2026-05-30",
-      "emoji": "🎉"
+      "emoji": "🎉",
+      "published": true
     },
     {
       "id": "date-3",
       "name": "Kỷ niệm 2 năm",
       "date": "2027-05-30",
-      "emoji": "🥂"
+      "emoji": "🥂",
+      "published": true
     }
   ],
   "memories": [
@@ -45,14 +50,16 @@
       "date": "15/11/2023",
       "title": "Lần đầu gặp nhau",
       "description": "Khoảnh khắc định mệnh khi hai ta vô tình gặp nhau giữa dòng người tấp nập...",
-      "emoji": "✨"
+      "emoji": "✨",
+      "published": true
     },
     {
       "id": "mem-2",
       "date": "30/05/2025",
       "title": "Chính thức yêu nhau 💕",
       "description": "Lời tỏ tình vụng về nhưng chân thành nhất, bắt đầu hành trình của chúng mình.",
-      "emoji": "💗"
+      "emoji": "💗",
+      "published": true
     }
   ],
   "photos": [
@@ -65,7 +72,8 @@
       "location": "Bãi biển Mỹ Khê, Đà Nẵng",
       "category": "Du lịch",
       "featured": true,
-      "order": 1
+      "order": 1,
+      "published": true
     },
     {
       "id": "photo-2",
@@ -76,7 +84,8 @@
       "location": "The Coffee House quen thuộc",
       "category": "Hẹn hò",
       "featured": true,
-      "order": 2
+      "order": 2,
+      "published": true
     },
     {
       "id": "photo-3",
@@ -87,7 +96,8 @@
       "location": "Đồi chè Cầu Đất, Đà Lạt",
       "category": "Du lịch",
       "featured": false,
-      "order": 3
+      "order": 3,
+      "published": true
     },
     {
       "id": "photo-4",
@@ -98,7 +108,8 @@
       "location": "Căn bếp nhỏ yêu thương",
       "category": "Đời thường",
       "featured": false,
-      "order": 4
+      "order": 4,
+      "published": true
     },
     {
       "id": "photo-5",
@@ -109,7 +120,8 @@
       "location": "Rooftop ngắm toàn cảnh thành phố",
       "category": "Kỷ niệm",
       "featured": true,
-      "order": 5
+      "order": 5,
+      "published": true
     },
     {
       "id": "photo-6",
@@ -120,7 +132,8 @@
       "location": "Hồ Gươm lung linh",
       "category": "Kỷ niệm",
       "featured": false,
-      "order": 6
+      "order": 6,
+      "published": true
     }
   ],
   "bucketList": [
@@ -128,61 +141,71 @@
       "id": "bucket-1",
       "text": "Đi du lịch Đà Lạt cùng nhau",
       "emoji": "🏔️",
-      "done": true
+      "done": true,
+      "published": true
     },
     {
       "id": "bucket-2",
       "text": "Xem hoàng hôn trên biển",
       "emoji": "🌅",
-      "done": true
+      "done": true,
+      "published": true
     },
     {
       "id": "bucket-3",
       "text": "Nấu ăn cùng nhau",
       "emoji": "👩‍🍳",
-      "done": true
+      "done": true,
+      "published": true
     },
     {
       "id": "bucket-4",
       "text": "Chụp ảnh couple",
       "emoji": "📸",
-      "done": true
+      "done": true,
+      "published": true
     },
     {
       "id": "bucket-5",
       "text": "Đi camping dưới trời sao",
       "emoji": "⛺",
-      "done": false
+      "done": false,
+      "published": true
     },
     {
       "id": "bucket-6",
       "text": "Đi du lịch nước ngoài",
       "emoji": "✈️",
-      "done": false
+      "done": false,
+      "published": true
     },
     {
       "id": "bucket-7",
       "text": "Cùng nuôi thú cưng",
       "emoji": "🐱",
-      "done": false
+      "done": false,
+      "published": true
     },
     {
       "id": "bucket-8",
       "text": "Cùng xem pháo hoa đêm giao thừa",
       "emoji": "🎆",
-      "done": true
+      "done": true,
+      "published": true
     },
     {
       "id": "bucket-9",
       "text": "Đạp xe quanh hồ",
       "emoji": "🚲",
-      "done": false
+      "done": false,
+      "published": true
     },
     {
       "id": "bucket-10",
       "text": "Học nhảy cùng nhau",
       "emoji": "💃",
-      "done": false
+      "done": false,
+      "published": true
     }
   ],
   "loveLetters": [
@@ -190,19 +213,22 @@
       "id": "letter-1",
       "from": "Anh",
       "content": "Em là điều tuyệt vời nhất đến với cuộc đời anh. Mỗi ngày bên em đều là một ngày hạnh phúc.",
-      "date": "14/02/2024"
+      "date": "14/02/2024",
+      "published": true
     },
     {
       "id": "letter-2",
       "from": "Em",
       "content": "Cảm ơn anh vì đã luôn bên em, luôn khiến em cười và luôn là bờ vai vững chắc cho em.",
-      "date": "01/01/2025"
+      "date": "01/01/2025",
+      "published": true
     },
     {
       "id": "letter-3",
       "from": "Anh",
       "content": "Nếu được chọn lại, anh vẫn sẽ chọn em, mãi mãi và luôn luôn. Em là nhà của anh.",
-      "date": "22/09/2024"
+      "date": "22/09/2024",
+      "published": true
     }
   ],
   "favorites": [
@@ -211,42 +237,48 @@
       "category": "Bài hát của chúng ta",
       "title": "Perfect - Ed Sheeran",
       "description": "Bài hát cho mọi khoảnh khắc",
-      "emoji": "🎵"
+      "emoji": "🎵",
+      "published": true
     },
     {
       "id": "fav-2",
       "category": "Món ăn yêu thích",
       "title": "Lẩu Thái",
       "description": "Cay cay, nóng nóng như tình yêu",
-      "emoji": "🍲"
+      "emoji": "🍲",
+      "published": true
     },
     {
       "id": "fav-3",
       "category": "Phim yêu thích",
       "title": "Your Name (Kimi no Na wa)",
       "description": "Vì em là định mệnh của anh",
-      "emoji": "🎬"
+      "emoji": "🎬",
+      "published": true
     },
     {
       "id": "fav-4",
       "category": "Nơi hẹn hò",
       "title": "Quán cafe bên hồ",
       "description": "Nơi bắt đầu câu chuyện tình yêu",
-      "emoji": "☕"
+      "emoji": "☕",
+      "published": true
     },
     {
       "id": "fav-5",
       "category": "Hoạt động yêu thích",
       "title": "Đi dạo buổi tối",
       "description": "Ngắm sao và kể chuyện",
-      "emoji": "🌙"
+      "emoji": "🌙",
+      "published": true
     },
     {
       "id": "fav-6",
       "category": "Quà tặng đáng nhớ",
       "title": "Chiếc vòng tay đôi",
       "description": "Biểu tượng tình yêu",
-      "emoji": "💝"
+      "emoji": "💝",
+      "published": true
     }
   ]
 }

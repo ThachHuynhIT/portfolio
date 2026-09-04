@@ -59,6 +59,8 @@ export default function PhotographyAdminPage() {
   const [formLocation, setFormLocation] = useState("");
   const [formTags, setFormTags] = useState("");
   const [formFeatured, setFormFeatured] = useState(false);
+  const [formPublished, setFormPublished] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft" | "featured">("all");
 
   // Camera EXIF form states - completely empty by default
   const [formMake, setFormMake] = useState("");
@@ -110,6 +112,7 @@ export default function PhotographyAdminPage() {
     setFormLocation("");
     setFormTags("");
     setFormFeatured(false);
+    setFormPublished(true);
 
     setFormMake("");
     setFormModel("");
@@ -151,6 +154,7 @@ export default function PhotographyAdminPage() {
     setFormLocation(photo.location || "");
     setFormTags(photo.tags ? photo.tags.join(", ") : "");
     setFormFeatured(!!photo.featured);
+    setFormPublished(photo.published !== false);
 
     setFormMake(photo.camera?.make || "");
     setFormModel(photo.camera?.model || "");
@@ -363,6 +367,7 @@ export default function PhotographyAdminPage() {
         .map((t) => t.trim())
         .filter(Boolean),
       featured: formFeatured,
+      published: formPublished,
       camera: {
         make: formMake.trim() || undefined,
         model: formModel.trim() || undefined,
@@ -412,6 +417,44 @@ export default function PhotographyAdminPage() {
     }
   };
 
+  const handleTogglePublish = async (photo: PhotoItem) => {
+    const newStatus = photo.published === false;
+    try {
+      const res = await fetch("/api/admin/photography", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: photo.id, published: newStatus }),
+      });
+      if (res.ok) {
+        toast.success(newStatus ? "Artwork published!" : "Artwork set to draft!");
+        fetchPhotos();
+      } else {
+        toast.error("Failed to update status");
+      }
+    } catch {
+      toast.error("Error updating status");
+    }
+  };
+
+  const handleToggleFeatured = async (photo: PhotoItem) => {
+    const nextFeatured = !photo.featured;
+    try {
+      const res = await fetch("/api/admin/photography", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: photo.id, featured: nextFeatured }),
+      });
+      if (res.ok) {
+        toast.success(nextFeatured ? "Đã đánh dấu ảnh nổi bật! ⭐" : "Đã bỏ đánh dấu nổi bật");
+        fetchPhotos();
+      } else {
+        toast.error("Failed to update featured status");
+      }
+    } catch {
+      toast.error("Error updating featured status");
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
@@ -430,20 +473,39 @@ export default function PhotographyAdminPage() {
     }
   };
 
+  const filteredPhotos = photos.filter((photo) => {
+    if (statusFilter === "published") return photo.published !== false;
+    if (statusFilter === "draft") return photo.published === false;
+    if (statusFilter === "featured") return Boolean(photo.featured);
+    return true;
+  });
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <AdminHeader
         title="Photography & Media Management"
-        description="Manage photography artworks, videos, categories, camera EXIF settings, and Before & After comparisons."
+        description="Manage photography artworks, featured highlights, categories, and EXIF settings."
         icon="camera"
         action={
-          <button
-            onClick={openCreateModal}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 text-white text-xs font-semibold hover:opacity-95 shadow-lg shadow-purple-500/20 active:scale-95 transition-all"
-          >
-            <Icon name="plus" size={14} />
-            <span>Add New Artwork</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none"
+            >
+              <option value="all">All Artworks ({photos.length})</option>
+              <option value="published">Published ({photos.filter((p) => p.published !== false).length})</option>
+              <option value="draft">Draft ({photos.filter((p) => p.published === false).length})</option>
+              <option value="featured">⭐ Featured ({photos.filter((p) => p.featured).length})</option>
+            </select>
+            <button
+              onClick={openCreateModal}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 text-white text-xs font-semibold hover:opacity-95 shadow-lg shadow-purple-500/20 active:scale-95 transition-all"
+            >
+              <Icon name="plus" size={14} />
+              <span>Add New Artwork</span>
+            </button>
+          </div>
         }
       />
 
@@ -468,7 +530,7 @@ export default function PhotographyAdminPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {photos.map((photo) => {
+          {filteredPhotos.map((photo) => {
             const isVideo = photo.mediaType === "video" || Boolean(photo.videoUrl);
 
             return (
@@ -507,6 +569,40 @@ export default function PhotographyAdminPage() {
                         Before/After
                       </span>
                     )}
+                  </div>
+
+                  <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleFeatured(photo);
+                      }}
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border backdrop-blur-md transition-all shadow-md ${
+                        photo.featured
+                          ? "bg-amber-500/20 text-amber-300 border-amber-500/50 hover:bg-amber-500/30"
+                          : "bg-black/70 text-slate-400 border-slate-700 hover:text-amber-300 hover:border-amber-500/30"
+                      }`}
+                      title={photo.featured ? "Bỏ ảnh nổi bật" : "Đánh dấu là ảnh nổi bật (Featured)"}
+                    >
+                      <span>{photo.featured ? "⭐ Nổi bật" : "☆ Đặt nổi bật"}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTogglePublish(photo);
+                      }}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border backdrop-blur-md transition-all shadow-md ${
+                        photo.published !== false
+                          ? "bg-black/70 text-emerald-400 border-emerald-500/30 hover:bg-black/90"
+                          : "bg-black/70 text-slate-400 border-slate-700 hover:bg-black/90"
+                      }`}
+                      title="Click to toggle status"
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${photo.published !== false ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
+                      {photo.published !== false ? "Published" : "Draft"}
+                    </button>
                   </div>
                 </div>
 
@@ -965,6 +1061,27 @@ export default function PhotographyAdminPage() {
                     className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
                   />
                 </FormField>
+
+                <div className="pt-3 border-t border-white/10 flex flex-wrap items-center gap-6">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+                    <input
+                      type="checkbox"
+                      checked={formPublished}
+                      onChange={(e) => setFormPublished(e.target.checked)}
+                      className="w-4 h-4 rounded bg-slate-800 border-white/20 text-emerald-500 focus:ring-emerald-500/20"
+                    />
+                    <span>Published (Visible publicly on Photography page)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+                    <input
+                      type="checkbox"
+                      checked={formFeatured}
+                      onChange={(e) => setFormFeatured(e.target.checked)}
+                      className="w-4 h-4 rounded bg-slate-800 border-white/20 text-purple-500 focus:ring-purple-500/20"
+                    />
+                    <span>Featured Artwork</span>
+                  </label>
+                </div>
               </div>
 
               {/* ── Section 3: Camera & EXIF Settings ── */}

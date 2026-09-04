@@ -13,7 +13,8 @@
     ],
     "liveUrl": "https://example.com",
     "githubUrl": "https://github.com",
-    "featured": true
+    "featured": true,
+    "published": true
   },
   {
     "id": "proj-2",
@@ -29,7 +30,8 @@
     ],
     "liveUrl": "https://example.com",
     "githubUrl": "https://github.com",
-    "featured": true
+    "featured": true,
+    "published": true
   },
   {
     "id": "proj-3",
@@ -45,7 +47,8 @@
     ],
     "liveUrl": "https://example.com",
     "githubUrl": "https://github.com",
-    "featured": false
+    "featured": false,
+    "published": true
   },
   {
     "id": "proj-4",
@@ -61,6 +64,7 @@
     ],
     "liveUrl": "https://example.com",
     "githubUrl": "https://github.com",
-    "featured": false
+    "featured": false,
+    "published": true
   }
 ]

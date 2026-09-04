@@ -36,17 +36,22 @@ export default function PhotographyGallery({ initialPhotos }: PhotographyGallery
   // Statistics
   const stats = useMemo(() => {
     const total = initialPhotos.length;
+    const featuredCount = initialPhotos.filter((p) => p.featured).length;
     const withBeforeAfter = initialPhotos.filter((p) => !!p.beforeImage).length;
     const videosCount = initialPhotos.filter((p) => p.mediaType === "video" || Boolean(p.videoUrl)).length;
     const catsCount = categories.length;
-    return { total, withBeforeAfter, videosCount, catsCount };
+    return { total, featuredCount, withBeforeAfter, videosCount, catsCount };
   }, [initialPhotos, categories]);
 
   // Filtered photos based on category & search
   const filteredPhotos = useMemo(() => {
     return initialPhotos.filter((p) => {
-      const matchCategory =
-        selectedCategory === "all" || p.category === selectedCategory;
+      let matchCategory = true;
+      if (selectedCategory === "featured") {
+        matchCategory = Boolean(p.featured);
+      } else if (selectedCategory !== "all") {
+        matchCategory = p.category === selectedCategory;
+      }
 
       if (!matchCategory) return false;
 
@@ -129,6 +134,12 @@ export default function PhotographyGallery({ initialPhotos }: PhotographyGallery
                 <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
                 <span><strong>{stats.total}</strong> Artworks</span>
               </div>
+              {stats.featuredCount > 0 && (
+                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 backdrop-blur-md text-amber-300 shadow-md">
+                  <span className="text-amber-400">⭐</span>
+                  <span><strong>{stats.featuredCount}</strong> Featured</span>
+                </div>
+              )}
               <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-slate-300 shadow-md">
                 <span className="w-2 h-2 rounded-full bg-cyan-400" />
                 <span><strong>{stats.catsCount}</strong> Categories</span>
@@ -249,6 +260,29 @@ export default function PhotographyGallery({ initialPhotos }: PhotographyGallery
             >
               All ({initialPhotos.length})
             </button>
+
+            {stats.featuredCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setSelectedCategory("featured")}
+                className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 flex items-center gap-1.5 ${
+                  selectedCategory === "featured"
+                    ? "bg-gradient-to-r from-amber-400 to-amber-500 text-black font-bold shadow-lg shadow-amber-500/20"
+                    : "bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/30"
+                }`}
+              >
+                <span>⭐ Nổi bật</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                    selectedCategory === "featured"
+                      ? "bg-black/20 text-black font-extrabold"
+                      : "bg-amber-400/20 text-amber-200"
+                  }`}
+                >
+                  {stats.featuredCount}
+                </span>
+              </button>
+            )}
 
             {categories.map((cat) => {
               const count = initialPhotos.filter((p) => p.category === cat).length;

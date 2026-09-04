@@ -18,7 +18,8 @@ export const metadata: Metadata = {
 export const revalidate = 60; // ISR
 
 export default function PhotographyPage() {
-  const photos = readJsonFile<PhotoItem[]>("photography.json", []);
+  const allPhotos = readJsonFile<PhotoItem[]>("photography.json", []);
+  const photos = allPhotos.filter((p) => p.published !== false);
 
   // Sort by order or date
   const sortedPhotos = [...photos].sort((a, b) => {

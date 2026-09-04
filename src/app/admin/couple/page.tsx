@@ -67,6 +67,7 @@ export default function CoupleAdminPage() {
     category: "Kỷ niệm",
     description: "",
     featured: false,
+    published: true,
   });
 
   // Timeline Memory modal
@@ -77,6 +78,7 @@ export default function CoupleAdminPage() {
     date: "",
     emoji: "✨",
     description: "",
+    published: true,
   });
 
   // Birthday modal
@@ -87,6 +89,7 @@ export default function CoupleAdminPage() {
     date: "",
     emoji: "🎂",
     zodiac: "",
+    published: true,
   });
 
   // Special Date modal
@@ -96,6 +99,7 @@ export default function CoupleAdminPage() {
     name: "",
     date: "",
     emoji: "💕",
+    published: true,
   });
 
   // Bucket list modal
@@ -105,6 +109,7 @@ export default function CoupleAdminPage() {
     text: "",
     emoji: "🌟",
     done: false,
+    published: true,
   });
 
   // Love letter modal
@@ -114,6 +119,7 @@ export default function CoupleAdminPage() {
     from: "",
     date: "",
     content: "",
+    published: true,
   });
 
   // Favorite modal
@@ -124,6 +130,7 @@ export default function CoupleAdminPage() {
     title: "",
     description: "",
     emoji: "💝",
+    published: true,
   });
 
   // Couple Info form
@@ -138,6 +145,7 @@ export default function CoupleAdminPage() {
   // Search & Filter for Photos
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [photoStatusFilter, setPhotoStatusFilter] = useState<"all" | "published" | "draft">("all");
 
   // -------------------------------------------------------------
   // Data Fetching
@@ -195,6 +203,61 @@ export default function CoupleAdminPage() {
     }
   };
 
+  const handleTogglePublish = async (
+    section: string,
+    item: { id?: string; index?: number; published?: boolean; name?: string }
+  ) => {
+    const newStatus = item.published === false;
+    try {
+      const payload: any = {
+        section,
+        published: newStatus,
+      };
+      if (item.id) payload.id = item.id;
+      if (item.index !== undefined) payload.index = item.index;
+      if (item.name) payload.name = item.name;
+
+      const res = await fetch("/api/admin/couple", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to update status");
+
+      toast.success(newStatus ? "Đã chuyển sang Published (Công khai)!" : "Đã chuyển sang Draft (Nháp)!");
+      await fetchData();
+    } catch {
+      toast.error("Lỗi khi cập nhật trạng thái");
+    }
+  };
+
+  const renderPublishBadge = (
+    section: string,
+    item: { id?: string; index?: number; published?: boolean; name?: string }
+  ) => (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        handleTogglePublish(section, item);
+      }}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border transition-all ${
+        item.published !== false
+          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+          : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
+      }`}
+      title="Nhấn để đổi trạng thái Published / Draft"
+    >
+      <span
+        className={`w-1.5 h-1.5 rounded-full ${
+          item.published !== false ? "bg-emerald-400 animate-pulse" : "bg-slate-500"
+        }`}
+      />
+      {item.published !== false ? "Published" : "Draft"}
+    </button>
+  );
+
   // -------------------------------------------------------------
   // 1. Photos Handlers
   // -------------------------------------------------------------
@@ -208,6 +271,7 @@ export default function CoupleAdminPage() {
       category: "Kỷ niệm",
       description: "",
       featured: false,
+      published: true,
     });
     setIsPhotoModalOpen(true);
   };
@@ -222,6 +286,7 @@ export default function CoupleAdminPage() {
       category: photo.category || "Kỷ niệm",
       description: photo.description || "",
       featured: Boolean(photo.featured),
+      published: photo.published !== false,
     });
     setIsPhotoModalOpen(true);
   };
@@ -267,6 +332,7 @@ export default function CoupleAdminPage() {
       date: new Date().toLocaleDateString("vi-VN"),
       emoji: "✨",
       description: "",
+      published: true,
     });
     setIsMemoryModalOpen(true);
   };
@@ -278,6 +344,7 @@ export default function CoupleAdminPage() {
       date: mem.date,
       emoji: mem.emoji || "✨",
       description: mem.description || "",
+      published: mem.published !== false,
     });
     setIsMemoryModalOpen(true);
   };
@@ -318,6 +385,7 @@ export default function CoupleAdminPage() {
       date: "2001-01-01",
       emoji: "🎂",
       zodiac: "",
+      published: true,
     });
     setIsBirthdayModalOpen(true);
   };
@@ -329,6 +397,7 @@ export default function CoupleAdminPage() {
       date: item.date,
       emoji: item.emoji || "🎂",
       zodiac: item.zodiac || "",
+      published: item.published !== false,
     });
     setIsBirthdayModalOpen(true);
   };
@@ -366,6 +435,7 @@ export default function CoupleAdminPage() {
       name: "",
       date: new Date().toISOString().split("T")[0],
       emoji: "🎉",
+      published: true,
     });
     setIsDateModalOpen(true);
   };
@@ -376,6 +446,7 @@ export default function CoupleAdminPage() {
       name: item.name,
       date: item.date,
       emoji: item.emoji || "🎉",
+      published: item.published !== false,
     });
     setIsDateModalOpen(true);
   };
@@ -416,6 +487,7 @@ export default function CoupleAdminPage() {
       text: "",
       emoji: "🌟",
       done: false,
+      published: true,
     });
     setIsBucketModalOpen(true);
   };
@@ -426,6 +498,7 @@ export default function CoupleAdminPage() {
       text: item.text,
       emoji: item.emoji || "🌟",
       done: Boolean(item.done),
+      published: item.published !== false,
     });
     setIsBucketModalOpen(true);
   };
@@ -486,6 +559,7 @@ export default function CoupleAdminPage() {
       from: data?.person1 || "Anh",
       date: new Date().toLocaleDateString("vi-VN"),
       content: "",
+      published: true,
     });
     setIsLetterModalOpen(true);
   };
@@ -496,6 +570,7 @@ export default function CoupleAdminPage() {
       from: letter.from,
       date: letter.date,
       content: letter.content,
+      published: letter.published !== false,
     });
     setIsLetterModalOpen(true);
   };
@@ -536,6 +611,7 @@ export default function CoupleAdminPage() {
       title: "",
       description: "",
       emoji: "💝",
+      published: true,
     });
     setIsFavoriteModalOpen(true);
   };
@@ -547,6 +623,7 @@ export default function CoupleAdminPage() {
       title: fav.title,
       description: fav.description || "",
       emoji: fav.emoji || "💝",
+      published: fav.published !== false,
     });
     setIsFavoriteModalOpen(true);
   };
@@ -617,7 +694,13 @@ export default function CoupleAdminPage() {
       (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (p.location && p.location.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesCategory = categoryFilter === "all" || p.category === categoryFilter;
-    return matchesSearch && matchesCategory;
+    const matchesStatus =
+      photoStatusFilter === "all"
+        ? true
+        : photoStatusFilter === "published"
+        ? p.published !== false
+        : p.published === false;
+    return matchesSearch && matchesCategory && matchesStatus;
   });
 
   return (
@@ -789,6 +872,15 @@ export default function CoupleAdminPage() {
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-500 whitespace-nowrap">Lọc:</span>
               <select
+                value={photoStatusFilter}
+                onChange={(e) => setPhotoStatusFilter(e.target.value as any)}
+                className="bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-pink-500/50"
+              >
+                <option value="all">Tất cả trạng thái ({data?.photos?.length || 0})</option>
+                <option value="published">Đã công khai ({(data?.photos || []).filter((p) => p.published !== false).length})</option>
+                <option value="draft">Bản nháp ({(data?.photos || []).filter((p) => p.published === false).length})</option>
+              </select>
+              <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-pink-500/50"
@@ -832,11 +924,14 @@ export default function CoupleAdminPage() {
                         {photo.category}
                       </span>
                     )}
-                    {photo.featured && (
-                      <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-500 text-white shadow-md">
-                        ❤️ Nổi bật
-                      </span>
-                    )}
+                    <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
+                      {photo.featured && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-500 text-white shadow-md">
+                          ❤️ Nổi bật
+                        </span>
+                      )}
+                      {renderPublishBadge("photos", photo)}
+                    </div>
                   </div>
 
                   <div className="p-4 flex-1 flex flex-col justify-between">
@@ -922,6 +1017,7 @@ export default function CoupleAdminPage() {
                         {mem.date}
                       </span>
                       <h3 className="font-bold text-white text-base truncate">{mem.title}</h3>
+                      {renderPublishBadge("memories", mem)}
                     </div>
                     <p className="text-sm text-slate-400 leading-relaxed">{mem.description}</p>
                   </div>
@@ -988,6 +1084,7 @@ export default function CoupleAdminPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
+                    {renderPublishBadge("birthdays", { ...b, index: idx })}
                     <button
                       onClick={() => openEditBirthday(b, idx)}
                       className="px-2.5 py-1 rounded text-xs text-slate-300 hover:bg-white/10"
@@ -1045,6 +1142,7 @@ export default function CoupleAdminPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
+                    {renderPublishBadge("specialDates", { ...d, index: idx })}
                     <button
                       onClick={() => openEditDate(d, idx)}
                       className="px-2.5 py-1 rounded text-xs text-slate-300 hover:bg-white/10"
@@ -1122,7 +1220,8 @@ export default function CoupleAdminPage() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1 flex-shrink-0">
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {renderPublishBadge("bucketList", item)}
                   <button
                     onClick={() => openEditBucket(item)}
                     className="p-1 text-slate-400 hover:text-white text-xs"
@@ -1174,7 +1273,10 @@ export default function CoupleAdminPage() {
                 <div>
                   <div className="flex items-center justify-between text-xs text-pink-400 font-semibold mb-3">
                     <span>💌 Từ {letter.from}</span>
-                    <span className="text-slate-500 font-normal">{letter.date}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-500 font-normal">{letter.date}</span>
+                      {renderPublishBadge("loveLetters", letter)}
+                    </div>
                   </div>
                   <p className="text-slate-300 text-sm italic leading-relaxed whitespace-pre-wrap mb-4">
                     &ldquo;{letter.content}&rdquo;
@@ -1237,27 +1339,30 @@ export default function CoupleAdminPage() {
                   <p className="text-xs text-slate-400 leading-relaxed">{fav.description}</p>
                 </div>
 
-                <div className="flex justify-end gap-1.5 pt-3 mt-3 border-t border-white/5">
-                  <button
-                    onClick={() => openEditFavorite(fav)}
-                    className="px-2.5 py-1 text-xs text-slate-300 bg-white/5 rounded hover:bg-white/10"
-                  >
-                    Sửa
-                  </button>
-                  <button
-                    onClick={() =>
-                      setDeleteDialog({
-                        isOpen: true,
-                        section: "favorites",
-                        id: fav.id,
-                        index: idx,
-                        title: fav.title,
-                      })
-                    }
-                    className="px-2.5 py-1 text-xs text-rose-300 bg-rose-500/10 rounded hover:bg-rose-500/20"
-                  >
-                    Xóa
-                  </button>
+                <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/5">
+                  {renderPublishBadge("favorites", fav)}
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => openEditFavorite(fav)}
+                      className="px-2.5 py-1 text-xs text-slate-300 bg-white/5 rounded hover:bg-white/10"
+                    >
+                      Sửa
+                    </button>
+                    <button
+                      onClick={() =>
+                        setDeleteDialog({
+                          isOpen: true,
+                          section: "favorites",
+                          id: fav.id,
+                          index: idx,
+                          title: fav.title,
+                        })
+                      }
+                      className="px-2.5 py-1 text-xs text-rose-300 bg-rose-500/10 rounded hover:bg-rose-500/20"
+                    >
+                      Xóa
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -1409,16 +1514,24 @@ export default function CoupleAdminPage() {
                   className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
                 />
               </FormField>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="photoFeatured"
-                  checked={photoForm.featured}
-                  onChange={(e) => setPhotoForm({ ...photoForm, featured: e.target.checked })}
-                  className="rounded border-white/20 text-pink-600 focus:ring-pink-500 bg-slate-950 w-4 h-4"
-                />
-                <label htmlFor="photoFeatured" className="text-sm text-slate-300 cursor-pointer">
-                  Đánh dấu ảnh nổi bật (❤️ Featured)
+              <div className="flex flex-wrap items-center gap-6">
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+                  <input
+                    type="checkbox"
+                    checked={photoForm.published}
+                    onChange={(e) => setPhotoForm({ ...photoForm, published: e.target.checked })}
+                    className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
+                  />
+                  <span>Published (Hiển thị công khai)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+                  <input
+                    type="checkbox"
+                    checked={photoForm.featured}
+                    onChange={(e) => setPhotoForm({ ...photoForm, featured: e.target.checked })}
+                    className="rounded border-white/20 text-pink-600 focus:ring-pink-500 bg-slate-950 w-4 h-4"
+                  />
+                  <span>Đánh dấu ảnh nổi bật (❤️ Featured)</span>
                 </label>
               </div>
               <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
@@ -1511,6 +1624,17 @@ export default function CoupleAdminPage() {
                   required
                 />
               </FormField>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+                  <input
+                    type="checkbox"
+                    checked={memoryForm.published}
+                    onChange={(e) => setMemoryForm({ ...memoryForm, published: e.target.checked })}
+                    className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
+                  />
+                  <span>Published (Hiển thị công khai trên dòng thời gian)</span>
+                </label>
+              </div>
               <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
                 <button
                   type="button"
@@ -1584,6 +1708,17 @@ export default function CoupleAdminPage() {
                   />
                 </FormField>
               </div>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+                  <input
+                    type="checkbox"
+                    checked={birthdayForm.published}
+                    onChange={(e) => setBirthdayForm({ ...birthdayForm, published: e.target.checked })}
+                    className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
+                  />
+                  <span>Published (Hiển thị công khai)</span>
+                </label>
+              </div>
               <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
                 <button
                   type="button"
@@ -1647,6 +1782,17 @@ export default function CoupleAdminPage() {
                     className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
                   />
                 </FormField>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+                  <input
+                    type="checkbox"
+                    checked={dateForm.published}
+                    onChange={(e) => setDateForm({ ...dateForm, published: e.target.checked })}
+                    className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
+                  />
+                  <span>Published (Hiển thị công khai)</span>
+                </label>
               </div>
               <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
                 <button
@@ -1714,16 +1860,24 @@ export default function CoupleAdminPage() {
                   </div>
                 </div>
               </FormField>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="bucketDone"
-                  checked={bucketForm.done}
-                  onChange={(e) => setBucketForm({ ...bucketForm, done: e.target.checked })}
-                  className="rounded border-white/20 text-pink-600 focus:ring-pink-500 bg-slate-950 w-4 h-4"
-                />
-                <label htmlFor="bucketDone" className="text-sm text-slate-300 cursor-pointer">
-                  Đã hoàn thành điều này
+              <div className="flex flex-wrap items-center gap-6">
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+                  <input
+                    type="checkbox"
+                    checked={bucketForm.published}
+                    onChange={(e) => setBucketForm({ ...bucketForm, published: e.target.checked })}
+                    className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
+                  />
+                  <span>Published (Hiển thị công khai)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+                  <input
+                    type="checkbox"
+                    checked={bucketForm.done}
+                    onChange={(e) => setBucketForm({ ...bucketForm, done: e.target.checked })}
+                    className="rounded border-white/20 text-pink-600 focus:ring-pink-500 bg-slate-950 w-4 h-4"
+                  />
+                  <span>Đã hoàn thành điều này</span>
                 </label>
               </div>
               <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
@@ -1793,6 +1947,17 @@ export default function CoupleAdminPage() {
                   required
                 />
               </FormField>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+                  <input
+                    type="checkbox"
+                    checked={letterForm.published}
+                    onChange={(e) => setLetterForm({ ...letterForm, published: e.target.checked })}
+                    className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
+                  />
+                  <span>Published (Hiển thị công khai bức thư)</span>
+                </label>
+              </div>
               <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
                 <button
                   type="button"
@@ -1868,6 +2033,17 @@ export default function CoupleAdminPage() {
                   className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
                 />
               </FormField>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+                  <input
+                    type="checkbox"
+                    checked={favoriteForm.published}
+                    onChange={(e) => setFavoriteForm({ ...favoriteForm, published: e.target.checked })}
+                    className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
+                  />
+                  <span>Published (Hiển thị công khai)</span>
+                </label>
+              </div>
               <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
                 <button
                   type="button"

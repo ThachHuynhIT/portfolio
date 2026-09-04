@@ -23,6 +23,8 @@ export default function SkillsAdminPage() {
   const [formIcon, setFormIcon] = useState("");
   const [formCategory, setFormCategory] = useState<Skill["category"]>("frontend");
   const [formLevel, setFormLevel] = useState(90);
+  const [formPublished, setFormPublished] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
 
   const fetchSkills = async () => {
     try {
@@ -50,6 +52,7 @@ export default function SkillsAdminPage() {
     setFormIcon("⚛️");
     setFormCategory("frontend");
     setFormLevel(85);
+    setFormPublished(true);
     setIsCreating(true);
     setEditingSkill(null);
   };
@@ -60,12 +63,29 @@ export default function SkillsAdminPage() {
     setFormIcon(skill.icon);
     setFormCategory(skill.category);
     setFormLevel(skill.level);
+    setFormPublished(skill.published !== false);
     setIsCreating(false);
   };
 
   const closeModal = () => {
     setIsCreating(false);
     setEditingSkill(null);
+  };
+
+  const handleTogglePublish = async (skill: Skill) => {
+    const nextPublished = skill.published === false ? true : false;
+    try {
+      const res = await fetch("/api/admin/skills", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: skill.id, published: nextPublished }),
+      });
+      if (!res.ok) throw new Error("Failed to toggle publish status");
+      toast.success(`"${skill.name}" is now ${nextPublished ? "Published" : "Draft"}`);
+      fetchSkills();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to toggle status");
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -76,6 +96,7 @@ export default function SkillsAdminPage() {
       icon: formIcon,
       category: formCategory,
       level: formLevel,
+      published: formPublished,
     };
 
     try {
@@ -122,6 +143,12 @@ export default function SkillsAdminPage() {
     }
   };
 
+  const filteredSkills = skills.filter((s) => {
+    if (statusFilter === "published") return s.published !== false;
+    if (statusFilter === "draft") return s.published === false;
+    return true;
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -137,13 +164,24 @@ export default function SkillsAdminPage() {
         description="Manage technologies and proficiency levels displayed in your portfolio."
         icon="skills"
         action={
-          <button
-            onClick={openCreateModal}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
-          >
-            <span className="text-base leading-none">+</span>
-            Add Skill
-          </button>
+          <div className="flex items-center gap-3">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none"
+            >
+              <option value="all">All Skills ({skills.length})</option>
+              <option value="published">Published ({skills.filter((s) => s.published !== false).length})</option>
+              <option value="draft">Draft ({skills.filter((s) => s.published === false).length})</option>
+            </select>
+            <button
+              onClick={openCreateModal}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
+            >
+              <span className="text-base leading-none">+</span>
+              Add Skill
+            </button>
+          </div>
         }
       />
 
@@ -156,11 +194,12 @@ export default function SkillsAdminPage() {
               <th className="px-6 py-4">Name</th>
               <th className="px-6 py-4">Category</th>
               <th className="px-6 py-4">Level</th>
+              <th className="px-6 py-4">Status</th>
               <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800">
-            {skills.map((skill) => (
+            {filteredSkills.map((skill) => (
               <tr key={skill.id} className="hover:bg-gray-800/50 transition-colors">
                 <td className="px-6 py-4">
                   {skill.icon && (skill.icon.startsWith("http") || skill.icon.startsWith("/")) ? (
@@ -187,6 +226,21 @@ export default function SkillsAdminPage() {
                     </div>
                     <span className="text-xs text-gray-400">{skill.level}%</span>
                   </div>
+                </td>
+                <td className="px-6 py-4">
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePublish(skill)}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${
+                      skill.published !== false
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                        : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
+                    }`}
+                    title="Click to toggle status"
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${skill.published !== false ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
+                    {skill.published !== false ? "Published" : "Draft"}
+                  </button>
                 </td>
                 <td className="px-6 py-4 text-right space-x-2">
                   <button
@@ -264,6 +318,19 @@ export default function SkillsAdminPage() {
                   className="w-full accent-purple-500 cursor-pointer"
                 />
               </FormField>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="skill-published"
+                  checked={formPublished}
+                  onChange={(e) => setFormPublished(e.target.checked)}
+                  className="rounded border-gray-700 bg-gray-800 text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer"
+                />
+                <label htmlFor="skill-published" className="text-sm text-gray-200 cursor-pointer">
+                  Published (Visible on portfolio)
+                </label>
+              </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
                 <button

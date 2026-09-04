@@ -75,6 +75,11 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
             <div className="p-6 md:p-8 space-y-6">
               <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 border-b border-white/5 pb-4">
                 <div className="flex items-center gap-2">
+                  {photo.featured && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-400 text-black font-bold text-[11px] shadow-sm flex items-center gap-1">
+                      ⭐ Nổi bật
+                    </span>
+                  )}
                   {photo.category && (
                     <span className="px-3 py-1 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/30 font-medium">
                       {photo.category}

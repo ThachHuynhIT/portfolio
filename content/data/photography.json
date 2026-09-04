@@ -31,7 +31,8 @@
       "colorGrade": "Teal & Orange / Cyberpunk Glow",
       "notes": "Enhanced neon cyan highlights, pushed lantern warm tones, reduced rain noise, and sharpened puddle reflections."
     },
-    "order": 1
+    "order": 1,
+    "published": true
   },
   {
     "id": "photo-2",
@@ -65,7 +66,8 @@
       "colorGrade": "Warm Film Nostalgia",
       "notes": "Recovered pine tree shadow details, raised Kelvin color temperature to 6200K to warm up morning light rays."
     },
-    "order": 2
+    "order": 2,
+    "published": true
   },
   {
     "id": "photo-3",
@@ -99,7 +101,8 @@
       "colorGrade": "High Fashion Tone / Frequency Separation",
       "notes": "Skin retouching using Frequency Separation, Dodge & Burn sculpting to shape facial highlights."
     },
-    "order": 3
+    "order": 3,
+    "published": true
   },
   {
     "id": "photo-4",
@@ -132,7 +135,8 @@
       "colorGrade": "Cool Architectural Clean",
       "notes": "Lens geometry correction for precise parallel vertical perspective."
     },
-    "order": 4
+    "order": 4,
+    "published": true
   },
   {
     "id": "photo-5",
@@ -165,7 +169,8 @@
       "colorGrade": "Street Negative Film Emulation",
       "notes": "Kodak Portra 400 negative film emulation with gentle contrast and subtle organic grain."
     },
-    "order": 5
+    "order": 5,
+    "published": true
   },
   {
     "id": "photo-6",
@@ -198,7 +203,8 @@
       "colorGrade": "Cinematic Moody Green",
       "notes": "Desaturated overall tones with emphasis on Wong Kar-wai style cinematic moody green."
     },
-    "order": 6
+    "order": 6,
+    "published": true
   },
   {
     "id": "photo-7",
@@ -231,7 +237,8 @@
       "colorGrade": "Warm Amber & Steel Blue",
       "notes": "Luminosity mask separation to illuminate the golden hour reflections across the glass panels."
     },
-    "order": 7
+    "order": 7,
+    "published": true
   },
   {
     "id": "photo-8",
@@ -264,7 +271,8 @@
       "colorGrade": "Atmospheric Blue & Rose",
       "notes": "Balanced natural HDR dynamic range with slight dehaze to emphasize cloud texture."
     },
-    "order": 8
+    "order": 8,
+    "published": true
   },
   {
     "id": "photo-9",
@@ -297,6 +305,7 @@
       "colorGrade": "Organic Warm Skin Tone",
       "notes": "Preserved natural raw skin textures with smooth highlight roll-off transitions."
     },
-    "order": 9
+    "order": 9,
+    "published": true
   }
 ]

@@ -27,6 +27,8 @@ export default function ProjectsAdminPage() {
   const [formLiveUrl, setFormLiveUrl] = useState("");
   const [formGithubUrl, setFormGithubUrl] = useState("");
   const [formFeatured, setFormFeatured] = useState(false);
+  const [formPublished, setFormPublished] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
 
   const fetchProjects = async () => {
     try {
@@ -58,6 +60,7 @@ export default function ProjectsAdminPage() {
     setFormLiveUrl("");
     setFormGithubUrl("");
     setFormFeatured(false);
+    setFormPublished(true);
     setIsCreating(true);
     setEditingProject(null);
   };
@@ -72,12 +75,29 @@ export default function ProjectsAdminPage() {
     setFormLiveUrl(project.liveUrl || "");
     setFormGithubUrl(project.githubUrl || "");
     setFormFeatured(!!project.featured);
+    setFormPublished(project.published !== false);
     setIsCreating(false);
   };
 
   const closeModal = () => {
     setIsCreating(false);
     setEditingProject(null);
+  };
+
+  const handleTogglePublish = async (project: Project) => {
+    const nextPublished = project.published === false ? true : false;
+    try {
+      const res = await fetch("/api/admin/projects", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: project.id, published: nextPublished }),
+      });
+      if (!res.ok) throw new Error("Failed to toggle publish status");
+      toast.success(`"${project.title}" is now ${nextPublished ? "Published" : "Draft"}`);
+      fetchProjects();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to toggle status");
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -92,6 +112,7 @@ export default function ProjectsAdminPage() {
       liveUrl: formLiveUrl,
       githubUrl: formGithubUrl,
       featured: formFeatured,
+      published: formPublished,
     };
 
     try {
@@ -138,6 +159,12 @@ export default function ProjectsAdminPage() {
     }
   };
 
+  const filteredProjects = projects.filter((p) => {
+    if (statusFilter === "published") return p.published !== false;
+    if (statusFilter === "draft") return p.published === false;
+    return true;
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -153,31 +180,57 @@ export default function ProjectsAdminPage() {
         description="Add, edit, or feature projects displayed on your portfolio homepage."
         icon="projects"
         action={
-          <button
-            onClick={openCreateModal}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
-          >
-            <span className="text-base leading-none">+</span>
-            Add Project
-          </button>
+          <div className="flex items-center gap-3">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none"
+            >
+              <option value="all">All Projects ({projects.length})</option>
+              <option value="published">Published ({projects.filter((p) => p.published !== false).length})</option>
+              <option value="draft">Draft ({projects.filter((p) => p.published === false).length})</option>
+            </select>
+            <button
+              onClick={openCreateModal}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
+            >
+              <span className="text-base leading-none">+</span>
+              Add Project
+            </button>
+          </div>
         }
       />
 
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {projects.map((project) => (
+        {filteredProjects.map((project) => (
           <div
             key={project.id}
-            className="p-6 rounded-2xl bg-gray-900 border border-gray-800 flex flex-col justify-between"
+            className="p-6 rounded-2xl bg-gray-900 border border-gray-800 flex flex-col justify-between hover:border-gray-700 transition-all"
           >
             <div>
               <div className="flex items-start justify-between gap-4 mb-3">
                 <h3 className="text-lg font-bold text-white">{project.title}</h3>
-                {project.featured && (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                    Featured
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePublish(project)}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${
+                      project.published !== false
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                        : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
+                    }`}
+                    title="Click to toggle status"
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${project.published !== false ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
+                    {project.published !== false ? "Published" : "Draft"}
+                  </button>
+                  {project.featured && (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                      Featured
+                    </span>
+                  )}
+                </div>
               </div>
 
               <p className="text-gray-400 text-sm mb-4 line-clamp-2">
@@ -253,7 +306,7 @@ export default function ProjectsAdminPage() {
                 />
               </FormField>
 
-              <FormField label="Long Description" id="proj-long-desc">
+              <FormField label="Long Description (Optional Markdown/Details)" id="proj-long-desc">
                 <textarea
                   id="proj-long-desc"
                   rows={4}
@@ -263,61 +316,70 @@ export default function ProjectsAdminPage() {
                 />
               </FormField>
 
-              <div className="space-y-4">
-                <MediaImagePicker
-                  label="Project Cover Image"
-                  value={formImage}
-                  onChange={setFormImage}
-                  category="project"
-                  subType="cover"
+              <MediaImagePicker
+                label="Cover Image"
+                value={formImage}
+                onChange={setFormImage}
+                category="project"
+                subType="cover"
+                required
+                helperText="Select or upload a high-resolution screenshot or mockup of your project."
+              />
+
+              <FormField label="Tech Stack Tags (Comma separated)" id="proj-tags" required>
+                <input
+                  id="proj-tags"
+                  type="text"
+                  value={formTags}
+                  onChange={(e) => setFormTags(e.target.value)}
+                  placeholder="Next.js, TypeScript, TailwindCSS, Three.js"
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
                   required
-                  helperText="Select a cover image from Cloud Library, upload a new image, or enter an image URL."
                 />
+              </FormField>
 
-                <FormField label="Tags (comma separated)" id="proj-tags" required>
-                  <input
-                    id="proj-tags"
-                    type="text"
-                    value={formTags}
-                    onChange={(e) => setFormTags(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                    required
-                  />
-                </FormField>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField label="Live Demo URL" id="proj-live">
                   <input
                     id="proj-live"
                     type="url"
                     value={formLiveUrl}
                     onChange={(e) => setFormLiveUrl(e.target.value)}
+                    placeholder="https://myproject.com"
                     className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
                   />
                 </FormField>
-
                 <FormField label="GitHub Repository URL" id="proj-github">
                   <input
                     id="proj-github"
                     type="url"
                     value={formGithubUrl}
                     onChange={(e) => setFormGithubUrl(e.target.value)}
+                    placeholder="https://github.com/username/repo"
                     className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
                   />
                 </FormField>
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  id="proj-featured"
-                  type="checkbox"
-                  checked={formFeatured}
-                  onChange={(e) => setFormFeatured(e.target.checked)}
-                  className="w-4 h-4 accent-purple-500 cursor-pointer"
-                />
-                <label htmlFor="proj-featured" className="text-sm font-medium text-gray-300 cursor-pointer">
-                  Feature this project on homepage
+              <div className="flex flex-wrap items-center gap-6 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formFeatured}
+                    onChange={(e) => setFormFeatured(e.target.checked)}
+                    className="rounded border-gray-700 bg-gray-800 text-purple-600 focus:ring-purple-500 w-4 h-4"
+                  />
+                  <span className="text-sm font-medium text-gray-300">Feature this project</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formPublished}
+                    onChange={(e) => setFormPublished(e.target.checked)}
+                    className="rounded border-gray-700 bg-gray-800 text-purple-600 focus:ring-purple-500 w-4 h-4"
+                  />
+                  <span className="text-sm font-medium text-emerald-400">Published (Visible on portfolio)</span>
                 </label>
               </div>
 
