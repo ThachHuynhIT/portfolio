@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import FormField from "@/components/admin/FormField";
+import MediaImagePicker from "@/components/admin/MediaImagePicker";
 import { useToast } from "@/context/ToastContext";
 import type { SiteConfig } from "@/lib/types";
 
@@ -125,15 +126,16 @@ export default function SiteConfigAdminPage() {
               />
             </FormField>
 
-            <FormField label="OpenGraph Image Path" id="site-og">
-              <input
-                id="site-og"
-                type="text"
+            <div className="md:col-span-2">
+              <MediaImagePicker
+                label="OpenGraph Social Image"
                 value={config.ogImage}
-                onChange={(e) => setConfig({ ...config, ogImage: e.target.value })}
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                onChange={(url) => setConfig({ ...config, ogImage: url })}
+                category="site"
+                subType="og"
+                helperText="Ảnh hiển thị khi chia sẻ trang web lên mạng xã hội (Facebook, Zalo, Twitter...)"
               />
-            </FormField>
+            </div>
           </div>
         </div>
 
@@ -190,21 +192,23 @@ export default function SiteConfigAdminPage() {
             />
           </FormField>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField label="Avatar Path" id="author-avatar">
-              <input
-                id="author-avatar"
-                type="text"
-                value={config.author.avatar}
-                onChange={(e) =>
-                  setConfig({
-                    ...config,
-                    author: { ...config.author, avatar: e.target.value },
-                  })
-                }
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              />
-            </FormField>
+          <div className="space-y-4">
+            <MediaImagePicker
+              label="Author Avatar"
+              value={config.author.avatar}
+              onChange={(url) =>
+                setConfig({
+                  ...config,
+                  author: { ...config.author, avatar: url },
+                })
+              }
+              category="site"
+              subType="avatar"
+              helperText="Ảnh chân dung cá nhân / đại diện tác giả."
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
             <FormField label="Email Address" id="author-email">
               <input

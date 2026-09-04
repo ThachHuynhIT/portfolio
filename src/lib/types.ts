@@ -110,3 +110,24 @@ export interface PhotoItem {
   order?: number;
 }
 
+// Media Management Types
+export type MediaCategory = "music" | "photo" | "project" | "blog" | "site" | "general";
+
+export interface MediaAsset {
+  id: string;
+  publicId: string;
+  filename: string;
+  url: string;
+  secureUrl: string;
+  category: MediaCategory;
+  subType?: string;
+  format: string;
+  bytes: number;
+  width?: number;
+  height?: number;
+  duration?: number;
+  resourceType: "image" | "video" | "raw";
+  tags: string[];
+  createdAt: string;
+}
+

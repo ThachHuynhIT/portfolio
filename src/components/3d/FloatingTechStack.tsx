@@ -42,7 +42,11 @@ function FloatingSkill({ name, icon, position, color }: FloatingSkillProps) {
           distanceFactor={8}
           style={{ pointerEvents: "none" }}
         >
-          <span className="text-2xl select-none">{icon}</span>
+          {icon && (icon.startsWith("http") || icon.startsWith("/")) ? (
+            <img src={icon} alt={name} className="w-7 h-7 object-contain select-none drop-shadow" />
+          ) : (
+            <span className="text-2xl select-none">{icon}</span>
+          )}
         </Html>
         <Html
           position={[0, -0.6, 0]}

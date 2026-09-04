@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
+import MediaPickerModal from "@/components/admin/MediaPickerModal";
 
-type SourceMode = "upload" | "url";
+type SourceMode = "upload" | "url" | "library";
 
 interface TrackFormData {
   title: string;
@@ -75,6 +76,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
   const [thumbPreviewUrl, setThumbPreviewUrl] = useState<string | null>(
     initialData?.thumbnailUrl || null
   );
+  const [isThumbPickerOpen, setIsThumbPickerOpen] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -448,6 +450,18 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               <button
                 type="button"
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  thumbMode === "library" ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"
+                }`}
+                onClick={() => {
+                  setThumbMode("library");
+                  setIsThumbPickerOpen(true);
+                }}
+              >
+                📁 Cloud Library
+              </button>
+              <button
+                type="button"
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                   thumbMode === "url" ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"
                 }`}
                 onClick={() => setThumbMode("url")}
@@ -467,6 +481,17 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               value={formData.thumbnailUrl}
               onChange={handleChange}
             />
+          ) : thumbMode === "library" ? (
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setIsThumbPickerOpen(true)}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gray-800/60 hover:bg-gray-800 border border-dashed border-gray-700 hover:border-purple-500 text-purple-300 rounded-xl text-xs font-semibold transition-all"
+              >
+                <span>📁</span>
+                <span>Mở Thư viện Cloud để chọn ảnh bìa bài hát…</span>
+              </button>
+            </div>
           ) : (
             <div
               className="border-2 border-dashed border-gray-700 hover:border-purple-500/80 bg-gray-800/30 hover:bg-purple-950/10 rounded-2xl p-5 text-center cursor-pointer transition-all"
@@ -493,6 +518,43 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                   <p className="text-[11px] text-gray-500">JPG, PNG, WEBP, GIF</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Thumbnail Preview if set */}
+          {formData.thumbnailUrl && (
+            <div className="flex items-center gap-3 p-2 bg-gray-800/60 border border-gray-700 rounded-xl mt-2">
+              <div className="w-12 h-12 rounded-lg bg-black/40 overflow-hidden flex-shrink-0 border border-white/5">
+                <img
+                  src={formData.thumbnailUrl}
+                  alt="Thumbnail"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-gray-300 font-mono truncate" title={formData.thumbnailUrl}>
+                  {formData.thumbnailUrl}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsThumbPickerOpen(true)}
+                  className="text-[11px] text-purple-400 hover:underline mt-0.5"
+                >
+                  Đổi ảnh từ thư viện
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData((prev) => ({ ...prev, thumbnailUrl: "" }));
+                  setThumbFile(null);
+                  setThumbPreviewUrl(null);
+                }}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-white/5 transition-all text-xs"
+                title="Xóa ảnh"
+              >
+                ✕
+              </button>
             </div>
           )}
         </div>
@@ -621,6 +683,19 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
           </div>
         </div>
       </div>
+
+      {/* Media Picker Modal for Album Cover */}
+      <MediaPickerModal
+        isOpen={isThumbPickerOpen}
+        onClose={() => setIsThumbPickerOpen(false)}
+        onSelect={(url) => {
+          setFormData((prev) => ({ ...prev, thumbnailUrl: url }));
+          setThumbFile(null);
+          setThumbPreviewUrl(url);
+        }}
+        title="Chọn ảnh bìa từ Cloud / Thư viện"
+        defaultCategory="music"
+      />
     </div>
   );
 }

@@ -1,17 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession } from "@/lib/admin-auth";
-import { cloudinary } from "@/lib/cloudinary";
+import { uploadAndRegisterMedia } from "@/lib/media-service";
 import path from "path";
-// @ts-expect-error heic-convert does not provide official TS declarations
-import convertHeic from "heic-convert";
-
-// Configure Cloudinary explicitly
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-});
 
 export async function POST(req: NextRequest) {
   if (!(await verifySession())) {
@@ -21,72 +11,49 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
+    const isBefore = formData.get("isBefore") === "true";
+    const subTypeInput = formData.get("subType") as string | null;
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    let buffer: Buffer = Buffer.from(arrayBuffer);
+    const buffer = Buffer.from(arrayBuffer);
 
-    const ext = (path.extname(file.name) || ".jpg").toLowerCase();
-    let mimeType = file.type || "image/jpeg";
+    const ext = (path.extname(file.name) || "").toLowerCase();
+    const mimeType = file.type || "image/jpeg";
     const isVideo =
       mimeType.startsWith("video/") ||
       [".mp4", ".webm", ".mov", ".m4v", ".mkv"].includes(ext);
 
-    // 1. If image is HEIC/HEIF (e.g. from iPhone), convert to JPEG buffer first
-    const isHeic =
-      [".heic", ".heif"].includes(ext) ||
-      mimeType === "image/heic" ||
-      mimeType === "image/heif";
-
-    if (isHeic) {
-      try {
-        const converted = await convertHeic({
-          buffer,
-          format: "JPEG",
-          quality: 0.92,
-        });
-        buffer = Buffer.from(converted);
-        mimeType = "image/jpeg";
-      } catch (convErr) {
-        console.warn("[Upload] Failed to convert HEIC to JPEG:", convErr);
-      }
-    }
-
-    // 2. Upload directly to Cloudinary
-    const base64 = buffer.toString("base64");
-    const dataUri = `data:${mimeType};base64,${base64}`;
-
+    let subType = "processed";
     if (isVideo) {
-      const uploadRes = await cloudinary.uploader.upload(dataUri, {
-        folder: "portfolio/photography/videos",
-        resource_type: "video",
-      });
-
-      return NextResponse.json({
-        url: uploadRes.secure_url,
-        publicId: uploadRes.public_id,
-        mediaType: "video",
-        width: uploadRes.width,
-        height: uploadRes.height,
-        duration: uploadRes.duration,
-      });
-    } else {
-      const uploadRes = await cloudinary.uploader.upload(dataUri, {
-        folder: "portfolio/photography",
-        resource_type: "image",
-      });
-
-      return NextResponse.json({
-        url: uploadRes.secure_url,
-        publicId: uploadRes.public_id,
-        mediaType: "image",
-        width: uploadRes.width,
-        height: uploadRes.height,
-      });
+      subType = "video";
+    } else if (isBefore || subTypeInput === "raw") {
+      subType = "raw";
+    } else if (subTypeInput) {
+      subType = subTypeInput;
     }
+
+    const asset = await uploadAndRegisterMedia(buffer, {
+      category: "photo",
+      subType,
+      originalName: file.name,
+      mimeType,
+      resourceType: isVideo ? "video" : "image",
+      tags: ["photography", isVideo ? "video" : "photo", subType],
+    });
+
+    return NextResponse.json({
+      url: asset.secureUrl,
+      publicId: asset.publicId,
+      mediaType: isVideo ? "video" : "image",
+      width: asset.width,
+      height: asset.height,
+      duration: asset.duration,
+      asset,
+    });
   } catch (error: any) {
     console.error("[POST /api/admin/photography/upload] Error:", error);
     const errorMessage =

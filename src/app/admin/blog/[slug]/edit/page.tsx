@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import FormField from "@/components/admin/FormField";
 import MarkdownPreview from "@/components/admin/MarkdownPreview";
+import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import { useToast } from "@/context/ToastContext";
 
 export default function EditBlogPostPage() {
@@ -17,6 +18,7 @@ export default function EditBlogPostPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
+  const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
 
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
@@ -206,7 +208,17 @@ export default function EditBlogPostPage() {
         {/* Content Editor & Preview Tabs */}
         <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800">
           <div className="flex items-center justify-between border-b border-gray-800 pb-4 mb-4">
-            <h2 className="text-lg font-bold text-white">Post Content (MDX)</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-bold text-white">Post Content (MDX)</h2>
+              <button
+                type="button"
+                onClick={() => setIsImagePickerOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-purple-300 hover:text-white rounded-lg text-xs font-medium border border-gray-700 transition-all shadow-sm"
+              >
+                <span>🖼️</span>
+                <span>Chèn ảnh từ Cloud / Upload</span>
+              </button>
+            </div>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -265,6 +277,19 @@ export default function EditBlogPostPage() {
           </button>
         </div>
       </form>
+
+      {/* Image Picker Modal for Blog */}
+      <MediaPickerModal
+        isOpen={isImagePickerOpen}
+        onClose={() => setIsImagePickerOpen(false)}
+        onSelect={(url, asset) => {
+          const alt = asset?.filename ? asset.filename.split(".")[0] : "image";
+          setContent((prev) => `${prev}\n\n![${alt}](${url})\n\n`);
+          toast.success("Đã chèn ảnh vào nội dung bài viết!");
+        }}
+        title="Chọn ảnh hoặc tải ảnh mới để chèn vào bài viết"
+        defaultCategory="blog"
+      />
     </div>
   );
 }

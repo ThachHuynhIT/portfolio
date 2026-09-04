@@ -12,6 +12,7 @@ const CONTENT_ITEMS = [
   { label: "Photography", href: "/admin/photography", icon: "camera" },
   { label: "Music Tracks", href: "/admin/music", icon: "music" },
   { label: "Blog Posts", href: "/admin/blog", icon: "blog" },
+  { label: "Media Library", href: "/admin/media", icon: "image" },
 ];
 
 const SYSTEM_ITEMS = [

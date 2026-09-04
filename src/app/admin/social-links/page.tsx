@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import MediaImagePicker from "@/components/admin/MediaImagePicker";
 import { useToast } from "@/context/ToastContext";
 import type { SocialLink } from "@/lib/types";
 
@@ -155,7 +156,15 @@ export default function SocialLinksAdminPage() {
             {links.map((link) => (
               <tr key={link.id} className="hover:bg-gray-800/50 transition-colors">
                 <td className="px-6 py-4 font-semibold text-white">{link.name}</td>
-                <td className="px-6 py-4 font-mono text-xs text-purple-400">{link.icon}</td>
+                <td className="px-6 py-4">
+                  {link.icon && (link.icon.startsWith("http") || link.icon.startsWith("/")) ? (
+                    <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 p-1 flex items-center justify-center">
+                      <img src={link.icon} alt={link.name} className="w-full h-full object-contain rounded-full" />
+                    </div>
+                  ) : (
+                    <span className="font-mono text-xs text-purple-400 font-semibold">{link.icon}</span>
+                  )}
+                </td>
                 <td className="px-6 py-4 text-gray-400 max-w-xs truncate">{link.url}</td>
                 <td className="px-6 py-4 text-right space-x-2">
                   <button
@@ -180,7 +189,7 @@ export default function SocialLinksAdminPage() {
       {(isCreating || editingLink) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative z-10 w-full max-w-md bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl">
+          <div className="relative z-10 w-full max-w-xl bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-white mb-6">
               {isCreating ? "Add Social Link" : "Edit Social Link"}
             </h3>
@@ -192,22 +201,44 @@ export default function SocialLinksAdminPage() {
                   type="text"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  placeholder="GitHub, LinkedIn, Twitter..."
+                  placeholder="GitHub, LinkedIn, Twitter, Facebook..."
                   className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
                   required
                 />
               </FormField>
 
-              <FormField label="Icon Key" id="social-icon" required hint="Used by Footer SVG renderer (github, linkedin, twitter)">
-                <input
-                  id="social-icon"
-                  type="text"
+              <div className="space-y-1.5">
+                <MediaImagePicker
+                  label="Icon / Logo"
                   value={formIcon}
-                  onChange={(e) => setFormIcon(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  onChange={setFormIcon}
+                  category="general"
+                  subType="social"
                   required
+                  helperText="Chọn icon từ Cloud, upload logo hoặc nhập từ khóa có sẵn bên dưới."
                 />
-              </FormField>
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="text-[10px] text-slate-500 mr-1">Gợi ý từ khóa:</span>
+                  {["github", "linkedin", "twitter", "facebook", "youtube", "instagram", "discord", "telegram"].map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setFormIcon(key);
+                      }}
+                      className={`px-2 py-0.5 rounded text-[10px] border transition-all ${
+                        formIcon === key
+                          ? "bg-purple-600 text-white border-purple-500 font-semibold"
+                          : "bg-gray-800 text-gray-400 border-gray-700 hover:text-white"
+                      }`}
+                    >
+                      {key}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <FormField label="URL" id="social-url" required>
                 <input

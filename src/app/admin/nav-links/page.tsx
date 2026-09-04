@@ -174,7 +174,7 @@ export default function NavLinksAdminPage() {
       {(isCreating || editingLink) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative z-10 w-full max-w-md bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl">
+          <div className="relative z-10 w-full max-w-lg bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl">
             <h3 className="text-xl font-bold text-white mb-6">
               {isCreating ? "Add Nav Link" : "Edit Nav Link"}
             </h3>

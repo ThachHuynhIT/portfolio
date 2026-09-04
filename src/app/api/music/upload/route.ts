@@ -1,47 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
-import { uploadImage } from "@/lib/cloudinary";
-import { v2 as cloudinary } from "cloudinary";
+import { uploadAndRegisterMedia } from "@/lib/media-service";
+import type { MediaAsset } from "@/lib/types";
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-});
-
-// POST /api/music/upload — upload audio file or thumbnail to Cloudinary
+// POST /api/music/upload — upload audio file or thumbnail to Cloudinary with standardized prefix
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const audioFile = formData.get("audio") as File | null;
     const thumbnailFile = formData.get("thumbnail") as File | null;
 
-    const result: { audioUrl?: string; thumbnailUrl?: string } = {};
+    const result: {
+      audioUrl?: string;
+      thumbnailUrl?: string;
+      audioAsset?: MediaAsset;
+      thumbAsset?: MediaAsset;
+    } = {};
 
-    // Upload audio file
+    // Upload audio file with prefix: music-audio-...
     if (audioFile) {
       const arrayBuffer = await audioFile.arrayBuffer();
-      const base64 = Buffer.from(arrayBuffer).toString("base64");
-      const dataUri = `data:${audioFile.type};base64,${base64}`;
+      const buffer = Buffer.from(arrayBuffer);
 
-      const audioResult = await cloudinary.uploader.upload(dataUri, {
-        folder: "portfolio/music/audio",
-        resource_type: "video", // Cloudinary uses "video" type for audio files
-        format: "mp3",
+      const audioAsset = await uploadAndRegisterMedia(buffer, {
+        category: "music",
+        subType: "audio",
+        originalName: audioFile.name,
+        mimeType: audioFile.type || "audio/mpeg",
+        resourceType: "video", // Cloudinary uses video resource_type for audio
       });
-      result.audioUrl = audioResult.secure_url;
+
+      result.audioUrl = audioAsset.secureUrl;
+      result.audioAsset = audioAsset;
     }
 
-    // Upload thumbnail image
+    // Upload thumbnail image with prefix: music-thumb-...
     if (thumbnailFile) {
       const arrayBuffer = await thumbnailFile.arrayBuffer();
-      const base64 = Buffer.from(arrayBuffer).toString("base64");
-      const dataUri = `data:${thumbnailFile.type};base64,${base64}`;
+      const buffer = Buffer.from(arrayBuffer);
 
-      const thumbResult = await uploadImage(dataUri, {
-        folder: "portfolio/music/thumbnails",
+      const thumbAsset = await uploadAndRegisterMedia(buffer, {
+        category: "music",
+        subType: "thumb",
+        originalName: thumbnailFile.name,
+        mimeType: thumbnailFile.type || "image/jpeg",
+        resourceType: "image",
       });
-      result.thumbnailUrl = thumbResult.url;
+
+      result.thumbnailUrl = thumbAsset.secureUrl;
+      result.thumbAsset = thumbAsset;
     }
 
     if (!result.audioUrl && !result.thumbnailUrl) {
@@ -52,8 +58,11 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(result, { status: 201 });
-  } catch (error) {
-    console.error("[POST /api/music/upload]", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+  } catch (error: any) {
+    console.error("[POST /api/music/upload] Error:", error);
+    return NextResponse.json(
+      { error: error?.message || "Upload failed" },
+      { status: 500 }
+    );
   }
 }

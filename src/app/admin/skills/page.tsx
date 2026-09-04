@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import MediaImagePicker from "@/components/admin/MediaImagePicker";
 import { useToast } from "@/context/ToastContext";
 import type { Skill } from "@/lib/types";
 
@@ -161,7 +162,15 @@ export default function SkillsAdminPage() {
           <tbody className="divide-y divide-gray-800">
             {skills.map((skill) => (
               <tr key={skill.id} className="hover:bg-gray-800/50 transition-colors">
-                <td className="px-6 py-4 text-2xl">{skill.icon}</td>
+                <td className="px-6 py-4">
+                  {skill.icon && (skill.icon.startsWith("http") || skill.icon.startsWith("/")) ? (
+                    <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 p-1 flex items-center justify-center">
+                      <img src={skill.icon} alt={skill.name} className="w-full h-full object-contain rounded" />
+                    </div>
+                  ) : (
+                    <span className="text-2xl">{skill.icon || "⚡"}</span>
+                  )}
+                </td>
                 <td className="px-6 py-4 font-semibold text-white">{skill.name}</td>
                 <td className="px-6 py-4">
                   <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-800 text-gray-300 border border-gray-700 uppercase">
@@ -203,7 +212,7 @@ export default function SkillsAdminPage() {
       {(isCreating || editingSkill) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative z-10 w-full max-w-md bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl">
+          <div className="relative z-10 w-full max-w-xl bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-white mb-6">
               {isCreating ? "Add New Skill" : "Edit Skill"}
             </h3>
@@ -220,32 +229,29 @@ export default function SkillsAdminPage() {
                 />
               </FormField>
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField label="Icon Emoji / Char" id="skill-icon" required>
-                  <input
-                    id="skill-icon"
-                    type="text"
-                    value={formIcon}
-                    onChange={(e) => setFormIcon(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                    required
-                  />
-                </FormField>
+              <MediaImagePicker
+                label="Skill Icon / Image"
+                value={formIcon}
+                onChange={setFormIcon}
+                category="general"
+                subType="skill"
+                required
+                helperText="Chọn logo từ Cloud, tải lên ảnh mới hoặc dán URL / Emoji (⚛️, ▲, 📘...)."
+              />
 
-                <FormField label="Category" id="skill-category" required>
-                  <select
-                    id="skill-category"
-                    value={formCategory}
-                    onChange={(e) => setFormCategory(e.target.value as Skill["category"])}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  >
-                    <option value="frontend">Frontend</option>
-                    <option value="backend">Backend</option>
-                    <option value="tools">Tools</option>
-                    <option value="design">Design</option>
-                  </select>
-                </FormField>
-              </div>
+              <FormField label="Category" id="skill-category" required>
+                <select
+                  id="skill-category"
+                  value={formCategory}
+                  onChange={(e) => setFormCategory(e.target.value as Skill["category"])}
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                >
+                  <option value="frontend">Frontend</option>
+                  <option value="backend">Backend</option>
+                  <option value="tools">Tools</option>
+                  <option value="design">Design</option>
+                </select>
+              </FormField>
 
               <FormField label={`Proficiency Level (${formLevel}%)`} id="skill-level" required>
                 <input

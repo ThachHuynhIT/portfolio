@@ -10,6 +10,7 @@ import { useToast } from "@/context/ToastContext";
 import type { PhotoItem } from "@/lib/types";
 import { extractImageMetadata } from "@/lib/exif-extractor";
 import Icon from "@/components/ui/Icon";
+import MediaPickerModal from "@/components/admin/MediaPickerModal";
 
 const DEFAULT_CATEGORIES = [
   "Street & Urban",
@@ -36,6 +37,9 @@ export default function PhotographyAdminPage() {
   const [uploadingBeforeImage, setUploadingBeforeImage] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [exifNotice, setExifNotice] = useState<string | null>(null);
+
+  const [isMainPickerOpen, setIsMainPickerOpen] = useState(false);
+  const [isBeforePickerOpen, setIsBeforePickerOpen] = useState(false);
 
   const mainFileInputRef = useRef<HTMLInputElement>(null);
   const beforeFileInputRef = useRef<HTMLInputElement>(null);
@@ -715,10 +719,19 @@ export default function PhotographyAdminPage() {
                       </span>
                     </button>
 
+                    <button
+                      type="button"
+                      onClick={() => setIsMainPickerOpen(true)}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition-all border border-white/10"
+                    >
+                      <span>📁</span>
+                      <span>Chọn từ Cloud</span>
+                    </button>
+
                     {formImage && (
                       <span className="text-xs text-emerald-400 flex items-center gap-1 font-mono">
                         <Icon name="check" size={13} />
-                        Image uploaded
+                        Image set
                       </span>
                     )}
                   </div>
@@ -791,10 +804,19 @@ export default function PhotographyAdminPage() {
                         </span>
                       </button>
 
+                      <button
+                        type="button"
+                        onClick={() => setIsBeforePickerOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition-all border border-white/10"
+                      >
+                        <span>📁</span>
+                        <span>Chọn từ Cloud</span>
+                      </button>
+
                       {formBeforeImage && (
                         <span className="text-xs text-purple-400 flex items-center gap-1 font-mono">
                           <Icon name="check" size={13} />
-                          RAW photo uploaded
+                          RAW photo set
                         </span>
                       )}
                     </div>
@@ -1105,6 +1127,23 @@ export default function PhotographyAdminPage() {
         isDangerous={true}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      {/* ── Media Picker Modals ── */}
+      <MediaPickerModal
+        isOpen={isMainPickerOpen}
+        onClose={() => setIsMainPickerOpen(false)}
+        onSelect={(url) => setFormImage(url)}
+        title="Chọn ảnh nghệ thuật từ Cloud / Thư viện"
+        defaultCategory="photo"
+      />
+
+      <MediaPickerModal
+        isOpen={isBeforePickerOpen}
+        onClose={() => setIsBeforePickerOpen(false)}
+        onSelect={(url) => setFormBeforeImage(url)}
+        title="Chọn ảnh RAW từ Cloud / Thư viện"
+        defaultCategory="photo"
       />
     </div>
   );

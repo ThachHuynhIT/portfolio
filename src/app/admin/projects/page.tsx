@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import MediaImagePicker from "@/components/admin/MediaImagePicker";
 import { useToast } from "@/context/ToastContext";
 import type { Project } from "@/lib/types";
 
@@ -224,7 +225,7 @@ export default function ProjectsAdminPage() {
       {(isCreating || editingProject) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative z-10 w-full max-w-xl bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div className="relative z-10 w-full max-w-2xl bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-white mb-6">
               {isCreating ? "Add New Project" : "Edit Project"}
             </h3>
@@ -262,17 +263,16 @@ export default function ProjectsAdminPage() {
                 />
               </FormField>
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField label="Image Path" id="proj-image" required>
-                  <input
-                    id="proj-image"
-                    type="text"
-                    value={formImage}
-                    onChange={(e) => setFormImage(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                    required
-                  />
-                </FormField>
+              <div className="space-y-4">
+                <MediaImagePicker
+                  label="Project Cover Image"
+                  value={formImage}
+                  onChange={setFormImage}
+                  category="project"
+                  subType="cover"
+                  required
+                  helperText="Chọn ảnh đại diện cho dự án từ Cloud, tải lên mới hoặc nhập URL."
+                />
 
                 <FormField label="Tags (comma separated)" id="proj-tags" required>
                   <input

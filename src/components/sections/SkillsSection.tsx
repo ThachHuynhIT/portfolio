@@ -84,7 +84,17 @@ export default function SkillsSection() {
                   .map((skill) => (
                     <motion.div key={skill.name} variants={fadeInUp}>
                       <GlassCard className="p-4 text-center group cursor-pointer">
-                        <div className="text-3xl mb-2">{skill.icon}</div>
+                        <div className="h-10 flex items-center justify-center mb-2">
+                          {skill.icon && (skill.icon.startsWith("http") || skill.icon.startsWith("/")) ? (
+                            <img
+                              src={skill.icon}
+                              alt={skill.name}
+                              className="w-8 h-8 object-contain transition-transform group-hover:scale-110"
+                            />
+                          ) : (
+                            <span className="text-3xl">{skill.icon || "⚡"}</span>
+                          )}
+                        </div>
                         <div className="text-white/80 text-sm font-medium">
                           {skill.name}
                         </div>
