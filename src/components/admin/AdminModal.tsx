@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import Icon from "@/components/ui/Icon";
+import { useTranslation } from "@/context/LanguageContext";
 
 export interface AdminModalProps {
   isOpen: boolean;
@@ -33,8 +34,8 @@ export default function AdminModal({
   maxWidth = "max-w-2xl",
   onSubmit,
   onSave,
-  saveLabel = "Save",
-  closeLabel = "Close",
+  saveLabel,
+  closeLabel,
   isSaving = false,
   saveDisabled = false,
   saveButtonType = "submit",
@@ -42,6 +43,12 @@ export default function AdminModal({
   hideFooter = false,
   customFooter,
 }: AdminModalProps) {
+  const { t } = useTranslation();
+
+  const finalCloseLabel = closeLabel || t("admin.common.close", "Close");
+  const finalSaveLabel = isSaving
+    ? t("admin.common.saving", "Saving...")
+    : saveLabel || t("admin.common.save", "Save");
   // Close on Escape key press
   useEffect(() => {
     if (!isOpen) return;
@@ -110,7 +117,7 @@ export default function AdminModal({
                 disabled={isSaving}
                 className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 active:scale-[0.98] transition-all disabled:opacity-50"
               >
-                {closeLabel}
+                {finalCloseLabel}
               </button>
               <button
                 type={onSubmit ? "submit" : saveButtonType}
@@ -121,7 +128,7 @@ export default function AdminModal({
                 {isSaving && (
                   <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 )}
-                <span>{saveLabel}</span>
+                <span>{finalSaveLabel}</span>
               </button>
             </div>
           )}

@@ -1,5 +1,8 @@
 "use client";
 
+import React from "react";
+import { useTranslation } from "@/context/LanguageContext";
+
 export interface ConfirmDialogProps {
   isOpen: boolean;
   title: string;
@@ -16,16 +19,19 @@ export default function ConfirmDialog({
   isOpen,
   title,
   message,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   isDangerous = false,
   isDestructive,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   const danger = isDestructive ?? isDangerous;
+  const finalCancelLabel = cancelLabel || t("admin.common.cancel", "Cancel");
+  const finalConfirmLabel = confirmLabel || (danger ? t("admin.common.delete", "Delete") : t("admin.common.confirm", "Confirm"));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -46,7 +52,7 @@ export default function ConfirmDialog({
             onClick={onCancel}
             className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 rounded-xl transition-all"
           >
-            {cancelLabel}
+            {finalCancelLabel}
           </button>
           <button
             type="button"
@@ -57,7 +63,7 @@ export default function ConfirmDialog({
                 : "bg-purple-600 hover:bg-purple-500"
             }`}
           >
-            {confirmLabel}
+            {finalConfirmLabel}
           </button>
         </div>
       </div>

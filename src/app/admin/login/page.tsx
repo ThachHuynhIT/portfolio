@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/context/LanguageContext";
+import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,7 +27,7 @@ export default function AdminLoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Authentication failed");
+        throw new Error(data.error || t("admin.login.authFailed", "Authentication failed"));
       }
 
       router.push("/admin");
@@ -45,6 +48,11 @@ export default function AdminLoginPage() {
       {/* Subtle background gradient */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.08)_0%,_transparent_60%)] pointer-events-none" />
 
+      {/* Language Switcher in top right */}
+      <div className="absolute top-6 right-6 z-20">
+        <LanguageSwitcher variant="pill" size="sm" />
+      </div>
+
       <div className="relative w-full max-w-sm">
         {/* Card */}
         <div className="bg-slate-900/80 border border-white/[0.08] rounded-2xl p-8 shadow-2xl shadow-black/50 backdrop-blur-xl">
@@ -53,8 +61,8 @@ export default function AdminLoginPage() {
             <div className="w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center font-bold text-white text-lg shadow-lg shadow-violet-500/30">
               A
             </div>
-            <h1 className="text-lg font-bold text-white">Portfolio Admin</h1>
-            <p className="text-slate-500 text-sm mt-1">Sign in to manage your content</p>
+            <h1 className="text-lg font-bold text-white">{t("admin.login.title", "Portfolio Admin")}</h1>
+            <p className="text-slate-500 text-sm mt-1">{t("admin.login.subtitle", "Sign in to manage your content")}</p>
           </div>
 
           {error && (
@@ -69,14 +77,14 @@ export default function AdminLoginPage() {
                 htmlFor="admin-password"
                 className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider"
               >
-                Password
+                {t("admin.login.passwordLabel", "Password")}
               </label>
               <input
                 id="admin-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder={t("admin.login.passwordPlaceholder", "••••••••")}
                 required
                 autoFocus
                 className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/[0.1] rounded-xl text-white text-sm placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/40 transition-all"
@@ -88,7 +96,7 @@ export default function AdminLoginPage() {
               disabled={loading}
               className="w-full py-2.5 px-4 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-600/50 text-white font-semibold text-sm rounded-xl shadow-md shadow-violet-500/20 transition-colors disabled:cursor-not-allowed"
             >
-              {loading ? "Signing in…" : "Sign In"}
+              {loading ? t("admin.login.submitting", "Signing in…") : t("admin.login.submitBtn", "Sign In")}
             </button>
           </form>
         </div>

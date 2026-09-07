@@ -5,9 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMusic } from "@/context/MusicContext";
+import { useTranslation } from "@/context/LanguageContext";
 
 export default function GlobalMusicPlayer() {
   const pathname = usePathname();
+  const { t } = useTranslation();
   const {
     currentTrack,
     isPlaying,
@@ -120,7 +122,7 @@ export default function GlobalMusicPlayer() {
                 );
               })}
               <span className="text-[9px] text-purple-400/90 font-medium ml-1">
-                Lounge Active
+                {t("music.globalMini.loungeActive", "Lounge Active")}
               </span>
             </div>
           </div>
@@ -130,7 +132,7 @@ export default function GlobalMusicPlayer() {
             <button
               onClick={togglePlay}
               className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white transition-all shadow-sm"
-              title={isPlaying ? "Pause" : "Play"}
+              title={isPlaying ? t("music.playerBar.pauseTooltip", "Pause") : t("music.playerBar.playTooltip", "Play")}
             >
               {isPlaying ? (
                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
@@ -146,7 +148,7 @@ export default function GlobalMusicPlayer() {
             <button
               onClick={nextTrack}
               className="w-7 h-7 rounded-full hover:bg-white/10 active:scale-95 flex items-center justify-center text-white/70 hover:text-white transition-all"
-              title="Next Track"
+              title={t("music.playerBar.nextTooltip", "Next Track")}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
                 <path d="M6 18l8.5-6L6 6v12zm2.5-6 6-4.35v8.7L8.5 12zM16 6h2v12h-2z" />
@@ -156,7 +158,7 @@ export default function GlobalMusicPlayer() {
             <Link
               href="/music"
               className="w-7 h-7 rounded-full hover:bg-purple-500/20 text-purple-300 hover:text-purple-200 flex items-center justify-center transition-all text-xs"
-              title="Open Full Music Studio"
+              title={t("music.globalMini.openStudio", "Open Full Music Studio")}
             >
               ↗
             </Link>
@@ -164,7 +166,7 @@ export default function GlobalMusicPlayer() {
             <button
               onClick={() => setIsDismissed(true)}
               className="w-6 h-6 rounded-full text-white/30 hover:text-white/70 hover:bg-white/5 flex items-center justify-center text-xs transition-colors ml-0.5"
-              title="Hide Mini Widget"
+              title={t("music.globalMini.hideWidget", "Hide Mini Widget")}
             >
               ✕
             </button>

@@ -8,6 +8,7 @@ import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
 import { useToast } from "@/context/ToastContext";
+import { useTranslation } from "@/context/TranslationContext";
 import type {
   CoupleData,
   CouplePhotoMemory,
@@ -34,6 +35,7 @@ const SUGGESTED_EMOJIS = ["💕", "✨", "☕", "🎂", "🌹", "🎉", "🥂", 
 export default function CoupleAdminPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const [activeTab, setActiveTab] = useState<TabId>("photos");
   const [data, setData] = useState<CoupleData | null>(null);
@@ -707,8 +709,8 @@ export default function CoupleAdminPage() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
       <AdminHeader
-        title="Quản trị Couple & Kỷ niệm"
-        description="Quản lý toàn diện kho ảnh, hành trình kỷ niệm, ngày đặc biệt, bucket list, lời yêu thương và sở thích chung."
+        title={t.admin.couple.title}
+        description={t.admin.couple.description}
         icon="heart"
         action={
           activeTab === "photos" ? (
@@ -717,7 +719,7 @@ export default function CoupleAdminPage() {
               className="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02]"
             >
               <span>+</span>
-              <span>Thêm ảnh kỷ niệm</span>
+              <span>{t.admin.couple.addPhoto}</span>
             </button>
           ) : activeTab === "memories" ? (
             <button
@@ -725,7 +727,7 @@ export default function CoupleAdminPage() {
               className="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02]"
             >
               <span>+</span>
-              <span>Thêm cột mốc</span>
+              <span>{t.admin.couple.addMemory}</span>
             </button>
           ) : activeTab === "bucketList" ? (
             <button
@@ -733,7 +735,7 @@ export default function CoupleAdminPage() {
               className="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02]"
             >
               <span>+</span>
-              <span>Thêm dự định</span>
+              <span>{t.admin.couple.addBucket}</span>
             </button>
           ) : activeTab === "loveLetters" ? (
             <button
@@ -741,7 +743,7 @@ export default function CoupleAdminPage() {
               className="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02]"
             >
               <span>+</span>
-              <span>Viết thư tình</span>
+              <span>{t.admin.couple.addLetter}</span>
             </button>
           ) : activeTab === "favorites" ? (
             <button
@@ -749,7 +751,7 @@ export default function CoupleAdminPage() {
               className="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02]"
             >
               <span>+</span>
-              <span>Thêm sở thích</span>
+              <span>{t.admin.couple.addFavorite}</span>
             </button>
           ) : null
         }
@@ -765,7 +767,7 @@ export default function CoupleAdminPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <span>📸 Ảnh kỷ niệm</span>
+          <span>📸 {t.admin.couple.tabs.photos}</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
             {data?.photos?.length || 0}
           </span>
@@ -779,7 +781,7 @@ export default function CoupleAdminPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <span>📖 Hành trình</span>
+          <span>📖 {t.admin.couple.tabs.memories}</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
             {data?.memories?.length || 0}
           </span>
@@ -793,7 +795,7 @@ export default function CoupleAdminPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <span>🎂 Sinh nhật & Ngày lễ</span>
+          <span>🎂 {t.admin.couple.tabs.dates}</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
             {(data?.birthdays?.length || 0) + (data?.specialDates?.length || 0)}
           </span>
@@ -807,7 +809,7 @@ export default function CoupleAdminPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <span>✅ Bucket List</span>
+          <span>✅ {t.admin.couple.tabs.bucketList}</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
             {data?.bucketList?.length || 0}
           </span>
@@ -821,7 +823,7 @@ export default function CoupleAdminPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <span>💌 Lời yêu thương</span>
+          <span>💌 {t.admin.couple.tabs.loveLetters}</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
             {data?.loveLetters?.length || 0}
           </span>
@@ -835,7 +837,7 @@ export default function CoupleAdminPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <span>💝 Sở thích</span>
+          <span>💝 {t.admin.couple.tabs.favorites}</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
             {data?.favorites?.length || 0}
           </span>
@@ -849,12 +851,12 @@ export default function CoupleAdminPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          ⚙️ Cài đặt chung
+          ⚙️ {t.admin.couple.tabs.info}
         </button>
       </div>
 
       {loading ? (
-        <div className="py-24 text-center text-slate-500">Đang tải dữ liệu...</div>
+        <div className="py-24 text-center text-slate-500">{t.admin.common.loading}</div>
       ) : activeTab === "photos" ? (
         /* ═════════════════ 1. TAB ẢNH KỶ NIỆM ═════════════════ */
         <div className="space-y-6">
@@ -862,7 +864,7 @@ export default function CoupleAdminPage() {
             <div className="relative flex-1 max-w-md">
               <input
                 type="text"
-                placeholder="Tìm kiếm ảnh theo tiêu đề, ghi chú, địa điểm..."
+                placeholder={t.admin.couple.searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-pink-500/50"
@@ -871,22 +873,22 @@ export default function CoupleAdminPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 whitespace-nowrap">Lọc:</span>
+              <span className="text-xs text-slate-500 whitespace-nowrap">{t.admin.common.filter}:</span>
               <select
                 value={photoStatusFilter}
                 onChange={(e) => setPhotoStatusFilter(e.target.value as any)}
                 className="bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-pink-500/50"
               >
-                <option value="all">Tất cả trạng thái ({data?.photos?.length || 0})</option>
-                <option value="published">Đã công khai ({(data?.photos || []).filter((p) => p.published !== false).length})</option>
-                <option value="draft">Bản nháp ({(data?.photos || []).filter((p) => p.published === false).length})</option>
+                <option value="all">{t.admin.common.all} ({data?.photos?.length || 0})</option>
+                <option value="published">{t.admin.common.published} ({(data?.photos || []).filter((p) => p.published !== false).length})</option>
+                <option value="draft">{t.admin.common.draft} ({(data?.photos || []).filter((p) => p.published === false).length})</option>
               </select>
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-pink-500/50"
               >
-                <option value="all">Tất cả thể loại</option>
+                <option value="all">{t.admin.couple.allCategories}</option>
                 {POPULAR_PHOTO_CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
@@ -899,12 +901,12 @@ export default function CoupleAdminPage() {
           {filteredPhotos.length === 0 ? (
             <div className="py-16 text-center border border-dashed border-white/10 rounded-2xl bg-slate-900/30">
               <div className="text-4xl mb-3">🖼️</div>
-              <p className="text-slate-400 text-sm mb-4">Chưa có ảnh nào trong mục này.</p>
+              <p className="text-slate-400 text-sm mb-4">{t.admin.common.noData}</p>
               <button
                 onClick={openCreatePhoto}
                 className="px-4 py-2 bg-pink-600/20 text-pink-300 border border-pink-500/30 rounded-xl text-sm font-medium hover:bg-pink-600/30 transition-all"
               >
-                + Thêm ảnh kỷ niệm
+                + {t.admin.couple.addPhoto}
               </button>
             </div>
           ) : (
@@ -928,7 +930,7 @@ export default function CoupleAdminPage() {
                     <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
                       {photo.featured && (
                         <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-500 text-white shadow-md">
-                          ❤️ Nổi bật
+                          ❤️ {t.admin.common.featured}
                         </span>
                       )}
                       {renderPublishBadge("photos", photo)}
@@ -960,7 +962,7 @@ export default function CoupleAdminPage() {
                         onClick={() => openEditPhoto(photo)}
                         className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-300 transition-colors"
                       >
-                        Sửa
+                        {t.admin.common.edit}
                       </button>
                       <button
                         onClick={() =>
@@ -973,7 +975,7 @@ export default function CoupleAdminPage() {
                         }
                         className="px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 transition-colors"
                       >
-                        Xóa
+                        {t.admin.common.delete}
                       </button>
                     </div>
                   </div>
@@ -987,20 +989,20 @@ export default function CoupleAdminPage() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <p className="text-sm text-slate-400">
-              Quản lý các cột mốc thời gian đáng nhớ trong hành trình tình yêu.
+              {t.admin.couple.description}
             </p>
             <button
               onClick={openCreateMemory}
               className="px-3.5 py-1.5 bg-pink-600/20 text-pink-300 border border-pink-500/30 rounded-xl text-xs font-semibold hover:bg-pink-600/30 transition-all"
             >
-              + Thêm mốc kỷ niệm
+              + {t.admin.couple.addMemory}
             </button>
           </div>
 
           {(data?.memories || []).length === 0 ? (
             <div className="py-16 text-center border border-dashed border-white/10 rounded-2xl bg-slate-900/30">
               <div className="text-4xl mb-3">📖</div>
-              <p className="text-slate-400 text-sm">Chưa có cột mốc nào.</p>
+              <p className="text-slate-400 text-sm">{t.admin.common.noData}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -1027,7 +1029,7 @@ export default function CoupleAdminPage() {
                       onClick={() => openEditMemory(mem)}
                       className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-300"
                     >
-                      Sửa
+                      {t.admin.common.edit}
                     </button>
                     <button
                       onClick={() =>
@@ -1041,7 +1043,7 @@ export default function CoupleAdminPage() {
                       }
                       className="px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-500/10 hover:bg-rose-500/20 text-rose-300"
                     >
-                      Xóa
+                      {t.admin.common.delete}
                     </button>
                   </div>
                 </div>
@@ -1057,15 +1059,15 @@ export default function CoupleAdminPage() {
             <div className="flex justify-between items-center border-b border-white/8 pb-3">
               <div>
                 <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <span>🎂 Sinh nhật</span>
+                  <span>🎂 {t.admin.couple.tabs.dates}</span>
                 </h2>
-                <p className="text-xs text-slate-400">Đếm ngược đến sinh nhật 2 bạn</p>
+                <p className="text-xs text-slate-400">{t.admin.couple.description}</p>
               </div>
               <button
                 onClick={openCreateBirthday}
                 className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-medium"
               >
-                + Thêm người
+                + {t.admin.couple.addBirthday}
               </button>
             </div>
 
@@ -1081,7 +1083,7 @@ export default function CoupleAdminPage() {
                       <div className="font-semibold text-white text-sm">
                         {b.name} <span className="text-pink-400 text-xs font-normal">({b.zodiac})</span>
                       </div>
-                      <div className="text-xs text-slate-500">Ngày sinh: {b.date}</div>
+                      <div className="text-xs text-slate-500">{t.admin.common.date}: {b.date}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -1090,7 +1092,7 @@ export default function CoupleAdminPage() {
                       onClick={() => openEditBirthday(b, idx)}
                       className="px-2.5 py-1 rounded text-xs text-slate-300 hover:bg-white/10"
                     >
-                      Sửa
+                      {t.admin.common.edit}
                     </button>
                     <button
                       onClick={() =>
@@ -1104,7 +1106,7 @@ export default function CoupleAdminPage() {
                       }
                       className="px-2.5 py-1 rounded text-xs text-rose-300 hover:bg-rose-500/20"
                     >
-                      Xóa
+                      {t.admin.common.delete}
                     </button>
                   </div>
                 </div>
@@ -1117,15 +1119,15 @@ export default function CoupleAdminPage() {
             <div className="flex justify-between items-center border-b border-white/8 pb-3">
               <div>
                 <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <span>📅 Ngày đặc biệt / Kỷ niệm</span>
+                  <span>📅 {t.admin.couple.tabs.dates}</span>
                 </h2>
-                <p className="text-xs text-slate-400">Các mốc ngày yêu, kỷ niệm 1 năm, 2 năm,...</p>
+                <p className="text-xs text-slate-400">{t.admin.couple.description}</p>
               </div>
               <button
                 onClick={openCreateDate}
                 className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-medium"
               >
-                + Thêm ngày
+                + {t.admin.couple.addDate}
               </button>
             </div>
 
@@ -1139,7 +1141,7 @@ export default function CoupleAdminPage() {
                     <span className="text-2xl">{d.emoji || "🎉"}</span>
                     <div>
                       <div className="font-semibold text-white text-sm">{d.name}</div>
-                      <div className="text-xs text-slate-500">Ngày: {d.date}</div>
+                      <div className="text-xs text-slate-500">{t.admin.common.date}: {d.date}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -1148,7 +1150,7 @@ export default function CoupleAdminPage() {
                       onClick={() => openEditDate(d, idx)}
                       className="px-2.5 py-1 rounded text-xs text-slate-300 hover:bg-white/10"
                     >
-                      Sửa
+                      {t.admin.common.edit}
                     </button>
                     <button
                       onClick={() =>
@@ -1162,7 +1164,7 @@ export default function CoupleAdminPage() {
                       }
                       className="px-2.5 py-1 rounded text-xs text-rose-300 hover:bg-rose-500/20"
                     >
-                      Xóa
+                      {t.admin.common.delete}
                     </button>
                   </div>
                 </div>
@@ -1175,17 +1177,17 @@ export default function CoupleAdminPage() {
         <div className="space-y-5">
           <div className="flex justify-between items-center bg-slate-900/60 p-4 rounded-2xl border border-white/5">
             <div>
-              <p className="text-sm font-semibold text-white">Những điều muốn cùng nhau thực hiện</p>
+              <p className="text-sm font-semibold text-white">{t.admin.couple.tabs.bucketList}</p>
               <p className="text-xs text-slate-400">
-                Đã hoàn thành: {(data?.bucketList || []).filter((b) => b.done).length} /{" "}
-                {data?.bucketList?.length || 0} mục
+                {(data?.bucketList || []).filter((b) => b.done).length} /{" "}
+                {data?.bucketList?.length || 0}
               </p>
             </div>
             <button
               onClick={openCreateBucket}
               className="px-3.5 py-1.5 bg-pink-600/20 text-pink-300 border border-pink-500/30 rounded-xl text-xs font-semibold hover:bg-pink-600/30"
             >
-              + Thêm dự định mới
+              + {t.admin.couple.addBucket}
             </button>
           </div>
 
@@ -1226,7 +1228,7 @@ export default function CoupleAdminPage() {
                   <button
                     onClick={() => openEditBucket(item)}
                     className="p-1 text-slate-400 hover:text-white text-xs"
-                    title="Sửa"
+                    title={t.admin.common.edit}
                   >
                     ✏️
                   </button>
@@ -1241,7 +1243,7 @@ export default function CoupleAdminPage() {
                       })
                     }
                     className="p-1 text-rose-400 hover:text-rose-300 text-xs"
-                    title="Xóa"
+                    title={t.admin.common.delete}
                   >
                     🗑️
                   </button>
@@ -1255,13 +1257,13 @@ export default function CoupleAdminPage() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <p className="text-sm text-slate-400">
-              Những bức thư, lời nhắn gửi gắm tình cảm chân thành cho đối phương.
+              {t.admin.couple.tabs.loveLetters}
             </p>
             <button
               onClick={openCreateLetter}
               className="px-3.5 py-1.5 bg-pink-600/20 text-pink-300 border border-pink-500/30 rounded-xl text-xs font-semibold hover:bg-pink-600/30"
             >
-              + Viết thư mới
+              + {t.admin.couple.addLetter}
             </button>
           </div>
 
@@ -1273,7 +1275,7 @@ export default function CoupleAdminPage() {
               >
                 <div>
                   <div className="flex items-center justify-between text-xs text-pink-400 font-semibold mb-3">
-                    <span>💌 Từ {letter.from}</span>
+                    <span>💌 {letter.from}</span>
                     <div className="flex items-center gap-2">
                       <span className="text-slate-500 font-normal">{letter.date}</span>
                       {renderPublishBadge("loveLetters", letter)}
@@ -1289,7 +1291,7 @@ export default function CoupleAdminPage() {
                     onClick={() => openEditLetter(letter)}
                     className="px-2.5 py-1 text-xs text-slate-300 bg-white/5 rounded-lg hover:bg-white/10"
                   >
-                    Sửa
+                    {t.admin.common.edit}
                   </button>
                   <button
                     onClick={() =>
@@ -1298,12 +1300,12 @@ export default function CoupleAdminPage() {
                         section: "loveLetters",
                         id: letter.id,
                         index: idx,
-                        title: `Thư từ ${letter.from}`,
+                        title: `Letter from ${letter.from}`,
                       })
                     }
                     className="px-2.5 py-1 text-xs text-rose-300 bg-rose-500/10 rounded-lg hover:bg-rose-500/20"
                   >
-                    Xóa
+                    {t.admin.common.delete}
                   </button>
                 </div>
               </div>
@@ -1315,13 +1317,13 @@ export default function CoupleAdminPage() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <p className="text-sm text-slate-400">
-              Những thứ hai người cùng yêu thích (bài hát, bộ phim, món ăn, chốn quen,...).
+              {t.admin.couple.tabs.favorites}
             </p>
             <button
               onClick={openCreateFavorite}
               className="px-3.5 py-1.5 bg-pink-600/20 text-pink-300 border border-pink-500/30 rounded-xl text-xs font-semibold hover:bg-pink-600/30"
             >
-              + Thêm sở thích
+              + {t.admin.couple.addFavorite}
             </button>
           </div>
 
@@ -1347,7 +1349,7 @@ export default function CoupleAdminPage() {
                       onClick={() => openEditFavorite(fav)}
                       className="px-2.5 py-1 text-xs text-slate-300 bg-white/5 rounded hover:bg-white/10"
                     >
-                      Sửa
+                      {t.admin.common.edit}
                     </button>
                     <button
                       onClick={() =>
@@ -1361,7 +1363,7 @@ export default function CoupleAdminPage() {
                       }
                       className="px-2.5 py-1 text-xs text-rose-300 bg-rose-500/10 rounded hover:bg-rose-500/20"
                     >
-                      Xóa
+                      {t.admin.common.delete}
                     </button>
                   </div>
                 </div>
@@ -1373,38 +1375,36 @@ export default function CoupleAdminPage() {
         /* ═════════════════ 7. TAB CÀI ĐẶT THÔNG TIN CHUNG ═════════════════ */
         <div className="bg-slate-900/60 border border-white/8 rounded-2xl p-6 backdrop-blur-sm max-w-2xl">
           <form onSubmit={handleSaveInfo} className="space-y-5">
-            <h2 className="text-lg font-bold text-white mb-4">Thông tin hiển thị</h2>
+            <h2 className="text-lg font-bold text-white mb-4">{t.admin.couple.tabs.info}</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField label="Tên người 1 (Anh / Bạn)" id="person1" required>
+              <FormField label={t.admin.couple.person1Label} id="person1" required>
                 <input
                   type="text"
                   id="person1"
                   value={infoForm.person1}
                   onChange={(e) => setInfoForm({ ...infoForm, person1: e.target.value })}
                   className="w-full px-3.5 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  placeholder="VD: Cục Đá"
                   required
                 />
               </FormField>
 
-              <FormField label="Tên người 2 (Em / Bạn ấy)" id="person2" required>
+              <FormField label={t.admin.couple.person2Label} id="person2" required>
                 <input
                   type="text"
                   id="person2"
                   value={infoForm.person2}
                   onChange={(e) => setInfoForm({ ...infoForm, person2: e.target.value })}
                   className="w-full px-3.5 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                  placeholder="VD: Bé Mèo"
                   required
                 />
               </FormField>
             </div>
 
             <FormField
-              label="Thời điểm bắt đầu yêu (Anniversary)"
+              label={t.admin.couple.anniversaryLabel}
               id="anniversary"
-              hint="Định dạng: YYYY-MM-DD HH:mm:ss (VD: 2025-05-30 21:00:00)"
+              hint="Format: YYYY-MM-DD HH:mm:ss"
               required
             >
               <input
@@ -1418,14 +1418,13 @@ export default function CoupleAdminPage() {
               />
             </FormField>
 
-            <FormField label="Trích dẫn / Câu nói yêu thích (Footer Quote)" id="footerQuote">
+            <FormField label={t.admin.couple.footerQuoteLabel} id="footerQuote">
               <textarea
                 id="footerQuote"
                 rows={3}
                 value={infoForm.footerQuote}
                 onChange={(e) => setInfoForm({ ...infoForm, footerQuote: e.target.value })}
                 className="w-full px-3.5 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-                placeholder="&quot;Tình yêu không phải là nhìn nhau, mà là cùng nhau nhìn về một hướng.&quot;"
               />
             </FormField>
 
@@ -1435,7 +1434,7 @@ export default function CoupleAdminPage() {
                 disabled={savingInfo}
                 className="px-6 py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-pink-500/20 disabled:opacity-50"
               >
-                {savingInfo ? "Đang lưu..." : "Lưu thay đổi"}
+                {savingInfo ? t.admin.couple.savingConfig : t.admin.couple.saveConfig}
               </button>
             </div>
           </form>
@@ -1446,15 +1445,15 @@ export default function CoupleAdminPage() {
       <AdminModal
         isOpen={isPhotoModalOpen}
         onClose={() => setIsPhotoModalOpen(false)}
-        title={editingPhoto ? "Chỉnh sửa ảnh kỷ niệm" : "Thêm ảnh kỷ niệm mới"}
+        title={editingPhoto ? t.admin.couple.photoModalEdit : t.admin.couple.photoModalCreate}
         icon="heart"
         onSubmit={handleSavePhoto}
-        saveLabel="Lưu ảnh"
-        closeLabel="Đóng"
+        saveLabel={t.admin.common.save}
+        closeLabel={t.admin.common.close}
         maxWidth="max-w-2xl"
       >
         <MediaImagePicker
-          label="Hình ảnh kỷ niệm"
+          label={t.admin.couple.tabs.photos}
           value={photoForm.image}
           onChange={(url) => setPhotoForm({ ...photoForm, image: url })}
           category="couple"
@@ -1462,18 +1461,18 @@ export default function CoupleAdminPage() {
           required
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="Tiêu đề khoảnh khắc" id="photoTitle" required>
+          <FormField label={t.admin.photography.fieldTitle} id="photoTitle" required>
             <input
               type="text"
               id="photoTitle"
               value={photoForm.title}
               onChange={(e) => setPhotoForm({ ...photoForm, title: e.target.value })}
               className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-              placeholder="VD: Hoàng hôn bên biển"
+              placeholder={t.admin.photography.fieldTitlePlaceholder}
               required
             />
           </FormField>
-          <FormField label="Ngày chụp / kỷ niệm" id="photoDate" required>
+          <FormField label={t.admin.photography.fieldDate} id="photoDate" required>
             <input
               type="date"
               id="photoDate"
@@ -1485,17 +1484,17 @@ export default function CoupleAdminPage() {
           </FormField>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="Địa điểm" id="photoLocation">
+          <FormField label={t.admin.photography.fieldLocation} id="photoLocation">
             <input
               type="text"
               id="photoLocation"
               value={photoForm.location}
               onChange={(e) => setPhotoForm({ ...photoForm, location: e.target.value })}
               className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-              placeholder="VD: Đà Lạt"
+              placeholder={t.admin.photography.fieldLocationPlaceholder}
             />
           </FormField>
-          <FormField label="Thể loại" id="photoCategory">
+          <FormField label={t.admin.photography.fieldCategory} id="photoCategory">
             <input
               type="text"
               id="photoCategory"
@@ -1505,13 +1504,14 @@ export default function CoupleAdminPage() {
             />
           </FormField>
         </div>
-        <FormField label="Ghi chú / Lời nhắn" id="photoDescription">
+        <FormField label={t.admin.photography.fieldDescription} id="photoDescription">
           <textarea
             id="photoDescription"
             rows={3}
             value={photoForm.description}
             onChange={(e) => setPhotoForm({ ...photoForm, description: e.target.value })}
             className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            placeholder={t.admin.photography.fieldDescriptionPlaceholder}
           />
         </FormField>
         <div className="flex flex-wrap items-center gap-6">
@@ -1522,7 +1522,7 @@ export default function CoupleAdminPage() {
               onChange={(e) => setPhotoForm({ ...photoForm, published: e.target.checked })}
               className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
             />
-            <span>Published (Hiển thị công khai)</span>
+            <span>{t.admin.photography.fieldPublished}</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
             <input
@@ -1531,7 +1531,7 @@ export default function CoupleAdminPage() {
               onChange={(e) => setPhotoForm({ ...photoForm, featured: e.target.checked })}
               className="rounded border-white/20 text-pink-600 focus:ring-pink-500 bg-slate-950 w-4 h-4"
             />
-            <span>Đánh dấu ảnh nổi bật (❤️ Featured)</span>
+            <span>❤️ {t.admin.photography.fieldFeatured}</span>
           </label>
         </div>
       </AdminModal>
@@ -1540,37 +1540,35 @@ export default function CoupleAdminPage() {
       <AdminModal
         isOpen={isMemoryModalOpen}
         onClose={() => setIsMemoryModalOpen(false)}
-        title={editingMemory ? "Sửa cột mốc hành trình" : "Thêm cột mốc hành trình"}
+        title={editingMemory ? t.admin.couple.memoryModalEdit : t.admin.couple.memoryModalCreate}
         icon="heart"
         onSubmit={handleSaveMemory}
-        saveLabel="Lưu cột mốc"
-        closeLabel="Đóng"
+        saveLabel={t.admin.common.save}
+        closeLabel={t.admin.common.close}
         maxWidth="max-w-lg"
       >
-        <FormField label="Tiêu đề cột mốc" id="memTitle" required>
+        <FormField label={t.admin.photography.fieldTitle} id="memTitle" required>
           <input
             type="text"
             id="memTitle"
             value={memoryForm.title}
             onChange={(e) => setMemoryForm({ ...memoryForm, title: e.target.value })}
-            placeholder="VD: Lần đầu gặp nhau, Buổi hẹn hò đầu tiên..."
             className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
             required
           />
         </FormField>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Ngày / Thời điểm" id="memDate" required>
+          <FormField label={t.admin.photography.fieldDate} id="memDate" required>
             <input
               type="text"
               id="memDate"
               value={memoryForm.date}
               onChange={(e) => setMemoryForm({ ...memoryForm, date: e.target.value })}
-              placeholder="VD: 15/11/2023"
               className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
               required
             />
           </FormField>
-          <FormField label="Emoji biểu tượng" id="memEmoji">
+          <FormField label="Emoji" id="memEmoji">
             <div className="space-y-1">
               <input
                 type="text"
@@ -1594,13 +1592,12 @@ export default function CoupleAdminPage() {
             </div>
           </FormField>
         </div>
-        <FormField label="Nội dung kỷ niệm" id="memDesc" required>
+        <FormField label={t.admin.photography.fieldDescription} id="memDesc" required>
           <textarea
             id="memDesc"
             rows={3}
             value={memoryForm.description}
             onChange={(e) => setMemoryForm({ ...memoryForm, description: e.target.value })}
-            placeholder="Kể lại cảm xúc khoảnh khắc ấy..."
             className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
             required
           />
@@ -1613,7 +1610,7 @@ export default function CoupleAdminPage() {
               onChange={(e) => setMemoryForm({ ...memoryForm, published: e.target.checked })}
               className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
             />
-            <span>Published (Hiển thị công khai trên dòng thời gian)</span>
+            <span>{t.admin.photography.fieldPublished}</span>
           </label>
         </div>
       </AdminModal>
@@ -1622,14 +1619,14 @@ export default function CoupleAdminPage() {
       <AdminModal
         isOpen={isBirthdayModalOpen}
         onClose={() => setIsBirthdayModalOpen(false)}
-        title={editingBirthday ? "Sửa ngày sinh" : "Thêm ngày sinh"}
+        title={editingBirthday ? t.admin.couple.birthdayModalEdit : t.admin.couple.birthdayModalCreate}
         icon="heart"
         onSubmit={handleSaveBirthday}
-        saveLabel="Lưu ngày sinh"
-        closeLabel="Đóng"
+        saveLabel={t.admin.common.save}
+        closeLabel={t.admin.common.close}
         maxWidth="max-w-md"
       >
-        <FormField label="Tên người (Anh / Em / Tên)" id="bdayName" required>
+        <FormField label={t.admin.couple.person1Label} id="bdayName" required>
           <input
             type="text"
             id="bdayName"
@@ -1639,7 +1636,7 @@ export default function CoupleAdminPage() {
             required
           />
         </FormField>
-        <FormField label="Ngày sinh (YYYY-MM-DD)" id="bdayDate" required>
+        <FormField label={t.admin.photography.fieldDate} id="bdayDate" required>
           <input
             type="date"
             id="bdayDate"
@@ -1650,13 +1647,13 @@ export default function CoupleAdminPage() {
           />
         </FormField>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Cung hoàng đạo" id="bdayZodiac">
+          <FormField label="Zodiac" id="bdayZodiac">
             <input
               type="text"
               id="bdayZodiac"
               value={birthdayForm.zodiac}
               onChange={(e) => setBirthdayForm({ ...birthdayForm, zodiac: e.target.value })}
-              placeholder="VD: ♑ Ma Kết"
+              placeholder="e.g. ♑ Capricorn"
               className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
             />
           </FormField>
@@ -1678,7 +1675,7 @@ export default function CoupleAdminPage() {
               onChange={(e) => setBirthdayForm({ ...birthdayForm, published: e.target.checked })}
               className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
             />
-            <span>Published (Hiển thị công khai)</span>
+            <span>{t.admin.photography.fieldPublished}</span>
           </label>
         </div>
       </AdminModal>
@@ -1687,26 +1684,26 @@ export default function CoupleAdminPage() {
       <AdminModal
         isOpen={isDateModalOpen}
         onClose={() => setIsDateModalOpen(false)}
-        title={editingDate ? "Sửa ngày đặc biệt" : "Thêm ngày đặc biệt"}
+        title={editingDate ? t.admin.couple.dateModalEdit : t.admin.couple.dateModalCreate}
         icon="heart"
         onSubmit={handleSaveDate}
-        saveLabel="Lưu sự kiện"
-        closeLabel="Đóng"
+        saveLabel={t.admin.common.save}
+        closeLabel={t.admin.common.close}
         maxWidth="max-w-md"
       >
-        <FormField label="Tên dịp / sự kiện" id="dateName" required>
+        <FormField label={t.admin.photography.fieldTitle} id="dateName" required>
           <input
             type="text"
             id="dateName"
             value={dateForm.name}
             onChange={(e) => setDateForm({ ...dateForm, name: e.target.value })}
-            placeholder="VD: Kỷ niệm 1 năm, Valentine..."
+            placeholder={t.admin.photography.fieldTitlePlaceholder}
             className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
             required
           />
         </FormField>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Ngày diễn ra (YYYY-MM-DD)" id="dateVal" required>
+          <FormField label={t.admin.photography.fieldDate} id="dateVal" required>
             <input
               type="date"
               id="dateVal"
@@ -1734,7 +1731,7 @@ export default function CoupleAdminPage() {
               onChange={(e) => setDateForm({ ...dateForm, published: e.target.checked })}
               className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
             />
-            <span>Published (Hiển thị công khai)</span>
+            <span>{t.admin.photography.fieldPublished}</span>
           </label>
         </div>
       </AdminModal>
@@ -1743,25 +1740,24 @@ export default function CoupleAdminPage() {
       <AdminModal
         isOpen={isBucketModalOpen}
         onClose={() => setIsBucketModalOpen(false)}
-        title={editingBucket ? "Sửa dự định Bucket List" : "Thêm dự định mới"}
+        title={editingBucket ? t.admin.couple.bucketModalEdit : t.admin.couple.bucketModalCreate}
         icon="heart"
         onSubmit={handleSaveBucket}
-        saveLabel="Lưu dự định"
-        closeLabel="Đóng"
+        saveLabel={t.admin.common.save}
+        closeLabel={t.admin.common.close}
         maxWidth="max-w-md"
       >
-        <FormField label="Nội dung điều muốn cùng làm" id="bucketText" required>
+        <FormField label={t.admin.photography.fieldTitle} id="bucketText" required>
           <input
             type="text"
             id="bucketText"
             value={bucketForm.text}
             onChange={(e) => setBucketForm({ ...bucketForm, text: e.target.value })}
-            placeholder="VD: Cùng nhau đi ngắm hoàng hôn, Học nhảy cùng nhau..."
             className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
             required
           />
         </FormField>
-        <FormField label="Emoji biểu tượng" id="bucketEmoji">
+        <FormField label="Emoji" id="bucketEmoji">
           <div className="space-y-1">
             <input
               type="text"
@@ -1792,7 +1788,7 @@ export default function CoupleAdminPage() {
               onChange={(e) => setBucketForm({ ...bucketForm, published: e.target.checked })}
               className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
             />
-            <span>Published (Hiển thị công khai)</span>
+            <span>{t.admin.photography.fieldPublished}</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
             <input
@@ -1801,7 +1797,7 @@ export default function CoupleAdminPage() {
               onChange={(e) => setBucketForm({ ...bucketForm, done: e.target.checked })}
               className="rounded border-white/20 text-pink-600 focus:ring-pink-500 bg-slate-950 w-4 h-4"
             />
-            <span>Đã hoàn thành điều này</span>
+            <span>{t.admin.common.completed}</span>
           </label>
         </div>
       </AdminModal>
@@ -1810,44 +1806,41 @@ export default function CoupleAdminPage() {
       <AdminModal
         isOpen={isLetterModalOpen}
         onClose={() => setIsLetterModalOpen(false)}
-        title={editingLetter ? "Sửa thư tình" : "Viết thư tình mới"}
+        title={editingLetter ? t.admin.couple.letterModalEdit : t.admin.couple.letterModalCreate}
         icon="heart"
         onSubmit={handleSaveLetter}
-        saveLabel="Lưu thư tình"
-        closeLabel="Đóng"
+        saveLabel={t.admin.common.save}
+        closeLabel={t.admin.common.close}
         maxWidth="max-w-lg"
       >
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Người gửi" id="letterFrom" required>
+          <FormField label={t.admin.couple.person1Label} id="letterFrom" required>
             <input
               type="text"
               id="letterFrom"
               value={letterForm.from}
               onChange={(e) => setLetterForm({ ...letterForm, from: e.target.value })}
-              placeholder="VD: Anh hoặc Em"
               className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
               required
             />
           </FormField>
-          <FormField label="Ngày viết" id="letterDate" required>
+          <FormField label={t.admin.photography.fieldDate} id="letterDate" required>
             <input
               type="text"
               id="letterDate"
               value={letterForm.date}
               onChange={(e) => setLetterForm({ ...letterForm, date: e.target.value })}
-              placeholder="VD: 14/02/2024"
               className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
               required
             />
           </FormField>
         </div>
-        <FormField label="Nội dung bức thư" id="letterContent" required>
+        <FormField label={t.admin.photography.fieldDescription} id="letterContent" required>
           <textarea
             id="letterContent"
             rows={4}
             value={letterForm.content}
             onChange={(e) => setLetterForm({ ...letterForm, content: e.target.value })}
-            placeholder="Viết những lời yêu thương chân thành..."
             className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
             required
           />
@@ -1860,7 +1853,7 @@ export default function CoupleAdminPage() {
               onChange={(e) => setLetterForm({ ...letterForm, published: e.target.checked })}
               className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
             />
-            <span>Published (Hiển thị công khai bức thư)</span>
+            <span>{t.admin.photography.fieldPublished}</span>
           </label>
         </div>
       </AdminModal>
@@ -1869,21 +1862,20 @@ export default function CoupleAdminPage() {
       <AdminModal
         isOpen={isFavoriteModalOpen}
         onClose={() => setIsFavoriteModalOpen(false)}
-        title={editingFavorite ? "Sửa sở thích chung" : "Thêm sở thích chung"}
+        title={editingFavorite ? t.admin.couple.favoriteModalEdit : t.admin.couple.favoriteModalCreate}
         icon="heart"
         onSubmit={handleSaveFavorite}
-        saveLabel="Lưu sở thích"
-        closeLabel="Đóng"
+        saveLabel={t.admin.common.save}
+        closeLabel={t.admin.common.close}
         maxWidth="max-w-lg"
       >
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Thể loại" id="favCategory" required>
+          <FormField label={t.admin.photography.fieldCategory} id="favCategory" required>
             <input
               type="text"
               id="favCategory"
               value={favoriteForm.category}
               onChange={(e) => setFavoriteForm({ ...favoriteForm, category: e.target.value })}
-              placeholder="VD: Bài hát, Món ăn, Phim..."
               className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
               required
             />
@@ -1898,24 +1890,23 @@ export default function CoupleAdminPage() {
             />
           </FormField>
         </div>
-        <FormField label="Tên điều yêu thích (Tiêu đề)" id="favTitle" required>
+        <FormField label={t.admin.photography.fieldTitle} id="favTitle" required>
           <input
             type="text"
             id="favTitle"
             value={favoriteForm.title}
             onChange={(e) => setFavoriteForm({ ...favoriteForm, title: e.target.value })}
-            placeholder="VD: Perfect - Ed Sheeran, Lẩu Thái..."
+            placeholder={t.admin.photography.fieldTitlePlaceholder}
             className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
             required
           />
         </FormField>
-        <FormField label="Mô tả / Ý nghĩa" id="favDesc">
+        <FormField label={t.admin.photography.fieldDescription} id="favDesc">
           <textarea
             id="favDesc"
             rows={2}
             value={favoriteForm.description}
             onChange={(e) => setFavoriteForm({ ...favoriteForm, description: e.target.value })}
-            placeholder="Lý do hai bạn yêu thích điều này..."
             className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
           />
         </FormField>
@@ -1927,7 +1918,7 @@ export default function CoupleAdminPage() {
               onChange={(e) => setFavoriteForm({ ...favoriteForm, published: e.target.checked })}
               className="rounded border-white/20 text-emerald-600 focus:ring-emerald-500 bg-slate-950 w-4 h-4"
             />
-            <span>Published (Hiển thị công khai)</span>
+            <span>{t.admin.photography.fieldPublished}</span>
           </label>
         </div>
       </AdminModal>
@@ -1935,10 +1926,10 @@ export default function CoupleAdminPage() {
       {/* ═════════════════ CONFIRM DELETE DIALOG ═════════════════ */}
       <ConfirmDialog
         isOpen={deleteDialog.isOpen}
-        title="Xác nhận xóa?"
-        message={`Bạn có chắc chắn muốn xóa "${deleteDialog.title}" không? Dữ liệu sẽ biến mất khỏi trang Couple.`}
-        confirmLabel="Xóa ngay"
-        cancelLabel="Hủy"
+        title={t.admin.couple.confirmDeleteTitle}
+        message={t.admin.couple.confirmDeleteMessage.replace("{title}", deleteDialog.title)}
+        confirmLabel={t.admin.common.delete}
+        cancelLabel={t.admin.common.cancel}
         isDangerous
         onConfirm={executeDelete}
         onCancel={() => setDeleteDialog({ isOpen: false, section: "", title: "" })}

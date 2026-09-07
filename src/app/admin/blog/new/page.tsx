@@ -10,10 +10,12 @@ import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import LanguageTabSelector from "@/components/admin/LanguageTabSelector";
 import FlagIcon from "@/components/ui/FlagIcon";
 import { useToast } from "@/context/ToastContext";
+import { useTranslation } from "@/context/TranslationContext";
 
 export default function NewBlogPostPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
@@ -53,7 +55,7 @@ export default function NewBlogPostPage() {
   const copyEnglishToVietnamese = () => {
     if (!content_vi && content) {
       setContentVi(content);
-      toast.success("Đã sao chép nội dung từ bản tiếng Anh!");
+      toast.success(t.admin.blog.copyEnToViSuccess);
     }
   };
 
@@ -87,7 +89,7 @@ export default function NewBlogPostPage() {
         throw new Error(data.error || "Failed to create blog post");
       }
 
-      toast.success(`Blog post "${title}" created successfully!`);
+      toast.success(t.admin.blog.toastCreated);
       router.push("/admin/blog");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to create blog post";
@@ -101,8 +103,8 @@ export default function NewBlogPostPage() {
   return (
     <div>
       <AdminHeader
-        title="Write New Post"
-        description="Create a new MDX blog post with multilingual support and live preview."
+        title={t.admin.blog.createTitle}
+        description={t.admin.blog.createDescription}
         icon="blog"
         closeHref="/admin/blog"
       />
@@ -121,16 +123,14 @@ export default function NewBlogPostPage() {
           en: Boolean(title.trim()),
           vi: Boolean(title_vi.trim()),
         }}
-        label="Content Language / Ngôn ngữ bài viết:"
+        label={t.admin.blog.contentLangLabel}
         className="mb-6"
       />
 
       {contentLang === "vi" && (
         <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs mb-6">
           <FlagIcon code="vi" size={16} />
-          <span>
-            Đang soạn bản dịch <strong>Tiếng Việt</strong>. Nếu để trống phần nội dung tiếng Việt, người đọc sẽ xem bản tiếng Anh mặc định.
-          </span>
+          <span>{t.admin.blog.viDraftNotice}</span>
         </div>
       )}
 
@@ -138,28 +138,33 @@ export default function NewBlogPostPage() {
         {/* Metadata Form */}
         <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-gray-800">
-            <h2 className="text-lg font-bold text-white">Post Metadata</h2>
+            <h2 className="text-lg font-bold text-white">{t.admin.blog.postMetadata}</h2>
             <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/8">
               <FlagIcon code={contentLang} size={14} />
-              {contentLang === "en" ? "English" : "Tiếng Việt"}
+              {contentLang === "en" ? t.common.english : t.common.vietnamese}
             </span>
           </div>
 
           {contentLang === "en" ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField label="Title (English)" id="post-title" required>
+              <FormField label={`${t.admin.blog.titleEn} *`} id="post-title" required>
                 <input
                   id="post-title"
                   type="text"
                   value={title}
                   onChange={(e) => handleTitleChange(e.target.value)}
-                  placeholder="e.g. Mastering Next.js 14 App Router"
+                  placeholder={t.admin.blog.fieldTitlePlaceholder}
                   className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
                   required
                 />
               </FormField>
 
-              <FormField label="URL Slug (Shared)" id="post-slug" required hint="e.g. mastering-nextjs-14">
+              <FormField
+                label={`${t.admin.blog.sharedUrlSlug} *`}
+                id="post-slug"
+                required
+                hint={t.admin.blog.sharedUrlHint}
+              >
                 <input
                   id="post-slug"
                   type="text"
@@ -173,21 +178,26 @@ export default function NewBlogPostPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
-                label="Tiêu đề (Tiếng Việt)"
+                label={t.admin.blog.titleVi}
                 id="post-title-vi"
-                helper="Tiêu đề bài viết khi người đọc chọn Tiếng Việt"
+                helper={t.admin.blog.titleViHelper}
               >
                 <input
                   id="post-title-vi"
                   type="text"
                   value={title_vi}
                   onChange={(e) => setTitleVi(e.target.value)}
-                  placeholder={title || "VD: Làm chủ Next.js 14 App Router..."}
+                  placeholder={title || t.admin.blog.fieldTitlePlaceholder}
                   className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
                 />
               </FormField>
 
-              <FormField label="URL Slug (Shared)" id="post-slug" required hint="Dùng chung cho cả 2 ngôn ngữ">
+              <FormField
+                label={`${t.admin.blog.sharedUrlSlug} *`}
+                id="post-slug"
+                required
+                hint={t.admin.blog.sharedUrlHint}
+              >
                 <input
                   id="post-slug"
                   type="text"
@@ -201,36 +211,36 @@ export default function NewBlogPostPage() {
           )}
 
           {contentLang === "en" ? (
-            <FormField label="Excerpt / Summary (English)" id="post-excerpt" required>
+            <FormField label={`${t.admin.blog.excerptEn} *`} id="post-excerpt" required>
               <textarea
                 id="post-excerpt"
                 rows={2}
                 value={excerpt}
                 onChange={(e) => setExcerpt(e.target.value)}
-                placeholder="Short summary for card previews and SEO meta description..."
+                placeholder={t.admin.blog.fieldExcerptPlaceholder}
                 className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
                 required
               />
             </FormField>
           ) : (
             <FormField
-              label="Tóm tắt ngắn (Tiếng Việt)"
+              label={t.admin.blog.excerptVi}
               id="post-excerpt-vi"
-              helper="Mô tả tóm tắt hiển thị ở thẻ danh sách và thẻ SEO khi duyệt Tiếng Việt"
+              helper={t.admin.blog.excerptViHelper}
             >
               <textarea
                 id="post-excerpt-vi"
                 rows={2}
                 value={excerpt_vi}
                 onChange={(e) => setExcerptVi(e.target.value)}
-                placeholder={excerpt || "Tóm tắt nội dung bài viết bằng Tiếng Việt..."}
+                placeholder={excerpt || t.admin.blog.fieldExcerptPlaceholder}
                 className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
               />
             </FormField>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2 border-t border-gray-800">
-            <FormField label="Publish Date" id="post-date" required>
+            <FormField label={t.admin.blog.fieldDate} id="post-date" required>
               <input
                 id="post-date"
                 type="date"
@@ -241,7 +251,7 @@ export default function NewBlogPostPage() {
               />
             </FormField>
 
-            <FormField label="Category" id="post-cat" required>
+            <FormField label={t.admin.blog.fieldCategory} id="post-cat" required>
               <input
                 id="post-cat"
                 type="text"
@@ -252,7 +262,7 @@ export default function NewBlogPostPage() {
               />
             </FormField>
 
-            <FormField label="Tags (comma separated)" id="post-tags">
+            <FormField label={t.admin.blog.fieldTags} id="post-tags">
               <input
                 id="post-tags"
                 type="text"
@@ -262,7 +272,7 @@ export default function NewBlogPostPage() {
               />
             </FormField>
 
-            <FormField label="Read Time" id="post-time">
+            <FormField label={t.admin.blog.fieldReadTime} id="post-time">
               <input
                 id="post-time"
                 type="text"
@@ -281,7 +291,7 @@ export default function NewBlogPostPage() {
               <div className="flex items-center gap-2">
                 <FlagIcon code={contentLang} size={18} />
                 <h2 className="text-lg font-bold text-white">
-                  {contentLang === "en" ? "Post Content (English MDX)" : "Nội dung bài viết (Tiếng Việt MDX)"}
+                  {contentLang === "en" ? t.admin.blog.contentEnMdx : t.admin.blog.contentViMdx}
                 </h2>
               </div>
               <button
@@ -290,7 +300,7 @@ export default function NewBlogPostPage() {
                 className="flex items-center gap-1.5 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-purple-300 hover:text-white rounded-lg text-xs font-medium border border-gray-700 transition-all shadow-sm"
               >
                 <span>🖼️</span>
-                <span>Insert Image</span>
+                <span>{t.admin.blog.insertImage}</span>
               </button>
               {contentLang === "vi" && !content_vi && content && (
                 <button
@@ -299,7 +309,7 @@ export default function NewBlogPostPage() {
                   className="flex items-center gap-1.5 px-3 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 rounded-lg text-xs font-medium border border-purple-500/30 transition-all"
                 >
                   <span>📋</span>
-                  <span>Sao chép từ tiếng Anh để dịch</span>
+                  <span>{t.admin.blog.copyEnToVi}</span>
                 </button>
               )}
             </div>
@@ -313,7 +323,7 @@ export default function NewBlogPostPage() {
                     : "bg-gray-800 text-gray-400 hover:text-white"
                 }`}
               >
-                ✏️ Edit Content
+                ✏️ {t.admin.blog.tabEdit}
               </button>
               <button
                 type="button"
@@ -324,7 +334,7 @@ export default function NewBlogPostPage() {
                     : "bg-gray-800 text-gray-400 hover:text-white"
                 }`}
               >
-                👁️ Live Preview
+                👁️ {t.admin.blog.tabPreview}
               </button>
             </div>
           </div>
@@ -342,8 +352,8 @@ export default function NewBlogPostPage() {
               }}
               placeholder={
                 contentLang === "en"
-                  ? "Write your English MDX content here..."
-                  : "Soạn nội dung bài viết bằng Tiếng Việt (MDX)..."
+                  ? t.admin.blog.contentPlaceholderEn
+                  : t.admin.blog.contentPlaceholderVi
               }
               className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-purple-500 leading-relaxed"
             />
@@ -353,7 +363,7 @@ export default function NewBlogPostPage() {
                 content={
                   contentLang === "en"
                     ? content
-                    : content_vi || "_Chưa có nội dung Tiếng Việt. Đang hiển thị bản tiếng Anh:_\n\n" + content
+                    : content_vi || t.admin.blog.noViContentPreview + content
                 }
               />
             </div>
@@ -363,8 +373,8 @@ export default function NewBlogPostPage() {
         {/* Submit Actions */}
         <AdminFormFooter
           closeHref="/admin/blog"
-          closeLabel="Cancel"
-          saveLabel="Publish Post"
+          closeLabel={t.admin.common.cancel}
+          saveLabel={t.admin.blog.createTitle}
           isSaving={saving}
         />
       </form>
@@ -380,9 +390,9 @@ export default function NewBlogPostPage() {
           } else {
             setContentVi((prev) => `${prev}\n\n![${alt}](${url})\n\n`);
           }
-          toast.success("Image inserted into post content!");
+          toast.success(t.admin.blog.imageInserted);
         }}
-        title="Select or upload an image to insert into post"
+        title={t.admin.blog.imagePickerTitle}
         defaultCategory="blog"
       />
     </div>

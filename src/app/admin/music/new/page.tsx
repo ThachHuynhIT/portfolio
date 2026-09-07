@@ -1,18 +1,18 @@
-import { Metadata } from "next";
+"use client";
+
 import TrackForm from "@/components/music/admin/TrackForm";
 import AdminHeader from "@/components/admin/AdminHeader";
+import { useTranslation } from "@/context/TranslationContext";
 import "@/app/music/music.css";
 
-export const metadata: Metadata = {
-  title: "Add Track | Music Admin",
-};
-
 export default function NewTrackPage() {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6">
       <AdminHeader
-        title="Add New Track"
-        description="Add and configure audio tracks for the music lounge."
+        title={t.admin.music.modalCreateTitle}
+        description={t.admin.music.description}
         icon="music"
         closeHref="/admin/music"
       />

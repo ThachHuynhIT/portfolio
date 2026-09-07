@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useTranslation } from "@/context/LanguageContext";
 
 export interface AdminFormFooterProps {
   onClose?: () => void;
@@ -19,18 +20,25 @@ export interface AdminFormFooterProps {
 export default function AdminFormFooter({
   onClose,
   closeHref,
-  closeLabel = "Close",
+  closeLabel,
   onSave,
-  saveLabel = "Save",
+  saveLabel,
   isSaving = false,
   saveDisabled = false,
   saveButtonType = "submit",
   extraActions,
   className = "",
 }: AdminFormFooterProps) {
+  const { t } = useTranslation();
+
+  const finalCloseLabel = closeLabel || t("admin.common.close", "Close");
+  const finalSaveLabel = isSaving
+    ? t("admin.common.saving", "Saving...")
+    : saveLabel || t("admin.common.save", "Save");
+
   const closeBtnContent = (
     <span className="inline-flex items-center justify-center">
-      {closeLabel}
+      {finalCloseLabel}
     </span>
   );
 

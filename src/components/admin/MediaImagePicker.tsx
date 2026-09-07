@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import MediaPickerModal from "./MediaPickerModal";
 import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
+import { useTranslation } from "@/context/LanguageContext";
 import type { MediaCategory } from "@/lib/types";
 
 interface MediaImagePickerProps {
@@ -28,6 +29,7 @@ export default function MediaImagePicker({
   helperText,
   id,
 }: MediaImagePickerProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"library" | "upload" | "url">("library");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -102,7 +104,7 @@ export default function MediaImagePicker({
             }`}
           >
             <span>📁</span>
-            <span>Cloud Library</span>
+            <span>{t("admin.sidebar.media", "Cloud Library")}</span>
           </button>
 
           <button
@@ -119,7 +121,7 @@ export default function MediaImagePicker({
             }`}
           >
             <span>☁️</span>
-            <span>Upload New</span>
+            <span>{t("admin.common.upload", "Upload New")}</span>
           </button>
 
           <button
@@ -136,7 +138,7 @@ export default function MediaImagePicker({
             }`}
           >
             <span>🔗</span>
-            <span>Image URL</span>
+            <span>{t("admin.common.url", "Image URL")}</span>
           </button>
         </div>
       </div>
@@ -169,7 +171,7 @@ export default function MediaImagePicker({
           {isUploading ? (
             <div className="flex items-center gap-2 text-violet-400 text-xs py-2">
               <div className="w-4 h-4 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
-              <span>Uploading to Cloudinary…</span>
+              <span>{t("admin.common.saving", "Uploading to Cloudinary…")}</span>
             </div>
           ) : (
             <>
@@ -177,7 +179,7 @@ export default function MediaImagePicker({
                 ☁️
               </div>
               <p className="text-xs font-medium text-slate-300">
-                Click to select or drag and drop image here
+                {t("admin.common.dragDrop", "Click to select or drag and drop image here")}
               </p>
               <p className="text-[10px] text-slate-500 font-mono">
                 Prefix: {category}-{subType}-[timestamp]
@@ -198,7 +200,7 @@ export default function MediaImagePicker({
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-950/80 hover:bg-slate-900 border border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white rounded-xl text-xs font-medium transition-all group"
           >
             <span className="text-sm">📁</span>
-            <span>Open Cloud Library to choose image…</span>
+            <span>{t("admin.media.searchPlaceholder", "Open Cloud Library to choose image…")}</span>
           </button>
         </div>
       )}
@@ -209,7 +211,7 @@ export default function MediaImagePicker({
           <div
             onClick={() => setShowLightbox(true)}
             className="w-14 h-14 rounded-lg bg-black/40 overflow-hidden flex-shrink-0 relative border border-white/10 cursor-zoom-in group/thumb"
-            title="Click to view full image"
+            title={t("admin.common.preview", "Click to view full image")}
           >
             <img
               src={value}
@@ -239,7 +241,7 @@ export default function MediaImagePicker({
                 }}
                 className="text-[11px] text-violet-400 hover:underline"
               >
-                Change image
+                {t("admin.common.edit", "Change image")}
               </button>
               <span className="text-slate-600 text-xs">·</span>
               <button
@@ -251,7 +253,7 @@ export default function MediaImagePicker({
                 }}
                 className="text-[11px] text-slate-400 hover:text-white hover:underline transition-colors flex items-center gap-1"
               >
-                <span>View original</span>
+                <span>{t("admin.common.view", "View original")}</span>
                 <span className="text-[10px]">🔍</span>
               </button>
             </div>
@@ -259,15 +261,11 @@ export default function MediaImagePicker({
 
           <button
             type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onChange("");
-            }}
-            className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-all text-xs"
-            title="Remove image"
+            onClick={() => onChange("")}
+            className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            title={t("admin.common.remove", "Remove image")}
           >
-            ✕
+            <Icon name="close" size={14} />
           </button>
         </div>
       )}

@@ -126,7 +126,7 @@ export default function MusicSidebar() {
       {/* ── 2. Navigation Hub Tabs ── */}
       <div className="music-sidebar-section">
         <span className="music-sidebar-heading">
-          {locale === "vi" ? "ĐIỀU HƯỚNG STUDIO" : "STUDIO NAVIGATION"}
+          {t("music.studioNav")}
         </span>
         <nav className="music-sidebar-nav">
           <button
@@ -135,7 +135,7 @@ export default function MusicSidebar() {
           >
             <span className="music-nav-icon">🎛️</span>
             <span className="flex-1 text-left font-medium">
-              {locale === "vi" ? "Đĩa Than Vinyl" : "Turntable Deck"}
+              {t("music.tabs.player")}
             </span>
             {activeTab === "player" && isPlaying && (
               <span className="music-nav-live-dot" />
@@ -148,7 +148,7 @@ export default function MusicSidebar() {
           >
             <span className="music-nav-icon">🏆</span>
             <span className="flex-1 text-left font-medium">
-              {locale === "vi" ? "Bảng Xếp Hạng" : "Top Charts"}
+              {t("music.tabs.charts")}
             </span>
             <span className="music-nav-badge text-emerald-400 font-bold bg-emerald-500/15 border border-emerald-500/30">Top</span>
           </button>
@@ -159,7 +159,7 @@ export default function MusicSidebar() {
           >
             <span className="music-nav-icon">📑</span>
             <span className="flex-1 text-left font-medium">
-              {locale === "vi" ? "Hàng Đợi Bài Hát" : "Up Next Queue"}
+              {t("music.tabs.queue")}
             </span>
             <span className="music-nav-badge">{tracks.length}</span>
           </button>
@@ -170,7 +170,7 @@ export default function MusicSidebar() {
           >
             <span className="music-nav-icon">ℹ️</span>
             <span className="flex-1 text-left font-medium">
-              {locale === "vi" ? "Thông Số Âm Thanh" : "Audio Specs"}
+              {t("music.tabs.info")}
             </span>
           </button>
 
@@ -180,7 +180,7 @@ export default function MusicSidebar() {
           >
             <span className="music-nav-icon">❤️</span>
             <span className="flex-1 text-left font-medium">
-              {locale === "vi" ? "Bài Hát Yêu Thích" : "Favorite Tracks"}
+              {t("music.tabs.favorites")}
             </span>
             <span className="music-nav-badge music-nav-badge--liked">
               {likedTrackIds.size}
@@ -193,14 +193,14 @@ export default function MusicSidebar() {
       <div className="music-sidebar-section flex-1 min-h-0 flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <span className="music-sidebar-heading !mb-0">
-            {locale === "vi" ? "THỂ LOẠI & TÂM TRẠNG" : "GENRES & MOODS"}
+            {t("music.genresMoods")}
           </span>
           {selectedGenre !== "All" && (
             <button
               onClick={() => setSelectedGenre("All")}
               className="text-[11px] text-purple-400 hover:text-purple-300 underline"
             >
-              {locale === "vi" ? "Đặt lại" : "Reset"}
+              {t("music.clearFilter")}
             </button>
           )}
         </div>
@@ -219,7 +219,9 @@ export default function MusicSidebar() {
                 className={`music-genre-item ${isSelected ? "music-genre-item--active" : ""}`}
               >
                 <span className="music-genre-bullet" />
-                <span className="flex-1 text-left truncate">{g}</span>
+                <span className="flex-1 text-left truncate">
+                  {g === "All" ? t("music.all") : g}
+                </span>
                 <span className="text-[11px] text-white/40">{count}</span>
               </button>
             );

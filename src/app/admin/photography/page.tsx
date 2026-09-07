@@ -8,6 +8,7 @@ import AdminModal from "@/components/admin/AdminModal";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import { useToast } from "@/context/ToastContext";
+import { useTranslation } from "@/context/TranslationContext";
 import type { PhotoItem } from "@/lib/types";
 import { extractImageMetadata } from "@/lib/exif-extractor";
 import Icon from "@/components/ui/Icon";
@@ -27,6 +28,7 @@ const DEFAULT_CATEGORIES = [
 export default function PhotographyAdminPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -405,9 +407,9 @@ export default function PhotographyAdminPage() {
         return;
       }
 
-      if (res.ok) {
+        if (res.ok) {
         toast.success(
-          isCreating ? "Artwork added successfully!" : "Artwork updated successfully!"
+          isCreating ? t.admin.photography.toastCreated : t.admin.photography.toastUpdated
         );
         closeModal();
         fetchPhotos();
@@ -431,7 +433,7 @@ export default function PhotographyAdminPage() {
         body: JSON.stringify({ id: photo.id, published: newStatus }),
       });
       if (res.ok) {
-        toast.success(newStatus ? "Artwork published!" : "Artwork set to draft!");
+        toast.success(newStatus ? t.admin.photography.toastPublished : t.admin.photography.toastDraft);
         fetchPhotos();
       } else {
         toast.error("Failed to update status");
@@ -450,7 +452,7 @@ export default function PhotographyAdminPage() {
         body: JSON.stringify({ id: photo.id, featured: nextFeatured }),
       });
       if (res.ok) {
-        toast.success(nextFeatured ? "Đã đánh dấu ảnh nổi bật! ⭐" : "Đã bỏ đánh dấu nổi bật");
+        toast.success(nextFeatured ? t.admin.photography.toastFeatured : t.admin.photography.toastUnfeatured);
         fetchPhotos();
       } else {
         toast.error("Failed to update featured status");
@@ -467,7 +469,7 @@ export default function PhotographyAdminPage() {
         method: "DELETE",
       });
       if (res.ok) {
-        toast.success("Artwork deleted from collection!");
+        toast.success(t.admin.photography.toastDeleted);
         setDeleteTarget(null);
         fetchPhotos();
       } else {
@@ -488,8 +490,8 @@ export default function PhotographyAdminPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <AdminHeader
-        title="Photography & Media Management"
-        description="Manage photography artworks, featured highlights, categories, and EXIF settings."
+        title={t.admin.photography.title}
+        description={t.admin.photography.description}
         icon="camera"
         action={
           <div className="flex items-center gap-3">
@@ -498,17 +500,17 @@ export default function PhotographyAdminPage() {
               onChange={(e) => setStatusFilter(e.target.value as any)}
               className="px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none"
             >
-              <option value="all">All Artworks ({photos.length})</option>
-              <option value="published">Published ({photos.filter((p) => p.published !== false).length})</option>
-              <option value="draft">Draft ({photos.filter((p) => p.published === false).length})</option>
-              <option value="featured">⭐ Featured ({photos.filter((p) => p.featured).length})</option>
+              <option value="all">{t.admin.photography.filterAll} ({photos.length})</option>
+              <option value="published">{t.admin.photography.filterPublished} ({photos.filter((p) => p.published !== false).length})</option>
+              <option value="draft">{t.admin.photography.filterDraft} ({photos.filter((p) => p.published === false).length})</option>
+              <option value="featured">{t.admin.photography.filterFeatured} ({photos.filter((p) => p.featured).length})</option>
             </select>
             <button
               onClick={openCreateModal}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 text-white text-xs font-semibold hover:opacity-95 shadow-lg shadow-purple-500/20 active:scale-95 transition-all"
             >
               <Icon name="plus" size={14} />
-              <span>Add New Artwork</span>
+              <span>{t.admin.photography.addArtwork}</span>
             </button>
           </div>
         }
@@ -517,20 +519,20 @@ export default function PhotographyAdminPage() {
       {/* ── Photo & Video List ── */}
       {loading ? (
         <div className="py-20 text-center text-slate-500 text-sm">
-          Loading artworks...
+          {t.admin.common.loading}
         </div>
       ) : photos.length === 0 ? (
         <div className="text-center py-20 bg-white/[0.02] border border-white/5 rounded-2xl p-8">
           <Icon name="camera" size={32} className="text-slate-600 mx-auto mb-3" />
-          <h3 className="text-base font-semibold text-white mb-1">No artworks yet</h3>
+          <h3 className="text-base font-semibold text-white mb-1">{t.admin.photography.noArtworksTitle}</h3>
           <p className="text-xs text-slate-400 mb-4">
-            Click &quot;Add New Artwork&quot; to upload photos or videos to Cloudinary and build your showcase.
+            {t.admin.photography.noArtworksDesc}
           </p>
           <button
             onClick={openCreateModal}
             className="px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-medium hover:bg-purple-500 transition-colors"
           >
-            Add Artwork
+            {t.admin.photography.addArtwork}
           </button>
         </div>
       ) : (
@@ -590,7 +592,7 @@ export default function PhotographyAdminPage() {
                       }`}
                       title={photo.featured ? "Bỏ ảnh nổi bật" : "Đánh dấu là ảnh nổi bật (Featured)"}
                     >
-                      <span>{photo.featured ? "⭐ Nổi bật" : "☆ Đặt nổi bật"}</span>
+                      <span>{photo.featured ? t.admin.photography.markFeatured : t.admin.photography.setFeatured}</span>
                     </button>
                     <button
                       type="button"
@@ -606,7 +608,7 @@ export default function PhotographyAdminPage() {
                       title="Click to toggle status"
                     >
                       <span className={`w-1.5 h-1.5 rounded-full ${photo.published !== false ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
-                      {photo.published !== false ? "Published" : "Draft"}
+                      {photo.published !== false ? t.admin.common.published : t.admin.common.draft}
                     </button>
                   </div>
                 </div>
@@ -630,14 +632,14 @@ export default function PhotographyAdminPage() {
                       <button
                         onClick={() => openEditModal(photo)}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-white/5 transition-all"
-                        title="Edit"
+                        title={t.admin.common.edit}
                       >
                         <Icon name="edit" size={15} />
                       </button>
                       <button
                         onClick={() => setDeleteTarget(photo)}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                        title="Delete"
+                        title={t.admin.common.delete}
                       >
                         <Icon name="trash" size={15} />
                       </button>
@@ -651,16 +653,15 @@ export default function PhotographyAdminPage() {
       )}
 
       {/* ── Create / Edit Modal ── */}
-      {/* ── Create / Edit Modal ── */}
       <AdminModal
         isOpen={isCreating || !!editingPhoto}
         onClose={closeModal}
-        title={isCreating ? "Add New Artwork" : "Edit Artwork"}
-        subtitle="Upload photos (supports JPG, PNG, iPhone HEIC auto-converted) or videos directly to Cloudinary."
+        title={isCreating ? t.admin.photography.modalCreateTitle : t.admin.photography.modalEditTitle}
+        subtitle={t.admin.photography.modalSubtitle}
         icon="camera"
         onSubmit={handleSave}
-        saveLabel={isCreating ? "Create Artwork" : "Save Changes"}
-        closeLabel="Close"
+        saveLabel={isCreating ? t.admin.photography.modalCreateTitle : t.admin.common.save}
+        closeLabel={t.admin.common.close}
         isSaving={isSaving}
         saveDisabled={uploadingImage || uploadingBeforeImage || uploadingVideo}
         maxWidth="max-w-2xl"
@@ -677,7 +678,7 @@ export default function PhotographyAdminPage() {
             }`}
           >
             <Icon name="image" size={14} />
-            <span>Photo / Image</span>
+            <span>{t.admin.photography.photoTab}</span>
           </button>
           <button
             type="button"
@@ -692,7 +693,7 @@ export default function PhotographyAdminPage() {
             }`}
           >
             <Icon name="video" size={14} />
-            <span>Video / Motion</span>
+            <span>{t.admin.photography.videoTab}</span>
           </button>
         </div>
 
@@ -710,7 +711,7 @@ export default function PhotographyAdminPage() {
                 <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
                   <Icon name={formMediaType === "video" ? "video" : "image"} size={13} />
                   <span>
-                    1. {formMediaType === "video" ? "Video & Poster Upload (Cloudinary)" : "Photo & Media Upload (Cloudinary)"}
+                    {formMediaType === "video" ? t.admin.photography.section1Video : t.admin.photography.section1Media}
                   </span>
                 </h3>
 
@@ -719,10 +720,10 @@ export default function PhotographyAdminPage() {
                   <div className="rounded-2xl border border-dashed border-cyan-500/30 p-4 bg-cyan-500/[0.02] space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-semibold text-slate-200">
-                        Video File (MP4, WebM, MOV) <span className="text-red-400">*</span>
+                        {t.admin.photography.videoFileLabel} <span className="text-red-400">*</span>
                       </label>
                       <span className="text-[11px] text-cyan-400">
-                        (Upload directly to Cloudinary or paste URL)
+                        {t.admin.photography.videoFileHint}
                       </span>
                     </div>
 
@@ -743,7 +744,7 @@ export default function PhotographyAdminPage() {
                       >
                         <Icon name="video" size={14} />
                         <span>
-                          {uploadingVideo ? "Uploading video to Cloudinary..." : "Upload Video to Cloudinary"}
+                          {uploadingVideo ? t.admin.photography.uploadingVideo : t.admin.photography.uploadVideoToCloud}
                         </span>
                       </button>
 
@@ -767,7 +768,7 @@ export default function PhotographyAdminPage() {
 
                     <div className="pt-2">
                       <span className="text-[11px] text-slate-500 block mb-1">
-                        Or paste Video URL (Cloudinary, MP4, etc.):
+                        {t.admin.photography.videoOrPaste}
                       </span>
                       <input
                         type="text"
@@ -784,11 +785,11 @@ export default function PhotographyAdminPage() {
                 <div className="rounded-2xl border border-dashed border-white/15 p-4 bg-white/[0.02] space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-semibold text-slate-200">
-                      {formMediaType === "video" ? "Video Poster / Thumbnail" : "Final Retouched Photo"}
+                      {formMediaType === "video" ? t.admin.photography.videoPosterLabel : t.admin.photography.retouchedPhotoLabel}
                       {formMediaType === "image" && <span className="text-red-400 ml-1">*</span>}
                     </label>
                     <span className="text-[11px] text-cyan-400">
-                      (Supports JPG, PNG, iPhone HEIC auto-converted to Cloudinary)
+                      {t.admin.photography.photoSupportHint}
                     </span>
                   </div>
 
@@ -810,7 +811,7 @@ export default function PhotographyAdminPage() {
                     >
                       <Icon name="camera" size={14} />
                       <span>
-                        {uploadingImage ? "Uploading to Cloudinary & reading EXIF..." : "Upload Photo to Cloudinary"}
+                        {uploadingImage ? t.admin.photography.uploadingPhoto : t.admin.photography.uploadToCloud}
                       </span>
                     </button>
 
@@ -820,7 +821,7 @@ export default function PhotographyAdminPage() {
                       className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition-all border border-white/10"
                     >
                       <span>📁</span>
-                      <span>Choose from Cloud</span>
+                      <span>{t.admin.photography.chooseFromCloud}</span>
                     </button>
 
                     {formImage && (
@@ -854,7 +855,7 @@ export default function PhotographyAdminPage() {
                   {/* Manual URL Input fallback */}
                   <div className="pt-2">
                     <span className="text-[11px] text-slate-500 block mb-1">
-                      Or paste direct image URL (Cloudinary / Unsplash):
+                      {t.admin.photography.photoOrPaste}
                     </span>
                     <input
                       type="text"
@@ -871,10 +872,10 @@ export default function PhotographyAdminPage() {
                   <div className="rounded-2xl border border-dashed border-white/10 p-4 bg-white/[0.01] space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-semibold text-slate-300">
-                        RAW / Original Photo (Before Image)
+                        {t.admin.photography.rawPhotoLabel}
                       </label>
                       <span className="text-[11px] text-slate-500">
-                        (Optional: Enables Before/After interactive slider)
+                        {t.admin.photography.rawPhotoHint}
                       </span>
                     </div>
 
@@ -895,7 +896,7 @@ export default function PhotographyAdminPage() {
                       >
                         <Icon name="compare" size={14} />
                         <span>
-                          {uploadingBeforeImage ? "Uploading RAW to Cloudinary..." : "Upload RAW Photo to Cloudinary"}
+                          {uploadingBeforeImage ? t.admin.photography.uploadingRaw : t.admin.photography.uploadRawToCloud}
                         </span>
                       </button>
 
@@ -905,7 +906,7 @@ export default function PhotographyAdminPage() {
                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition-all border border-white/10"
                       >
                         <span>📁</span>
-                        <span>Choose from Cloud</span>
+                        <span>{t.admin.photography.chooseFromCloud}</span>
                       </button>
 
                       {formBeforeImage && (
@@ -937,7 +938,7 @@ export default function PhotographyAdminPage() {
 
                     <div className="pt-2">
                       <span className="text-[11px] text-slate-500 block mb-1">
-                        Or paste RAW image URL:
+                        {t.admin.photography.rawOrPaste}
                       </span>
                       <input
                         type="text"
@@ -954,30 +955,30 @@ export default function PhotographyAdminPage() {
               {/* ── Section 2: Basic Information ── */}
               <div className="space-y-4 pt-4 border-t border-white/10">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400">
-                  2. Basic Information
+                  {t.admin.photography.section2Basic}
                 </h3>
 
-                <FormField label="Artwork Title" id="title" required>
+                <FormField label={t.admin.photography.fieldTitle} id="title" required>
                   <input
                     id="title"
                     type="text"
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
                     required
-                    placeholder="Enter artwork title..."
+                    placeholder={t.admin.photography.fieldTitlePlaceholder}
                     className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
                   />
                 </FormField>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField label="Category" id="category" required>
+                  <FormField label={t.admin.photography.fieldCategory} id="category" required>
                     <select
                       id="category"
                       value={formCategory}
                       onChange={(e) => setFormCategory(e.target.value)}
                       className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
                     >
-                      <option value="">-- Select Category --</option>
+                      <option value="">-- {t.admin.photography.fieldCategory} --</option>
                       {DEFAULT_CATEGORIES.map((cat) => (
                         <option key={cat} value={cat}>
                           {cat}
@@ -988,7 +989,7 @@ export default function PhotographyAdminPage() {
                   </FormField>
 
                   {formCategory === "Other" && (
-                    <FormField label="Custom Category Name" id="customCategory" required>
+                    <FormField label={t.admin.photography.fieldCustomCategory} id="customCategory" required>
                       <input
                         id="customCategory"
                         type="text"
@@ -1000,7 +1001,7 @@ export default function PhotographyAdminPage() {
                     </FormField>
                   )}
 
-                  <FormField label="Aspect Ratio" id="aspectRatio">
+                  <FormField label={t.admin.photography.fieldAspectRatio} id="aspectRatio">
                     <select
                       id="aspectRatio"
                       value={formAspectRatio}
@@ -1009,15 +1010,15 @@ export default function PhotographyAdminPage() {
                       }
                       className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
                     >
-                      <option value="landscape">Landscape (Horizontal)</option>
-                      <option value="portrait">Portrait (Vertical)</option>
-                      <option value="square">Square (1:1)</option>
+                      <option value="landscape">{t.admin.photography.ratioLandscape}</option>
+                      <option value="portrait">{t.admin.photography.ratioPortrait}</option>
+                      <option value="square">{t.admin.photography.ratioSquare}</option>
                     </select>
                   </FormField>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField label="Date Captured / Created" id="date">
+                  <FormField label={t.admin.photography.fieldDate} id="date">
                     <input
                       id="date"
                       type="date"
@@ -1027,36 +1028,36 @@ export default function PhotographyAdminPage() {
                     />
                   </FormField>
 
-                  <FormField label="Location" id="location">
+                  <FormField label={t.admin.photography.fieldLocation} id="location">
                     <input
                       id="location"
                       type="text"
                       value={formLocation}
                       onChange={(e) => setFormLocation(e.target.value)}
-                      placeholder="e.g. Shinjuku, Tokyo / Da Lat..."
+                      placeholder={t.admin.photography.fieldLocationPlaceholder}
                       className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
                     />
                   </FormField>
                 </div>
 
-                <FormField label="Description / Visual Story" id="description">
+                <FormField label={t.admin.photography.fieldDescription} id="description">
                   <textarea
                     id="description"
                     rows={2}
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
-                    placeholder="Describe the context, story, or emotion behind the shot..."
+                    placeholder={t.admin.photography.fieldDescriptionPlaceholder}
                     className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
                   />
                 </FormField>
 
-                <FormField label="Tags (comma-separated)" id="tags">
+                <FormField label={t.admin.photography.fieldTags} id="tags">
                   <input
                     id="tags"
                     type="text"
                     value={formTags}
                     onChange={(e) => setFormTags(e.target.value)}
-                    placeholder="Street, Night, Rain, Tokyo..."
+                    placeholder={t.admin.photography.fieldTagsPlaceholder}
                     className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
                   />
                 </FormField>
@@ -1069,7 +1070,7 @@ export default function PhotographyAdminPage() {
                       onChange={(e) => setFormPublished(e.target.checked)}
                       className="w-4 h-4 rounded bg-slate-800 border-white/20 text-emerald-500 focus:ring-emerald-500/20"
                     />
-                    <span>Published (Visible publicly on Photography page)</span>
+                    <span>{t.admin.photography.fieldPublished}</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
                     <input
@@ -1078,7 +1079,7 @@ export default function PhotographyAdminPage() {
                       onChange={(e) => setFormFeatured(e.target.checked)}
                       className="w-4 h-4 rounded bg-slate-800 border-white/20 text-purple-500 focus:ring-purple-500/20"
                     />
-                    <span>Featured Artwork</span>
+                    <span>{t.admin.photography.fieldFeatured}</span>
                   </label>
                 </div>
               </div>
@@ -1088,7 +1089,7 @@ export default function PhotographyAdminPage() {
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
                     <Icon name="camera" size={13} />
-                    <span>3. Camera Settings (EXIF)</span>
+                    <span>{t.admin.photography.section3Exif}</span>
                   </h3>
                   <span className="text-[11px] text-slate-400">
                     (Auto-extracted from upload or manual input)
@@ -1096,73 +1097,73 @@ export default function PhotographyAdminPage() {
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-                  <FormField label="Camera Make" id="make">
+                  <FormField label={t.admin.photography.exifCameraMake} id="make">
                     <input
                       id="make"
                       type="text"
                       value={formMake}
                       onChange={(e) => setFormMake(e.target.value)}
-                      placeholder="e.g. Sony"
+                      placeholder={t.admin.photography.exifMakePlaceholder}
                       className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
                     />
                   </FormField>
-                  <FormField label="Camera Model" id="model">
+                  <FormField label={t.admin.photography.exifCameraModel} id="model">
                     <input
                       id="model"
                       type="text"
                       value={formModel}
                       onChange={(e) => setFormModel(e.target.value)}
-                      placeholder="e.g. A7 IV"
+                      placeholder={t.admin.photography.exifModelPlaceholder}
                       className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
                     />
                   </FormField>
-                  <FormField label="Lens" id="lens">
+                  <FormField label={t.admin.photography.exifLens} id="lens">
                     <input
                       id="lens"
                       type="text"
                       value={formLens}
                       onChange={(e) => setFormLens(e.target.value)}
-                      placeholder="e.g. FE 35mm f/1.4 GM"
+                      placeholder={t.admin.photography.exifLensPlaceholder}
                       className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
                     />
                   </FormField>
-                  <FormField label="Focal Length" id="focal">
+                  <FormField label={t.admin.photography.exifFocalLength} id="focal">
                     <input
                       id="focal"
                       type="text"
                       value={formFocalLength}
                       onChange={(e) => setFormFocalLength(e.target.value)}
-                      placeholder="35mm"
+                      placeholder={t.admin.photography.exifFocalLengthPlaceholder}
                       className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
                     />
                   </FormField>
-                  <FormField label="Aperture" id="aperture">
+                  <FormField label={t.admin.photography.exifAperture} id="aperture">
                     <input
                       id="aperture"
                       type="text"
                       value={formAperture}
                       onChange={(e) => setFormAperture(e.target.value)}
-                      placeholder="f/1.8"
+                      placeholder={t.admin.photography.exifAperturePlaceholder}
                       className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
                     />
                   </FormField>
-                  <FormField label="Shutter Speed" id="shutter">
+                  <FormField label={t.admin.photography.exifShutterSpeed} id="shutter">
                     <input
                       id="shutter"
                       type="text"
                       value={formShutterSpeed}
                       onChange={(e) => setFormShutterSpeed(e.target.value)}
-                      placeholder="1/250s"
+                      placeholder={t.admin.photography.exifShutterSpeedPlaceholder}
                       className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
                     />
                   </FormField>
-                  <FormField label="ISO" id="iso">
+                  <FormField label={t.admin.photography.exifIso} id="iso">
                     <input
                       id="iso"
                       type="text"
                       value={formIso}
                       onChange={(e) => setFormIso(e.target.value)}
-                      placeholder="100"
+                      placeholder={t.admin.photography.exifIsoPlaceholder}
                       className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
                     />
                   </FormField>
@@ -1173,39 +1174,39 @@ export default function PhotographyAdminPage() {
               <div className="space-y-4 pt-4 border-t border-white/10">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-2">
                   <Icon name="compare" size={13} />
-                  <span>4. Post-Processing & Color Grading</span>
+                  <span>{t.admin.photography.section4Retouch}</span>
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField label="Editing Software" id="software">
+                  <FormField label={t.admin.photography.retouchSoftware} id="software">
                     <input
                       id="software"
                       type="text"
                       value={formSoftware}
                       onChange={(e) => setFormSoftware(e.target.value)}
-                      placeholder="Lightroom / Photoshop / Premiere / DaVinci..."
+                      placeholder={t.admin.photography.retouchSoftwarePlaceholder}
                       className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-purple-400"
                     />
                   </FormField>
-                  <FormField label="Color Grade / Palette" id="colorGrade">
+                  <FormField label={t.admin.photography.retouchColorGrade} id="colorGrade">
                     <input
                       id="colorGrade"
                       type="text"
                       value={formColorGrade}
                       onChange={(e) => setFormColorGrade(e.target.value)}
-                      placeholder="e.g. Teal & Orange / Film Warm..."
+                      placeholder={t.admin.photography.retouchColorGradePlaceholder}
                       className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-purple-400"
                     />
                   </FormField>
                 </div>
 
-                <FormField label="Retouch & Editing Notes" id="retouchNotes">
+                <FormField label={t.admin.photography.retouchNotes} id="retouchNotes">
                   <textarea
                     id="retouchNotes"
                     rows={2}
                     value={formRetouchNotes}
                     onChange={(e) => setFormRetouchNotes(e.target.value)}
-                    placeholder="Describe retouching techniques: Dodge & Burn, White Balance, Color Grading..."
+                    placeholder={t.admin.photography.retouchNotesPlaceholder}
                     className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-purple-400"
                   />
                 </FormField>
@@ -1217,10 +1218,10 @@ export default function PhotographyAdminPage() {
       {/* ── Confirm Delete Dialog ── */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        title="Confirm Delete Artwork"
-        message={`Are you sure you want to delete "${deleteTarget?.title}"? This will remove the artwork from your collection.`}
-        confirmLabel="Delete Artwork"
-        cancelLabel="Cancel"
+        title={t.admin.photography.deleteTitle}
+        message={t.admin.photography.deleteMessage.replace("{title}", deleteTarget?.title || "")}
+        confirmLabel={t.admin.photography.confirmDeleteBtn}
+        cancelLabel={t.admin.common.cancel}
         isDangerous={true}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
@@ -1231,7 +1232,7 @@ export default function PhotographyAdminPage() {
         isOpen={isMainPickerOpen}
         onClose={() => setIsMainPickerOpen(false)}
         onSelect={(url) => setFormImage(url)}
-        title="Choose Art Photo from Cloud Library"
+        title={t.admin.photography.chooseArtFromCloud}
         defaultCategory="photo"
       />
 
@@ -1239,7 +1240,7 @@ export default function PhotographyAdminPage() {
         isOpen={isBeforePickerOpen}
         onClose={() => setIsBeforePickerOpen(false)}
         onSelect={(url) => setFormBeforeImage(url)}
-        title="Choose RAW Photo from Cloud Library"
+        title={t.admin.photography.chooseRawFromCloud}
         defaultCategory="photo"
       />
     </div>

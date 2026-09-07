@@ -9,11 +9,13 @@ import MediaImagePicker from "@/components/admin/MediaImagePicker";
 import LanguageTabSelector from "@/components/admin/LanguageTabSelector";
 import FlagIcon from "@/components/ui/FlagIcon";
 import { useToast } from "@/context/ToastContext";
+import { useTranslation } from "@/context/LanguageContext";
 import type { SiteConfig } from "@/lib/types";
 
 export default function SiteConfigAdminPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [config, setConfig] = useState<SiteConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -69,7 +71,7 @@ export default function SiteConfigAdminPage() {
   if (loading || !config) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-purple-400 animate-pulse font-medium">Loading configuration...</div>
+        <div className="text-purple-400 animate-pulse font-medium">{t("admin.common.loading", "Loading configuration...")}</div>
       </div>
     );
   }
@@ -77,8 +79,8 @@ export default function SiteConfigAdminPage() {
   return (
     <div className="max-w-3xl">
       <AdminHeader
-        title="Site Configuration"
-        description="Edit site branding, metadata, multilingual translations, and author details."
+        title={t("admin.siteConfig.title", "Site Configuration")}
+        description={t("admin.siteConfig.description", "Edit site branding, metadata, multilingual translations, and author details.")}
         icon="settings"
         closeHref="/admin"
       />
@@ -97,7 +99,7 @@ export default function SiteConfigAdminPage() {
 
       {activeLang === "vi" && (
         <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs mb-6">
-          <FlagIcon code="vi" size={16} />
+          <FlagIcon locale="vi" width={16} height={11} />
           <span>
             Đang chỉnh sửa bản dịch <strong>Tiếng Việt</strong>. Nếu để trống trường nào, hệ thống sẽ tự động dùng giá trị mặc định của bản Tiếng Anh.
           </span>
@@ -108,14 +110,14 @@ export default function SiteConfigAdminPage() {
         {/* General Site Info */}
         <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
           <div className="flex items-center justify-between pb-3 border-b border-gray-800">
-            <h2 className="text-lg font-bold text-white">General Information</h2>
+            <h2 className="text-lg font-bold text-white">{t("admin.siteConfig.tabBasic", "General Information")}</h2>
             <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/8">
-              <FlagIcon code={activeLang} size={14} />
+              <FlagIcon locale={activeLang} width={14} height={9} />
               {activeLang === "en" ? "English Content" : "Bản Tiếng Việt"}
             </span>
           </div>
 
-          <FormField label="Site Name (Shared)" id="site-name" required helper="Internal brand / site name">
+          <FormField label={`${t("admin.common.name", "Site Name")} (Shared)`} id="site-name" required helper="Internal brand / site name">
             <input
               id="site-name"
               type="text"
@@ -128,7 +130,7 @@ export default function SiteConfigAdminPage() {
 
           {activeLang === "en" ? (
             <>
-              <FormField label="Page Title (English)" id="site-title" required>
+              <FormField label={`${t("admin.siteConfig.fieldMetaTitle", "Page Title")} (English)`} id="site-title" required>
                 <input
                   id="site-title"
                   type="text"
@@ -139,7 +141,7 @@ export default function SiteConfigAdminPage() {
                 />
               </FormField>
 
-              <FormField label="Site Description (English)" id="site-desc">
+              <FormField label={`${t("admin.siteConfig.fieldMetaDesc", "Site Description")} (English)`} id="site-desc">
                 <textarea
                   id="site-desc"
                   rows={3}
@@ -152,7 +154,7 @@ export default function SiteConfigAdminPage() {
           ) : (
             <>
               <FormField
-                label="Page Title (Tiếng Việt)"
+                label={`${t("admin.siteConfig.fieldMetaTitle", "Tiêu đề trang")} (Tiếng Việt)`}
                 id="site-title-vi"
                 helper="Tiêu đề trang hiển thị khi người dùng chọn Tiếng Việt"
               >
@@ -167,7 +169,7 @@ export default function SiteConfigAdminPage() {
               </FormField>
 
               <FormField
-                label="Site Description (Tiếng Việt)"
+                label={`${t("admin.siteConfig.fieldMetaDesc", "Mô tả website")} (Tiếng Việt)`}
                 id="site-desc-vi"
                 helper="Mô tả SEO khi khách duyệt website bằng Tiếng Việt"
               >
@@ -184,7 +186,7 @@ export default function SiteConfigAdminPage() {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Site URL" id="site-url">
+            <FormField label={t("admin.common.url", "Site URL")} id="site-url">
               <input
                 id="site-url"
                 type="url"
@@ -196,7 +198,7 @@ export default function SiteConfigAdminPage() {
 
             <div className="md:col-span-2">
               <MediaImagePicker
-                label="OpenGraph Social Image"
+                label={t("admin.siteConfig.fieldOgImage", "OpenGraph Social Image")}
                 value={config.ogImage}
                 onChange={(url) => setConfig({ ...config, ogImage: url })}
                 category="site"
@@ -210,14 +212,14 @@ export default function SiteConfigAdminPage() {
         {/* Author Details */}
         <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
           <div className="flex items-center justify-between pb-3 border-b border-gray-800">
-            <h2 className="text-lg font-bold text-white">Author Profile</h2>
+            <h2 className="text-lg font-bold text-white">{t("admin.siteConfig.tabContact", "Author Profile")}</h2>
             <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/8">
-              <FlagIcon code={activeLang} size={14} />
+              <FlagIcon locale={activeLang} width={14} height={9} />
               {activeLang === "en" ? "English Profile" : "Hồ sơ Tiếng Việt"}
             </span>
           </div>
 
-          <FormField label="Author Name (Shared)" id="author-name" required>
+          <FormField label={`${t("admin.siteConfig.fieldName", "Author Name")} (Shared)`} id="author-name" required>
             <input
               id="author-name"
               type="text"
@@ -235,7 +237,7 @@ export default function SiteConfigAdminPage() {
 
           {activeLang === "en" ? (
             <>
-              <FormField label="Author Title (English)" id="author-title" required>
+              <FormField label={`${t("admin.siteConfig.fieldJobTitle", "Author Title")} (English)`} id="author-title" required>
                 <input
                   id="author-title"
                   type="text"
@@ -251,7 +253,7 @@ export default function SiteConfigAdminPage() {
                 />
               </FormField>
 
-              <FormField label="Short Bio (English)" id="author-bio">
+              <FormField label={`${t("admin.siteConfig.fieldBio", "Short Bio")} (English)`} id="author-bio">
                 <textarea
                   id="author-bio"
                   rows={3}
@@ -266,7 +268,7 @@ export default function SiteConfigAdminPage() {
                 />
               </FormField>
 
-              <FormField label="Location (English)" id="author-location">
+              <FormField label={`${t("admin.siteConfig.fieldLocation", "Location")} (English)`} id="author-location">
                 <input
                   id="author-location"
                   type="text"
@@ -284,7 +286,7 @@ export default function SiteConfigAdminPage() {
           ) : (
             <>
               <FormField
-                label="Chức danh tác giả (Tiếng Việt)"
+                label={`${t("admin.siteConfig.fieldJobTitle", "Chức danh tác giả")} (Tiếng Việt)`}
                 id="author-title-vi"
                 helper="Ví dụ: Lập trình viên Web Sáng tạo"
               >
@@ -304,7 +306,7 @@ export default function SiteConfigAdminPage() {
               </FormField>
 
               <FormField
-                label="Tiểu sử / Giới thiệu ngắn (Tiếng Việt)"
+                label={`${t("admin.siteConfig.fieldBio", "Tiểu sử / Giới thiệu ngắn")} (Tiếng Việt)`}
                 id="author-bio-vi"
                 helper="Hiển thị ở banner trang chủ (Hero) và chân trang (Footer)"
               >
@@ -324,7 +326,7 @@ export default function SiteConfigAdminPage() {
               </FormField>
 
               <FormField
-                label="Địa điểm tác giả (Tiếng Việt)"
+                label={`${t("admin.siteConfig.fieldLocation", "Địa điểm tác giả")} (Tiếng Việt)`}
                 id="author-location-vi"
                 helper="Ví dụ: Thành phố Hồ Chí Minh, Việt Nam"
               >
@@ -347,7 +349,7 @@ export default function SiteConfigAdminPage() {
 
           <div className="space-y-4">
             <MediaImagePicker
-              label="Author Avatar"
+              label={t("admin.siteConfig.fieldAvatar", "Author Avatar")}
               value={config.author.avatar}
               onChange={(url) =>
                 setConfig({
@@ -362,7 +364,7 @@ export default function SiteConfigAdminPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Email Address" id="author-email">
+            <FormField label={t("admin.siteConfig.fieldEmail", "Email Address")} id="author-email">
               <input
                 id="author-email"
                 type="email"
@@ -381,8 +383,8 @@ export default function SiteConfigAdminPage() {
 
         <AdminFormFooter
           closeHref="/admin"
-          closeLabel="Cancel"
-          saveLabel="Save Configuration"
+          closeLabel={t("admin.common.cancel", "Cancel")}
+          saveLabel={t("admin.common.save", "Save Configuration")}
           isSaving={saving}
         />
       </form>

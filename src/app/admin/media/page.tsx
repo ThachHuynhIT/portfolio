@@ -7,6 +7,7 @@ import AdminModal from "@/components/admin/AdminModal";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
+import { useTranslation } from "@/context/LanguageContext";
 import type { MediaAsset, MediaCategory } from "@/lib/types";
 
 // Helper: Format bytes to human-readable size
@@ -41,6 +42,11 @@ const CATEGORIES: { id: string; label: string; icon: string; color: string }[] =
 export default function MediaAdminPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t, locale } = useTranslation();
+
+  const getCategoryLabel = (id: string, fallback: string) => {
+    return (t.admin.media.categories as any)?.[id] || fallback;
+  };
 
   const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [stats, setStats] = useState({
@@ -123,7 +129,11 @@ export default function MediaAdminPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Sync failed");
 
-      toast.success(data.message || `Successfully synced ${data.added} files from Cloudinary!`);
+      const successMsg = (t.admin.media.toastSyncSuccess || "Successfully synced {count} files from Cloudinary!").replace(
+        "{count}",
+        String(data.added || 0)
+      );
+      toast.success(data.message || successMsg);
       await fetchMedia(false);
     } catch (err: any) {
       const msg = err instanceof Error ? err.message : "Error syncing from Cloudinary";
@@ -134,10 +144,10 @@ export default function MediaAdminPage() {
   };
 
   // 1-Click Copy Link
-  const handleCopyLink = (url: string, id: string, text = "Link copied to clipboard!") => {
+  const handleCopyLink = (url: string, id: string, text?: string) => {
     navigator.clipboard.writeText(url);
     setCopiedId(id);
-    toast.success(text);
+    toast.success(text || t.admin.media.linkCopied || "Link copied to clipboard!");
     setTimeout(() => {
       setCopiedId((prev) => (prev === id ? null : prev));
     }, 2000);
@@ -154,7 +164,11 @@ export default function MediaAdminPage() {
       );
       if (!res.ok) throw new Error("Failed to delete file");
 
-      toast.success(`Deleted file "${deleteTarget.filename}"!`);
+      const deletedMsg = (t.admin.media.toastDeleted || "Deleted file \"{filename}\"!").replace(
+        "{filename}",
+        deleteTarget.filename
+      );
+      toast.success(deletedMsg);
       if (selectedAsset?.publicId === deleteTarget.publicId) {
         setSelectedAsset(null);
       }
@@ -187,7 +201,7 @@ export default function MediaAdminPage() {
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!uploadFile) {
-      toast.error("Please select a file to upload!");
+      toast.error(t.admin.media.chooseFile || "Please select a file to upload!");
       return;
     }
 
@@ -206,7 +220,11 @@ export default function MediaAdminPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Upload failed");
 
-      toast.success(`Uploaded file "${uploadFile.name}" successfully!`);
+      const uploadedMsg = (t.admin.media.toastUploadSuccess || "Uploaded file \"{filename}\" successfully!").replace(
+        "{filename}",
+        uploadFile.name
+      );
+      toast.success(uploadedMsg);
       setIsUploadOpen(false);
       setUploadFile(null);
       setUploadPreview(null);
@@ -239,8 +257,8 @@ export default function MediaAdminPage() {
     <div className="max-w-7xl mx-auto space-y-6">
       {/* ── Page Header ── */}
       <AdminHeader
-        title="Media Library"
-        description="Manage and organize all images, audio, and video assets with standardized prefixes and categories."
+        title={t.admin.media.title}
+        description={t.admin.media.description}
         icon="image"
         action={
           <div className="flex items-center gap-3">
@@ -248,10 +266,10 @@ export default function MediaAdminPage() {
               onClick={handleSyncCloudinary}
               disabled={isSyncing}
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-900 border border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white transition-all shadow-sm disabled:opacity-50"
-              title="Scan and sync existing files from Cloudinary"
+              title={t.admin.media.syncCloudinary}
             >
               <span className={isSyncing ? "animate-spin" : ""}>🔄</span>
-              <span>{isSyncing ? "Syncing…" : "Sync Cloudinary"}</span>
+              <span>{isSyncing ? t.admin.media.syncing : t.admin.media.syncCloudinary}</span>
             </button>
 
             <button
@@ -259,7 +277,7 @@ export default function MediaAdminPage() {
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-lg shadow-violet-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <Icon name="plus" size={14} />
-              <span>Upload New File</span>
+              <span>{t.admin.media.uploadMedia}</span>
             </button>
           </div>
         }
@@ -269,40 +287,40 @@ export default function MediaAdminPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
         <div className="bg-slate-900/60 border border-white/5 p-4 rounded-2xl backdrop-blur-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Total Files</span>
+            <span className="text-xs font-medium text-slate-400">{t.admin.media.statTotalFiles}</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 font-mono">
-              All
+              {t.admin.media.categories.all}
             </span>
           </div>
           <p className="text-2xl font-bold text-white mt-1.5">{stats.totalFiles}</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Files in registry</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">{t.admin.media.statFilesSub}</p>
         </div>
 
         <div className="bg-slate-900/60 border border-white/5 p-4 rounded-2xl backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Storage Used</span>
+            <span className="text-xs font-medium text-slate-400">{t.admin.media.statTotalStorage}</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-mono">
               CDN
             </span>
           </div>
           <p className="text-2xl font-bold text-white mt-1.5">{formatBytes(stats.totalBytes)}</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Cloudinary storage</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">{t.admin.media.statStorageSub}</p>
         </div>
 
         <div className="bg-slate-900/60 border border-white/5 p-4 rounded-2xl backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Images</span>
+            <span className="text-xs font-medium text-slate-400">{t.admin.media.statImages}</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-mono">
               IMG
             </span>
           </div>
           <p className="text-2xl font-bold text-white mt-1.5">{stats.totalImages}</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">JPG, PNG, WebP, HEIC</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">{t.admin.media.statImagesSub}</p>
         </div>
 
         <div className="bg-slate-900/60 border border-white/5 p-4 rounded-2xl backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Audio & Video</span>
+            <span className="text-xs font-medium text-slate-400">{t.admin.media.statAudioVideo}</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-mono">
               AV
             </span>
@@ -311,7 +329,9 @@ export default function MediaAdminPage() {
             {stats.totalAudios + stats.totalVideos}
           </p>
           <p className="text-[11px] text-slate-500 mt-0.5">
-            {stats.totalAudios} audio · {stats.totalVideos} video
+            {(t.admin.media.statAudioVideoSub || "{audios} audio · {videos} video")
+              .replace("{audios}", String(stats.totalAudios))
+              .replace("{videos}", String(stats.totalVideos))}
           </p>
         </div>
       </div>
@@ -325,7 +345,7 @@ export default function MediaAdminPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by filename, publicId, tag..."
+              placeholder={t.admin.media.searchPlaceholder}
               className="w-full bg-slate-950/80 border border-white/10 rounded-xl pl-9 pr-8 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 transition-all"
             />
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
@@ -351,10 +371,10 @@ export default function MediaAdminPage() {
             <div className="flex items-center bg-slate-950/80 border border-white/10 rounded-xl p-0.5">
               {(
                 [
-                  { id: "all", label: "All" },
-                  { id: "image", label: "🖼️ Images" },
-                  { id: "audio", label: "🎧 Audio" },
-                  { id: "video", label: "🎬 Videos" },
+                  { id: "all", label: t.admin.media.filterAllTypes },
+                  { id: "image", label: `🖼️ ${t.admin.media.typeImages}` },
+                  { id: "audio", label: `🎧 ${t.admin.media.typeAudio}` },
+                  { id: "video", label: `🎬 ${t.admin.media.typeVideo}` },
                 ] as const
               ).map((tab) => (
                 <button
@@ -398,7 +418,7 @@ export default function MediaAdminPage() {
         {/* Category Pills Bar */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-1 border-t border-white/5">
           <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mr-1 flex-shrink-0">
-            Category:
+            {t.admin.media.categoryLabel}
           </span>
           {CATEGORIES.map((cat) => {
             const count =
@@ -417,7 +437,7 @@ export default function MediaAdminPage() {
                     : "bg-slate-950/60 border-white/5 text-slate-400 hover:text-slate-200 hover:border-white/15"
                 }`}
               >
-                <span>{cat.label}</span>
+                <span>{getCategoryLabel(cat.id, cat.label)}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full ${
                     isSelected ? "bg-white/20 text-white" : "bg-white/5 text-slate-500"
@@ -435,32 +455,32 @@ export default function MediaAdminPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center min-h-[350px] bg-slate-900/30 rounded-2xl border border-white/5">
           <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-slate-400 text-sm font-medium">Loading media assets…</p>
+          <p className="text-slate-400 text-sm font-medium">{t.admin.common.loading}</p>
         </div>
       ) : assets.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[350px] bg-slate-900/20 rounded-2xl border border-dashed border-white/10 p-8 text-center">
           <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-slate-500 mb-3 text-2xl">
             📁
           </div>
-          <h3 className="text-base font-semibold text-white">No media files found</h3>
+          <h3 className="text-base font-semibold text-white">{t.admin.media.noAssets}</h3>
           <p className="text-slate-500 text-xs mt-1 max-w-sm">
             {searchQuery || categoryFilter !== "all" || typeFilter !== "all"
-              ? "No files match the current filters. Try changing keywords or filters."
-              : "You can upload a new file or click 'Sync Cloudinary' to scan existing files."}
+              ? t.admin.media.noAssetsFiltered
+              : t.admin.media.noAssetsHint}
           </p>
           <div className="flex items-center gap-3 mt-5">
             <button
               onClick={() => setIsUploadOpen(true)}
               className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold rounded-xl transition-all"
             >
-              Upload First File
+              {t.admin.media.uploadFirstFile}
             </button>
             <button
               onClick={handleSyncCloudinary}
               disabled={isSyncing}
               className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-xl transition-all"
             >
-              Sync from Cloudinary
+              {t.admin.media.syncCloudinary}
             </button>
           </div>
         </div>
@@ -533,7 +553,7 @@ export default function MediaAdminPage() {
                           : "bg-slate-900/80 text-slate-300 border-slate-700"
                       }`}
                     >
-                      {asset.category}
+                      {getCategoryLabel(asset.category, asset.category)}
                     </span>
                   </div>
 
@@ -551,7 +571,7 @@ export default function MediaAdminPage() {
                         e.stopPropagation();
                         handleCopyLink(asset.secureUrl, asset.id);
                       }}
-                      title="Copy direct link"
+                      title={t.admin.media.copyLink}
                       className="p-2 rounded-xl bg-white/15 hover:bg-violet-600 text-white transition-all transform hover:scale-110"
                     >
                       {isCopied ? "✓" : "🔗"}
@@ -561,7 +581,7 @@ export default function MediaAdminPage() {
                         e.stopPropagation();
                         setSelectedAsset(asset);
                       }}
-                      title="View details"
+                      title={t.admin.media.viewDetails}
                       className="p-2 rounded-xl bg-white/15 hover:bg-violet-600 text-white transition-all transform hover:scale-110"
                     >
                       👁️
@@ -571,7 +591,7 @@ export default function MediaAdminPage() {
                         e.stopPropagation();
                         setDeleteTarget(asset);
                       }}
-                      title="Delete file"
+                      title={t.admin.media.deleteFile}
                       className="p-2 rounded-xl bg-red-500/20 hover:bg-red-600 text-red-300 hover:text-white transition-all transform hover:scale-110"
                     >
                       🗑️
@@ -601,7 +621,7 @@ export default function MediaAdminPage() {
                       {formatBytes(asset.bytes)}
                     </span>
                     <span className="text-[10px] text-slate-500">
-                      {new Date(asset.createdAt).toLocaleDateString("en-US")}
+                      {new Date(asset.createdAt).toLocaleDateString(locale === "vi" ? "vi-VN" : "en-US")}
                     </span>
                   </div>
                 </div>
@@ -616,13 +636,13 @@ export default function MediaAdminPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-950/80 border-b border-white/5 text-slate-400 uppercase tracking-wider font-semibold text-[10px]">
                 <tr>
-                  <th className="py-3 px-4">File</th>
-                  <th className="py-3 px-3">Category</th>
-                  <th className="py-3 px-3">Format</th>
-                  <th className="py-3 px-3">Dimensions</th>
-                  <th className="py-3 px-3">Size</th>
-                  <th className="py-3 px-3">Uploaded Date</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                  <th className="py-3 px-4">{t.admin.media.colAsset}</th>
+                  <th className="py-3 px-3">{t.admin.media.colCategory}</th>
+                  <th className="py-3 px-3">{t.admin.media.colType}</th>
+                  <th className="py-3 px-3">{t.admin.media.colDimensions}</th>
+                  <th className="py-3 px-3">{t.admin.media.colSize}</th>
+                  <th className="py-3 px-3">{t.admin.media.colUploaded}</th>
+                  <th className="py-3 px-4 text-right">{t.admin.media.colActions}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-slate-300">
@@ -664,7 +684,7 @@ export default function MediaAdminPage() {
                       </td>
                       <td className="py-3 px-3">
                         <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-white/5 text-slate-300 border border-white/10 uppercase">
-                          {asset.category}
+                          {getCategoryLabel(asset.category, asset.category)}
                         </span>
                       </td>
                       <td className="py-3 px-3 font-mono uppercase text-slate-400">
@@ -681,7 +701,7 @@ export default function MediaAdminPage() {
                         {formatBytes(asset.bytes)}
                       </td>
                       <td className="py-3 px-3 text-slate-500">
-                        {new Date(asset.createdAt).toLocaleDateString("en-US")}
+                        {new Date(asset.createdAt).toLocaleDateString(locale === "vi" ? "vi-VN" : "en-US")}
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div
@@ -691,21 +711,21 @@ export default function MediaAdminPage() {
                           <button
                             onClick={() => handleCopyLink(asset.secureUrl, asset.id)}
                             className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all text-xs"
-                            title="Copy URL"
+                            title={t.admin.media.copyUrl}
                           >
-                            {isCopied ? "✓ Copied" : "Copy"}
+                            {isCopied ? (locale === "vi" ? "✓ Đã chép" : "✓ Copied") : t.admin.media.copyUrl}
                           </button>
                           <button
                             onClick={() => setSelectedAsset(asset)}
                             className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all"
-                            title="View details"
+                            title={t.admin.media.viewDetails}
                           >
                             👁️
                           </button>
                           <button
                             onClick={() => setDeleteTarget(asset)}
                             className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all"
-                            title="Delete"
+                            title={t.admin.media.deleteFile}
                           >
                             🗑️
                           </button>
@@ -774,7 +794,7 @@ export default function MediaAdminPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 uppercase tracking-wider">
-                      {selectedAsset.category}
+                      {getCategoryLabel(selectedAsset.category, selectedAsset.category)}
                     </span>
                     <h3
                       className="text-base font-bold text-white mt-1.5 break-all"
@@ -786,8 +806,8 @@ export default function MediaAdminPage() {
                   <button
                     onClick={() => setSelectedAsset(null)}
                     className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 active:scale-95 transition-all focus:outline-none"
-                    title="Close"
-                    aria-label="Close"
+                    title={t.admin.common.close}
+                    aria-label={t.admin.common.close}
                   >
                     <Icon name="close" size={18} />
                   </button>
@@ -796,14 +816,14 @@ export default function MediaAdminPage() {
                 {/* Metadata List */}
                 <div className="space-y-2.5 pt-3 border-t border-white/5 text-xs">
                   <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-slate-500">Public ID:</span>
+                    <span className="text-slate-500">{t.admin.media.publicId}</span>
                     <span className="text-slate-300 font-mono text-[11px] truncate max-w-[180px]" title={selectedAsset.publicId}>
                       {selectedAsset.publicId}
                     </span>
                   </div>
 
                   <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-slate-500">Format:</span>
+                    <span className="text-slate-500">{t.admin.media.format}</span>
                     <span className="text-slate-200 uppercase font-mono">
                       {selectedAsset.format}
                     </span>
@@ -811,7 +831,7 @@ export default function MediaAdminPage() {
 
                   {selectedAsset.width && selectedAsset.height ? (
                     <div className="flex justify-between py-1 border-b border-white/5">
-                      <span className="text-slate-500">Dimensions:</span>
+                      <span className="text-slate-500">{t.admin.media.dimensions}</span>
                       <span className="text-slate-200 font-mono">
                         {selectedAsset.width} × {selectedAsset.height} px
                       </span>
@@ -820,7 +840,7 @@ export default function MediaAdminPage() {
 
                   {selectedAsset.duration ? (
                     <div className="flex justify-between py-1 border-b border-white/5">
-                      <span className="text-slate-500">Duration:</span>
+                      <span className="text-slate-500">{t.admin.media.duration}</span>
                       <span className="text-slate-200 font-mono">
                         {formatDuration(selectedAsset.duration)}
                       </span>
@@ -828,22 +848,22 @@ export default function MediaAdminPage() {
                   ) : null}
 
                   <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-slate-500">File Size:</span>
+                    <span className="text-slate-500">{t.admin.media.fileSize}</span>
                     <span className="text-slate-200 font-mono">
                       {formatBytes(selectedAsset.bytes)} ({selectedAsset.bytes.toLocaleString()} bytes)
                     </span>
                   </div>
 
                   <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-slate-500">Uploaded Date:</span>
+                    <span className="text-slate-500">{t.admin.media.uploadedDate}</span>
                     <span className="text-slate-200">
-                      {new Date(selectedAsset.createdAt).toLocaleString("en-US")}
+                      {new Date(selectedAsset.createdAt).toLocaleString(locale === "vi" ? "vi-VN" : "en-US")}
                     </span>
                   </div>
 
                   {selectedAsset.tags && selectedAsset.tags.length > 0 && (
                     <div className="py-1">
-                      <span className="text-slate-500 block mb-1.5">Tags:</span>
+                      <span className="text-slate-500 block mb-1.5">{t.admin.media.tags}</span>
                       <div className="flex flex-wrap gap-1.5">
                         {selectedAsset.tags.map((tag) => (
                           <span
@@ -863,12 +883,12 @@ export default function MediaAdminPage() {
               <div className="space-y-2 pt-6 border-t border-white/5">
                 <button
                   onClick={() =>
-                    handleCopyLink(selectedAsset.secureUrl, selectedAsset.id, "Direct URL copied!")
+                    handleCopyLink(selectedAsset.secureUrl, selectedAsset.id, t.admin.media.copiedDirectUrl)
                   }
                   className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-semibold transition-all shadow-md shadow-violet-600/20"
                 >
                   <span>🔗</span>
-                  <span>Copy Direct URL</span>
+                  <span>{t.admin.media.copyDirectUrl}</span>
                 </button>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -877,12 +897,12 @@ export default function MediaAdminPage() {
                       handleCopyLink(
                         `![${selectedAsset.filename}](${selectedAsset.secureUrl})`,
                         selectedAsset.id,
-                        "Markdown code copied!"
+                        t.admin.media.copiedMarkdown
                       )
                     }
                     className="py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition-all"
                   >
-                    Copy Markdown
+                    {t.admin.media.copyMarkdown}
                   </button>
 
                   <button
@@ -890,12 +910,12 @@ export default function MediaAdminPage() {
                       handleCopyLink(
                         `<img src="${selectedAsset.secureUrl}" alt="${selectedAsset.filename}" />`,
                         selectedAsset.id,
-                        "HTML code copied!"
+                        t.admin.media.copiedHtml
                       )
                     }
                     className="py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition-all"
                   >
-                    Copy HTML
+                    {t.admin.media.copyHtml}
                   </button>
                 </div>
 
@@ -906,19 +926,19 @@ export default function MediaAdminPage() {
                     rel="noreferrer"
                     className="flex-1 py-2 px-3 bg-white/5 hover:bg-white/10 text-slate-300 text-center rounded-xl text-xs font-medium transition-all"
                   >
-                    Open in new tab ↗
+                    {t.admin.media.openInNewTab}
                   </a>
                   <button
                     onClick={() => setDeleteTarget(selectedAsset)}
                     className="py-2 px-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-medium transition-all"
                   >
-                    Delete file
+                    {t.admin.media.deleteFile}
                   </button>
                   <button
                     onClick={() => setSelectedAsset(null)}
                     className="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition-all"
                   >
-                    Close
+                    {t.admin.common.close}
                   </button>
                 </div>
               </div>
@@ -931,12 +951,12 @@ export default function MediaAdminPage() {
       <AdminModal
         isOpen={isUploadOpen}
         onClose={() => !isUploading && setIsUploadOpen(false)}
-        title="Upload New File"
-        subtitle="Standardized prefix auto-generated and stored into Cloudinary folder by category."
+        title={t.admin.media.uploadModalTitle}
+        subtitle={t.admin.media.uploadModalSubtitle}
         icon="camera"
         onSubmit={handleUploadSubmit}
-        saveLabel={isUploading ? "Uploading to Cloudinary…" : "Start Upload"}
-        closeLabel="Close"
+        saveLabel={isUploading ? t.admin.media.uploading : t.admin.media.uploadBtn}
+        closeLabel={t.admin.common.close}
         isSaving={isUploading}
         saveDisabled={!uploadFile}
         maxWidth="max-w-lg"
@@ -945,7 +965,7 @@ export default function MediaAdminPage() {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-slate-400 mb-1.5">
-              Category
+              {t.admin.media.uploadCategoryLabel}
             </label>
             <select
               value={uploadCategory}
@@ -961,18 +981,18 @@ export default function MediaAdminPage() {
               }}
               className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
             >
-              <option value="photo">Photography</option>
-              <option value="music">Music</option>
-              <option value="project">Projects</option>
-              <option value="blog">Blog Posts</option>
-              <option value="site">Site Config</option>
-              <option value="general">General Assets</option>
+              <option value="photo">{t.admin.media.categories.photo}</option>
+              <option value="music">{t.admin.media.categories.music}</option>
+              <option value="project">{t.admin.media.categories.project}</option>
+              <option value="blog">{t.admin.media.categories.blog}</option>
+              <option value="site">{t.admin.media.categories.site}</option>
+              <option value="general">{t.admin.media.categories.general}</option>
             </select>
           </div>
 
           <div>
             <label className="block text-xs font-medium text-slate-400 mb-1.5">
-              Sub-type
+              {t.admin.media.uploadSubTypeLabel}
             </label>
             <input
               type="text"
@@ -987,7 +1007,7 @@ export default function MediaAdminPage() {
         {/* Dynamic Prefix Preview Box */}
         <div className="bg-slate-950/80 border border-violet-500/20 rounded-xl p-3">
           <p className="text-[11px] text-slate-400">
-            Auto-generated Filename Prefix:
+            {t.admin.media.uploadPrefixLabel}
           </p>
           <p className="text-xs font-mono text-violet-300 font-semibold mt-0.5 truncate">
             {uploadPrefixPreview}
@@ -997,7 +1017,7 @@ export default function MediaAdminPage() {
         {/* Dropzone File Selector */}
         <div>
           <label className="block text-xs font-medium text-slate-400 mb-1.5">
-            Select File (Photo, Video, Audio, Doc)
+            {t.admin.media.chooseFile}
           </label>
           <input
             ref={fileInputRef}
@@ -1040,7 +1060,7 @@ export default function MediaAdminPage() {
                   }}
                   className="text-[11px] text-violet-400 hover:text-violet-300 underline"
                 >
-                  Change file
+                  {t.admin.media.changeFile}
                 </button>
               </div>
             ) : uploadFile ? (
@@ -1060,7 +1080,7 @@ export default function MediaAdminPage() {
                   }}
                   className="text-[11px] text-violet-400 hover:text-violet-300 underline"
                 >
-                  Change file
+                  {t.admin.media.changeFile}
                 </button>
               </div>
             ) : (
@@ -1069,10 +1089,10 @@ export default function MediaAdminPage() {
                   ☁️
                 </div>
                 <p className="text-xs font-medium text-slate-300">
-                  Click to select file or drag and drop here
+                  {t.admin.media.uploadDropzonePrompt}
                 </p>
                 <p className="text-[10px] text-slate-500 mt-1">
-                  Supports JPG, PNG, WebP, iPhone HEIC (auto-converts to JPEG), MP3, MP4...
+                  {t.admin.media.uploadDropzoneSupport}
                 </p>
               </div>
             )}
@@ -1083,10 +1103,13 @@ export default function MediaAdminPage() {
       {/* ── CONFIRM DELETE DIALOG ── */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        title="Delete File Confirmation"
-        message={`Are you sure you want to delete "${deleteTarget?.filename}" from Cloudinary and the media library? This action cannot be undone.`}
-        confirmLabel={isDeleting ? "Deleting…" : "Delete permanently"}
-        cancelLabel="Cancel"
+        title={t.admin.media.deleteTitle}
+        message={(t.admin.media.deleteMessage || "Are you sure you want to delete \"{filename}\"?").replace(
+          "{filename}",
+          deleteTarget?.filename || ""
+        )}
+        confirmLabel={isDeleting ? t.admin.common.deleting : t.admin.common.delete}
+        cancelLabel={t.admin.common.cancel}
         isDangerous={true}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTarget(null)}

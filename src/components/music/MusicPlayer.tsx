@@ -15,6 +15,7 @@ import {
   WaveVisualizer,
   PulsarVisualizer,
 } from "./Visualizers";
+import { useTranslation } from "@/context/LanguageContext";
 import "@/app/music/music.css";
 
 interface MusicPlayerProps {
@@ -29,6 +30,7 @@ function formatTime(seconds: number): string {
 }
 
 function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
+  const { t, locale } = useTranslation();
   const searchParams = useSearchParams();
   const {
     tracks,
@@ -351,10 +353,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 <button
                   onClick={() => setIsMobileSidebarOpen(true)}
                   className="music-mobile-menu-btn"
-                  aria-label="Open Music Navigation"
+                  aria-label={t("music.studioNav", "Open Music Navigation")}
                 >
                   <span>☰</span>
-                  <span className="text-xs font-semibold">Menu</span>
+                  <span className="text-xs font-semibold">{t("common.menu", "Menu")}</span>
                 </button>
               </div>
 
@@ -363,7 +365,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 <span className="music-search-icon">🔍</span>
                 <input
                   type="text"
-                  placeholder="Search tracks, artists, albums, lyrics..."
+                  placeholder={t("music.search.placeholder", "Search tracks, artists, albums, lyrics...")}
                   value={searchQuery}
                   onFocus={() => setIsSearchFocused(true)}
                   onChange={(e) => {
@@ -383,7 +385,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       setSearchQuery("");
                     }}
                     className="music-search-clear-btn"
-                    title="Clear search"
+                    title={t("music.clearFilter", "Clear")}
                   >
                     ✕
                   </button>
@@ -402,14 +404,14 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       <div className="music-search-dropdown-header">
                         <span className="text-[11px] font-bold uppercase tracking-wider text-white/50">
                           {searchQuery.trim()
-                            ? `Kết quả tìm kiếm (${searchResults.length})`
-                            : "Gợi ý thịnh hành"}
+                            ? `${t("music.search.results", "Search Results")} (${searchResults.length})`
+                            : t("music.search.trending", "Trending Suggestions")}
                         </span>
                         <button
                           onClick={() => setIsSearchFocused(false)}
                           className="text-[10px] text-white/40 hover:text-white"
                         >
-                          Đóng ✕
+                          {t("music.search.close", "Close ✕")}
                         </button>
                       </div>
 
@@ -418,10 +420,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           <div className="music-search-empty">
                             <span className="text-xl">🔍</span>
                             <div className="text-xs text-white/70">
-                              Không tìm thấy bài hát nào cho &quot;{searchQuery}&quot;
+                              {t("music.search.emptyTitle", "No tracks found for")} &quot;{searchQuery}&quot;
                             </div>
                             <div className="text-[11px] text-white/40">
-                              Thử tìm kiếm theo tên nghệ sĩ, bài hát hoặc thể loại
+                              {t("music.search.emptyDesc", "Try searching by artist, track title, or genre")}
                             </div>
                           </div>
                         ) : (
@@ -498,7 +500,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                         ? "text-rose-400"
                                         : "text-white/20 hover:text-white/70"
                                     }`}
-                                    title={isLiked ? "Bỏ thích" : "Yêu thích"}
+                                    title={isLiked ? t("music.favorites.removeTooltip", "Unlike") : t("music.playerBar.likeTrack", "Like")}
                                   >
                                     {isLiked ? "❤️" : "🤍"}
                                   </button>
@@ -530,7 +532,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   }`}
                 >
                   <span>🎛️</span>
-                  <span>Trình phát</span>
+                  <span>{t("music.quickPills.player", "Player")}</span>
                 </button>
                 <button
                   onClick={() => {
@@ -544,7 +546,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   }`}
                 >
                   <span>🏆</span>
-                  <span>Bảng Xếp Hạng</span>
+                  <span>{t("music.quickPills.charts", "Top Charts")}</span>
                 </button>
                 <button
                   onClick={() => {
@@ -558,7 +560,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   }`}
                 >
                   <span>❤️</span>
-                  <span>Yêu thích</span>
+                  <span>{t("music.quickPills.favorites", "Favorites")}</span>
                   {likedTrackIds.size > 0 && (
                     <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20 text-white font-mono font-bold">
                       {likedTrackIds.size}
@@ -577,7 +579,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   }`}
                 >
                   <span>📑</span>
-                  <span>Hàng đợi</span>
+                  <span>{t("music.quickPills.queue", "Queue")}</span>
                 </button>
               </div>
 
@@ -591,10 +593,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       ? "bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-500/20"
                       : "bg-white/5 hover:bg-white/10 text-white/90 border-white/10"
                   }`}
-                  title="Cùng nghe nhạc qua mã phòng 5 ký tự"
+                  title={t("music.roomTooltip", "Listen together via 5-character room code")}
                 >
                   <span>🎧</span>
-                  <span className="hidden sm:inline">{room ? `#${room.code}` : "Listen Together"}</span>
+                  <span className="hidden sm:inline">{room ? `#${room.code}` : t("music.roomButton", "Listen Together")}</span>
                 </button>
 
                 {/* Sleep Timer Selector */}
@@ -607,15 +609,15 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     else setSleepTimerMinutes(Number(v));
                   }}
                   className={`music-sort-select ${sleepTimer.minutes !== null ? "!border-cyan-400 !text-cyan-300" : ""}`}
-                  title="Hẹn giờ tắt nhạc"
-                  aria-label="Hẹn giờ tắt nhạc"
+                  title={t("music.sleepTimer.title", "Sleep Timer")}
+                  aria-label={t("music.sleepTimer.title", "Sleep Timer")}
                 >
-                  <option value="off">⏱️ Hẹn giờ: Tắt</option>
-                  <option value="15">⏱️ Hẹn giờ: 15 phút</option>
-                  <option value="30">⏱️ Hẹn giờ: 30 phút</option>
-                  <option value="45">⏱️ Hẹn giờ: 45 phút</option>
-                  <option value="60">⏱️ Hẹn giờ: 60 phút</option>
-                  <option value="end">⏱️ Hẹn giờ: Hết bài</option>
+                  <option value="off">{t("music.sleepTimer.off", "⏱️ Timer: Off")}</option>
+                  <option value="15">{t("music.sleepTimer.m15", "⏱️ Timer: 15 mins")}</option>
+                  <option value="30">{t("music.sleepTimer.m30", "⏱️ Timer: 30 mins")}</option>
+                  <option value="45">{t("music.sleepTimer.m45", "⏱️ Timer: 45 mins")}</option>
+                  <option value="60">{t("music.sleepTimer.m60", "⏱️ Timer: 60 mins")}</option>
+                  <option value="end">{t("music.sleepTimer.endTrack", "⏱️ Timer: End of Track")}</option>
                 </select>
 
                 {/* Sleep Timer Countdown Badge */}
@@ -630,7 +632,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 <button
                   onClick={() => setIsZenMode(true)}
                   className="music-zen-btn"
-                  title="Toàn màn hình Zen Mode (Phím tắt: Z)"
+                  title={t("music.zen.zenModeTooltip", "Fullscreen Zen Mode (Hotkey: Z)")}
                 >
                   <span>📺</span>
                   <span className="hidden sm:inline">Zen Mode</span>
@@ -656,7 +658,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       }`}
                     >
                       <span>💿</span>
-                      <span>Đĩa Than & Phòng Thu</span>
+                      <span>{t("music.deck.vinyl", "Vinyl & Studio")}</span>
                     </button>
                     <button
                       onClick={() => setDeckMode("lyrics")}
@@ -667,25 +669,25 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       }`}
                     >
                       <span>🎤</span>
-                      <span>Lời Bài Hát (Karaoke)</span>
+                      <span>{t("music.deck.lyrics", "Live Lyrics (Karaoke)")}</span>
                     </button>
                   </div>
 
                   {/* Single-Track Audio Equalizer Preset */}
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-white/50 font-medium hidden sm:inline">Bộ lọc âm sắc:</span>
+                    <span className="text-xs text-white/50 font-medium hidden sm:inline">{t("music.deck.eqLabel", "Equalizer Preset:")}</span>
                     <select
                       value={eqPreset}
                       onChange={(e) => setEqPreset(e.target.value as EqPreset)}
                       className="music-sort-select !bg-black/40 !border-white/15"
-                      title="Graphic Equalizer Preset (Chỉ áp dụng bài đang phát)"
+                      title={t("music.deck.eqLabel", "Graphic Equalizer Preset (Current track only)")}
                       aria-label="Equalizer Preset"
                     >
-                      <option value="flat">🎚️ EQ: Flat / Studio</option>
-                      <option value="bass_boost">🔊 EQ: Bass Boost</option>
-                      <option value="vocal">🎤 EQ: Vocal & Acoustic</option>
-                      <option value="electronic">🌌 EQ: Synth & EDM</option>
-                      <option value="chill">☕ EQ: Chill Lofi</option>
+                      <option value="flat">{t("music.eq.flat", "🎚️ EQ: Flat / Studio")}</option>
+                      <option value="bass_boost">{t("music.eq.bass_boost", "🔊 EQ: Bass Boost")}</option>
+                      <option value="vocal">{t("music.eq.vocal", "🎤 EQ: Vocal & Acoustic")}</option>
+                      <option value="electronic">{t("music.eq.electronic", "🌌 EQ: Synth & EDM")}</option>
+                      <option value="chill">{t("music.eq.chill", "☕ EQ: Chill Lofi")}</option>
                     </select>
                   </div>
                 </div>
@@ -721,7 +723,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                             <button
                               onClick={() => toggleLike(currentTrack.id)}
                               className={`text-sm ${isCurrentLiked ? "text-red-500" : "text-white/40 hover:text-white"} cursor-pointer`}
-                              title={isCurrentLiked ? "Bỏ thích" : "Yêu thích"}
+                              title={isCurrentLiked ? t("music.favorites.removeTooltip", "Unlike") : t("music.playerBar.likeTrack", "Like")}
                             >
                               {isCurrentLiked ? "❤️" : "🤍"}
                             </button>
@@ -752,10 +754,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         <button
                           onClick={() => setDeckMode("vinyl")}
                           className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-white/80 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 cursor-pointer"
-                          title="Quay lại đĩa than"
+                          title={t("music.deck.backToVinyl", "Back to Vinyl")}
                         >
                           <span>💿</span>
-                          <span className="hidden sm:inline">Quay lại đĩa than</span>
+                          <span className="hidden sm:inline">{t("music.deck.backToVinyl", "Back to Vinyl")}</span>
                         </button>
                       </div>
                     </div>
@@ -810,7 +812,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         {/* Album Cover Badges */}
                         <div className="music-cover-overlay">
                           <div className="music-cover-top-badge">
-                            <span className="music-lossless-badge">HI-RES AUDIO</span>
+                            <span className="music-lossless-badge">{t("music.deck.hiResBadge", "HI-RES AUDIO")}</span>
                             {currentTrack.genre && (
                               <span className="music-genre-badge">{currentTrack.genre}</span>
                             )}
@@ -836,7 +838,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         <button
                           onClick={() => toggleLike(currentTrack.id)}
                           className={`music-main-heart-btn ${isCurrentLiked ? "music-main-heart-btn--liked" : ""}`}
-                          title={isCurrentLiked ? "Liked!" : "Add to Liked Songs (L)"}
+                          title={isCurrentLiked ? t("music.playerBar.unlikeTrack", "Liked!") : t("music.playerBar.likeTrack", "Add to Liked Songs (L)")}
                         >
                           {isCurrentLiked ? "❤️" : "🤍"}
                         </button>
@@ -849,7 +851,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           <span className="music-pill-meta">💿 {currentTrack.album}</span>
                         )}
                         <span className="music-pill-meta">
-                          🔥 {currentTrack.playCount.toLocaleString()} plays
+                          🔥 {currentTrack.playCount.toLocaleString()} {t("music.deck.plays", "plays")}
                         </span>
                         <span className="music-pill-meta">
                           ⏱️ {formatTime(currentTrack.duration)}
@@ -858,7 +860,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           onClick={() => setDeckMode("lyrics")}
                           className="music-pill-meta hover:bg-white/10 text-cyan-300 border-cyan-500/30 cursor-pointer"
                         >
-                          🎤 View Lyrics
+                          🎤 {t("music.deck.viewLyrics", "View Lyrics")}
                         </button>
                       </div>
                     </div>
@@ -867,7 +869,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     <div className="flex items-center justify-between px-2 mb-2 w-full max-w-3xl">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold uppercase tracking-wider text-white/70">
-                          Sóng Âm Thanh (Audio Visualizer)
+                          {t("music.deck.visualizerTitle", "Audio Visualizer")}
                         </span>
                         {isPlaying && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
                       </div>
@@ -880,7 +882,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               : "text-white/60 hover:text-white"
                           }`}
                         >
-                          Bars
+                          {t("music.deck.bars", "Bars")}
                         </button>
                         <button
                           onClick={() => setVisualizerStyle("wave")}
@@ -890,7 +892,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               : "text-white/60 hover:text-white"
                           }`}
                         >
-                          Wave
+                          {t("music.deck.wave", "Wave")}
                         </button>
                         <button
                           onClick={() => setVisualizerStyle("pulsar")}
@@ -900,7 +902,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               : "text-white/60 hover:text-white"
                           }`}
                         >
-                          Pulsar
+                          {t("music.deck.pulsar", "Pulsar")}
                         </button>
                       </div>
                     </div>
@@ -919,24 +921,24 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     <div className="flex items-center gap-3 flex-wrap">
                       <h3 className="text-sm font-bold text-white/90 uppercase tracking-wider flex items-center gap-2">
                         <span>🎵</span>
-                        <span>Soundtrack Collection</span>
+                        <span>{t("music.collection.title", "Soundtrack Collection")}</span>
                         <span className="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-white/60 font-mono font-normal">
-                          {filteredTracks.length} bài hát
+                          {filteredTracks.length} {t("music.collection.tracksCount", "tracks")}
                         </span>
                       </h3>
 
                       {/* Active Filter Chips that affect this list */}
                       {selectedGenre !== "All" && (
                         <div className="music-active-chip">
-                          <span>Mood: {selectedGenre}</span>
-                          <button onClick={() => setSelectedGenre("All")} title="Xóa lọc thể loại">✕</button>
+                          <span>{t("music.collection.moodFilter", "Mood")}: {selectedGenre}</span>
+                          <button onClick={() => setSelectedGenre("All")} title={t("music.clearFilter", "Clear")}>✕</button>
                         </div>
                       )}
 
                       {showOnlyLiked && (
                         <div className="music-active-chip music-active-chip--liked">
-                          <span>❤️ Đã thích</span>
-                          <button onClick={() => setShowOnlyLiked(false)} title="Xóa lọc yêu thích">✕</button>
+                          <span>❤️ {t("music.collection.likedFilter", "Liked")}</span>
+                          <button onClick={() => setShowOnlyLiked(false)} title={t("music.clearFilter", "Clear")}>✕</button>
                         </div>
                       )}
                     </div>
@@ -950,10 +952,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                             ? "bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-500/20"
                             : "bg-white/5 text-white/70 hover:text-white border-white/10"
                         }`}
-                        title="Chỉ hiển thị bài hát đã thích trong danh sách"
+                        title={t("music.collection.likedFilter", "Only show liked tracks in list")}
                       >
                         <span>{showOnlyLiked ? "❤️" : "🤍"}</span>
-                        <span>Đã thích</span>
+                        <span>{t("music.collection.likedBtn", "Liked")}</span>
                       </button>
 
                       {/* Sort dropdown */}
@@ -965,12 +967,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                             setSortBy(e.target.value as "default" | "title" | "plays" | "duration")
                           }
                           className="bg-transparent text-xs text-white/90 focus:outline-none cursor-pointer pr-1 py-0.5"
-                          aria-label="Sắp xếp danh sách bài hát"
+                          aria-label={t("music.collection.sort.label", "Sort:")}
                         >
-                          <option value="default" className="bg-[#121212] text-white">Sắp xếp: Mặc định</option>
-                          <option value="plays" className="bg-[#121212] text-white">Sắp xếp: Lượt nghe nhiều</option>
-                          <option value="title" className="bg-[#121212] text-white">Sắp xếp: Tên bài hát</option>
-                          <option value="duration" className="bg-[#121212] text-white">Sắp xếp: Thời lượng</option>
+                          <option value="default" className="bg-[#121212] text-white">{t("music.collection.sort.default", "Sort: Default")}</option>
+                          <option value="plays" className="bg-[#121212] text-white">{t("music.collection.sort.plays", "Sort: Most Played")}</option>
+                          <option value="title" className="bg-[#121212] text-white">{t("music.collection.sort.title", "Sort: Track Title")}</option>
+                          <option value="duration" className="bg-[#121212] text-white">{t("music.collection.sort.duration", "Sort: Duration")}</option>
                         </select>
                       </div>
                     </div>
@@ -1049,17 +1051,17 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-400 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
-                          BẢNG XẾP HẠNG THỊNH HÀNH
+                          {t("music.charts.badge", "TRENDING LEADERBOARD")}
                         </span>
-                        <span className="text-[11px] text-white/40 font-mono">SPOTIFY EDITION</span>
+                        <span className="text-[11px] text-white/40 font-mono">{t("music.charts.edition", "SPOTIFY EDITION")}</span>
                       </div>
 
                       <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight mb-3">
-                        Top Bài Hát Nghe Nhiều Nhất
+                        {t("music.charts.title", "Most Played Soundtracks")}
                       </h1>
 
                       <p className="text-sm text-white/70 max-w-2xl mb-4 font-light leading-relaxed">
-                        Tuyển tập các giai điệu âm nhạc, lofi chillout và synthwave được thưởng thức nhiều nhất trên Vibe Lounge. Xếp hạng dựa trên dữ liệu lượt nghe thực tế.
+                        {t("music.charts.desc", "A curated collection of the most enjoyed chillout, lofi, and synthwave melodies on Vibe Lounge. Ranked by actual play counts.")}
                       </p>
 
                       <div className="flex flex-wrap items-center gap-3 text-xs text-white/80 font-medium">
@@ -1067,14 +1069,14 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           <span className="w-5 h-5 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-400 flex items-center justify-center text-[10px] font-bold text-white">
                             TH
                           </span>
-                          <span>Tuyển chọn bởi <strong>Thạch Huỳnh</strong></span>
+                          <span>{t("music.charts.curatedBy", "Curated by")} <strong>Thạch Huỳnh</strong></span>
                         </div>
                         <span>•</span>
-                        <span>{chartTracks.length} bài hát</span>
+                        <span>{chartTracks.length} {t("music.charts.tracks", "tracks")}</span>
                         <span>•</span>
-                        <span>{totalPlays.toLocaleString()} lượt nghe</span>
+                        <span>{totalPlays.toLocaleString()} {t("music.charts.plays", "plays")}</span>
                         <span>•</span>
-                        <span className="text-emerald-400 font-mono">Lossless Hi-Res</span>
+                        <span className="text-emerald-400 font-mono">{t("music.charts.lossless", "Lossless Hi-Res")}</span>
                       </div>
                     </div>
                   </div>
@@ -1083,7 +1085,11 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   {chartTracks.length >= 3 && (
                     <div className="px-6 sm:px-8 pb-4 grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-white/10 pt-4 relative z-10">
                       {chartTracks.slice(0, 3).map((topT, idx) => {
-                        const medals = ["🥇 Top 1 Thịnh Hành", "🥈 Top 2 Yêu Thích", "🥉 Top 3 Nổi Bật"];
+                        const medals = [
+                          t("music.charts.top1", "🥇 Top 1 Trending"),
+                          t("music.charts.top2", "🥈 Top 2 Favorite"),
+                          t("music.charts.top3", "🥉 Top 3 Featured"),
+                        ];
                         const isThisPlaying = isPlaying && currentTrack?.id === topT.id;
                         return (
                           <div
@@ -1116,7 +1122,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               <span className="text-[10px] text-emerald-400 font-mono font-bold block">
                                 {(topT.playCount ?? 0).toLocaleString()}
                               </span>
-                              <span className="text-[9px] text-white/40 block">plays</span>
+                              <span className="text-[9px] text-white/40 block">{t("music.charts.plays", "plays")}</span>
                             </div>
                           </div>
                         );
@@ -1132,7 +1138,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     <button
                       onClick={handlePlayChartFromStart}
                       className="w-14 h-14 rounded-full bg-[#1db954] hover:bg-[#1ed760] text-black flex items-center justify-center shadow-xl shadow-[#1db954]/30 hover:scale-105 active:scale-95 transition-all"
-                      title="Phát tất cả từ bài số 1"
+                      title={t("music.charts.playAll", "Play all from #1")}
                     >
                       <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28" className="translate-x-0.5">
                         <path d="M8 5.14v14l11-7-11-7z" />
@@ -1147,7 +1153,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
                           : "bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border-white/10"
                       }`}
-                      title="Phát ngẫu nhiên bảng xếp hạng"
+                      title={t("music.charts.shuffle", "Shuffle play charts")}
                     >
                       <ShuffleIcon />
                     </button>
@@ -1155,7 +1161,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     <div className="h-6 w-px bg-white/10" />
 
                     <span className="text-xs text-white/60">
-                      Đang hiển thị <strong>{chartTracks.length}</strong> bài hát
+                      {t("music.charts.showing", "Showing")} <strong>{chartTracks.length}</strong> {t("music.charts.tracks", "tracks")}
                     </span>
                   </div>
 
@@ -1169,7 +1175,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           : "text-white/60 hover:text-white"
                       }`}
                     >
-                      🔥 Top Lượt Nghe
+                      {t("music.charts.topPlays", "🔥 Top Played")}
                     </button>
                     <button
                       onClick={() => setChartFilter("liked")}
@@ -1179,7 +1185,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           : "text-white/60 hover:text-white"
                       }`}
                     >
-                      ❤️ Được Yêu Thích
+                      {t("music.charts.topLiked", "❤️ Most Liked")}
                     </button>
                     <button
                       onClick={() => setChartFilter("recent")}
@@ -1189,7 +1195,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           : "text-white/60 hover:text-white"
                       }`}
                     >
-                      ✨ Mới Nhất
+                      {t("music.charts.topRecent", "✨ Recently Added")}
                     </button>
                   </div>
                 </div>
@@ -1199,11 +1205,11 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   <div className="spotify-track-table">
                     {/* Header */}
                     <div className="spotify-table-header">
-                      <div className="w-10 text-center font-bold">#</div>
-                      <div className="flex-1 min-w-0">TIÊU ĐỀ</div>
-                      <div className="hidden md:block w-48">ALBUM / THỂ LOẠI</div>
-                      <div className="hidden sm:block w-36 text-right">LƯỢT PHÁT</div>
-                      <div className="w-24 text-right pr-2">THỜI LƯỢNG</div>
+                      <div className="w-10 text-center font-bold">{t("music.charts.table.rank", "#")}</div>
+                      <div className="flex-1 min-w-0">{t("music.charts.table.title", "TITLE")}</div>
+                      <div className="hidden md:block w-48">{t("music.charts.table.albumGenre", "ALBUM / GENRE")}</div>
+                      <div className="hidden sm:block w-36 text-right">{t("music.charts.table.plays", "PLAYS")}</div>
+                      <div className="w-24 text-right pr-2">{t("music.charts.table.duration", "DURATION")}</div>
                     </div>
 
                     {/* Rows */}
@@ -1239,7 +1245,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                     }
                                   }}
                                   className="w-7 h-7 rounded-full bg-[#1db954] text-black flex items-center justify-center shadow hover:scale-110 transition-transform"
-                                  title={isThisPlaying ? "Tạm dừng" : "Phát bài hát"}
+                                  title={isThisPlaying ? t("music.charts.pause", "Pause") : t("music.charts.play", "Play Track")}
                                 >
                                   {isThisPlaying ? (
                                     <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
@@ -1294,13 +1300,13 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                             {/* Album / Genre Col */}
                             <div className="hidden md:block w-48 text-xs text-white/60 truncate pr-4">
-                              {track.album || track.genre || "Single Release"}
+                              {track.album || track.genre || t("music.infoView.singleRelease", "Single Release")}
                             </div>
 
                             {/* Plays count & popularity bar Col */}
                             <div className="hidden sm:flex flex-col items-end justify-center w-36 pr-4">
                               <span className="text-xs font-mono font-medium text-white/80 tabular-nums">
-                                {(track.playCount ?? 0).toLocaleString()} plays
+                                {(track.playCount ?? 0).toLocaleString()} {t("music.charts.plays", "plays")}
                               </span>
                               <div className="w-20 h-1 rounded-full bg-white/10 mt-1 overflow-hidden">
                                 <div
@@ -1320,7 +1326,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                 className={`text-sm transition-transform active:scale-125 ${
                                   isLiked ? "text-emerald-400" : "text-white/20 hover:text-white/80"
                                 }`}
-                                title={isLiked ? "Bỏ thích" : "Yêu thích"}
+                                title={isLiked ? t("music.favorites.removeTooltip", "Unlike") : t("music.playerBar.likeTrack", "Like")}
                               >
                                 {isLiked ? "❤️" : "🤍"}
                               </button>
@@ -1366,17 +1372,17 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-[11px] font-extrabold uppercase tracking-widest text-rose-400 px-2.5 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30">
-                          DANH SÁCH YÊU THÍCH
+                          {t("music.favorites.badge", "FAVORITE COLLECTION")}
                         </span>
-                        <span className="text-[11px] text-white/40 font-mono">SPOTIFY EDITION</span>
+                        <span className="text-[11px] text-white/40 font-mono">{t("music.favorites.edition", "SPOTIFY EDITION")}</span>
                       </div>
 
                       <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight mb-3">
-                        Bài Hát Yêu Thích
+                        {t("music.favorites.title", "Favorite Tracks")}
                       </h1>
 
                       <p className="text-sm text-white/70 max-w-2xl mb-4 font-light leading-relaxed">
-                        Tuyển tập tất cả giai điệu bạn đã lưu và yêu thích trên Vibe Lounge. Tự động đồng bộ và lưu trữ trên trình duyệt.
+                        {t("music.favorites.desc", "All your saved and loved melodies on Vibe Lounge. Automatically synced and stored in your browser.")}
                       </p>
 
                       <div className="flex flex-wrap items-center gap-3 text-xs text-white/80 font-medium">
@@ -1385,13 +1391,13 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                             ❤️
                           </span>
                           <span>
-                            <strong>{likedTracks.length}</strong> bài hát đã lưu
+                            <strong>{likedTracks.length}</strong> {t("music.favorites.savedCount", "saved tracks")}
                           </span>
                         </div>
                         <span>•</span>
-                        <span>{formatTime(totalLikedDuration)} tổng thời lượng</span>
+                        <span>{formatTime(totalLikedDuration)} {t("music.favorites.totalDuration", "total duration")}</span>
                         <span>•</span>
-                        <span className="text-rose-400 font-mono">Lossless Hi-Res</span>
+                        <span className="text-rose-400 font-mono">{t("music.favorites.lossless", "Lossless Hi-Res")}</span>
                       </div>
                     </div>
                   </div>
@@ -1413,7 +1419,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           ? "bg-gradient-to-tr from-rose-500 to-pink-500 text-white hover:scale-105 active:scale-95 shadow-rose-500/30 cursor-pointer"
                           : "bg-white/10 text-white/30 cursor-not-allowed"
                       }`}
-                      title={likedTracks.length > 0 ? "Phát tất cả bài hát yêu thích" : "Chưa có bài hát"}
+                      title={likedTracks.length > 0 ? t("music.favorites.title", "Play all favorites") : t("music.favorites.emptyTitle", "No tracks")}
                     >
                       <svg
                         viewBox="0 0 24 24"
@@ -1435,7 +1441,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           playTrackById(likedTracks[rand].id);
                         }}
                         className="p-3 rounded-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-all text-sm"
-                        title="Phát ngẫu nhiên danh sách yêu thích"
+                        title={t("music.charts.shuffle", "Shuffle play favorites")}
                       >
                         🔀
                       </button>
@@ -1443,7 +1449,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   </div>
 
                   <div className="text-xs text-white/40">
-                    Nhấn biểu tượng ❤️ để gỡ bỏ bài hát khỏi danh sách
+                    {t("music.favorites.removeTooltip", "Click ❤️ to remove from favorites")}
                   </div>
                 </div>
 
@@ -1455,10 +1461,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         💔
                       </div>
                       <h3 className="text-base font-bold text-white mb-2">
-                        Chưa có bài hát yêu thích nào
+                        {t("music.favorites.emptyTitle", "No favorite tracks yet")}
                       </h3>
                       <p className="text-xs text-white/50 mb-6 leading-relaxed">
-                        Hãy nhấn biểu tượng trái tim (❤️) trên bất kỳ bài hát nào trong Bảng Xếp Hạng hoặc Trình Phát để thêm vào danh sách này.
+                        {t("music.favorites.emptyDesc", "Click the heart icon on any track to save it here for quick access.")}
                       </p>
                       <button
                         onClick={() => {
@@ -1468,18 +1474,18 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         className="px-5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2 cursor-pointer"
                       >
                         <span>🏆</span>
-                        <span>Khám phá Bảng Xếp Hạng</span>
+                        <span>{t("music.favorites.exploreBtn", "Explore Soundtracks")}</span>
                       </button>
                     </div>
                   ) : (
                     <div className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur-md overflow-hidden shadow-2xl">
                       {/* Table Header */}
                       <div className="flex items-center px-4 py-3 text-[11px] font-bold text-white/40 uppercase tracking-wider border-b border-white/10">
-                        <div className="w-10 text-center">#</div>
-                        <div className="flex-1 min-w-0 pr-2">TIÊU ĐỀ & NGHỆ SĨ</div>
-                        <div className="hidden md:block w-48 pr-4">ALBUM / THỂ LOẠI</div>
-                        <div className="hidden sm:block w-28 text-right pr-4">LƯỢT NGHE</div>
-                        <div className="w-24 text-right pr-2">THỜI LƯỢNG</div>
+                        <div className="w-10 text-center">{t("music.charts.table.rank", "#")}</div>
+                        <div className="flex-1 min-w-0 pr-2">{t("music.charts.table.title", "TITLE & ARTIST")}</div>
+                        <div className="hidden md:block w-48 pr-4">{t("music.charts.table.albumGenre", "ALBUM / GENRE")}</div>
+                        <div className="hidden sm:block w-28 text-right pr-4">{t("music.charts.table.plays", "PLAYS")}</div>
+                        <div className="w-24 text-right pr-2">{t("music.charts.table.duration", "DURATION")}</div>
                       </div>
 
                       {/* Table Rows */}
@@ -1545,7 +1551,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                               {/* Album / Genre */}
                               <div className="hidden md:block w-48 text-xs text-white/60 truncate pr-4">
-                                {track.album || track.genre || "Single Release"}
+                                {track.album || track.genre || t("music.infoView.singleRelease", "Single Release")}
                               </div>
 
                               {/* Plays count */}
@@ -1561,7 +1567,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                     toggleLike(track.id);
                                   }}
                                   className="text-sm text-rose-400 hover:scale-125 transition-transform"
-                                  title="Gỡ khỏi danh sách yêu thích"
+                                  title={t("music.favorites.removeTooltip", "Remove from favorites")}
                                 >
                                   ❤️
                                 </button>
@@ -1584,9 +1590,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
               <section className="music-queue-view">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h2 className="text-xl font-bold text-white">Up Next Queue</h2>
+                    <h2 className="text-xl font-bold text-white">{t("music.queueView.title", "Up Next Queue")}</h2>
                     <p className="text-xs text-white/50">
-                      {tracks.length} tracks queued for continuous playback
+                      {tracks.length} {t("music.queueView.desc", "tracks queued for continuous playback")}
                     </p>
                   </div>
                 </div>
@@ -1650,7 +1656,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               toggleLike(track.id);
                             }}
                             className={`text-xs ${isLiked ? "text-red-400" : "text-white/30 hover:text-white"}`}
-                            title="Like track"
+                            title={isLiked ? t("music.favorites.removeTooltip", "Unlike") : t("music.playerBar.likeTrack", "Like track")}
                           >
                             {isLiked ? "❤️" : "🤍"}
                           </button>
@@ -1671,13 +1677,13 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 <div className="music-info-card">
                   <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                     <span>ℹ️</span>
-                    <span>Audio Specifications & Analog VU Studio</span>
+                    <span>{t("music.infoView.title", "Audio Specifications & Analog VU Studio")}</span>
                   </h3>
 
                   {/* Dual Stereo Analog VU Meters */}
                   <div className="p-4 rounded-2xl bg-black/40 border border-white/10 mb-6">
                     <div className="text-xs font-bold text-white/60 uppercase tracking-wider mb-3 text-center">
-                      STEREO ANALOG VU METERS (REAL-TIME dB)
+                      {t("music.infoView.stereoVu", "STEREO ANALOG VU METERS (REAL-TIME dB)")}
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       {/* Left Channel VU */}
@@ -1697,7 +1703,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           <div className="music-vu-center-pin" />
                         </div>
                         <div className="text-[11px] font-bold text-cyan-400 text-center mt-1 font-mono">
-                          CH 1 (L)
+                          {t("music.infoView.ch1", "CH 1 (L)")}
                         </div>
                       </div>
 
@@ -1718,7 +1724,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           <div className="music-vu-center-pin" />
                         </div>
                         <div className="text-[11px] font-bold text-purple-400 text-center mt-1 font-mono">
-                          CH 2 (R)
+                          {t("music.infoView.ch2", "CH 2 (R)")}
                         </div>
                       </div>
                     </div>
@@ -1726,35 +1732,35 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-8">
                     <div className="music-info-field">
-                      <span className="text-white/40 text-xs block">TRACK TITLE</span>
+                      <span className="text-white/40 text-xs block">{t("music.infoView.trackTitle", "TRACK TITLE")}</span>
                       <span className="text-white font-medium">{currentTrack.title}</span>
                     </div>
                     <div className="music-info-field">
-                      <span className="text-white/40 text-xs block">ARTIST</span>
+                      <span className="text-white/40 text-xs block">{t("music.infoView.artist", "ARTIST")}</span>
                       <span className="text-white font-medium">{currentTrack.artist}</span>
                     </div>
                     <div className="music-info-field">
-                      <span className="text-white/40 text-xs block">ALBUM</span>
+                      <span className="text-white/40 text-xs block">{t("music.infoView.album", "ALBUM")}</span>
                       <span className="text-white font-medium">
-                        {currentTrack.album || "Single Release"}
+                        {currentTrack.album || t("music.infoView.singleRelease", "Single Release")}
                       </span>
                     </div>
                     <div className="music-info-field">
-                      <span className="text-white/40 text-xs block">GENRE & MOOD</span>
+                      <span className="text-white/40 text-xs block">{t("music.infoView.genreMood", "GENRE & MOOD")}</span>
                       <span className="text-white font-medium">
-                        {currentTrack.genre || "Uncategorized"}
+                        {currentTrack.genre || t("music.infoView.uncategorized", "Uncategorized")}
                       </span>
                     </div>
                     <div className="music-info-field">
-                      <span className="text-white/40 text-xs block">ACTIVE EQUALIZER</span>
+                      <span className="text-white/40 text-xs block">{t("music.infoView.activeEq", "ACTIVE EQUALIZER")}</span>
                       <span className="text-purple-400 font-medium capitalize">
                         {eqPreset.replace("_", " ")} Preset
                       </span>
                     </div>
                     <div className="music-info-field">
-                      <span className="text-white/40 text-xs block">STREAM ENGINE</span>
+                      <span className="text-white/40 text-xs block">{t("music.infoView.streamEngine", "STREAM ENGINE")}</span>
                       <span className="text-cyan-400 font-medium">
-                        Web Audio API (5-Band EQ / 64 Bins)
+                        {t("music.infoView.engineDesc", "Web Audio API (5-Band EQ / 64 Bins)")}
                       </span>
                     </div>
                   </div>
@@ -1762,32 +1768,32 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   {/* Keyboard Shortcuts Cheat Sheet */}
                   <div className="pt-6 border-t border-white/10">
                     <h4 className="text-xs font-bold text-white/60 uppercase tracking-wider mb-4">
-                      Studio Keyboard Shortcuts
+                      {t("music.infoView.shortcutsTitle", "Studio Keyboard Shortcuts")}
                     </h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs text-white/70">
                       <div>
-                        <kbd className="music-kbd">Space</kbd> Play / Pause
+                        <kbd className="music-kbd">Space</kbd> {t("music.infoView.shortcuts.playPause", "Play / Pause")}
                       </div>
                       <div>
-                        <kbd className="music-kbd">M</kbd> Mute / Unmute
+                        <kbd className="music-kbd">M</kbd> {t("music.infoView.shortcuts.mute", "Mute / Unmute")}
                       </div>
                       <div>
-                        <kbd className="music-kbd">← / →</kbd> Seek -5s / +5s
+                        <kbd className="music-kbd">← / →</kbd> {t("music.infoView.shortcuts.seek", "Seek -5s / +5s")}
                       </div>
                       <div>
-                        <kbd className="music-kbd">Shift + ← / →</kbd> Prev / Next
+                        <kbd className="music-kbd">Shift + ← / →</kbd> {t("music.infoView.shortcuts.prevNext", "Prev / Next")}
                       </div>
                       <div>
-                        <kbd className="music-kbd">↑ / ↓</kbd> Volume Up / Down
+                        <kbd className="music-kbd">↑ / ↓</kbd> {t("music.infoView.shortcuts.volume", "Volume Up / Down")}
                       </div>
                       <div>
-                        <kbd className="music-kbd">L</kbd> Like / Favorite
+                        <kbd className="music-kbd">L</kbd> {t("music.infoView.shortcuts.like", "Like / Favorite")}
                       </div>
                       <div>
-                        <kbd className="music-kbd">Z</kbd> Zen Fullscreen
+                        <kbd className="music-kbd">Z</kbd> {t("music.infoView.shortcuts.zen", "Zen Fullscreen")}
                       </div>
                       <div>
-                        <kbd className="music-kbd">C</kbd> Collapse Player
+                        <kbd className="music-kbd">C</kbd> {t("music.infoView.shortcuts.collapse", "Collapse Player")}
                       </div>
                     </div>
                   </div>
@@ -1839,7 +1845,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 <button
                   onClick={togglePlay}
                   className="music-dock-btn music-dock-btn--play"
-                  title={isPlaying ? "Pause (Space)" : "Play (Space)"}
+                  title={isPlaying ? t("music.playerBar.pauseTooltip", "Pause (Space)") : t("music.playerBar.playTooltip", "Play (Space)")}
                 >
                   {isPlaying ? <PauseIcon /> : <PlayIcon />}
                 </button>
@@ -1847,7 +1853,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 <button
                   onClick={nextTrack}
                   className="music-dock-btn"
-                  title="Next Track"
+                  title={t("music.playerBar.nextTooltip", "Next Track")}
                 >
                   <NextIcon />
                 </button>
@@ -1856,7 +1862,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 <button
                   onClick={togglePlayerCollapsed}
                   className="music-dock-btn music-dock-btn--expand"
-                  title="Expand Player Bar (C)"
+                  title={t("music.playerBar.expandTooltip", "Expand Player Bar (C)")}
                 >
                   <span>▲</span>
                 </button>
@@ -1888,7 +1894,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       onClick={() => toggleLike(currentTrack.id)}
                       className={`text-xs transition-colors ${isCurrentLiked ? "text-red-400" : "text-white/30 hover:text-white"
                         }`}
-                      title={isCurrentLiked ? "Liked!" : "Like track"}
+                      title={isCurrentLiked ? t("music.playerBar.unlikeTrack", "Liked!") : t("music.playerBar.likeTrack", "Like track")}
                     >
                       {isCurrentLiked ? "❤️" : "🤍"}
                     </button>
@@ -1906,7 +1912,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     onClick={() => setIsShuffle((s) => !s)}
                     className={`music-ctrl-btn ${isShuffle ? "music-ctrl-btn--active" : ""}`}
                     aria-label="Shuffle"
-                    title={isShuffle ? "Shuffle On" : "Shuffle Off"}
+                    title={isShuffle ? t("music.playerBar.shuffleOn", "Shuffle On") : t("music.playerBar.shuffleOff", "Shuffle Off")}
                   >
                     <ShuffleIcon />
                   </button>
@@ -1916,7 +1922,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     onClick={prevTrack}
                     className="music-ctrl-btn music-ctrl-btn--skip"
                     aria-label="Previous Track"
-                    title="Previous Track (Shift+Left)"
+                    title={t("music.playerBar.prevTooltip", "Previous Track (Shift+Left)")}
                   >
                     <PrevIcon />
                   </button>
@@ -1927,7 +1933,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     className="music-ctrl-btn music-ctrl-btn--play-main"
                     aria-label={isPlaying ? "Pause" : "Play"}
                     disabled={isLoading}
-                    title="Play / Pause (Space)"
+                    title={isPlaying ? t("music.playerBar.pauseTooltip", "Pause (Space)") : t("music.playerBar.playTooltip", "Play (Space)")}
                   >
                     {isLoading ? (
                       <LoadingSpinner />
@@ -1943,7 +1949,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     onClick={nextTrack}
                     className="music-ctrl-btn music-ctrl-btn--skip"
                     aria-label="Next Track"
-                    title="Next Track (Shift+Right)"
+                    title={t("music.playerBar.nextTooltip", "Next Track (Shift+Right)")}
                   >
                     <NextIcon />
                   </button>
@@ -1953,7 +1959,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     onClick={cycleRepeat}
                     className={`music-ctrl-btn ${repeatMode !== "none" ? "music-ctrl-btn--active" : ""}`}
                     aria-label={`Repeat: ${repeatMode}`}
-                    title={`Repeat: ${repeatMode}`}
+                    title={`${t("music.playerBar.repeatMode", "Repeat")}: ${repeatMode}`}
                   >
                     {repeatMode === "one" ? <RepeatOneIcon /> : <RepeatIcon />}
                   </button>
@@ -2014,8 +2020,8 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   }`}
                   title={
                     deckMode === "lyrics" && activeTab === "player"
-                      ? "Đóng lời bài hát (về đĩa than)"
-                      : "Xem Lời Bài Hát (Karaoke)"
+                      ? t("music.playerBar.karaokeClose", "Close Lyrics (Back to Vinyl)")
+                      : t("music.playerBar.karaokeOpen", "Open Lyrics (Karaoke)")
                   }
                   aria-label="Karaoke"
                 >
@@ -2026,7 +2032,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 <button
                   onClick={cycleSpeed}
                   className="music-speed-badge"
-                  title="Playback Speed"
+                  title={t("music.playerBar.speed", "Playback Speed")}
                 >
                   {playbackRate}x
                 </button>
@@ -2038,7 +2044,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     onClick={toggleMute}
                     className="music-ctrl-btn music-ctrl-btn--sm"
                     aria-label={isMuted ? "Unmute" : "Mute"}
-                    title="Mute / Unmute (M)"
+                    title={t("music.playerBar.muteTooltip", "Mute / Unmute (M)")}
                   >
                     {isMuted || volume === 0 ? (
                       <MuteIcon />
@@ -2069,10 +2075,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 <button
                   onClick={togglePlayerCollapsed}
                   className="music-collapse-btn"
-                  title="Collapse Player Bar (Hotkey: C)"
+                  title={t("music.playerBar.collapseTooltip", "Collapse Player Bar (Hotkey: C)")}
                 >
                   <span>▼</span>
-                  <span className="hidden lg:inline text-[11px]">Collapse</span>
+                  <span className="hidden lg:inline text-[11px]">{t("music.playerBar.collapseLabel", "Collapse")}</span>
                 </button>
               </div>
             </motion.footer>

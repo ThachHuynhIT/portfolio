@@ -10,11 +10,13 @@ import MediaImagePicker from "@/components/admin/MediaImagePicker";
 import LanguageTabSelector from "@/components/admin/LanguageTabSelector";
 import FlagIcon from "@/components/ui/FlagIcon";
 import { useToast } from "@/context/ToastContext";
+import { useTranslation } from "@/context/LanguageContext";
 import type { Project } from "@/lib/types";
 
 export default function ProjectsAdminPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -200,8 +202,8 @@ export default function ProjectsAdminPage() {
   return (
     <div>
       <AdminHeader
-        title="Projects"
-        description="Manage your portfolio showcase items, tech stack tags, and links."
+        title={t("admin.projects.title", "Projects Showcase")}
+        description={t("admin.projects.description", "Manage your portfolio showcase items, tech stack tags, and links.")}
         icon="projects"
         closeHref="/admin"
         action={
@@ -209,7 +211,7 @@ export default function ProjectsAdminPage() {
             onClick={openCreateModal}
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl font-medium text-sm transition-all shadow-lg shadow-purple-500/20 active:scale-95 cursor-pointer"
           >
-            <span>+ Add Project</span>
+            <span>+ {t("admin.projects.addProject", "Add Project")}</span>
           </button>
         }
       />
@@ -226,7 +228,7 @@ export default function ProjectsAdminPage() {
                 : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
             }`}
           >
-            {filter === "all" ? "All Projects" : filter} (
+            {filter === "all" ? t("admin.common.all", "All Projects") : (filter === "published" ? t("admin.common.published", "Published") : t("admin.common.draft", "Draft"))} (
             {filter === "all"
               ? projects.length
               : projects.filter((p) => (filter === "published" ? p.published !== false : p.published === false)).length}
@@ -289,19 +291,19 @@ export default function ProjectsAdminPage() {
                         ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
                         : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
                     }`}
-                    title="Click to toggle status"
+                    title={t("admin.common.status", "Click to toggle status")}
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
                         project.published !== false ? "bg-emerald-400 animate-pulse" : "bg-slate-500"
                       }`}
                     />
-                    {project.published !== false ? "Published" : "Draft"}
+                    {project.published !== false ? t("admin.common.published", "Published") : t("admin.common.draft", "Draft")}
                   </button>
 
                   {project.featured && (
                     <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                      Featured
+                      {t("admin.common.featured", "Featured")}
                     </span>
                   )}
                 </div>
@@ -334,13 +336,13 @@ export default function ProjectsAdminPage() {
                   onClick={() => openEditModal(project)}
                   className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg text-xs font-medium transition-all cursor-pointer"
                 >
-                  Edit
+                  {t("admin.common.edit", "Edit")}
                 </button>
                 <button
                   onClick={() => setDeleteTarget(project)}
                   className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-medium transition-all cursor-pointer"
                 >
-                  Delete
+                  {t("admin.common.delete", "Delete")}
                 </button>
               </div>
             </div>
@@ -352,16 +354,16 @@ export default function ProjectsAdminPage() {
       <AdminModal
         isOpen={isCreating || !!editingProject}
         onClose={closeModal}
-        title={isCreating ? "Add New Project" : "Edit Project"}
+        title={isCreating ? t("admin.projects.modalCreateTitle", "Add New Project") : t("admin.projects.modalEditTitle", "Edit Project")}
         subtitle={
           isCreating
-            ? "Fill in bilingual project details, tech stack, and URLs to feature in your portfolio."
+            ? t("admin.projects.description", "Fill in bilingual project details, tech stack, and URLs to feature in your portfolio.")
             : `Editing "${editingProject?.title}".`
         }
         icon="projects"
         onSubmit={handleSave}
-        saveLabel={isCreating ? "Save Project" : "Save Changes"}
-        closeLabel="Close"
+        saveLabel={isCreating ? t("admin.common.create", "Save Project") : t("admin.common.save", "Save Changes")}
+        closeLabel={t("admin.common.close", "Close")}
         isSaving={isSaving}
         maxWidth="max-w-2xl"
       >
@@ -384,7 +386,7 @@ export default function ProjectsAdminPage() {
               <span>English Content</span>
             </div>
 
-            <FormField label="Project Title (English)" id="proj-title-en" required>
+            <FormField label={`${t("admin.projects.fieldTitle", "Project Title")} (English)`} id="proj-title-en" required>
               <input
                 id="proj-title-en"
                 type="text"
@@ -396,7 +398,7 @@ export default function ProjectsAdminPage() {
               />
             </FormField>
 
-            <FormField label="Short Description (English)" id="proj-desc-en" required>
+            <FormField label={`${t("admin.projects.fieldShortDesc", "Short Description")} (English)`} id="proj-desc-en" required>
               <textarea
                 id="proj-desc-en"
                 rows={2}
@@ -408,7 +410,7 @@ export default function ProjectsAdminPage() {
               />
             </FormField>
 
-            <FormField label="Long Description (English - Optional Details)" id="proj-long-desc-en">
+            <FormField label={`${t("admin.projects.fieldLongDesc", "Long Description")} (English - Optional Details)`} id="proj-long-desc-en">
               <textarea
                 id="proj-long-desc-en"
                 rows={3}
@@ -429,7 +431,7 @@ export default function ProjectsAdminPage() {
               <span>Nội dung Tiếng Việt</span>
             </div>
 
-            <FormField label="Tiêu đề Dự án (Tiếng Việt)" id="proj-title-vi">
+            <FormField label={`${t("admin.projects.fieldTitle", "Tiêu đề Dự án")} (Tiếng Việt)`} id="proj-title-vi">
               <input
                 id="proj-title-vi"
                 type="text"
@@ -440,7 +442,7 @@ export default function ProjectsAdminPage() {
               />
             </FormField>
 
-            <FormField label="Mô tả ngắn (Tiếng Việt)" id="proj-desc-vi">
+            <FormField label={`${t("admin.projects.fieldShortDesc", "Mô tả ngắn")} (Tiếng Việt)`} id="proj-desc-vi">
               <textarea
                 id="proj-desc-vi"
                 rows={2}
@@ -451,7 +453,7 @@ export default function ProjectsAdminPage() {
               />
             </FormField>
 
-            <FormField label="Mô tả chi tiết (Tiếng Việt - Tùy chọn)" id="proj-long-desc-vi">
+            <FormField label={`${t("admin.projects.fieldLongDesc", "Mô tả chi tiết")} (Tiếng Việt - Tùy chọn)`} id="proj-long-desc-vi">
               <textarea
                 id="proj-long-desc-vi"
                 rows={3}
@@ -467,11 +469,11 @@ export default function ProjectsAdminPage() {
         {/* Shared Fields Across Languages */}
         <div className="pt-2 border-t border-white/10 space-y-4">
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            Shared Media & Links / Cài đặt chung:
+            {t("admin.common.optional", "Shared Media & Links / Cài đặt chung:")}
           </p>
 
           <MediaImagePicker
-            label="Cover Image"
+            label={t("admin.projects.fieldImage", "Cover Image")}
             value={formImage}
             onChange={setFormImage}
             category="project"
@@ -480,7 +482,7 @@ export default function ProjectsAdminPage() {
             helperText="Select or upload a high-resolution screenshot or mockup of your project."
           />
 
-          <FormField label="Tech Stack Tags (Comma separated)" id="proj-tags" required>
+          <FormField label={t("admin.projects.fieldTags", "Tech Stack Tags (Comma separated)")} id="proj-tags" required>
             <input
               id="proj-tags"
               type="text"
@@ -493,7 +495,7 @@ export default function ProjectsAdminPage() {
           </FormField>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Live Demo URL" id="proj-live">
+            <FormField label={t("admin.projects.fieldLiveUrl", "Live Demo URL")} id="proj-live">
               <input
                 id="proj-live"
                 type="url"
@@ -504,7 +506,7 @@ export default function ProjectsAdminPage() {
               />
             </FormField>
 
-            <FormField label="GitHub Repository URL" id="proj-repo">
+            <FormField label={t("admin.projects.fieldGithubUrl", "GitHub Repository URL")} id="proj-repo">
               <input
                 id="proj-repo"
                 type="url"
@@ -524,7 +526,7 @@ export default function ProjectsAdminPage() {
                 onChange={(e) => setFormFeatured(e.target.checked)}
                 className="w-4 h-4 rounded bg-slate-950 border-white/10 text-purple-600 focus:ring-purple-500"
               />
-              Feature this project on homepage
+              {t("admin.projects.fieldFeaturedDesc", "Feature this project on homepage")}
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-300">
@@ -534,7 +536,7 @@ export default function ProjectsAdminPage() {
                 onChange={(e) => setFormPublished(e.target.checked)}
                 className="w-4 h-4 rounded bg-slate-950 border-white/10 text-purple-600 focus:ring-purple-500"
               />
-              Publish immediately
+              {t("admin.common.published", "Publish immediately")}
             </label>
           </div>
         </div>
@@ -543,9 +545,10 @@ export default function ProjectsAdminPage() {
       {/* Confirm Delete Dialog */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        title="Delete Project"
-        message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
-        confirmLabel="Delete Project"
+        title={t("admin.projects.deleteTitle", "Delete Project")}
+        message={t("admin.projects.deleteMessage", `Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`).replace("{title}", deleteTarget?.title || "")}
+        confirmLabel={t("admin.common.delete", "Delete Project")}
+        cancelLabel={t("admin.common.cancel", "Cancel")}
         isDestructive
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}

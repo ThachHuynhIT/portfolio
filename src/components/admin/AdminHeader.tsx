@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Icon from "@/components/ui/Icon";
+import { useTranslation } from "@/context/LanguageContext";
 
 interface AdminHeaderProps {
   title: string;
@@ -18,12 +19,15 @@ export default function AdminHeader({
   onClose,
   closeHref,
 }: AdminHeaderProps) {
+  const { t } = useTranslation();
+  const closeLabel = t("admin.common.close", "Close");
+
   const closeButton = closeHref ? (
     <Link
       href={closeHref}
       className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 active:scale-95 transition-all focus:outline-none flex items-center justify-center border border-transparent hover:border-white/10"
-      title="Close"
-      aria-label="Close"
+      title={closeLabel}
+      aria-label={closeLabel}
     >
       <Icon name="close" size={20} />
     </Link>
@@ -32,8 +36,8 @@ export default function AdminHeader({
       type="button"
       onClick={onClose}
       className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 active:scale-95 transition-all focus:outline-none flex items-center justify-center border border-transparent hover:border-white/10"
-      title="Close"
-      aria-label="Close"
+      title={closeLabel}
+      aria-label={closeLabel}
     >
       <Icon name="close" size={20} />
     </button>

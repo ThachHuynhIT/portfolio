@@ -7,6 +7,7 @@ import AdminHeader from "@/components/admin/AdminHeader";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import FlagIcon from "@/components/ui/FlagIcon";
 import { useToast } from "@/context/ToastContext";
+import { useTranslation } from "@/context/TranslationContext";
 import type { BlogPost } from "@/lib/types";
 
 type BlogMeta = Omit<BlogPost, "content">;
@@ -14,6 +15,7 @@ type BlogMeta = Omit<BlogPost, "content">;
 export default function BlogAdminPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [posts, setPosts] = useState<BlogMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<BlogMeta | null>(null);
@@ -29,7 +31,7 @@ export default function BlogAdminPage() {
       setPosts(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch blog posts:", err);
-      toast.error("Failed to load blog posts");
+      toast.error(t.admin.blog.toastLoadFailed);
     } finally {
       setLoading(false);
     }
@@ -47,7 +49,7 @@ export default function BlogAdminPage() {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete post");
-      toast.success(`Post "${deleteTarget.title}" deleted successfully!`);
+      toast.success(t.admin.blog.toastDeleted);
       setDeleteTarget(null);
       fetchPosts();
     } catch (err: unknown) {
@@ -59,7 +61,9 @@ export default function BlogAdminPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-purple-400 animate-pulse font-medium">Loading blog posts...</div>
+        <div className="text-purple-400 animate-pulse font-medium">
+          {t.admin.blog.loadingPosts}
+        </div>
       </div>
     );
   }
@@ -67,8 +71,8 @@ export default function BlogAdminPage() {
   return (
     <>
       <AdminHeader
-        title="Blog Posts"
-        description="Write new MDX posts, edit existing content, or manage post categories."
+        title={t.admin.blog.title}
+        description={t.admin.blog.description}
         icon="blog"
         action={
           <Link
@@ -76,7 +80,7 @@ export default function BlogAdminPage() {
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
           >
             <span className="text-base leading-none">+</span>
-            New Post
+            {t.admin.blog.newPost}
           </Link>
         }
       />
@@ -85,11 +89,11 @@ export default function BlogAdminPage() {
         <table className="w-full text-left text-sm text-gray-300">
           <thead className="bg-gray-950 text-gray-400 uppercase text-xs border-b border-gray-800">
             <tr>
-              <th className="px-6 py-4">Title</th>
-              <th className="px-6 py-4">Category</th>
-              <th className="px-6 py-4">Date</th>
-              <th className="px-6 py-4">Tags</th>
-              <th className="px-6 py-4 text-right">Actions</th>
+              <th className="px-6 py-4">{t.admin.blog.colTitle}</th>
+              <th className="px-6 py-4">{t.admin.blog.colCategory}</th>
+              <th className="px-6 py-4">{t.admin.blog.colDate}</th>
+              <th className="px-6 py-4">{t.admin.common.tags}</th>
+              <th className="px-6 py-4 text-right">{t.admin.common.actions}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800">
@@ -101,21 +105,21 @@ export default function BlogAdminPage() {
                     <span className="inline-flex items-center gap-1">
                       <span
                         className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-300 border border-blue-500/20"
-                        title="English"
+                        title={t.common.english}
                       >
                         <FlagIcon code="en" size={12} /> EN
                       </span>
                       {post.title_vi ? (
                         <span
                           className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
-                          title={`Tiếng Việt: ${post.title_vi}`}
+                          title={`${t.common.vietnamese}: ${post.title_vi}`}
                         >
                           <FlagIcon code="vi" size={12} /> VI
                         </span>
                       ) : (
                         <span
                           className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-800 text-gray-500 border border-gray-700/60"
-                          title="Chưa có bản dịch Tiếng Việt"
+                          title="—"
                         >
                           <FlagIcon code="vi" size={12} /> -
                         </span>
@@ -150,13 +154,13 @@ export default function BlogAdminPage() {
                     href={`/admin/blog/${post.slug}/edit`}
                     className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg text-xs font-medium transition-all inline-block"
                   >
-                    Edit
+                    {t.admin.common.edit}
                   </Link>
                   <button
                     onClick={() => setDeleteTarget(post)}
                     className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-medium transition-all"
                   >
-                    Delete
+                    {t.admin.common.delete}
                   </button>
                 </td>
               </tr>
@@ -167,9 +171,10 @@ export default function BlogAdminPage() {
 
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        title="Delete Blog Post"
-        message={`Are you sure you want to delete "${deleteTarget?.title}"? This will delete the .mdx file permanently.`}
-        confirmLabel="Delete Post"
+        title={t.admin.blog.deleteTitle}
+        message={t.admin.blog.deleteMessage.replace("{title}", deleteTarget?.title || "")}
+        confirmLabel={t.admin.common.delete}
+        cancelLabel={t.admin.common.cancel}
         isDangerous
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}

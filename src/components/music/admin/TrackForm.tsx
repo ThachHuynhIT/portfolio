@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
+import { useTranslation } from "@/context/TranslationContext";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import AdminFormFooter from "@/components/admin/AdminFormFooter";
 
@@ -50,6 +51,7 @@ function formatTime(seconds: number): string {
 export default function TrackForm({ initialData, mode }: TrackFormProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const audioInputRef = useRef<HTMLInputElement>(null);
   const thumbInputRef = useRef<HTMLInputElement>(null);
 
@@ -219,10 +221,10 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
         <div className="flex items-center justify-between border-b border-gray-800 pb-4">
           <div>
             <h2 className="text-xl font-bold text-white">
-              {mode === "edit" ? "Edit Track Details" : "Upload New Track"}
+              {mode === "edit" ? t.admin.music.modalEditTitle : t.admin.music.modalCreateTitle}
             </h2>
             <p className="text-xs text-gray-400 mt-0.5">
-              Fill in metadata, upload audio stream, and configure cover art.
+              {t.admin.music.description}
             </p>
           </div>
           <span className="text-2xl">🎵</span>
@@ -232,14 +234,14 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-gray-300 uppercase tracking-wide" htmlFor="tf-title">
-              Track Title *
+              {t.admin.music.fieldTitle} *
             </label>
             <input
               id="tf-title"
               name="title"
               type="text"
               className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
-              placeholder="e.g. Midnight City Lights"
+              placeholder={t.admin.music.fieldTitlePlaceholder}
               value={formData.title}
               onChange={handleChange}
               required
@@ -248,14 +250,14 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-gray-300 uppercase tracking-wide" htmlFor="tf-artist">
-              Artist Name *
+              {t.admin.music.fieldArtist} *
             </label>
             <input
               id="tf-artist"
               name="artist"
               type="text"
               className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
-              placeholder="e.g. Synth Collective"
+              placeholder={t.admin.music.fieldArtistPlaceholder}
               value={formData.artist}
               onChange={handleChange}
               required
@@ -267,14 +269,14 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-gray-300 uppercase tracking-wide" htmlFor="tf-album">
-              Album / EP (Optional)
+              {t.admin.music.fieldAlbum} ({t.admin.common.optional})
             </label>
             <input
               id="tf-album"
               name="album"
               type="text"
               className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
-              placeholder="e.g. Neon Horizon Vol. 1"
+              placeholder={t.admin.music.fieldAlbumPlaceholder}
               value={formData.album}
               onChange={handleChange}
             />
@@ -282,14 +284,14 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-gray-300 uppercase tracking-wide" htmlFor="tf-genre">
-              Genre / Vibe
+              {t.admin.music.fieldGenre}
             </label>
             <input
               id="tf-genre"
               name="genre"
               type="text"
               className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
-              placeholder="Select chip or type..."
+              placeholder={t.admin.music.fieldGenrePlaceholder}
               value={formData.genre}
               onChange={handleChange}
             />
@@ -322,7 +324,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-gray-300 uppercase tracking-wide" htmlFor="tf-duration">
-                Duration (Seconds)
+                {t.admin.music.fieldDuration}
               </label>
               {formData.duration && (
                 <span className="text-xs font-mono text-purple-400 font-bold">
@@ -336,7 +338,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               type="number"
               min={0}
               className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
-              placeholder="Auto-calculated or enter e.g. 210"
+              placeholder="210"
               value={formData.duration}
               onChange={handleChange}
             />
@@ -344,7 +346,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-gray-300 uppercase tracking-wide" htmlFor="tf-order">
-              Display Order Priority
+              {t.admin.music.fieldOrder}
             </label>
             <input
               id="tf-order"
@@ -352,7 +354,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               type="number"
               min={0}
               className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
-              placeholder="0 (lower appears first)"
+              placeholder="0"
               value={formData.order}
               onChange={handleChange}
             />
@@ -363,7 +365,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
         <div className="space-y-2 pt-2 border-t border-gray-800">
           <div className="flex items-center justify-between">
             <label className="text-xs font-semibold text-gray-300 uppercase tracking-wide">
-              Audio Source *
+              {t.admin.music.audioSource} *
             </label>
             <div className="flex items-center bg-gray-800 rounded-lg p-0.5 border border-gray-700">
               <button
@@ -373,7 +375,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 }`}
                 onClick={() => setAudioMode("upload")}
               >
-                ☁️ Upload Audio
+                ☁️ {t.admin.music.uploadAudio}
               </button>
               <button
                 type="button"
@@ -382,7 +384,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 }`}
                 onClick={() => setAudioMode("url")}
               >
-                🔗 Direct URL
+                🔗 {t.admin.music.directUrl}
               </button>
             </div>
           </div>
@@ -393,7 +395,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               name="audioUrl"
               type="url"
               className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
-              placeholder="https://... (mp3, wav, ogg or stream URL)"
+              placeholder="https://... (mp3, wav, ogg)"
               value={formData.audioUrl}
               onChange={handleChange}
             />
@@ -421,10 +423,10 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 <div className="space-y-1">
                   <span className="text-3xl block mb-1">🎧</span>
                   <p className="text-sm font-semibold text-gray-200">
-                    Click to select audio file (.mp3, .wav, .m4a, .ogg)
+                    {t.admin.music.selectAudioPrompt}
                   </p>
                   <p className="text-xs text-gray-500">
-                    Duration and title will be auto-detected upon selection
+                    {t.admin.music.audioAutoDetectPrompt}
                   </p>
                 </div>
               )}
@@ -436,7 +438,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
         <div className="space-y-2 pt-2 border-t border-gray-800">
           <div className="flex items-center justify-between">
             <label className="text-xs font-semibold text-gray-300 uppercase tracking-wide">
-              Cover Artwork
+              {t.admin.music.coverArtwork}
             </label>
             <div className="flex items-center bg-gray-800 rounded-lg p-0.5 border border-gray-700">
               <button
@@ -446,7 +448,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 }`}
                 onClick={() => setThumbMode("upload")}
               >
-                ☁️ Upload Image
+                ☁️ {t.admin.music.uploadImage}
               </button>
               <button
                 type="button"
@@ -458,7 +460,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                   setIsThumbPickerOpen(true);
                 }}
               >
-                📁 Cloud Library
+                📁 {t.admin.music.cloudLibrary}
               </button>
               <button
                 type="button"
@@ -467,7 +469,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 }`}
                 onClick={() => setThumbMode("url")}
               >
-                🔗 Image URL
+                🔗 {t.admin.music.imageUrl}
               </button>
             </div>
           </div>
@@ -478,7 +480,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               name="thumbnailUrl"
               type="url"
               className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
-              placeholder="https://... (image cover art URL)"
+              placeholder={t.admin.music.fieldThumbnail}
               value={formData.thumbnailUrl}
               onChange={handleChange}
             />
@@ -490,7 +492,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gray-800/60 hover:bg-gray-800 border border-dashed border-gray-700 hover:border-purple-500 text-purple-300 rounded-xl text-xs font-semibold transition-all"
               >
                 <span>📁</span>
-                <span>Open Cloud Library to choose track cover art…</span>
+                <span>{t.admin.music.openCloudCover}</span>
               </button>
             </div>
           ) : (
@@ -514,7 +516,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 <div className="space-y-1">
                   <span className="text-2xl block mb-1">🖼️</span>
                   <p className="text-xs font-semibold text-gray-200">
-                    Click to select album cover art (Square 1:1 recommended)
+                    {t.admin.music.selectCoverPrompt}
                   </p>
                   <p className="text-[11px] text-gray-500">JPG, PNG, WEBP, GIF</p>
                 </div>
@@ -541,7 +543,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                   onClick={() => setIsThumbPickerOpen(true)}
                   className="text-[11px] text-purple-400 hover:underline mt-0.5"
                 >
-                  Change image from library
+                  {t.admin.music.cloudLibrary}
                 </button>
               </div>
               <button
@@ -552,7 +554,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                   setThumbPreviewUrl(null);
                 }}
                 className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-white/5 transition-all text-xs"
-                title="Remove image"
+                title={t.admin.common.remove}
               >
                 ✕
               </button>
@@ -571,7 +573,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
             className="w-5 h-5 accent-purple-600 rounded cursor-pointer"
           />
           <label htmlFor="tf-published" className="text-sm font-semibold text-gray-200 cursor-pointer">
-            Published (Visible on public <span className="text-purple-400 font-mono">/music</span> lounge)
+            {t.admin.music.publishedLoungeHint}
           </label>
         </div>
 
@@ -583,22 +585,22 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
         )}
         {success && (
           <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
-            ✅ Track saved successfully! Redirecting…
+            ✅ {mode === "edit" ? t.admin.music.toastUpdated : t.admin.music.toastCreated}
           </div>
         )}
 
         {/* ── Buttons ── */}
         <AdminFormFooter
           closeHref="/admin/music"
-          closeLabel="Cancel"
+          closeLabel={t.admin.common.cancel}
           saveLabel={
             isUploading
-              ? "Uploading Media…"
+              ? t.admin.music.uploadingMedia
               : isSubmitting
-              ? "Saving Track…"
+              ? t.admin.music.savingTrack
               : mode === "edit"
-              ? "Save Changes"
-              : "Publish Track"
+              ? t.admin.music.saveChanges
+              : t.admin.music.publishTrack
           }
           isSaving={isSubmitting || isUploading}
           className="mt-4 pt-4 border-t border-gray-800"
@@ -609,10 +611,10 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
       <div className="lg:col-span-5 space-y-4 sticky top-6">
         <div className="p-4 rounded-2xl bg-gray-900/60 border border-gray-800 flex items-center justify-between">
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-            Live Player Preview
+            {t.admin.music.livePlayerPreview}
           </span>
           <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-semibold border border-purple-500/30">
-            Realtime
+            {t.admin.music.realtime}
           </span>
         </div>
 
@@ -633,7 +635,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               <div className="w-full h-full flex flex-col items-center justify-center text-5xl bg-gradient-to-br from-purple-900/40 to-cyan-900/40 text-white/50">
                 <span>🎵</span>
                 <span className="text-[10px] font-semibold text-gray-400 mt-2 uppercase tracking-widest">
-                  Cover Art
+                  {t.admin.music.coverArtwork}
                 </span>
               </div>
             )}
@@ -687,7 +689,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
           setThumbFile(null);
           setThumbPreviewUrl(url);
         }}
-        title="Choose cover art from Cloud Library"
+        title={t.admin.music.openCloudCover}
         defaultCategory="music"
       />
     </div>

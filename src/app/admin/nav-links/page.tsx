@@ -8,11 +8,13 @@ import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import FlagIcon from "@/components/ui/FlagIcon";
 import { useToast } from "@/context/ToastContext";
+import { useTranslation } from "@/context/LanguageContext";
 import type { NavLink } from "@/lib/types";
 
 export default function NavLinksAdminPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [links, setLinks] = useState<NavLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -175,7 +177,7 @@ export default function NavLinksAdminPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-purple-400 animate-pulse font-medium">Loading navigation links...</div>
+        <div className="text-purple-400 animate-pulse font-medium">{t("admin.common.loading", "Loading navigation links...")}</div>
       </div>
     );
   }
@@ -183,8 +185,8 @@ export default function NavLinksAdminPage() {
   return (
     <div className="max-w-4xl">
       <AdminHeader
-        title="Navigation Links"
-        description="Reorder, customize bilingual labels, targets, and visibility of main site navigation links."
+        title={t("admin.navLinks.title", "Navigation Links")}
+        description={t("admin.navLinks.description", "Reorder, customize bilingual labels, targets, and visibility of main site navigation links.")}
         icon="nav"
         closeHref="/admin"
         action={
@@ -194,16 +196,16 @@ export default function NavLinksAdminPage() {
               onChange={(e) => setStatusFilter(e.target.value as "all" | "published" | "draft")}
               className="px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none"
             >
-              <option value="all">All ({links.length})</option>
-              <option value="published">Published ({links.filter((l) => l.published !== false).length})</option>
-              <option value="draft">Draft ({links.filter((l) => l.published === false).length})</option>
+              <option value="all">{t("admin.common.all", "All")} ({links.length})</option>
+              <option value="published">{t("admin.common.published", "Published")} ({links.filter((l) => l.published !== false).length})</option>
+              <option value="draft">{t("admin.common.draft", "Draft")} ({links.filter((l) => l.published === false).length})</option>
             </select>
             <button
               onClick={openCreateModal}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20 cursor-pointer"
             >
               <span className="text-base leading-none">+</span>
-              Add Link
+              {t("admin.navLinks.addLink", "Add Link")}
             </button>
           </div>
         }
@@ -213,11 +215,11 @@ export default function NavLinksAdminPage() {
         <table className="w-full text-left text-sm text-gray-300">
           <thead className="bg-gray-950 text-gray-400 uppercase text-xs border-b border-gray-800">
             <tr>
-              <th className="px-4 py-4 text-center w-28">Order</th>
-              <th className="px-6 py-4">Labels (EN / VI)</th>
-              <th className="px-6 py-4">Target Href</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4 text-right">Actions</th>
+              <th className="px-4 py-4 text-center w-28">{t("admin.common.order", "Order")}</th>
+              <th className="px-6 py-4">{t("admin.navLinks.colLabel", "Labels (EN / VI)")}</th>
+              <th className="px-6 py-4">{t("admin.navLinks.colHref", "Target Href")}</th>
+              <th className="px-6 py-4">{t("admin.common.status", "Status")}</th>
+              <th className="px-6 py-4 text-right">{t("admin.common.actions", "Actions")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800">
@@ -282,10 +284,10 @@ export default function NavLinksAdminPage() {
                           ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
                           : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
                       }`}
-                      title="Click to toggle status"
+                      title={t("admin.common.status", "Click to toggle status")}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full ${link.published !== false ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
-                      {link.published !== false ? "Published" : "Draft"}
+                      {link.published !== false ? t("admin.common.published", "Published") : t("admin.common.draft", "Draft")}
                     </button>
                   </td>
                   <td className="px-6 py-4 text-right space-x-2">
@@ -293,13 +295,13 @@ export default function NavLinksAdminPage() {
                       onClick={() => openEditModal(link)}
                       className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg text-xs font-medium transition-all cursor-pointer"
                     >
-                      Edit
+                      {t("admin.common.edit", "Edit")}
                     </button>
                     <button
                       onClick={() => setDeleteTarget(link)}
                       className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-medium transition-all cursor-pointer"
                     >
-                      Delete
+                      {t("admin.common.delete", "Delete")}
                     </button>
                   </td>
                 </tr>
@@ -313,21 +315,21 @@ export default function NavLinksAdminPage() {
       <AdminModal
         isOpen={isCreating || !!editingLink}
         onClose={closeModal}
-        title={isCreating ? "Add Nav Link" : "Edit Nav Link"}
+        title={isCreating ? t("admin.navLinks.modalCreateTitle", "Add Nav Link") : t("admin.navLinks.modalEditTitle", "Edit Nav Link")}
         subtitle={
           isCreating
-            ? "Configure bilingual link label, URL/anchor target, and header visibility."
+            ? t("admin.navLinks.description", "Configure bilingual link label, URL/anchor target, and header visibility.")
             : `Editing "${editingLink?.label}".`
         }
         icon="nav"
         onSubmit={handleSave}
-        saveLabel={isCreating ? "Save Link" : "Save Changes"}
-        closeLabel="Close"
+        saveLabel={isCreating ? t("admin.common.create", "Save Link") : t("admin.common.save", "Save Changes")}
+        closeLabel={t("admin.common.close", "Close")}
         isSaving={isSaving}
         maxWidth="max-w-lg"
       >
         <div className="space-y-4">
-          <FormField label="Menu Label (English / Default)" id="nav-label" required>
+          <FormField label={t("admin.navLinks.fieldLabelEn", "Menu Label (English / Default)")} id="nav-label" required>
             <div className="relative flex items-center">
               <div className="absolute left-3.5 pointer-events-none">
                 <FlagIcon locale="en" width={16} height={11} />
@@ -337,14 +339,14 @@ export default function NavLinksAdminPage() {
                 type="text"
                 value={formLabel}
                 onChange={(e) => setFormLabel(e.target.value)}
-                placeholder="e.g. Projects"
+                placeholder={t("admin.navLinks.fieldLabelEnPlaceholder", "e.g. Projects")}
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm"
                 required
               />
             </div>
           </FormField>
 
-          <FormField label="Nhãn Menu (Tiếng Việt)" id="nav-label-vi">
+          <FormField label={t("admin.navLinks.fieldLabelVi", "Nhãn Menu (Tiếng Việt)")} id="nav-label-vi">
             <div className="relative flex items-center">
               <div className="absolute left-3.5 pointer-events-none">
                 <FlagIcon locale="vi" width={16} height={11} />
@@ -354,19 +356,19 @@ export default function NavLinksAdminPage() {
                 type="text"
                 value={formLabelVi}
                 onChange={(e) => setFormLabelVi(e.target.value)}
-                placeholder="Ví dụ: Dự án"
+                placeholder={t("admin.navLinks.fieldLabelViPlaceholder", "Ví dụ: Dự án")}
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm"
               />
             </div>
           </FormField>
 
-          <FormField label="Target Href" id="nav-href" required>
+          <FormField label={t("admin.navLinks.fieldHref", "Target Href")} id="nav-href" required>
             <input
               id="nav-href"
               type="text"
               value={formHref}
               onChange={(e) => setFormHref(e.target.value)}
-              placeholder="#projects, /blog, /music, etc."
+              placeholder={t("admin.navLinks.fieldHrefPlaceholder", "#projects, /blog, /music, etc.")}
               className="w-full px-4 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm font-mono"
               required
             />
@@ -380,7 +382,7 @@ export default function NavLinksAdminPage() {
                 onChange={(e) => setFormPublished(e.target.checked)}
                 className="w-4 h-4 rounded bg-slate-950 border-white/10 text-purple-600 focus:ring-purple-500"
               />
-              Show in Header / Navigation bar
+              {t("admin.navLinks.fieldPublished", "Show in Header / Navigation bar")}
             </label>
           </div>
         </div>
@@ -389,9 +391,10 @@ export default function NavLinksAdminPage() {
       {/* Confirm Delete Dialog */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        title="Delete Navigation Link"
-        message={`Are you sure you want to delete "${deleteTarget?.label}"?`}
-        confirmLabel="Delete Link"
+        title={t("admin.navLinks.deleteTitle", "Delete Navigation Link")}
+        message={t("admin.navLinks.deleteMessage", `Are you sure you want to delete "${deleteTarget?.label}"?`)}
+        confirmLabel={t("admin.common.delete", "Delete Link")}
+        cancelLabel={t("admin.common.cancel", "Cancel")}
         isDestructive
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}

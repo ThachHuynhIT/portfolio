@@ -6,6 +6,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   ReactNode,
 } from "react";
 import {
@@ -13,16 +14,19 @@ import {
   defaultLocale,
   translations,
   localeNames,
+  type TranslationDict,
 } from "@/locales";
+
+export type TranslationFunction = ((
+  key: string,
+  paramsOrFallback?: Record<string, string | number> | string,
+  params?: Record<string, string | number>
+) => string) & TranslationDict;
 
 interface LanguageContextType {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (
-    key: string,
-    paramsOrFallback?: Record<string, string | number> | string,
-    params?: Record<string, string | number>
-  ) => string;
+  t: TranslationFunction;
   localeInfo: { name: string; nativeName: string; flag: string };
   isMounted: boolean;
   refreshOverrides: () => Promise<void>;
@@ -88,7 +92,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const t = useCallback(
+  const tFn = useCallback(
     (
       key: string,
       paramsOrFallback?: Record<string, string | number> | string,
@@ -120,6 +124,18 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     },
     [locale]
   );
+
+  const t = useMemo(() => {
+    const activeDict = translations[locale] || translations[defaultLocale];
+    return new Proxy(tFn, {
+      get(target, prop, receiver) {
+        if (prop in target) {
+          return Reflect.get(target, prop, receiver);
+        }
+        return (activeDict as any)[prop];
+      },
+    }) as TranslationFunction;
+  }, [tFn, locale]);
 
   const refreshOverrides = useCallback(async () => {
     // No-op: translations are bundled statically in src/locales/
