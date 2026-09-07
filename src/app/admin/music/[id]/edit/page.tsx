@@ -1,8 +1,8 @@
 import { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import TrackForm from "@/components/music/admin/TrackForm";
+import AdminHeader from "@/components/admin/AdminHeader";
 import "@/app/music/music.css";
 
 export const metadata: Metadata = {
@@ -21,13 +21,13 @@ export default async function EditTrackPage({
   if (!track) notFound();
 
   return (
-    <div className="music-admin-page">
-      <Link href="/admin/music" className="music-admin-back">
-        ← Back to Music Management
-      </Link>
-      <h1 className="music-admin-title" style={{ marginBottom: "1.5rem" }}>
-        Edit: {track.title}
-      </h1>
+    <div className="space-y-6">
+      <AdminHeader
+        title={`Edit: ${track.title}`}
+        description="Update track audio, metadata, and album cover."
+        icon="music"
+        closeHref="/admin/music"
+      />
       <TrackForm
         mode="edit"
         initialData={{

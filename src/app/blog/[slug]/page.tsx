@@ -29,7 +29,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${post.title} | John Doe`,
+    title: `${post.title} | Thach Huynh`,
     description: post.excerpt,
     openGraph: {
       title: post.title,
@@ -194,7 +194,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 👨‍💻
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white">John Doe</h3>
+                <h3 className="text-lg font-semibold text-white">Thach Huynh</h3>
                 <p className="text-white/60 text-sm">
                   Creative Web Developer specializing in immersive digital experiences.
                 </p>

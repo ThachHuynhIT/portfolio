@@ -9,6 +9,7 @@ import Icon from "@/components/ui/Icon";
 interface DashboardStats {
   skillsCount: number;
   projectsCount: number;
+  photographyCount: number;
   blogCount: number;
   socialCount: number;
   musicCount: number;
@@ -30,11 +31,18 @@ const STAT_CARDS = [
     accent: "cyan",
   },
   {
+    key: "photographyCount" as const,
+    label: "Photography",
+    icon: "camera",
+    href: "/admin/photography",
+    accent: "indigo",
+  },
+  {
     key: "musicCount" as const,
     label: "Music Tracks",
     icon: "music",
     href: "/admin/music",
-    accent: "indigo",
+    accent: "pink",
   },
   {
     key: "blogCount" as const,
@@ -48,7 +56,7 @@ const STAT_CARDS = [
     label: "Social Links",
     icon: "links",
     href: "/admin/social-links",
-    accent: "pink",
+    accent: "violet",
   },
 ];
 
@@ -61,6 +69,15 @@ const ACCENT_CLASSES: Record<string, string> = {
 };
 
 const QUICK_ACTIONS = [
+  {
+    icon: "camera",
+    label: "Photography Studio",
+    description: "Manage photo showcase, categories, EXIF camera data, and before/after comparisons.",
+    actions: [
+      { label: "Manage Photos", href: "/admin/photography", primary: true },
+      { label: "View Gallery", href: "/photography", primary: false },
+    ],
+  },
   {
     icon: "music",
     label: "Music Studio",
@@ -95,9 +112,10 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const [skillsRes, projectsRes, blogRes, socialRes, musicRes] = await Promise.all([
+        const [skillsRes, projectsRes, photoRes, blogRes, socialRes, musicRes] = await Promise.all([
           fetch("/api/admin/skills"),
           fetch("/api/admin/projects"),
+          fetch("/api/admin/photography"),
           fetch("/api/admin/blog"),
           fetch("/api/admin/social-links"),
           fetch("/api/music/tracks"),
@@ -108,9 +126,10 @@ export default function AdminDashboardPage() {
           return;
         }
 
-        const [skills, projects, blog, social, music] = await Promise.all([
+        const [skills, projects, photos, blog, social, music] = await Promise.all([
           skillsRes.json(),
           projectsRes.json(),
+          photoRes.json(),
           blogRes.json(),
           socialRes.json(),
           musicRes.json(),
@@ -119,6 +138,7 @@ export default function AdminDashboardPage() {
         setStats({
           skillsCount: Array.isArray(skills) ? skills.length : 0,
           projectsCount: Array.isArray(projects) ? projects.length : 0,
+          photographyCount: Array.isArray(photos) ? photos.length : 0,
           blogCount: Array.isArray(blog) ? blog.length : 0,
           socialCount: Array.isArray(social) ? social.length : 0,
           musicCount: Array.isArray(music) ? music.length : 0,
@@ -133,7 +153,7 @@ export default function AdminDashboardPage() {
   }, [router]);
 
   return (
-    <div className="max-w-5xl space-y-8">
+    <div className="space-y-8">
       <AdminHeader
         title="Dashboard"
         description="Overview of your portfolio content and site health."
@@ -141,7 +161,7 @@ export default function AdminDashboardPage() {
       />
 
       {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {STAT_CARDS.map((card) => (
           <Link
             key={card.key}

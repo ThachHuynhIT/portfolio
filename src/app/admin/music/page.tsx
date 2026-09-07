@@ -31,7 +31,7 @@ export default async function AdminMusicPage() {
   }));
 
   return (
-    <div className="max-w-7xl space-y-6">
+    <div className="space-y-6">
       <AdminHeader
         title="Music Tracks"
         description="Upload and manage audio tracks for the /music lounge. Preview, filter, and batch-manage your library."

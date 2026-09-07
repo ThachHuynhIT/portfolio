@@ -2,36 +2,64 @@
   {
     "id": "nav-1",
     "label": "Home",
-    "href": "#home"
+    "href": "#home",
+    "published": true,
+    "order": 0
   },
   {
     "id": "nav-2",
     "label": "About",
-    "href": "#about"
+    "href": "#about",
+    "published": true,
+    "order": 1
   },
   {
     "id": "nav-3",
     "label": "Skills",
-    "href": "#skills"
+    "href": "#skills",
+    "published": true,
+    "order": 2
   },
   {
     "id": "nav-4",
     "label": "Projects",
-    "href": "#projects"
+    "href": "#projects",
+    "published": true,
+    "order": 3
   },
   {
     "id": "nav-music",
     "label": "Music",
-    "href": "/music"
+    "href": "/music",
+    "published": true,
+    "order": 4
+  },
+  {
+    "id": "nav-photography",
+    "label": "Photography",
+    "href": "/photography",
+    "published": true,
+    "order": 5
   },
   {
     "id": "nav-5",
     "label": "Blog",
-    "href": "/blog"
+    "href": "/blog",
+    "published": true,
+    "order": 6
   },
   {
     "id": "nav-6",
     "label": "Contra",
-    "href": "/contra"
+    "href": "/contra",
+    "published": true,
+    "order": 7
+  },
+  {
+    "id": "nav-1788511274849-1puo1o",
+    "label": "Couple",
+    "href": "/couple",
+    "published": false,
+    "order": 8
   }
 ]

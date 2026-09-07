@@ -1,6 +1,6 @@
 import { Metadata } from "next";
-import Link from "next/link";
 import TrackForm from "@/components/music/admin/TrackForm";
+import AdminHeader from "@/components/admin/AdminHeader";
 import "@/app/music/music.css";
 
 export const metadata: Metadata = {
@@ -9,13 +9,13 @@ export const metadata: Metadata = {
 
 export default function NewTrackPage() {
   return (
-    <div className="music-admin-page">
-      <Link href="/admin/music" className="music-admin-back">
-        ← Back to Music Management
-      </Link>
-      <h1 className="music-admin-title" style={{ marginBottom: "1.5rem" }}>
-        Add New Track
-      </h1>
+    <div className="space-y-6">
+      <AdminHeader
+        title="Add New Track"
+        description="Add and configure audio tracks for the music lounge."
+        icon="music"
+        closeHref="/admin/music"
+      />
       <TrackForm mode="create" />
     </div>
   );

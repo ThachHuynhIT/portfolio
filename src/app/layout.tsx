@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Navigation, Footer } from "@/components/ui";
 import { MusicProvider } from "@/context/MusicContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 import GlobalMusicPlayer from "@/components/music/GlobalMusicPlayer";
 
 const inter = Inter({
@@ -16,7 +17,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "John Doe | Creative Web Developer",
+  title: "Thach Huynh | Creative Web Developer",
   description:
     "A passionate web developer crafting immersive digital experiences with cutting-edge technologies.",
   keywords: [
@@ -27,18 +28,18 @@ export const metadata: Metadata = {
     "three.js",
     "portfolio",
   ],
-  authors: [{ name: "John Doe" }],
+  authors: [{ name: "Thach Huynh" }],
   openGraph: {
-    title: "John Doe | Creative Web Developer",
+    title: "Thach Huynh | Creative Web Developer",
     description:
       "A passionate web developer crafting immersive digital experiences with cutting-edge technologies.",
     type: "website",
     locale: "en_US",
-    url: "https://johndoe.dev",
+    url: "https://portfolio-thach.vercel.app",
   },
   twitter: {
     card: "summary_large_image",
-    title: "John Doe | Creative Web Developer",
+    title: "Thach Huynh | Creative Web Developer",
     description:
       "A passionate web developer crafting immersive digital experiences with cutting-edge technologies.",
   },
@@ -54,12 +55,14 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${spaceGrotesk.variable} antialiased bg-black text-white font-sans`}
       >
-        <MusicProvider>
-          <Navigation />
-          <main>{children}</main>
-          <Footer />
-          <GlobalMusicPlayer />
-        </MusicProvider>
+        <LanguageProvider>
+          <MusicProvider>
+            <Navigation />
+            <main>{children}</main>
+            <Footer />
+            <GlobalMusicPlayer />
+          </MusicProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

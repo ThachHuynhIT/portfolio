@@ -4,83 +4,95 @@
     "name": "React",
     "icon": "⚛️",
     "category": "frontend",
-    "level": 85
+    "level": 85,
+    "published": true
   },
   {
     "id": "skill-2",
     "name": "Next.js",
     "icon": "▲",
     "category": "frontend",
-    "level": 90
+    "level": 90,
+    "published": true
   },
   {
     "id": "skill-3",
     "name": "TypeScript",
     "icon": "📘",
     "category": "frontend",
-    "level": 92
+    "level": 92,
+    "published": true
   },
   {
     "id": "skill-4",
     "name": "Three.js",
     "icon": "🎮",
     "category": "frontend",
-    "level": 85
+    "level": 85,
+    "published": true
   },
   {
     "id": "skill-5",
     "name": "Tailwind CSS",
     "icon": "🎨",
     "category": "frontend",
-    "level": 95
+    "level": 95,
+    "published": true
   },
   {
     "id": "skill-6",
     "name": "Node.js",
     "icon": "🟢",
     "category": "backend",
-    "level": 88
+    "level": 88,
+    "published": true
   },
   {
     "id": "skill-7",
     "name": "Python",
     "icon": "🐍",
     "category": "backend",
-    "level": 80
+    "level": 80,
+    "published": true
   },
   {
     "id": "skill-8",
     "name": "PostgreSQL",
     "icon": "🐘",
     "category": "backend",
-    "level": 82
+    "level": 82,
+    "published": true
   },
   {
     "id": "skill-9",
     "name": "MongoDB",
     "icon": "🍃",
     "category": "backend",
-    "level": 78
+    "level": 78,
+    "published": true
   },
   {
     "id": "skill-10",
     "name": "Docker",
     "icon": "🐳",
     "category": "tools",
-    "level": 75
+    "level": 75,
+    "published": true
   },
   {
     "id": "skill-11",
     "name": "Git",
     "icon": "📦",
     "category": "tools",
-    "level": 90
+    "level": 90,
+    "published": true
   },
   {
     "id": "skill-12",
     "name": "Figma",
     "icon": "🎯",
     "category": "design",
-    "level": 70
+    "level": 70,
+    "published": true
   }
 ]

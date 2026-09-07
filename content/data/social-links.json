@@ -1,5 +1,23 @@
 [
-  { "id": "social-1", "name": "GitHub", "url": "https://github.com", "icon": "github" },
-  { "id": "social-2", "name": "LinkedIn", "url": "https://linkedin.com", "icon": "linkedin" },
-  { "id": "social-3", "name": "Twitter", "url": "https://twitter.com", "icon": "twitter" }
+  {
+    "id": "social-1",
+    "name": "GitHub",
+    "url": "https://github.com/ThachHuynhIT",
+    "icon": "github",
+    "published": true
+  },
+  {
+    "id": "social-2",
+    "name": "LinkedIn",
+    "url": "https://www.linkedin.com/in/huynh-thach-web-dev/",
+    "icon": "linkedin",
+    "published": true
+  },
+  {
+    "id": "social-3",
+    "name": "Twitter",
+    "url": "https://twitter.com",
+    "icon": "twitter",
+    "published": true
+  }
 ]

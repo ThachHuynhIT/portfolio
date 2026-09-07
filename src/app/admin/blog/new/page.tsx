@@ -3,31 +3,37 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
+import AdminFormFooter from "@/components/admin/AdminFormFooter";
 import FormField from "@/components/admin/FormField";
 import MarkdownPreview from "@/components/admin/MarkdownPreview";
+import MediaPickerModal from "@/components/admin/MediaPickerModal";
+import { useToast } from "@/context/ToastContext";
 
 export default function NewBlogPostPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
+  const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
 
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [category, setCategory] = useState("Tutorial");
-  const [tags, setTags] = useState("react, typescript");
+  const [category, setCategory] = useState("development");
+  const [tags, setTags] = useState("React, Next.js");
   const [readTime, setReadTime] = useState("5 min read");
-  const [content, setContent] = useState("# " + (title || "My New Post") + "\n\nWrite your MDX content here...");
+  const [content, setContent] = useState("# Welcome to my new post\n\nWrite your MDX content here...");
 
   const handleTitleChange = (val: string) => {
     setTitle(val);
-    if (!slug) {
+    if (!slug || slug === "") {
       setSlug(
         val
           .toLowerCase()
           .replace(/[^a-z0-9-]/g, "-")
+          .replace(/-+/g, "-")
           .replace(/-+/g, "-")
           .replace(/^-|-$/g, "")
       );
@@ -61,13 +67,12 @@ export default function NewBlogPostPage() {
         throw new Error(data.error || "Failed to create blog post");
       }
 
+      toast.success(`Blog post "${title}" created successfully!`);
       router.push("/admin/blog");
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Failed to create blog post");
-      }
+      const msg = err instanceof Error ? err.message : "Failed to create blog post";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -79,6 +84,7 @@ export default function NewBlogPostPage() {
         title="Write New Post"
         description="Create a new MDX blog post with frontmatter metadata and live preview."
         icon="blog"
+        closeHref="/admin/blog"
       />
 
       {error && (
@@ -177,7 +183,17 @@ export default function NewBlogPostPage() {
         {/* Content Editor & Preview Tabs */}
         <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800">
           <div className="flex items-center justify-between border-b border-gray-800 pb-4 mb-4">
-            <h2 className="text-lg font-bold text-white">Post Content (MDX)</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-bold text-white">Post Content (MDX)</h2>
+              <button
+                type="button"
+                onClick={() => setIsImagePickerOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-purple-300 hover:text-white rounded-lg text-xs font-medium border border-gray-700 transition-all shadow-sm"
+              >
+                <span>🖼️</span>
+                <span>Insert Image from Cloud / Upload</span>
+              </button>
+            </div>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -219,23 +235,26 @@ export default function NewBlogPostPage() {
         </div>
 
         {/* Submit Actions */}
-        <div className="flex justify-end gap-4">
-          <button
-            type="button"
-            onClick={() => router.push("/admin/blog")}
-            className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-xl text-sm transition-all"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-medium rounded-xl text-sm shadow-lg shadow-purple-500/25 hover:opacity-90 disabled:opacity-50 transition-all"
-          >
-            {saving ? "Publishing Post..." : "Publish Post"}
-          </button>
-        </div>
+        <AdminFormFooter
+          closeHref="/admin/blog"
+          closeLabel="Cancel"
+          saveLabel="Publish Post"
+          isSaving={saving}
+        />
       </form>
+
+      {/* Image Picker Modal for Blog */}
+      <MediaPickerModal
+        isOpen={isImagePickerOpen}
+        onClose={() => setIsImagePickerOpen(false)}
+        onSelect={(url, asset) => {
+          const alt = asset?.filename ? asset.filename.split(".")[0] : "image";
+          setContent((prev) => `${prev}\n\n![${alt}](${url})\n\n`);
+          toast.success("Image inserted into post content!");
+        }}
+        title="Select or upload an image to insert into post"
+        defaultCategory="blog"
+      />
     </div>
   );
 }

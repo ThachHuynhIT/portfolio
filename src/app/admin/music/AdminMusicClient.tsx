@@ -3,6 +3,7 @@
 import { useState, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/context/ToastContext";
 
 interface Track {
   id: string;
@@ -36,6 +37,7 @@ function formatTotalTime(tracks: Track[]): string {
 
 export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [tracks, setTracks] = useState<Track[]>(initial);
 
   // Search & Filter
@@ -125,16 +127,23 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
 
   // Toggle publish status
   const handleTogglePublish = async (id: string, current: boolean) => {
-    const res = await fetch(`/api/music/tracks/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ published: !current }),
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      setTracks((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, published: updated.published } : t))
-      );
+    try {
+      const res = await fetch(`/api/music/tracks/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ published: !current }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setTracks((prev) =>
+          prev.map((t) => (t.id === id ? { ...t, published: updated.published } : t))
+        );
+        toast.success(`Track ${updated.published ? "published" : "set to draft"}`);
+      } else {
+        toast.error("Failed to update track status");
+      }
+    } catch {
+      toast.error("Failed to update track status");
     }
   };
 
@@ -146,17 +155,23 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
       previewAudioRef.current?.pause();
       setPreviewTrackId(null);
     }
-    const res = await fetch(`/api/music/tracks/${id}`, { method: "DELETE" });
-    setDeletingId(null);
-    if (res.ok) {
-      setTracks((prev) => prev.filter((t) => t.id !== id));
-      setSelectedIds((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-    } else {
-      alert("Failed to delete track.");
+    try {
+      const res = await fetch(`/api/music/tracks/${id}`, { method: "DELETE" });
+      setDeletingId(null);
+      if (res.ok) {
+        setTracks((prev) => prev.filter((t) => t.id !== id));
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        toast.success(`Track "${title}" deleted successfully!`);
+      } else {
+        toast.error("Failed to delete track.");
+      }
+    } catch {
+      setDeletingId(null);
+      toast.error("Failed to delete track.");
     }
   };
 
@@ -182,19 +197,25 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
     if (selectedIds.size === 0) return;
     setIsBatchOperating(true);
     const ids = Array.from(selectedIds);
-    await Promise.all(
-      ids.map((id) =>
-        fetch(`/api/music/tracks/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ published: publish }),
-        })
-      )
-    );
-    setTracks((prev) =>
-      prev.map((t) => (selectedIds.has(t.id) ? { ...t, published: publish } : t))
-    );
-    setIsBatchOperating(false);
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          fetch(`/api/music/tracks/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ published: publish }),
+          })
+        )
+      );
+      setTracks((prev) =>
+        prev.map((t) => (selectedIds.has(t.id) ? { ...t, published: publish } : t))
+      );
+      toast.success(`${publish ? "Published" : "Drafted"} ${ids.length} tracks!`);
+    } catch {
+      toast.error("Failed to update selected tracks");
+    } finally {
+      setIsBatchOperating(false);
+    }
   };
 
   const handleBatchDelete = async () => {
@@ -202,10 +223,16 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
     if (!confirm(`Delete ${selectedIds.size} selected tracks? This cannot be undone.`)) return;
     setIsBatchOperating(true);
     const ids = Array.from(selectedIds);
-    await Promise.all(ids.map((id) => fetch(`/api/music/tracks/${id}`, { method: "DELETE" })));
-    setTracks((prev) => prev.filter((t) => !selectedIds.has(t.id)));
-    setSelectedIds(new Set());
-    setIsBatchOperating(false);
+    try {
+      await Promise.all(ids.map((id) => fetch(`/api/music/tracks/${id}`, { method: "DELETE" })));
+      setTracks((prev) => prev.filter((t) => !selectedIds.has(t.id)));
+      setSelectedIds(new Set());
+      toast.success(`Deleted ${ids.length} tracks successfully!`);
+    } catch {
+      toast.error("Failed to delete selected tracks");
+    } finally {
+      setIsBatchOperating(false);
+    }
   };
 
   // Summary Metrics

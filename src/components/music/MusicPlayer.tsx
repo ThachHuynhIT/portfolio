@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, Suspense } from "react";
+import React, { useEffect, useRef, useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMusic, Track, EqPreset } from "@/context/MusicContext";
@@ -72,6 +72,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
     sleepTimer,
     setSleepTimerMinutes,
     playTrackByIndex,
+    playTrackById,
     togglePlay,
     nextTrack,
     prevTrack,
@@ -85,11 +86,102 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
     room,
     setIsRoomModalOpen,
     setPrefilledRoomCode,
+    deckMode,
+    setDeckMode,
   } = useMusic();
 
   const seekContainerRef = useRef<HTMLDivElement>(null);
   const [hoverSeekTime, setHoverSeekTime] = useState<number | null>(null);
   const [hoverSeekPos, setHoverSeekPos] = useState(0);
+
+  // Spotify Charts State
+  const [chartFilter, setChartFilter] = useState<"plays" | "liked" | "recent">("plays");
+  const [hoveredTrackId, setHoveredTrackId] = useState<string | null>(null);
+
+  // Search state & click-outside ref
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsSearchFocused(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Filtered tracks for the dropdown
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) {
+      // Suggest top 5 most played tracks when focused without query
+      return [...tracks]
+        .sort((a, b) => (b.playCount ?? 0) - (a.playCount ?? 0))
+        .slice(0, 5);
+    }
+    const q = searchQuery.toLowerCase();
+    return tracks.filter(
+      (t) =>
+        t.title.toLowerCase().includes(q) ||
+        t.artist.toLowerCase().includes(q) ||
+        (t.album && t.album.toLowerCase().includes(q)) ||
+        (t.genre && t.genre.toLowerCase().includes(q)) ||
+        (t.lyrics && t.lyrics.toLowerCase().includes(q))
+    );
+  }, [tracks, searchQuery]);
+
+  // Liked tracks collection
+  const likedTracks = useMemo(() => {
+    return tracks.filter((t) => likedTrackIds.has(t.id));
+  }, [tracks, likedTrackIds]);
+
+  const totalLikedDuration = useMemo(() => {
+    return likedTracks.reduce((acc, t) => acc + (t.duration || 0), 0);
+  }, [likedTracks]);
+
+  const chartTracks = useMemo(() => {
+    const list = [...tracks];
+    if (chartFilter === "plays") {
+      return list.sort((a, b) => (b.playCount ?? 0) - (a.playCount ?? 0));
+    }
+    if (chartFilter === "liked") {
+      return list.sort((a, b) => {
+        const aLiked = likedTrackIds.has(a.id) ? 1 : 0;
+        const bLiked = likedTrackIds.has(b.id) ? 1 : 0;
+        if (bLiked !== aLiked) return bLiked - aLiked;
+        return (b.playCount ?? 0) - (a.playCount ?? 0);
+      });
+    }
+    return list;
+  }, [tracks, chartFilter, likedTrackIds]);
+
+  const totalPlays = useMemo(() => {
+    return tracks.reduce((acc, t) => acc + (t.playCount ?? 0), 0);
+  }, [tracks]);
+
+  const maxPlays = useMemo(() => {
+    return Math.max(...tracks.map((t) => t.playCount ?? 0), 1);
+  }, [tracks]);
+
+  const handlePlayChartFromStart = () => {
+    if (chartTracks.length > 0) {
+      playTrackById(chartTracks[0].id);
+    }
+  };
+
+  const handleShufflePlayCharts = () => {
+    setIsShuffle(true);
+    if (chartTracks.length > 0) {
+      const randomIdx = Math.floor(Math.random() * chartTracks.length);
+      playTrackById(chartTracks[randomIdx].id);
+    }
+  };
 
   // Check URL query param ?room=CODE on load
   useEffect(() => {
@@ -195,16 +287,20 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
   if (!currentTrack) {
     return (
       <div className="music-studio-app">
-        <MusicSidebar />
-        <main className="music-main-stage flex items-center justify-center min-h-[70vh]">
-          <div className="music-empty-card text-center p-8 rounded-3xl bg-white/5 border border-white/10 max-w-md">
-            <div className="text-5xl mb-4">🎧</div>
-            <h2 className="text-xl font-bold text-white mb-2">No Tracks Found</h2>
-            <p className="text-white/50 text-sm mb-6">
-              The sound library is currently empty. Add tracks from the Admin Manager.
-            </p>
+        <div className="music-studio-layout">
+          <MusicSidebar />
+          <div className="music-stage-wrapper">
+            <main className="music-main-stage flex items-center justify-center min-h-[70vh]">
+              <div className="music-empty-card text-center p-8 rounded-3xl bg-white/5 border border-white/10 max-w-md">
+                <div className="text-5xl mb-4">🎧</div>
+                <h2 className="text-xl font-bold text-white mb-2">No Tracks Found</h2>
+                <p className="text-white/50 text-sm mb-6">
+                  The sound library is currently empty. Add tracks from the Admin Manager.
+                </p>
+              </div>
+            </main>
           </div>
-        </main>
+        </div>
       </div>
     );
   }
@@ -246,9 +342,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
           {/* Dedicated Sidebar */}
           <MusicSidebar />
 
-          {/* Main Stage */}
-          <main className="music-main-stage">
-            {/* Top Stage Bar (Search, Mobile Toggle, Tabs, Room, EQ, Timer, Zen) */}
+          {/* Right Stage Wrapper: Sticky Top Bar + Main Stage Content + Right-Aligned Player Bar */}
+          <div className="music-stage-wrapper">
+            {/* Top Stage Bar (Sticky on Top: Search, Navigation Tabs, Lounge Tools) */}
             <header className="music-top-bar">
               {/* Mobile menu trigger */}
               <div className="flex items-center gap-2 md:hidden">
@@ -262,43 +358,231 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 </button>
               </div>
 
-              {/* Search Bar */}
-              <div className="music-top-search">
+              {/* Search Bar with Floating Dropdown */}
+              <div className="music-top-search" ref={searchContainerRef}>
                 <span className="music-search-icon">🔍</span>
                 <input
                   type="text"
                   placeholder="Search tracks, artists, albums, lyrics..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setIsSearchFocused(true);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      setIsSearchFocused(false);
+                    }
+                  }}
                   className="music-top-search-input"
                 />
                 {searchQuery && (
                   <button
-                    onClick={() => setSearchQuery("")}
+                    onClick={() => {
+                      setSearchQuery("");
+                    }}
                     className="music-search-clear-btn"
                     title="Clear search"
                   >
                     ✕
                   </button>
                 )}
+
+                {/* Floating Search Results Dropdown */}
+                <AnimatePresence>
+                  {isSearchFocused && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                      transition={{ duration: 0.15 }}
+                      className="music-search-dropdown"
+                    >
+                      <div className="music-search-dropdown-header">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-white/50">
+                          {searchQuery.trim()
+                            ? `Kết quả tìm kiếm (${searchResults.length})`
+                            : "Gợi ý thịnh hành"}
+                        </span>
+                        <button
+                          onClick={() => setIsSearchFocused(false)}
+                          className="text-[10px] text-white/40 hover:text-white"
+                        >
+                          Đóng ✕
+                        </button>
+                      </div>
+
+                      <div className="music-search-dropdown-list">
+                        {searchResults.length === 0 ? (
+                          <div className="music-search-empty">
+                            <span className="text-xl">🔍</span>
+                            <div className="text-xs text-white/70">
+                              Không tìm thấy bài hát nào cho &quot;{searchQuery}&quot;
+                            </div>
+                            <div className="text-[11px] text-white/40">
+                              Thử tìm kiếm theo tên nghệ sĩ, bài hát hoặc thể loại
+                            </div>
+                          </div>
+                        ) : (
+                          searchResults.map((track) => {
+                            const isCurrent = currentTrack?.id === track.id;
+                            const isThisPlaying = isPlaying && isCurrent;
+                            const isLiked = likedTrackIds.has(track.id);
+
+                            return (
+                              <div
+                                key={track.id}
+                                onClick={() => {
+                                  playTrackById(track.id);
+                                }}
+                                className={`music-search-item group ${
+                                  isCurrent ? "music-search-item--active" : ""
+                                }`}
+                              >
+                                {/* Thumbnail with hover play overlay */}
+                                <div className="music-search-item-thumb">
+                                  {track.thumbnailUrl ? (
+                                    <img
+                                      src={track.thumbnailUrl}
+                                      alt={track.title}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-xs">
+                                      🎵
+                                    </div>
+                                  )}
+                                  <div
+                                    className={`music-search-item-play-overlay ${
+                                      isThisPlaying ? "!opacity-100" : ""
+                                    }`}
+                                  >
+                                    {isThisPlaying ? (
+                                      <span className="w-2.5 h-2.5 bg-[#1db954] rounded-full animate-ping" />
+                                    ) : (
+                                      <span className="text-xs text-white">▶</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Track Info */}
+                                <div className="flex-1 min-w-0">
+                                  <div
+                                    className={`text-xs font-semibold truncate ${
+                                      isCurrent ? "text-[#1db954]" : "text-white group-hover:text-white"
+                                    }`}
+                                  >
+                                    {track.title}
+                                  </div>
+                                  <div className="text-[11px] text-white/50 truncate flex items-center gap-1.5">
+                                    <span>{track.artist}</span>
+                                    {track.genre && (
+                                      <>
+                                        <span>•</span>
+                                        <span className="text-purple-400/80">{track.genre}</span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Action: Like and Duration */}
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleLike(track.id);
+                                    }}
+                                    className={`text-xs transition-transform active:scale-125 ${
+                                      isLiked
+                                        ? "text-rose-400"
+                                        : "text-white/20 hover:text-white/70"
+                                    }`}
+                                    title={isLiked ? "Bỏ thích" : "Yêu thích"}
+                                  >
+                                    {isLiked ? "❤️" : "🤍"}
+                                  </button>
+                                  <span className="text-[11px] font-mono text-white/40 tabular-nums">
+                                    {formatTime(track.duration)}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
-              {/* Active Filter Chips & Actions */}
+              {/* Quick Spotify View Navigation Pills */}
+              <div className="flex items-center gap-1.5 p-1 bg-white/[0.04] rounded-xl border border-white/10 shrink-0">
+                <button
+                  onClick={() => {
+                    setActiveTab("player");
+                    setShowOnlyLiked(false);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                    activeTab === "player"
+                      ? "bg-white text-black shadow-md font-bold"
+                      : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  <span>🎛️</span>
+                  <span>Trình phát</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab("charts");
+                    setShowOnlyLiked(false);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                    activeTab === "charts"
+                      ? "bg-[#1db954] text-black shadow-md font-bold"
+                      : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  <span>🏆</span>
+                  <span>Bảng Xếp Hạng</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab("favorites");
+                    setShowOnlyLiked(true);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                    activeTab === "favorites"
+                      ? "bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-md font-bold"
+                      : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  <span>❤️</span>
+                  <span>Yêu thích</span>
+                  {likedTrackIds.size > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20 text-white font-mono font-bold">
+                      {likedTrackIds.size}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab("queue");
+                    setShowOnlyLiked(false);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                    activeTab === "queue"
+                      ? "bg-white text-black shadow-md font-bold"
+                      : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  <span>📑</span>
+                  <span>Hàng đợi</span>
+                </button>
+              </div>
+
+              {/* Global Lounge Tools (Listen Together, Sleep Timer, Zen Mode) */}
               <div className="flex items-center gap-2 overflow-x-auto py-1">
-                {selectedGenre !== "All" && (
-                  <div className="music-active-chip">
-                    <span>Mood: {selectedGenre}</span>
-                    <button onClick={() => setSelectedGenre("All")}>✕</button>
-                  </div>
-                )}
-
-                {showOnlyLiked && (
-                  <div className="music-active-chip music-active-chip--liked">
-                    <span>❤️ Liked Only</span>
-                    <button onClick={() => setShowOnlyLiked(false)}>✕</button>
-                  </div>
-                )}
-
                 {/* Listen Together Quick Button */}
                 <button
                   onClick={() => setIsRoomModalOpen(true)}
@@ -307,26 +591,11 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       ? "bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-500/20"
                       : "bg-white/5 hover:bg-white/10 text-white/90 border-white/10"
                   }`}
-                  title="Listen together in a 5-character room"
+                  title="Cùng nghe nhạc qua mã phòng 5 ký tự"
                 >
                   <span>🎧</span>
                   <span className="hidden sm:inline">{room ? `#${room.code}` : "Listen Together"}</span>
                 </button>
-
-                {/* Equalizer Preset Selector */}
-                <select
-                  value={eqPreset}
-                  onChange={(e) => setEqPreset(e.target.value as EqPreset)}
-                  className="music-sort-select"
-                  title="Graphic Equalizer Preset"
-                  aria-label="Equalizer Preset"
-                >
-                  <option value="flat">🎚️ EQ: Flat / Studio</option>
-                  <option value="bass_boost">🔊 EQ: Bass Boost</option>
-                  <option value="vocal">🎤 EQ: Vocal & Acoustic</option>
-                  <option value="electronic">🌌 EQ: Synth & EDM</option>
-                  <option value="chill">☕ EQ: Chill Lofi</option>
-                </select>
 
                 {/* Sleep Timer Selector */}
                 <select
@@ -338,15 +607,15 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     else setSleepTimerMinutes(Number(v));
                   }}
                   className={`music-sort-select ${sleepTimer.minutes !== null ? "!border-cyan-400 !text-cyan-300" : ""}`}
-                  title="Sleep Timer"
-                  aria-label="Sleep Timer"
+                  title="Hẹn giờ tắt nhạc"
+                  aria-label="Hẹn giờ tắt nhạc"
                 >
-                  <option value="off">⏱️ Sleep: Off</option>
-                  <option value="15">⏱️ Sleep: 15 min</option>
-                  <option value="30">⏱️ Sleep: 30 min</option>
-                  <option value="45">⏱️ Sleep: 45 min</option>
-                  <option value="60">⏱️ Sleep: 60 min</option>
-                  <option value="end">⏱️ Sleep: End of Track</option>
+                  <option value="off">⏱️ Hẹn giờ: Tắt</option>
+                  <option value="15">⏱️ Hẹn giờ: 15 phút</option>
+                  <option value="30">⏱️ Hẹn giờ: 30 phút</option>
+                  <option value="45">⏱️ Hẹn giờ: 45 phút</option>
+                  <option value="60">⏱️ Hẹn giờ: 60 phút</option>
+                  <option value="end">⏱️ Hẹn giờ: Hết bài</option>
                 </select>
 
                 {/* Sleep Timer Countdown Badge */}
@@ -357,26 +626,11 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   </span>
                 )}
 
-                {/* Sort dropdown */}
-                <select
-                  value={sortBy}
-                  onChange={(e) =>
-                    setSortBy(e.target.value as "default" | "title" | "plays" | "duration")
-                  }
-                  className="music-sort-select"
-                  aria-label="Sort tracks by"
-                >
-                  <option value="default">Sort: Default</option>
-                  <option value="plays">Sort: Most Played</option>
-                  <option value="title">Sort: Track Title</option>
-                  <option value="duration">Sort: Duration</option>
-                </select>
-
                 {/* Zen Mode Button */}
                 <button
                   onClick={() => setIsZenMode(true)}
                   className="music-zen-btn"
-                  title="Fullscreen Zen Mode (Hotkey: Z)"
+                  title="Toàn màn hình Zen Mode (Phím tắt: Z)"
                 >
                   <span>📺</span>
                   <span className="hidden sm:inline">Zen Mode</span>
@@ -384,121 +638,342 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
               </div>
             </header>
 
-            {/* ── TAB 1: TURNTABLE & VISUALIZER DECK ── */}
+            {/* Main Stage Content (Scrolls beneath sticky top bar) */}
+            <main className="music-main-stage">
+              {/* ── TAB 1: TURNTABLE & VISUALIZER DECK ── */}
             {activeTab === "player" && (
               <section className="music-deck-section">
-                {/* Turntable / Vinyl Rig */}
-                <div className="music-turntable-wrapper">
-                  {/* Vinyl Record */}
-                  <div
-                    className={`music-vinyl ${isPlaying ? "music-vinyl--spinning" : ""}`}
-                    style={{
-                      animationPlayState: isPlaying ? "running" : "paused",
-                      transform: `scale(${isPlaying ? 1 + audioMetrics.bass * 0.03 : 1})`,
-                      boxShadow: isPlaying
-                        ? `0 0 ${20 + audioMetrics.bass * 40}px rgba(168, 85, 247, 0.4), 0 20px 50px rgba(0,0,0,0.8)`
-                        : "0 20px 50px rgba(0,0,0,0.8)",
-                    }}
-                  >
-                    <div className="music-vinyl-grooves" />
-                    <div className="music-vinyl-center">
-                      {currentTrack.thumbnailUrl ? (
-                        <img src={currentTrack.thumbnailUrl} alt="" className="music-vinyl-art" />
-                      ) : (
-                        <div className="music-vinyl-placeholder">JD</div>
-                      )}
-                      <div className="music-vinyl-hole" />
-                    </div>
+                {/* ── TRACK CONTROLS TOOLBAR (Chỉ ảnh hưởng bài hát hiện tại) ── */}
+                <div className="w-full flex flex-wrap items-center justify-between gap-3 p-2.5 sm:p-3 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-md">
+                  {/* Deck Mode Toggle: Đĩa Than vs Lời Bài Hát (Karaoke) */}
+                  <div className="flex items-center gap-1.5 p-1 bg-black/40 rounded-xl border border-white/10">
+                    <button
+                      onClick={() => setDeckMode("vinyl")}
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                        deckMode === "vinyl"
+                          ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/30"
+                          : "text-white/60 hover:text-white"
+                      }`}
+                    >
+                      <span>💿</span>
+                      <span>Đĩa Than & Phòng Thu</span>
+                    </button>
+                    <button
+                      onClick={() => setDeckMode("lyrics")}
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                        deckMode === "lyrics"
+                          ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30"
+                          : "text-white/60 hover:text-white"
+                      }`}
+                    >
+                      <span>🎤</span>
+                      <span>Lời Bài Hát (Karaoke)</span>
+                    </button>
                   </div>
 
-                  {/* 3D Cover Card */}
-                  <motion.div
-                    className="music-cover-card"
-                    whileHover={{ scale: 1.02, rotateY: 5 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  >
-                    {currentTrack.thumbnailUrl ? (
-                      <img
-                        src={currentTrack.thumbnailUrl}
-                        alt={currentTrack.title}
-                        className="music-cover-img"
-                      />
-                    ) : (
-                      <div className="music-cover-default">
-                        <span className="text-6xl">🎵</span>
-                      </div>
-                    )}
+                  {/* Single-Track Audio Equalizer Preset */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-white/50 font-medium hidden sm:inline">Bộ lọc âm sắc:</span>
+                    <select
+                      value={eqPreset}
+                      onChange={(e) => setEqPreset(e.target.value as EqPreset)}
+                      className="music-sort-select !bg-black/40 !border-white/15"
+                      title="Graphic Equalizer Preset (Chỉ áp dụng bài đang phát)"
+                      aria-label="Equalizer Preset"
+                    >
+                      <option value="flat">🎚️ EQ: Flat / Studio</option>
+                      <option value="bass_boost">🔊 EQ: Bass Boost</option>
+                      <option value="vocal">🎤 EQ: Vocal & Acoustic</option>
+                      <option value="electronic">🌌 EQ: Synth & EDM</option>
+                      <option value="chill">☕ EQ: Chill Lofi</option>
+                    </select>
+                  </div>
+                </div>
 
-                    {/* Album Cover Badges */}
-                    <div className="music-cover-overlay">
-                      <div className="music-cover-top-badge">
-                        <span className="music-lossless-badge">HI-RES AUDIO</span>
-                        {currentTrack.genre && (
-                          <span className="music-genre-badge">{currentTrack.genre}</span>
+                {deckMode === "lyrics" ? (
+                  /* ── IN-DECK KARAOKE LIVE SYNCED LYRICS ── */
+                  <div className="w-full max-w-3xl mx-auto flex flex-col gap-4">
+                    {/* Compact Playing Track Bar at the top of Lyrics */}
+                    <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-white/10 border border-white/10 relative group">
+                          {currentTrack.thumbnailUrl ? (
+                            <img
+                              src={currentTrack.thumbnailUrl}
+                              alt={currentTrack.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-lg">🎵</div>
+                          )}
+                          {isPlaying && (
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h2 className="text-base font-bold text-white truncate">
+                              {currentTrack.title}
+                            </h2>
+                            <button
+                              onClick={() => toggleLike(currentTrack.id)}
+                              className={`text-sm ${isCurrentLiked ? "text-red-500" : "text-white/40 hover:text-white"} cursor-pointer`}
+                              title={isCurrentLiked ? "Bỏ thích" : "Yêu thích"}
+                            >
+                              {isCurrentLiked ? "❤️" : "🤍"}
+                            </button>
+                          </div>
+                          <p className="text-xs text-white/60 truncate">
+                            {currentTrack.artist} {currentTrack.album ? `• ${currentTrack.album}` : ""}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {/* Audio pulse bars visual feedback */}
+                        <div className="hidden sm:flex items-center gap-1 h-6 px-2.5 py-1 rounded-lg bg-black/40 border border-white/10">
+                          <span
+                            className="w-1 bg-cyan-400 rounded-full transition-all duration-75"
+                            style={{ height: isPlaying ? `${Math.max(4, audioMetrics.bass * 20)}px` : "4px" }}
+                          />
+                          <span
+                            className="w-1 bg-purple-400 rounded-full transition-all duration-75"
+                            style={{ height: isPlaying ? `${Math.max(4, audioMetrics.mid * 20)}px` : "8px" }}
+                          />
+                          <span
+                            className="w-1 bg-pink-400 rounded-full transition-all duration-75"
+                            style={{ height: isPlaying ? `${Math.max(4, audioMetrics.treble * 20)}px` : "6px" }}
+                          />
+                        </div>
+
+                        <button
+                          onClick={() => setDeckMode("vinyl")}
+                          className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-white/80 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 cursor-pointer"
+                          title="Quay lại đĩa than"
+                        >
+                          <span>💿</span>
+                          <span className="hidden sm:inline">Quay lại đĩa than</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Live Synchronized Lyrics Component */}
+                    <LyricsView compact={false} />
+                  </div>
+                ) : (
+                  <>
+                    {/* Turntable / Vinyl Rig */}
+                    <div className="music-turntable-wrapper">
+                      {/* Vinyl Record */}
+                      <div
+                        className={`music-vinyl ${isPlaying ? "music-vinyl--spinning" : ""}`}
+                        style={{
+                          animationPlayState: isPlaying ? "running" : "paused",
+                          transform: `scale(${isPlaying ? 1 + audioMetrics.bass * 0.03 : 1})`,
+                          boxShadow: isPlaying
+                            ? `0 0 ${20 + audioMetrics.bass * 40}px rgba(168, 85, 247, 0.4), 0 20px 50px rgba(0,0,0,0.8)`
+                            : "0 20px 50px rgba(0,0,0,0.8)",
+                        }}
+                      >
+                        <div className="music-vinyl-grooves" />
+                        <div className="music-vinyl-center">
+                          {currentTrack.thumbnailUrl ? (
+                            <img src={currentTrack.thumbnailUrl} alt="" className="music-vinyl-art" />
+                          ) : (
+                            <div className="music-vinyl-placeholder">TH</div>
+                          )}
+                          <div className="music-vinyl-hole" />
+                        </div>
+                      </div>
+
+                      {/* 3D Cover Card */}
+                      <motion.div
+                        className="music-cover-card"
+                        whileHover={{ scale: 1.02, rotateY: 5 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      >
+                        {currentTrack.thumbnailUrl ? (
+                          <img
+                            src={currentTrack.thumbnailUrl}
+                            alt={currentTrack.title}
+                            className="music-cover-img"
+                          />
+                        ) : (
+                          <div className="music-cover-default">
+                            <span className="text-6xl">🎵</span>
+                          </div>
                         )}
+
+                        {/* Album Cover Badges */}
+                        <div className="music-cover-overlay">
+                          <div className="music-cover-top-badge">
+                            <span className="music-lossless-badge">HI-RES AUDIO</span>
+                            {currentTrack.genre && (
+                              <span className="music-genre-badge">{currentTrack.genre}</span>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+
+                      {/* Real Tonearm with playing rotation */}
+                      <div
+                        className={`music-tonearm ${isPlaying ? "music-tonearm--playing" : ""}`}
+                        aria-hidden="true"
+                      >
+                        <div className="music-tonearm-base" />
+                        <div className="music-tonearm-arm" />
+                        <div className="music-tonearm-head" />
                       </div>
                     </div>
-                  </motion.div>
 
-                  {/* Real Tonearm with playing rotation */}
-                  <div
-                    className={`music-tonearm ${isPlaying ? "music-tonearm--playing" : ""}`}
-                    aria-hidden="true"
-                  >
-                    <div className="music-tonearm-base" />
-                    <div className="music-tonearm-arm" />
-                    <div className="music-tonearm-head" />
-                  </div>
-                </div>
+                    {/* Track Metadata */}
+                    <div className="music-stage-meta">
+                      <div className="flex items-center justify-center gap-3">
+                        <h1 className="music-stage-title">{currentTrack.title}</h1>
+                        <button
+                          onClick={() => toggleLike(currentTrack.id)}
+                          className={`music-main-heart-btn ${isCurrentLiked ? "music-main-heart-btn--liked" : ""}`}
+                          title={isCurrentLiked ? "Liked!" : "Add to Liked Songs (L)"}
+                        >
+                          {isCurrentLiked ? "❤️" : "🤍"}
+                        </button>
+                      </div>
 
-                {/* Track Metadata */}
-                <div className="music-stage-meta">
-                  <div className="flex items-center justify-center gap-3">
-                    <h1 className="music-stage-title">{currentTrack.title}</h1>
-                    <button
-                      onClick={() => toggleLike(currentTrack.id)}
-                      className={`music-main-heart-btn ${isCurrentLiked ? "music-main-heart-btn--liked" : ""}`}
-                      title={isCurrentLiked ? "Liked!" : "Add to Liked Songs (L)"}
-                    >
-                      {isCurrentLiked ? "❤️" : "🤍"}
-                    </button>
-                  </div>
+                      <p className="music-stage-artist">{currentTrack.artist}</p>
 
-                  <p className="music-stage-artist">{currentTrack.artist}</p>
+                      <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
+                        {currentTrack.album && (
+                          <span className="music-pill-meta">💿 {currentTrack.album}</span>
+                        )}
+                        <span className="music-pill-meta">
+                          🔥 {currentTrack.playCount.toLocaleString()} plays
+                        </span>
+                        <span className="music-pill-meta">
+                          ⏱️ {formatTime(currentTrack.duration)}
+                        </span>
+                        <button
+                          onClick={() => setDeckMode("lyrics")}
+                          className="music-pill-meta hover:bg-white/10 text-cyan-300 border-cyan-500/30 cursor-pointer"
+                        >
+                          🎤 View Lyrics
+                        </button>
+                      </div>
+                    </div>
 
-                  <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
-                    {currentTrack.album && (
-                      <span className="music-pill-meta">💿 {currentTrack.album}</span>
-                    )}
-                    <span className="music-pill-meta">
-                      🔥 {currentTrack.playCount.toLocaleString()} plays
-                    </span>
-                    <span className="music-pill-meta">
-                      ⏱️ {formatTime(currentTrack.duration)}
-                    </span>
-                    <button
-                      onClick={() => setActiveTab("lyrics")}
-                      className="music-pill-meta hover:bg-white/10 text-cyan-300 border-cyan-500/30 cursor-pointer"
-                    >
-                      🎤 View Lyrics
-                    </button>
-                  </div>
-                </div>
+                    {/* Real-Time Web Audio Visualizer */}
+                    <div className="flex items-center justify-between px-2 mb-2 w-full max-w-3xl">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-white/70">
+                          Sóng Âm Thanh (Audio Visualizer)
+                        </span>
+                        {isPlaying && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
+                      </div>
+                      <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/10 text-xs">
+                        <button
+                          onClick={() => setVisualizerStyle("bars")}
+                          className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                            visualizerStyle === "bars"
+                              ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-bold shadow"
+                              : "text-white/60 hover:text-white"
+                          }`}
+                        >
+                          Bars
+                        </button>
+                        <button
+                          onClick={() => setVisualizerStyle("wave")}
+                          className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                            visualizerStyle === "wave"
+                              ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-bold shadow"
+                              : "text-white/60 hover:text-white"
+                          }`}
+                        >
+                          Wave
+                        </button>
+                        <button
+                          onClick={() => setVisualizerStyle("pulsar")}
+                          className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                            visualizerStyle === "pulsar"
+                              ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-bold shadow"
+                              : "text-white/60 hover:text-white"
+                          }`}
+                        >
+                          Pulsar
+                        </button>
+                      </div>
+                    </div>
 
-                {/* Real-Time Web Audio Visualizer */}
-                <div className="music-stage-visualizer">
-                  {visualizerStyle === "bars" && <SpectrumBarsVisualizer />}
-                  {visualizerStyle === "wave" && <WaveVisualizer />}
-                  {visualizerStyle === "pulsar" && <PulsarVisualizer />}
-                </div>
+                    <div className="music-stage-visualizer w-full max-w-3xl">
+                      {visualizerStyle === "bars" && <SpectrumBarsVisualizer />}
+                      {visualizerStyle === "wave" && <WaveVisualizer />}
+                      {visualizerStyle === "pulsar" && <PulsarVisualizer />}
+                    </div>
+                  </>
+                )}
 
                 {/* Quick Track Grid / Playlist Preview */}
-                <div className="music-quick-library">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-bold text-white/80 uppercase tracking-wider">
-                      Soundtrack Collection ({filteredTracks.length})
-                    </h3>
-                    <span className="text-xs text-white/40">Click to Play</span>
+                <div className="music-quick-library w-full">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-white/10">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <h3 className="text-sm font-bold text-white/90 uppercase tracking-wider flex items-center gap-2">
+                        <span>🎵</span>
+                        <span>Soundtrack Collection</span>
+                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-white/60 font-mono font-normal">
+                          {filteredTracks.length} bài hát
+                        </span>
+                      </h3>
+
+                      {/* Active Filter Chips that affect this list */}
+                      {selectedGenre !== "All" && (
+                        <div className="music-active-chip">
+                          <span>Mood: {selectedGenre}</span>
+                          <button onClick={() => setSelectedGenre("All")} title="Xóa lọc thể loại">✕</button>
+                        </div>
+                      )}
+
+                      {showOnlyLiked && (
+                        <div className="music-active-chip music-active-chip--liked">
+                          <span>❤️ Đã thích</span>
+                          <button onClick={() => setShowOnlyLiked(false)} title="Xóa lọc yêu thích">✕</button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* List Controls: Liked quick toggle & Sort dropdown */}
+                    <div className="flex items-center gap-2.5 self-start sm:self-auto">
+                      <button
+                        onClick={() => setShowOnlyLiked(!showOnlyLiked)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 cursor-pointer ${
+                          showOnlyLiked
+                            ? "bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-500/20"
+                            : "bg-white/5 text-white/70 hover:text-white border-white/10"
+                        }`}
+                        title="Chỉ hiển thị bài hát đã thích trong danh sách"
+                      >
+                        <span>{showOnlyLiked ? "❤️" : "🤍"}</span>
+                        <span>Đã thích</span>
+                      </button>
+
+                      {/* Sort dropdown */}
+                      <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1">
+                        <span className="text-xs text-white/40">⇅</span>
+                        <select
+                          value={sortBy}
+                          onChange={(e) =>
+                            setSortBy(e.target.value as "default" | "title" | "plays" | "duration")
+                          }
+                          className="bg-transparent text-xs text-white/90 focus:outline-none cursor-pointer pr-1 py-0.5"
+                          aria-label="Sắp xếp danh sách bài hát"
+                        >
+                          <option value="default" className="bg-[#121212] text-white">Sắp xếp: Mặc định</option>
+                          <option value="plays" className="bg-[#121212] text-white">Sắp xếp: Lượt nghe nhiều</option>
+                          <option value="title" className="bg-[#121212] text-white">Sắp xếp: Tên bài hát</option>
+                          <option value="duration" className="bg-[#121212] text-white">Sắp xếp: Thời lượng</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="music-grid-tracks">
@@ -553,14 +1028,558 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
               </section>
             )}
 
-            {/* ── TAB 2: KARAOKE LIVE SYNCED LYRICS ── */}
-            {activeTab === "lyrics" && (
-              <section className="music-lyrics-section max-w-2xl mx-auto w-full">
-                <LyricsView />
+            {/* ── TAB: SPOTIFY MUSIC CHARTS & LEADERBOARD ── */}
+            {activeTab === "charts" && (
+              <section className="spotify-charts-container">
+                {/* 1. Spotify Hero Billboard Banner */}
+                <div className="spotify-charts-hero">
+                  <div className="spotify-charts-hero-backdrop" />
+                  <div className="relative z-10 flex flex-col md:flex-row items-start md:items-end gap-6 p-6 sm:p-8">
+                    {/* Big Chart Cover Artwork / Badge */}
+                    <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl shadow-2xl flex-shrink-0 bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-950 flex flex-col items-center justify-center text-white border border-emerald-400/30 relative overflow-hidden group">
+                      <div className="absolute inset-0 bg-black/20" />
+                      <span className="text-5xl sm:text-6xl mb-1 relative z-10">🏆</span>
+                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-emerald-300 relative z-10">
+                        TOP CHARTS
+                      </span>
+                      <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-emerald-400/20 rounded-full blur-xl" />
+                    </div>
+
+                    {/* Chart Meta */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-400 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
+                          BẢNG XẾP HẠNG THỊNH HÀNH
+                        </span>
+                        <span className="text-[11px] text-white/40 font-mono">SPOTIFY EDITION</span>
+                      </div>
+
+                      <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight mb-3">
+                        Top Bài Hát Nghe Nhiều Nhất
+                      </h1>
+
+                      <p className="text-sm text-white/70 max-w-2xl mb-4 font-light leading-relaxed">
+                        Tuyển tập các giai điệu âm nhạc, lofi chillout và synthwave được thưởng thức nhiều nhất trên Vibe Lounge. Xếp hạng dựa trên dữ liệu lượt nghe thực tế.
+                      </p>
+
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-white/80 font-medium">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-5 h-5 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-400 flex items-center justify-center text-[10px] font-bold text-white">
+                            TH
+                          </span>
+                          <span>Tuyển chọn bởi <strong>Thạch Huỳnh</strong></span>
+                        </div>
+                        <span>•</span>
+                        <span>{chartTracks.length} bài hát</span>
+                        <span>•</span>
+                        <span>{totalPlays.toLocaleString()} lượt nghe</span>
+                        <span>•</span>
+                        <span className="text-emerald-400 font-mono">Lossless Hi-Res</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Top 3 Quick Podium Badges */}
+                  {chartTracks.length >= 3 && (
+                    <div className="px-6 sm:px-8 pb-4 grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-white/10 pt-4 relative z-10">
+                      {chartTracks.slice(0, 3).map((topT, idx) => {
+                        const medals = ["🥇 Top 1 Thịnh Hành", "🥈 Top 2 Yêu Thích", "🥉 Top 3 Nổi Bật"];
+                        const isThisPlaying = isPlaying && currentTrack?.id === topT.id;
+                        return (
+                          <div
+                            key={topT.id}
+                            onClick={() => playTrackById(topT.id)}
+                            className={`flex items-center gap-3 p-2.5 rounded-xl bg-black/40 border transition-all cursor-pointer ${
+                              isThisPlaying
+                                ? "border-emerald-500/60 bg-emerald-500/10 shadow-lg shadow-emerald-500/10"
+                                : "border-white/10 hover:border-white/20 hover:bg-white/5"
+                            }`}
+                          >
+                            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 relative bg-white/10">
+                              {topT.thumbnailUrl ? (
+                                <img src={topT.thumbnailUrl} alt={topT.title} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-xs">🎵</div>
+                              )}
+                              {isThisPlaying && (
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="text-[10px] font-bold text-amber-300 block">{medals[idx]}</span>
+                              <div className="text-xs font-bold text-white truncate">{topT.title}</div>
+                              <span className="text-[11px] text-white/50 truncate block">{topT.artist}</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-[10px] text-emerald-400 font-mono font-bold block">
+                                {(topT.playCount ?? 0).toLocaleString()}
+                              </span>
+                              <span className="text-[9px] text-white/40 block">plays</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Action Bar: Big Spotify Green Play Button & Filter Pills */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 pt-6">
+                  <div className="flex items-center gap-4">
+                    {/* Spotify Iconic Circular Big Green Play Button */}
+                    <button
+                      onClick={handlePlayChartFromStart}
+                      className="w-14 h-14 rounded-full bg-[#1db954] hover:bg-[#1ed760] text-black flex items-center justify-center shadow-xl shadow-[#1db954]/30 hover:scale-105 active:scale-95 transition-all"
+                      title="Phát tất cả từ bài số 1"
+                    >
+                      <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28" className="translate-x-0.5">
+                        <path d="M8 5.14v14l11-7-11-7z" />
+                      </svg>
+                    </button>
+
+                    {/* Shuffle Play Button */}
+                    <button
+                      onClick={handleShufflePlayCharts}
+                      className={`p-3 rounded-full border transition-all ${
+                        isShuffle
+                          ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
+                          : "bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border-white/10"
+                      }`}
+                      title="Phát ngẫu nhiên bảng xếp hạng"
+                    >
+                      <ShuffleIcon />
+                    </button>
+
+                    <div className="h-6 w-px bg-white/10" />
+
+                    <span className="text-xs text-white/60">
+                      Đang hiển thị <strong>{chartTracks.length}</strong> bài hát
+                    </span>
+                  </div>
+
+                  {/* Chart Sorting Tabs */}
+                  <div className="flex items-center gap-1.5 p-1 bg-white/[0.04] rounded-xl border border-white/10 self-start sm:self-auto">
+                    <button
+                      onClick={() => setChartFilter("plays")}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        chartFilter === "plays"
+                          ? "bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40"
+                          : "text-white/60 hover:text-white"
+                      }`}
+                    >
+                      🔥 Top Lượt Nghe
+                    </button>
+                    <button
+                      onClick={() => setChartFilter("liked")}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        chartFilter === "liked"
+                          ? "bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40"
+                          : "text-white/60 hover:text-white"
+                      }`}
+                    >
+                      ❤️ Được Yêu Thích
+                    </button>
+                    <button
+                      onClick={() => setChartFilter("recent")}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        chartFilter === "recent"
+                          ? "bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40"
+                          : "text-white/60 hover:text-white"
+                      }`}
+                    >
+                      ✨ Mới Nhất
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3. Spotify Track Table */}
+                <div className="px-4 sm:px-8 pb-16">
+                  <div className="spotify-track-table">
+                    {/* Header */}
+                    <div className="spotify-table-header">
+                      <div className="w-10 text-center font-bold">#</div>
+                      <div className="flex-1 min-w-0">TIÊU ĐỀ</div>
+                      <div className="hidden md:block w-48">ALBUM / THỂ LOẠI</div>
+                      <div className="hidden sm:block w-36 text-right">LƯỢT PHÁT</div>
+                      <div className="w-24 text-right pr-2">THỜI LƯỢNG</div>
+                    </div>
+
+                    {/* Rows */}
+                    <div className="space-y-1">
+                      {chartTracks.map((track, index) => {
+                        const isCurrent = currentTrack?.id === track.id;
+                        const isThisPlaying = isCurrent && isPlaying;
+                        const isLiked = likedTrackIds.has(track.id);
+                        const isHovered = hoveredTrackId === track.id;
+                        const rank = index + 1;
+                        const playPercent = Math.round(((track.playCount ?? 0) / maxPlays) * 100);
+
+                        return (
+                          <div
+                            key={track.id}
+                            onMouseEnter={() => setHoveredTrackId(track.id)}
+                            onMouseLeave={() => setHoveredTrackId(null)}
+                            onClick={() => playTrackById(track.id)}
+                            className={`spotify-table-row group ${
+                              isCurrent ? "spotify-table-row--active" : ""
+                            }`}
+                          >
+                            {/* Rank / Play Icon Col */}
+                            <div className="w-10 text-center flex items-center justify-center flex-shrink-0">
+                              {isHovered ? (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (isCurrent) {
+                                      togglePlay();
+                                    } else {
+                                      playTrackById(track.id);
+                                    }
+                                  }}
+                                  className="w-7 h-7 rounded-full bg-[#1db954] text-black flex items-center justify-center shadow hover:scale-110 transition-transform"
+                                  title={isThisPlaying ? "Tạm dừng" : "Phát bài hát"}
+                                >
+                                  {isThisPlaying ? (
+                                    <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                                      <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                                    </svg>
+                                  ) : (
+                                    <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14" className="translate-x-0.5">
+                                      <path d="M8 5.14v14l11-7-11-7z" />
+                                    </svg>
+                                  )}
+                                </button>
+                              ) : isThisPlaying ? (
+                                <div className="music-mini-bars">
+                                  <span style={{ backgroundColor: "#1db954" }} />
+                                  <span style={{ backgroundColor: "#1db954" }} />
+                                  <span style={{ backgroundColor: "#1db954" }} />
+                                </div>
+                              ) : rank === 1 ? (
+                                <span className="text-base" title="Top 1">🥇</span>
+                              ) : rank === 2 ? (
+                                <span className="text-base" title="Top 2">🥈</span>
+                              ) : rank === 3 ? (
+                                <span className="text-base" title="Top 3">🥉</span>
+                              ) : (
+                                <span className="text-xs font-mono text-white/50">{rank}</span>
+                              )}
+                            </div>
+
+                            {/* Title & Artist & Thumbnail Col */}
+                            <div className="flex-1 min-w-0 flex items-center gap-3 pr-2">
+                              <div className="w-11 h-11 rounded-lg overflow-hidden bg-white/10 flex-shrink-0 shadow relative">
+                                {track.thumbnailUrl ? (
+                                  <img src={track.thumbnailUrl} alt={track.title} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-sm">🎵</div>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <div className={`text-sm font-semibold truncate transition-colors ${
+                                  isCurrent ? "text-[#1db954] font-bold" : "text-white group-hover:text-white"
+                                }`}>
+                                  {track.title}
+                                </div>
+                                <div className="text-xs text-white/50 truncate flex items-center gap-2">
+                                  <span>{track.artist}</span>
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-white/10 text-white/70 font-mono uppercase">
+                                    Lossless
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Album / Genre Col */}
+                            <div className="hidden md:block w-48 text-xs text-white/60 truncate pr-4">
+                              {track.album || track.genre || "Single Release"}
+                            </div>
+
+                            {/* Plays count & popularity bar Col */}
+                            <div className="hidden sm:flex flex-col items-end justify-center w-36 pr-4">
+                              <span className="text-xs font-mono font-medium text-white/80 tabular-nums">
+                                {(track.playCount ?? 0).toLocaleString()} plays
+                              </span>
+                              <div className="w-20 h-1 rounded-full bg-white/10 mt-1 overflow-hidden">
+                                <div
+                                  className="h-full bg-gradient-to-r from-emerald-500 to-[#1db954] rounded-full"
+                                  style={{ width: `${Math.max(5, playPercent)}%` }}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Duration & Heart Like Col */}
+                            <div className="w-24 flex items-center justify-end gap-3 flex-shrink-0 pr-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleLike(track.id);
+                                }}
+                                className={`text-sm transition-transform active:scale-125 ${
+                                  isLiked ? "text-emerald-400" : "text-white/20 hover:text-white/80"
+                                }`}
+                                title={isLiked ? "Bỏ thích" : "Yêu thích"}
+                              >
+                                {isLiked ? "❤️" : "🤍"}
+                              </button>
+                              <span className="text-xs font-mono text-white/50 tabular-nums">
+                                {formatTime(track.duration)}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
               </section>
             )}
 
-            {/* ── TAB 3: QUEUE LIST ── */}
+            {/* ── TAB: FAVORITE TRACKS (BÀI HÁT YÊU THÍCH) ── */}
+            {activeTab === "favorites" && (
+              <section className="spotify-charts-container">
+                {/* 1. Hero Billboard Banner */}
+                <div className="spotify-charts-hero !from-rose-950/40 !via-pink-950/30">
+                  <div
+                    className="spotify-charts-hero-backdrop"
+                    style={{
+                      background:
+                        "radial-gradient(circle at top left, rgba(244, 63, 94, 0.25) 0%, transparent 70%)",
+                    }}
+                  />
+                  <div className="relative z-10 flex flex-col md:flex-row items-start md:items-end gap-6 p-6 sm:p-8">
+                    {/* Big Heart Cover Artwork */}
+                    <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl shadow-2xl flex-shrink-0 bg-gradient-to-br from-rose-600 via-pink-600 to-purple-900 flex flex-col items-center justify-center text-white border border-rose-400/40 relative overflow-hidden group shadow-rose-900/40">
+                      <div className="absolute inset-0 bg-black/15" />
+                      <span className="text-5xl sm:text-6xl mb-1 relative z-10 drop-shadow-md">
+                        ❤️
+                      </span>
+                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-rose-200 relative z-10">
+                        FAVORITES
+                      </span>
+                      <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-rose-400/30 rounded-full blur-xl" />
+                    </div>
+
+                    {/* Meta */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[11px] font-extrabold uppercase tracking-widest text-rose-400 px-2.5 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30">
+                          DANH SÁCH YÊU THÍCH
+                        </span>
+                        <span className="text-[11px] text-white/40 font-mono">SPOTIFY EDITION</span>
+                      </div>
+
+                      <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight mb-3">
+                        Bài Hát Yêu Thích
+                      </h1>
+
+                      <p className="text-sm text-white/70 max-w-2xl mb-4 font-light leading-relaxed">
+                        Tuyển tập tất cả giai điệu bạn đã lưu và yêu thích trên Vibe Lounge. Tự động đồng bộ và lưu trữ trên trình duyệt.
+                      </p>
+
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-white/80 font-medium">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-5 h-5 rounded-full bg-gradient-to-tr from-rose-500 to-pink-500 flex items-center justify-center text-[10px] font-bold text-white">
+                            ❤️
+                          </span>
+                          <span>
+                            <strong>{likedTracks.length}</strong> bài hát đã lưu
+                          </span>
+                        </div>
+                        <span>•</span>
+                        <span>{formatTime(totalLikedDuration)} tổng thời lượng</span>
+                        <span>•</span>
+                        <span className="text-rose-400 font-mono">Lossless Hi-Res</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Action Bar */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 pt-6">
+                  <div className="flex items-center gap-4">
+                    {/* Big Play Button */}
+                    <button
+                      onClick={() => {
+                        if (likedTracks.length > 0) {
+                          playTrackById(likedTracks[0].id);
+                        }
+                      }}
+                      disabled={likedTracks.length === 0}
+                      className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${
+                        likedTracks.length > 0
+                          ? "bg-gradient-to-tr from-rose-500 to-pink-500 text-white hover:scale-105 active:scale-95 shadow-rose-500/30 cursor-pointer"
+                          : "bg-white/10 text-white/30 cursor-not-allowed"
+                      }`}
+                      title={likedTracks.length > 0 ? "Phát tất cả bài hát yêu thích" : "Chưa có bài hát"}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        width="26"
+                        height="26"
+                        className="translate-x-0.5"
+                      >
+                        <path d="M8 5.14v14l11-7-11-7z" />
+                      </svg>
+                    </button>
+
+                    {/* Shuffle Button */}
+                    {likedTracks.length > 1 && (
+                      <button
+                        onClick={() => {
+                          setIsShuffle(true);
+                          const rand = Math.floor(Math.random() * likedTracks.length);
+                          playTrackById(likedTracks[rand].id);
+                        }}
+                        className="p-3 rounded-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-all text-sm"
+                        title="Phát ngẫu nhiên danh sách yêu thích"
+                      >
+                        🔀
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="text-xs text-white/40">
+                    Nhấn biểu tượng ❤️ để gỡ bỏ bài hát khỏi danh sách
+                  </div>
+                </div>
+
+                {/* 3. Table of Liked Tracks */}
+                <div className="px-4 sm:px-8 pb-12">
+                  {likedTracks.length === 0 ? (
+                    <div className="p-12 text-center rounded-2xl bg-white/[0.02] border border-dashed border-white/10 flex flex-col items-center justify-center max-w-md mx-auto my-8">
+                      <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-3xl mb-4">
+                        💔
+                      </div>
+                      <h3 className="text-base font-bold text-white mb-2">
+                        Chưa có bài hát yêu thích nào
+                      </h3>
+                      <p className="text-xs text-white/50 mb-6 leading-relaxed">
+                        Hãy nhấn biểu tượng trái tim (❤️) trên bất kỳ bài hát nào trong Bảng Xếp Hạng hoặc Trình Phát để thêm vào danh sách này.
+                      </p>
+                      <button
+                        onClick={() => {
+                          setActiveTab("charts");
+                          setShowOnlyLiked(false);
+                        }}
+                        className="px-5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2 cursor-pointer"
+                      >
+                        <span>🏆</span>
+                        <span>Khám phá Bảng Xếp Hạng</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur-md overflow-hidden shadow-2xl">
+                      {/* Table Header */}
+                      <div className="flex items-center px-4 py-3 text-[11px] font-bold text-white/40 uppercase tracking-wider border-b border-white/10">
+                        <div className="w-10 text-center">#</div>
+                        <div className="flex-1 min-w-0 pr-2">TIÊU ĐỀ & NGHỆ SĨ</div>
+                        <div className="hidden md:block w-48 pr-4">ALBUM / THỂ LOẠI</div>
+                        <div className="hidden sm:block w-28 text-right pr-4">LƯỢT NGHE</div>
+                        <div className="w-24 text-right pr-2">THỜI LƯỢNG</div>
+                      </div>
+
+                      {/* Table Rows */}
+                      <div className="divide-y divide-white/5">
+                        {likedTracks.map((track, idx) => {
+                          const isCurrent = currentTrack?.id === track.id;
+                          const isThisPlaying = isPlaying && isCurrent;
+
+                          return (
+                            <div
+                              key={track.id}
+                              onClick={() => playTrackById(track.id)}
+                              className={`flex items-center px-4 py-3 cursor-pointer group transition-colors ${
+                                isCurrent ? "bg-rose-500/10" : "hover:bg-white/5"
+                              }`}
+                            >
+                              {/* # Col */}
+                              <div className="w-10 text-center flex items-center justify-center flex-shrink-0">
+                                {isThisPlaying ? (
+                                  <div className="music-mini-bars">
+                                    <span style={{ backgroundColor: "#f43f5e" }} />
+                                    <span style={{ backgroundColor: "#f43f5e" }} />
+                                    <span style={{ backgroundColor: "#f43f5e" }} />
+                                  </div>
+                                ) : (
+                                  <span className="text-xs font-mono text-white/40 group-hover:hidden">
+                                    {idx + 1}
+                                  </span>
+                                )}
+                                <span className="hidden group-hover:inline-block text-xs text-white">
+                                  ▶
+                                </span>
+                              </div>
+
+                              {/* Title, Artist, Thumb */}
+                              <div className="flex-1 min-w-0 flex items-center gap-3 pr-2">
+                                <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 flex-shrink-0 shadow relative">
+                                  {track.thumbnailUrl ? (
+                                    <img
+                                      src={track.thumbnailUrl}
+                                      alt={track.title}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-xs">
+                                      🎵
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <div
+                                    className={`text-sm font-semibold truncate ${
+                                      isCurrent ? "text-rose-400 font-bold" : "text-white"
+                                    }`}
+                                  >
+                                    {track.title}
+                                  </div>
+                                  <div className="text-xs text-white/50 truncate flex items-center gap-2">
+                                    <span>{track.artist}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Album / Genre */}
+                              <div className="hidden md:block w-48 text-xs text-white/60 truncate pr-4">
+                                {track.album || track.genre || "Single Release"}
+                              </div>
+
+                              {/* Plays count */}
+                              <div className="hidden sm:block w-28 text-right text-xs font-mono text-white/70 pr-4">
+                                {(track.playCount ?? 0).toLocaleString()}
+                              </div>
+
+                              {/* Duration & Unlike button */}
+                              <div className="w-24 flex items-center justify-end gap-3 flex-shrink-0 pr-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleLike(track.id);
+                                  }}
+                                  className="text-sm text-rose-400 hover:scale-125 transition-transform"
+                                  title="Gỡ khỏi danh sách yêu thích"
+                                >
+                                  ❤️
+                                </button>
+                                <span className="text-xs font-mono text-white/50 tabular-nums">
+                                  {formatTime(track.duration)}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* ── TAB 2: QUEUE LIST ── */}
             {activeTab === "queue" && (
               <section className="music-queue-view">
                 <div className="flex items-center justify-between mb-4">
@@ -776,16 +1795,13 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
               </section>
             )}
           </main>
-        </div>
-      )}
 
-      {/* ─────────────────────────────────────────────────────────────
-          COLLAPSIBLE PRO BOTTOM PLAYER BAR (When not in Zen Mode)
-      ────────────────────────────────────────────────────────────── */}
-      {!isZenMode && (
-        <AnimatePresence mode="wait">
+          {/* ─────────────────────────────────────────────────────────────
+              COLLAPSIBLE PRO BOTTOM PLAYER BAR (Inside Right Stage Column)
+          ────────────────────────────────────────────────────────────── */}
+          <AnimatePresence mode="wait">
           {isPlayerCollapsed ? (
-            /* ── COLLAPSED MINI FLOATING DOCK (Thu gọn) ── */
+            /* ── COLLAPSED MINI FLOATING DOCK ── */
             <motion.div
               key="collapsed-player"
               initial={{ y: 80, opacity: 0, scale: 0.95 }}
@@ -847,7 +1863,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
               </div>
             </motion.div>
           ) : (
-            /* ── EXPANDED FULL PRO STUDIO BAR (Mở rộng) ── */
+            /* ── EXPANDED FULL PRO STUDIO BAR ── */
             <motion.footer
               key="expanded-player"
               initial={{ y: 100, opacity: 0 }}
@@ -870,9 +1886,8 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     <span className="music-bar-title">{currentTrack.title}</span>
                     <button
                       onClick={() => toggleLike(currentTrack.id)}
-                      className={`text-xs transition-colors ${
-                        isCurrentLiked ? "text-red-400" : "text-white/30 hover:text-white"
-                      }`}
+                      className={`text-xs transition-colors ${isCurrentLiked ? "text-red-400" : "text-white/30 hover:text-white"
+                        }`}
                       title={isCurrentLiked ? "Liked!" : "Like track"}
                     >
                       {isCurrentLiked ? "❤️" : "🤍"}
@@ -984,8 +1999,29 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 </div>
               </div>
 
-              {/* Right: Speed, Volume, Collapse Button */}
+              {/* Right: Karaoke, Speed, Volume, Collapse Button */}
               <div className="music-bar-right">
+                {/* Quick Karaoke Toggle Button */}
+                <button
+                  onClick={() => {
+                    setActiveTab("player");
+                    setDeckMode(deckMode === "lyrics" && activeTab === "player" ? "vinyl" : "lyrics");
+                  }}
+                  className={`music-ctrl-btn music-ctrl-btn--sm ${
+                    deckMode === "lyrics" && activeTab === "player"
+                      ? "!text-cyan-300 !border-cyan-500/40 !bg-cyan-500/20"
+                      : "text-white/60 hover:text-white"
+                  }`}
+                  title={
+                    deckMode === "lyrics" && activeTab === "player"
+                      ? "Đóng lời bài hát (về đĩa than)"
+                      : "Xem Lời Bài Hát (Karaoke)"
+                  }
+                  aria-label="Karaoke"
+                >
+                  🎤
+                </button>
+
                 {/* Playback speed */}
                 <button
                   onClick={cycleSpeed}
@@ -1029,7 +2065,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   </div>
                 </div>
 
-                {/* Collapse Player Button (Thu gọn) */}
+                {/* Collapse Player Button */}
                 <button
                   onClick={togglePlayerCollapsed}
                   className="music-collapse-btn"
@@ -1042,6 +2078,8 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
             </motion.footer>
           )}
         </AnimatePresence>
+          </div>
+        </div>
       )}
     </div>
   );

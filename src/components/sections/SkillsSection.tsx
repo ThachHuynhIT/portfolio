@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { AnimatedSection, GlassCard } from "@/components/ui";
 import { skills } from "@/lib/constants";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
+import { useTranslation } from "@/context/LanguageContext";
 
 // Dynamic imports for 3D components
 const SceneContainer = dynamic(
@@ -20,14 +21,8 @@ const FloatingTechStack = dynamic(
 
 const categories = ["frontend", "backend", "tools", "design"] as const;
 
-const categoryLabels = {
-  frontend: "Frontend",
-  backend: "Backend",
-  tools: "DevOps & Tools",
-  design: "Design",
-};
-
 export default function SkillsSection() {
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -51,16 +46,16 @@ export default function SkillsSection() {
         <AnimatedSection>
           <div className="text-center mb-16">
             <span className="text-sm text-cyan-500 font-medium tracking-wider uppercase mb-4 block">
-              My Skills
+              {t("skills.badge")}
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Technologies I{" "}
+              {t("skills.titlePrefix")}
               <span className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
-                Work With
+                {t("skills.titleHighlight")}
               </span>
             </h2>
             <p className="text-white/60 max-w-2xl mx-auto">
-              A curated collection of the technologies and tools I use to bring ideas to life
+              {t("skills.subtitle")}
             </p>
           </div>
         </AnimatedSection>
@@ -70,7 +65,7 @@ export default function SkillsSection() {
           {categories.map((category) => (
             <AnimatedSection key={category}>
               <h3 className="text-xl font-semibold text-white mb-6">
-                {categoryLabels[category]}
+                {t(`skills.categories.${category}`)}
               </h3>
               <motion.div
                 variants={staggerContainer}
@@ -84,7 +79,17 @@ export default function SkillsSection() {
                   .map((skill) => (
                     <motion.div key={skill.name} variants={fadeInUp}>
                       <GlassCard className="p-4 text-center group cursor-pointer">
-                        <div className="text-3xl mb-2">{skill.icon}</div>
+                        <div className="h-10 flex items-center justify-center mb-2">
+                          {skill.icon && (skill.icon.startsWith("http") || skill.icon.startsWith("/")) ? (
+                            <img
+                              src={skill.icon}
+                              alt={skill.name}
+                              className="w-8 h-8 object-contain transition-transform group-hover:scale-110"
+                            />
+                          ) : (
+                            <span className="text-3xl">{skill.icon || "⚡"}</span>
+                          )}
+                        </div>
                         <div className="text-white/80 text-sm font-medium">
                           {skill.name}
                         </div>

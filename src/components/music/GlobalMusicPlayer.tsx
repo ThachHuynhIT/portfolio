@@ -21,8 +21,12 @@ export default function GlobalMusicPlayer() {
 
   const [isDismissed, setIsDismissed] = useState(false);
 
-  // If on music page or admin, don't show the global floating overlay
-  if (pathname?.startsWith("/music") || pathname?.startsWith("/admin")) {
+  // If on music page, admin, or couple page, don't show the global floating overlay
+  if (
+    pathname?.startsWith("/music") ||
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/couple")
+  ) {
     return null;
   }
 

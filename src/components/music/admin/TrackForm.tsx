@@ -2,8 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/context/ToastContext";
+import MediaPickerModal from "@/components/admin/MediaPickerModal";
+import AdminFormFooter from "@/components/admin/AdminFormFooter";
 
-type SourceMode = "upload" | "url";
+type SourceMode = "upload" | "url" | "library";
 
 interface TrackFormData {
   title: string;
@@ -46,6 +49,7 @@ function formatTime(seconds: number): string {
 
 export default function TrackForm({ initialData, mode }: TrackFormProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const audioInputRef = useRef<HTMLInputElement>(null);
   const thumbInputRef = useRef<HTMLInputElement>(null);
 
@@ -73,6 +77,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
   const [thumbPreviewUrl, setThumbPreviewUrl] = useState<string | null>(
     initialData?.thumbnailUrl || null
   );
+  const [isThumbPickerOpen, setIsThumbPickerOpen] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -187,9 +192,16 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
       }
 
       setSuccess(true);
+      toast.success(
+        mode === "edit"
+          ? `Track "${formData.title}" updated successfully!`
+          : `Track "${formData.title}" published successfully!`
+      );
       setTimeout(() => router.push("/admin/music"), 900);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      const msg = err instanceof Error ? err.message : "Something went wrong.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -439,6 +451,18 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               <button
                 type="button"
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  thumbMode === "library" ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"
+                }`}
+                onClick={() => {
+                  setThumbMode("library");
+                  setIsThumbPickerOpen(true);
+                }}
+              >
+                📁 Cloud Library
+              </button>
+              <button
+                type="button"
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                   thumbMode === "url" ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"
                 }`}
                 onClick={() => setThumbMode("url")}
@@ -458,6 +482,17 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               value={formData.thumbnailUrl}
               onChange={handleChange}
             />
+          ) : thumbMode === "library" ? (
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setIsThumbPickerOpen(true)}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gray-800/60 hover:bg-gray-800 border border-dashed border-gray-700 hover:border-purple-500 text-purple-300 rounded-xl text-xs font-semibold transition-all"
+              >
+                <span>📁</span>
+                <span>Open Cloud Library to choose track cover art…</span>
+              </button>
+            </div>
           ) : (
             <div
               className="border-2 border-dashed border-gray-700 hover:border-purple-500/80 bg-gray-800/30 hover:bg-purple-950/10 rounded-2xl p-5 text-center cursor-pointer transition-all"
@@ -484,6 +519,43 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                   <p className="text-[11px] text-gray-500">JPG, PNG, WEBP, GIF</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Thumbnail Preview if set */}
+          {formData.thumbnailUrl && (
+            <div className="flex items-center gap-3 p-2 bg-gray-800/60 border border-gray-700 rounded-xl mt-2">
+              <div className="w-12 h-12 rounded-lg bg-black/40 overflow-hidden flex-shrink-0 border border-white/5">
+                <img
+                  src={formData.thumbnailUrl}
+                  alt="Thumbnail"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-gray-300 font-mono truncate" title={formData.thumbnailUrl}>
+                  {formData.thumbnailUrl}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsThumbPickerOpen(true)}
+                  className="text-[11px] text-purple-400 hover:underline mt-0.5"
+                >
+                  Change image from library
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData((prev) => ({ ...prev, thumbnailUrl: "" }));
+                  setThumbFile(null);
+                  setThumbPreviewUrl(null);
+                }}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-white/5 transition-all text-xs"
+                title="Remove image"
+              >
+                ✕
+              </button>
             </div>
           )}
         </div>
@@ -516,28 +588,21 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
         )}
 
         {/* ── Buttons ── */}
-        <div className="flex items-center gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={isSubmitting || isUploading}
-            className="flex-1 py-3 px-6 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-bold text-sm shadow-lg shadow-purple-500/25 transition-all disabled:opacity-50"
-          >
-            {isUploading
-              ? "☁️ Uploading Media…"
+        <AdminFormFooter
+          closeHref="/admin/music"
+          closeLabel="Cancel"
+          saveLabel={
+            isUploading
+              ? "Uploading Media…"
               : isSubmitting
               ? "Saving Track…"
               : mode === "edit"
               ? "Save Changes"
-              : "Publish Track"}
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push("/admin/music")}
-            className="py-3 px-5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-semibold transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
+              : "Publish Track"
+          }
+          isSaving={isSubmitting || isUploading}
+          className="mt-4 pt-4 border-t border-gray-800"
+        />
       </form>
 
       {/* ── RIGHT: REAL-TIME LIVE PREVIEW ── */}
@@ -612,6 +677,19 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
           </div>
         </div>
       </div>
+
+      {/* Media Picker Modal for Album Cover */}
+      <MediaPickerModal
+        isOpen={isThumbPickerOpen}
+        onClose={() => setIsThumbPickerOpen(false)}
+        onSelect={(url) => {
+          setFormData((prev) => ({ ...prev, thumbnailUrl: url }));
+          setThumbFile(null);
+          setThumbPreviewUrl(url);
+        }}
+        title="Choose cover art from Cloud Library"
+        defaultCategory="music"
+      />
     </div>
   );
 }

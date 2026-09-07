@@ -3,14 +3,19 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
+import AdminModal from "@/components/admin/AdminModal";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import MediaImagePicker from "@/components/admin/MediaImagePicker";
+import { useToast } from "@/context/ToastContext";
 import type { Project } from "@/lib/types";
 
 export default function ProjectsAdminPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
@@ -24,6 +29,8 @@ export default function ProjectsAdminPage() {
   const [formLiveUrl, setFormLiveUrl] = useState("");
   const [formGithubUrl, setFormGithubUrl] = useState("");
   const [formFeatured, setFormFeatured] = useState(false);
+  const [formPublished, setFormPublished] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
 
   const fetchProjects = async () => {
     try {
@@ -36,6 +43,7 @@ export default function ProjectsAdminPage() {
       setProjects(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch projects:", err);
+      toast.error("Failed to load projects list");
     } finally {
       setLoading(false);
     }
@@ -54,6 +62,7 @@ export default function ProjectsAdminPage() {
     setFormLiveUrl("");
     setFormGithubUrl("");
     setFormFeatured(false);
+    setFormPublished(true);
     setIsCreating(true);
     setEditingProject(null);
   };
@@ -68,6 +77,7 @@ export default function ProjectsAdminPage() {
     setFormLiveUrl(project.liveUrl || "");
     setFormGithubUrl(project.githubUrl || "");
     setFormFeatured(!!project.featured);
+    setFormPublished(project.published !== false);
     setIsCreating(false);
   };
 
@@ -76,8 +86,25 @@ export default function ProjectsAdminPage() {
     setEditingProject(null);
   };
 
+  const handleTogglePublish = async (project: Project) => {
+    const nextPublished = project.published === false ? true : false;
+    try {
+      const res = await fetch("/api/admin/projects", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: project.id, published: nextPublished }),
+      });
+      if (!res.ok) throw new Error("Failed to toggle publish status");
+      toast.success(`"${project.title}" is now ${nextPublished ? "Published" : "Draft"}`);
+      fetchProjects();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to toggle status");
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
 
     const payload = {
       title: formTitle,
@@ -88,36 +115,60 @@ export default function ProjectsAdminPage() {
       liveUrl: formLiveUrl,
       githubUrl: formGithubUrl,
       featured: formFeatured,
+      published: formPublished,
     };
 
-    if (isCreating) {
-      await fetch("/api/admin/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    } else if (editingProject) {
-      await fetch("/api/admin/projects", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingProject.id, ...payload }),
-      });
+    try {
+      let res: Response;
+      if (isCreating) {
+        res = await fetch("/api/admin/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create project");
+        toast.success(`Project "${formTitle}" added successfully!`);
+      } else if (editingProject) {
+        res = await fetch("/api/admin/projects", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: editingProject.id, ...payload }),
+        });
+        if (!res.ok) throw new Error("Failed to update project");
+        toast.success(`Project "${formTitle}" updated successfully!`);
+      }
+      closeModal();
+      fetchProjects();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to save project";
+      toast.error(msg);
+    } finally {
+      setIsSaving(false);
     }
-
-    closeModal();
-    fetchProjects();
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
 
-    await fetch(`/api/admin/projects?id=${deleteTarget.id}`, {
-      method: "DELETE",
-    });
-
-    setDeleteTarget(null);
-    fetchProjects();
+    try {
+      const res = await fetch(`/api/admin/projects?id=${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete project");
+      toast.success(`Project "${deleteTarget.title}" deleted successfully!`);
+      setDeleteTarget(null);
+      fetchProjects();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete project";
+      toast.error(msg);
+    }
   };
+
+  const filteredProjects = projects.filter((p) => {
+    if (statusFilter === "published") return p.published !== false;
+    if (statusFilter === "draft") return p.published === false;
+    return true;
+  });
 
   if (loading) {
     return (
@@ -128,37 +179,63 @@ export default function ProjectsAdminPage() {
   }
 
   return (
-    <div className="max-w-5xl">
+    <>
       <AdminHeader
         title="Projects"
         description="Add, edit, or feature projects displayed on your portfolio homepage."
         icon="projects"
         action={
-          <button
-            onClick={openCreateModal}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
-          >
-            <span className="text-base leading-none">+</span>
-            Add Project
-          </button>
+          <div className="flex items-center gap-3">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none"
+            >
+              <option value="all">All Projects ({projects.length})</option>
+              <option value="published">Published ({projects.filter((p) => p.published !== false).length})</option>
+              <option value="draft">Draft ({projects.filter((p) => p.published === false).length})</option>
+            </select>
+            <button
+              onClick={openCreateModal}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
+            >
+              <span className="text-base leading-none">+</span>
+              Add Project
+            </button>
+          </div>
         }
       />
 
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {projects.map((project) => (
+        {filteredProjects.map((project) => (
           <div
             key={project.id}
-            className="p-6 rounded-2xl bg-gray-900 border border-gray-800 flex flex-col justify-between"
+            className="p-6 rounded-2xl bg-gray-900 border border-gray-800 flex flex-col justify-between hover:border-gray-700 transition-all"
           >
             <div>
               <div className="flex items-start justify-between gap-4 mb-3">
                 <h3 className="text-lg font-bold text-white">{project.title}</h3>
-                {project.featured && (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                    Featured
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePublish(project)}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${
+                      project.published !== false
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                        : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
+                    }`}
+                    title="Click to toggle status"
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${project.published !== false ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
+                    {project.published !== false ? "Published" : "Draft"}
+                  </button>
+                  {project.featured && (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                      Featured
+                    </span>
+                  )}
+                </div>
               </div>
 
               <p className="text-gray-400 text-sm mb-4 line-clamp-2">
@@ -203,125 +280,121 @@ export default function ProjectsAdminPage() {
       </div>
 
       {/* Modal for Create/Edit */}
-      {(isCreating || editingProject) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative z-10 w-full max-w-xl bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-white mb-6">
-              {isCreating ? "Add New Project" : "Edit Project"}
-            </h3>
+      <AdminModal
+        isOpen={isCreating || !!editingProject}
+        onClose={closeModal}
+        title={isCreating ? "Add New Project" : "Edit Project"}
+        subtitle={
+          isCreating
+            ? "Fill in project details, tech stack, and URLs to feature in your portfolio."
+            : `Editing "${editingProject?.title}".`
+        }
+        icon="projects"
+        onSubmit={handleSave}
+        saveLabel={isCreating ? "Save Project" : "Save Changes"}
+        closeLabel="Close"
+        isSaving={isSaving}
+        maxWidth="max-w-2xl"
+      >
+        <FormField label="Project Title" id="proj-title" required>
+          <input
+            id="proj-title"
+            type="text"
+            value={formTitle}
+            onChange={(e) => setFormTitle(e.target.value)}
+            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            required
+          />
+        </FormField>
 
-            <form onSubmit={handleSave} className="space-y-4">
-              <FormField label="Project Title" id="proj-title" required>
-                <input
-                  id="proj-title"
-                  type="text"
-                  value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  required
-                />
-              </FormField>
+        <FormField label="Short Description" id="proj-desc" required>
+          <textarea
+            id="proj-desc"
+            rows={2}
+            value={formDesc}
+            onChange={(e) => setFormDesc(e.target.value)}
+            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            required
+          />
+        </FormField>
 
-              <FormField label="Short Description" id="proj-desc" required>
-                <textarea
-                  id="proj-desc"
-                  rows={2}
-                  value={formDesc}
-                  onChange={(e) => setFormDesc(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  required
-                />
-              </FormField>
+        <FormField label="Long Description (Optional Markdown/Details)" id="proj-long-desc">
+          <textarea
+            id="proj-long-desc"
+            rows={4}
+            value={formLongDesc}
+            onChange={(e) => setFormLongDesc(e.target.value)}
+            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+          />
+        </FormField>
 
-              <FormField label="Long Description" id="proj-long-desc">
-                <textarea
-                  id="proj-long-desc"
-                  rows={4}
-                  value={formLongDesc}
-                  onChange={(e) => setFormLongDesc(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                />
-              </FormField>
+        <MediaImagePicker
+          label="Cover Image"
+          value={formImage}
+          onChange={setFormImage}
+          category="project"
+          subType="cover"
+          required
+          helperText="Select or upload a high-resolution screenshot or mockup of your project."
+        />
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField label="Image Path" id="proj-image" required>
-                  <input
-                    id="proj-image"
-                    type="text"
-                    value={formImage}
-                    onChange={(e) => setFormImage(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                    required
-                  />
-                </FormField>
+        <FormField label="Tech Stack Tags (Comma separated)" id="proj-tags" required>
+          <input
+            id="proj-tags"
+            type="text"
+            value={formTags}
+            onChange={(e) => setFormTags(e.target.value)}
+            placeholder="Next.js, TypeScript, TailwindCSS, Three.js"
+            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            required
+          />
+        </FormField>
 
-                <FormField label="Tags (comma separated)" id="proj-tags" required>
-                  <input
-                    id="proj-tags"
-                    type="text"
-                    value={formTags}
-                    onChange={(e) => setFormTags(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                    required
-                  />
-                </FormField>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField label="Live Demo URL" id="proj-live">
-                  <input
-                    id="proj-live"
-                    type="url"
-                    value={formLiveUrl}
-                    onChange={(e) => setFormLiveUrl(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  />
-                </FormField>
-
-                <FormField label="GitHub Repository URL" id="proj-github">
-                  <input
-                    id="proj-github"
-                    type="url"
-                    value={formGithubUrl}
-                    onChange={(e) => setFormGithubUrl(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  />
-                </FormField>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  id="proj-featured"
-                  type="checkbox"
-                  checked={formFeatured}
-                  onChange={(e) => setFormFeatured(e.target.checked)}
-                  className="w-4 h-4 accent-purple-500 cursor-pointer"
-                />
-                <label htmlFor="proj-featured" className="text-sm font-medium text-gray-300 cursor-pointer">
-                  Feature this project on homepage
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-4 py-2 text-sm text-gray-400 hover:text-white bg-gray-800 rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-500 rounded-xl"
-                >
-                  Save Project
-                </button>
-              </div>
-            </form>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField label="Live Demo URL" id="proj-live">
+            <input
+              id="proj-live"
+              type="url"
+              value={formLiveUrl}
+              onChange={(e) => setFormLiveUrl(e.target.value)}
+              placeholder="https://myproject.com"
+              className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            />
+          </FormField>
+          <FormField label="GitHub Repository URL" id="proj-github">
+            <input
+              id="proj-github"
+              type="url"
+              value={formGithubUrl}
+              onChange={(e) => setFormGithubUrl(e.target.value)}
+              placeholder="https://github.com/username/repo"
+              className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            />
+          </FormField>
         </div>
-      )}
+
+        <div className="flex flex-wrap items-center gap-6 pt-2">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formFeatured}
+              onChange={(e) => setFormFeatured(e.target.checked)}
+              className="rounded border-white/20 bg-slate-950 text-purple-600 focus:ring-purple-500 w-4 h-4"
+            />
+            <span className="text-sm font-medium text-gray-300">Feature this project</span>
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formPublished}
+              onChange={(e) => setFormPublished(e.target.checked)}
+              className="rounded border-white/20 bg-slate-950 text-purple-600 focus:ring-purple-500 w-4 h-4"
+            />
+            <span className="text-sm font-medium text-emerald-400">Published (Visible on portfolio)</span>
+          </label>
+        </div>
+      </AdminModal>
 
       {/* Delete Confirmation */}
       <ConfirmDialog
@@ -333,6 +406,6 @@ export default function ProjectsAdminPage() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </>
   );
 }

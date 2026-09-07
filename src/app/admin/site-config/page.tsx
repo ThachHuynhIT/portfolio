@@ -3,15 +3,18 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
+import AdminFormFooter from "@/components/admin/AdminFormFooter";
 import FormField from "@/components/admin/FormField";
+import MediaImagePicker from "@/components/admin/MediaImagePicker";
+import { useToast } from "@/context/ToastContext";
 import type { SiteConfig } from "@/lib/types";
 
 export default function SiteConfigAdminPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [config, setConfig] = useState<SiteConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     async function loadConfig() {
@@ -25,6 +28,7 @@ export default function SiteConfigAdminPage() {
         setConfig(data);
       } catch (err) {
         console.error("Failed to load site config:", err);
+        toast.error("Failed to load site configuration");
       } finally {
         setLoading(false);
       }
@@ -37,7 +41,6 @@ export default function SiteConfigAdminPage() {
     if (!config) return;
 
     setSaving(true);
-    setMessage(null);
 
     try {
       const res = await fetch("/api/admin/site-config", {
@@ -48,12 +51,12 @@ export default function SiteConfigAdminPage() {
 
       if (!res.ok) throw new Error("Failed to save changes");
 
-      setMessage({ type: "success", text: "Site configuration saved successfully!" });
+      toast.success("Site configuration saved successfully!");
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setMessage({ type: "error", text: err.message });
+        toast.error(err.message);
       } else {
-        setMessage({ type: "error", text: "Failed to save configuration" });
+        toast.error("Failed to save configuration");
       }
     } finally {
       setSaving(false);
@@ -74,19 +77,8 @@ export default function SiteConfigAdminPage() {
         title="Site Configuration"
         description="Edit site branding, metadata, and author details."
         icon="settings"
+        closeHref="/admin"
       />
-
-      {message && (
-        <div
-          className={`mb-6 p-4 rounded-xl text-sm border ${
-            message.type === "success"
-              ? "bg-green-500/10 border-green-500/20 text-green-400"
-              : "bg-red-500/10 border-red-500/20 text-red-400"
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
         {/* General Site Info */}
@@ -136,15 +128,16 @@ export default function SiteConfigAdminPage() {
               />
             </FormField>
 
-            <FormField label="OpenGraph Image Path" id="site-og">
-              <input
-                id="site-og"
-                type="text"
+            <div className="md:col-span-2">
+              <MediaImagePicker
+                label="OpenGraph Social Image"
                 value={config.ogImage}
-                onChange={(e) => setConfig({ ...config, ogImage: e.target.value })}
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                onChange={(url) => setConfig({ ...config, ogImage: url })}
+                category="site"
+                subType="og"
+                helperText="Image preview displayed when sharing your site link on social networks (Facebook, Twitter, LinkedIn...)."
               />
-            </FormField>
+            </div>
           </div>
         </div>
 
@@ -201,21 +194,23 @@ export default function SiteConfigAdminPage() {
             />
           </FormField>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField label="Avatar Path" id="author-avatar">
-              <input
-                id="author-avatar"
-                type="text"
-                value={config.author.avatar}
-                onChange={(e) =>
-                  setConfig({
-                    ...config,
-                    author: { ...config.author, avatar: e.target.value },
-                  })
-                }
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              />
-            </FormField>
+          <div className="space-y-4">
+            <MediaImagePicker
+              label="Author Avatar"
+              value={config.author.avatar}
+              onChange={(url) =>
+                setConfig({
+                  ...config,
+                  author: { ...config.author, avatar: url },
+                })
+              }
+              category="site"
+              subType="avatar"
+              helperText="Personal portrait photo / author profile avatar."
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
             <FormField label="Email Address" id="author-email">
               <input
@@ -249,13 +244,12 @@ export default function SiteConfigAdminPage() {
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-medium rounded-xl shadow-lg shadow-purple-500/25 hover:opacity-90 disabled:opacity-50 transition-all"
-        >
-          {saving ? "Saving Changes..." : "Save Configuration"}
-        </button>
+        <AdminFormFooter
+          closeHref="/admin"
+          closeLabel="Cancel"
+          saveLabel="Save Configuration"
+          isSaving={saving}
+        />
       </form>
     </div>
   );

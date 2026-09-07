@@ -3,18 +3,23 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
+import AdminFormFooter from "@/components/admin/AdminFormFooter";
 import FormField from "@/components/admin/FormField";
 import MarkdownPreview from "@/components/admin/MarkdownPreview";
+import MediaPickerModal from "@/components/admin/MediaPickerModal";
+import { useToast } from "@/context/ToastContext";
 
 export default function EditBlogPostPage() {
   const router = useRouter();
   const params = useParams();
   const slugParam = params?.slug as string;
+  const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
+  const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
 
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
@@ -84,13 +89,12 @@ export default function EditBlogPostPage() {
         throw new Error(data.error || "Failed to update blog post");
       }
 
+      toast.success(`Blog post "${title}" updated successfully!`);
       router.push("/admin/blog");
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Failed to update blog post");
-      }
+      const msg = err instanceof Error ? err.message : "Failed to update blog post";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -110,6 +114,7 @@ export default function EditBlogPostPage() {
         title={`Edit: ${title}`}
         description={`Editing /blog/${slugParam}.mdx`}
         icon="blog"
+        closeHref="/admin/blog"
       />
 
       {error && (
@@ -205,7 +210,17 @@ export default function EditBlogPostPage() {
         {/* Content Editor & Preview Tabs */}
         <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800">
           <div className="flex items-center justify-between border-b border-gray-800 pb-4 mb-4">
-            <h2 className="text-lg font-bold text-white">Post Content (MDX)</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-bold text-white">Post Content (MDX)</h2>
+              <button
+                type="button"
+                onClick={() => setIsImagePickerOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-purple-300 hover:text-white rounded-lg text-xs font-medium border border-gray-700 transition-all shadow-sm"
+              >
+                <span>🖼️</span>
+                <span>Insert Image from Cloud / Upload</span>
+              </button>
+            </div>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -247,23 +262,26 @@ export default function EditBlogPostPage() {
         </div>
 
         {/* Submit Actions */}
-        <div className="flex justify-end gap-4">
-          <button
-            type="button"
-            onClick={() => router.push("/admin/blog")}
-            className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-xl text-sm transition-all"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-medium rounded-xl text-sm shadow-lg shadow-purple-500/25 hover:opacity-90 disabled:opacity-50 transition-all"
-          >
-            {saving ? "Saving Changes..." : "Save Changes"}
-          </button>
-        </div>
+        <AdminFormFooter
+          closeHref="/admin/blog"
+          closeLabel="Cancel"
+          saveLabel="Save Changes"
+          isSaving={saving}
+        />
       </form>
+
+      {/* Image Picker Modal for Blog */}
+      <MediaPickerModal
+        isOpen={isImagePickerOpen}
+        onClose={() => setIsImagePickerOpen(false)}
+        onSelect={(url, asset) => {
+          const alt = asset?.filename ? asset.filename.split(".")[0] : "image";
+          setContent((prev) => `${prev}\n\n![${alt}](${url})\n\n`);
+          toast.success("Image inserted into post content!");
+        }}
+        title="Select or upload an image to insert into post"
+        defaultCategory="blog"
+      />
     </div>
   );
 }

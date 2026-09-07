@@ -5,12 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import { useToast } from "@/context/ToastContext";
 import type { BlogPost } from "@/lib/types";
 
 type BlogMeta = Omit<BlogPost, "content">;
 
 export default function BlogAdminPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [posts, setPosts] = useState<BlogMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<BlogMeta | null>(null);
@@ -26,6 +28,7 @@ export default function BlogAdminPage() {
       setPosts(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch blog posts:", err);
+      toast.error("Failed to load blog posts");
     } finally {
       setLoading(false);
     }
@@ -38,12 +41,18 @@ export default function BlogAdminPage() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
 
-    await fetch(`/api/admin/blog/${deleteTarget.slug}`, {
-      method: "DELETE",
-    });
-
-    setDeleteTarget(null);
-    fetchPosts();
+    try {
+      const res = await fetch(`/api/admin/blog/${deleteTarget.slug}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete post");
+      toast.success(`Post "${deleteTarget.title}" deleted successfully!`);
+      setDeleteTarget(null);
+      fetchPosts();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete post";
+      toast.error(msg);
+    }
   };
 
   if (loading) {
@@ -55,7 +64,7 @@ export default function BlogAdminPage() {
   }
 
   return (
-    <div className="max-w-5xl">
+    <>
       <AdminHeader
         title="Blog Posts"
         description="Write new MDX posts, edit existing content, or manage post categories."
@@ -133,6 +142,6 @@ export default function BlogAdminPage() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </>
   );
 }
