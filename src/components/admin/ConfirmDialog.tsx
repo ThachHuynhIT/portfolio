@@ -1,12 +1,13 @@
 "use client";
 
-interface ConfirmDialogProps {
+export interface ConfirmDialogProps {
   isOpen: boolean;
   title: string;
   message: string;
   confirmLabel?: string;
   cancelLabel?: string;
   isDangerous?: boolean;
+  isDestructive?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -18,10 +19,13 @@ export default function ConfirmDialog({
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   isDangerous = false,
+  isDestructive,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
   if (!isOpen) return null;
+
+  const danger = isDestructive ?? isDangerous;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -48,7 +52,7 @@ export default function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             className={`px-4 py-2 text-sm font-medium text-white rounded-xl transition-all ${
-              isDangerous
+              danger
                 ? "bg-red-600 hover:bg-red-500"
                 : "bg-purple-600 hover:bg-purple-500"
             }`}

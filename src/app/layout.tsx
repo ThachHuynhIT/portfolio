@@ -45,6 +45,8 @@ export const metadata: Metadata = {
   },
 };
 
+import GlobalBackground from "@/components/layout/GlobalBackground";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -53,8 +55,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body
-        className={`${inter.variable} ${spaceGrotesk.variable} antialiased bg-black text-white font-sans`}
+        className={`${inter.variable} ${spaceGrotesk.variable} antialiased bg-[#030014] text-white font-sans selection:bg-purple-500/30 selection:text-white`}
       >
+        <GlobalBackground />
         <LanguageProvider>
           <MusicProvider>
             <Navigation />

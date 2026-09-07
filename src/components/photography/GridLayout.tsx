@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import type { PhotoItem } from "@/lib/types";
 import Icon from "@/components/ui/Icon";
+import { useTranslation } from "@/context/LanguageContext";
 
 interface GridLayoutProps {
   photos: PhotoItem[];
@@ -11,6 +12,7 @@ interface GridLayoutProps {
 }
 
 export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
+  const { t } = useTranslation();
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {photos.map((photo, index) => {
@@ -50,7 +52,7 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
               <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
                 {photo.featured && (
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-black shadow-md flex items-center gap-1">
-                    <span>⭐ Nổi bật</span>
+                    <span>⭐ {t("photography.featured", "Featured")}</span>
                   </span>
                 )}
                 {photo.category && (

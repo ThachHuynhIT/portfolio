@@ -1,15 +1,20 @@
 {
   "name": "ThachHuynh's Portfolio",
   "title": "ThachHuynh | Creative Web Developer",
+  "title_vi": "ThachHuynh | Lập trình viên Web Sáng tạo",
   "description": "A passionate web developer crafting immersive digital experiences with cutting-edge technologies.",
-  "url": "https://johndoe.dev",
+  "description_vi": "Lập trình viên web đam mê kiến tạo trải nghiệm số sống động với các công nghệ tiên tiến.",
+  "url": "https://portfolio-thach.vercel.app/",
   "ogImage": "https://res.cloudinary.com/drlcckhqc/image/upload/v1787031982/portfolio/music/thumbnails/yaxffs2ldfmi4qlm9bwx.png",
   "author": {
     "name": "ThachHuynh",
     "title": "Creative Web Developer",
+    "title_vi": "Lập trình viên Web Sáng tạo",
     "bio": "I build exceptional digital experiences that live at the intersection of design and technology.",
+    "bio_vi": "Tôi xây dựng những trải nghiệm kỹ thuật số ấn tượng giao thoa giữa thiết kế và công nghệ.",
     "avatar": "https://res.cloudinary.com/drlcckhqc/image/upload/v1787031982/portfolio/music/thumbnails/yaxffs2ldfmi4qlm9bwx.png",
     "email": "thachhuynhit.ut@gmail.com",
-    "location": "Ho Chi Minh City, Vietnam"
+    "location": "Ho Chi Minh City, Vietnam",
+    "location_vi": "Thành phố Hồ Chí Minh, Việt Nam"
   }
 }

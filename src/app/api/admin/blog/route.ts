@@ -27,7 +27,19 @@ export async function POST(request: Request) {
   }
   try {
     const body = await request.json();
-    const { slug, title, excerpt, date, category, tags, readTime, content } = body;
+    const {
+      slug,
+      title,
+      title_vi,
+      excerpt,
+      excerpt_vi,
+      content_vi,
+      date,
+      category,
+      tags,
+      readTime,
+      content,
+    } = body;
 
     if (!slug || !title) {
       return NextResponse.json({ error: "Slug and title are required" }, { status: 400 });
@@ -51,7 +63,7 @@ export async function POST(request: Request) {
       fs.mkdirSync(BLOG_DIR, { recursive: true });
     }
 
-    const frontmatter = {
+    const frontmatter: Record<string, unknown> = {
       title,
       excerpt: excerpt || "",
       date: date || new Date().toISOString().split("T")[0],
@@ -59,6 +71,10 @@ export async function POST(request: Request) {
       tags: tags || [],
       readTime: readTime || "5 min read",
     };
+
+    if (title_vi?.trim()) frontmatter.title_vi = title_vi.trim();
+    if (excerpt_vi?.trim()) frontmatter.excerpt_vi = excerpt_vi.trim();
+    if (content_vi?.trim()) frontmatter.content_vi = content_vi.trim();
 
     const fileContent = matter.stringify(content || "", frontmatter);
     fs.writeFileSync(filePath, fileContent, "utf-8");

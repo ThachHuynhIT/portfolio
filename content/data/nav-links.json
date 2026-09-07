@@ -2,6 +2,7 @@
   {
     "id": "nav-1",
     "label": "Home",
+    "label_vi": "Trang chủ",
     "href": "#home",
     "published": true,
     "order": 0
@@ -9,6 +10,7 @@
   {
     "id": "nav-2",
     "label": "About",
+    "label_vi": "Giới thiệu",
     "href": "#about",
     "published": true,
     "order": 1
@@ -16,6 +18,7 @@
   {
     "id": "nav-3",
     "label": "Skills",
+    "label_vi": "Kỹ năng",
     "href": "#skills",
     "published": true,
     "order": 2
@@ -23,6 +26,7 @@
   {
     "id": "nav-4",
     "label": "Projects",
+    "label_vi": "Dự án",
     "href": "#projects",
     "published": true,
     "order": 3
@@ -30,6 +34,7 @@
   {
     "id": "nav-music",
     "label": "Music",
+    "label_vi": "Âm nhạc",
     "href": "/music",
     "published": true,
     "order": 4
@@ -37,6 +42,7 @@
   {
     "id": "nav-photography",
     "label": "Photography",
+    "label_vi": "Nhiếp ảnh",
     "href": "/photography",
     "published": true,
     "order": 5
@@ -44,6 +50,7 @@
   {
     "id": "nav-5",
     "label": "Blog",
+    "label_vi": "Bài viết",
     "href": "/blog",
     "published": true,
     "order": 6
@@ -51,13 +58,15 @@
   {
     "id": "nav-6",
     "label": "Contra",
+    "label_vi": "Contra",
     "href": "/contra",
-    "published": true,
+    "published": false,
     "order": 7
   },
   {
     "id": "nav-1788511274849-1puo1o",
     "label": "Couple",
+    "label_vi": "Tình yêu",
     "href": "/couple",
     "published": false,
     "order": 8

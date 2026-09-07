@@ -6,6 +6,8 @@ import AdminHeader from "@/components/admin/AdminHeader";
 import AdminFormFooter from "@/components/admin/AdminFormFooter";
 import FormField from "@/components/admin/FormField";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
+import LanguageTabSelector from "@/components/admin/LanguageTabSelector";
+import FlagIcon from "@/components/ui/FlagIcon";
 import { useToast } from "@/context/ToastContext";
 import type { SiteConfig } from "@/lib/types";
 
@@ -15,6 +17,7 @@ export default function SiteConfigAdminPage() {
   const [config, setConfig] = useState<SiteConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [activeLang, setActiveLang] = useState<"en" | "vi">("en");
 
   useEffect(() => {
     async function loadConfig() {
@@ -34,7 +37,7 @@ export default function SiteConfigAdminPage() {
       }
     }
     loadConfig();
-  }, [router]);
+  }, [router, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,20 +75,47 @@ export default function SiteConfigAdminPage() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-3xl">
       <AdminHeader
         title="Site Configuration"
-        description="Edit site branding, metadata, and author details."
+        description="Edit site branding, metadata, multilingual translations, and author details."
         icon="settings"
         closeHref="/admin"
       />
 
-      <form onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
+      {/* Multilingual Switcher Header */}
+      <LanguageTabSelector
+        activeLang={activeLang}
+        onChange={setActiveLang}
+        hasTranslation={{
+          en: Boolean(config.title?.trim() && config.author?.title?.trim()),
+          vi: Boolean(config.title_vi?.trim() && config.author?.title_vi?.trim()),
+        }}
+        label="Content Language / Ngôn ngữ đang sửa:"
+        className="mb-6"
+      />
+
+      {activeLang === "vi" && (
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs mb-6">
+          <FlagIcon code="vi" size={16} />
+          <span>
+            Đang chỉnh sửa bản dịch <strong>Tiếng Việt</strong>. Nếu để trống trường nào, hệ thống sẽ tự động dùng giá trị mặc định của bản Tiếng Anh.
+          </span>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-8">
         {/* General Site Info */}
         <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
-          <h2 className="text-lg font-bold text-white mb-4">General Information</h2>
+          <div className="flex items-center justify-between pb-3 border-b border-gray-800">
+            <h2 className="text-lg font-bold text-white">General Information</h2>
+            <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/8">
+              <FlagIcon code={activeLang} size={14} />
+              {activeLang === "en" ? "English Content" : "Bản Tiếng Việt"}
+            </span>
+          </div>
 
-          <FormField label="Site Name" id="site-name" required>
+          <FormField label="Site Name (Shared)" id="site-name" required helper="Internal brand / site name">
             <input
               id="site-name"
               type="text"
@@ -96,26 +126,62 @@ export default function SiteConfigAdminPage() {
             />
           </FormField>
 
-          <FormField label="Page Title" id="site-title" required>
-            <input
-              id="site-title"
-              type="text"
-              value={config.title}
-              onChange={(e) => setConfig({ ...config, title: e.target.value })}
-              className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              required
-            />
-          </FormField>
+          {activeLang === "en" ? (
+            <>
+              <FormField label="Page Title (English)" id="site-title" required>
+                <input
+                  id="site-title"
+                  type="text"
+                  value={config.title}
+                  onChange={(e) => setConfig({ ...config, title: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  required
+                />
+              </FormField>
 
-          <FormField label="Site Description" id="site-desc">
-            <textarea
-              id="site-desc"
-              rows={3}
-              value={config.description}
-              onChange={(e) => setConfig({ ...config, description: e.target.value })}
-              className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-            />
-          </FormField>
+              <FormField label="Site Description (English)" id="site-desc">
+                <textarea
+                  id="site-desc"
+                  rows={3}
+                  value={config.description}
+                  onChange={(e) => setConfig({ ...config, description: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </FormField>
+            </>
+          ) : (
+            <>
+              <FormField
+                label="Page Title (Tiếng Việt)"
+                id="site-title-vi"
+                helper="Tiêu đề trang hiển thị khi người dùng chọn Tiếng Việt"
+              >
+                <input
+                  id="site-title-vi"
+                  type="text"
+                  value={config.title_vi || ""}
+                  placeholder={config.title}
+                  onChange={(e) => setConfig({ ...config, title_vi: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </FormField>
+
+              <FormField
+                label="Site Description (Tiếng Việt)"
+                id="site-desc-vi"
+                helper="Mô tả SEO khi khách duyệt website bằng Tiếng Việt"
+              >
+                <textarea
+                  id="site-desc-vi"
+                  rows={3}
+                  value={config.description_vi || ""}
+                  placeholder={config.description}
+                  onChange={(e) => setConfig({ ...config, description_vi: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </FormField>
+            </>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label="Site URL" id="site-url">
@@ -143,56 +209,141 @@ export default function SiteConfigAdminPage() {
 
         {/* Author Details */}
         <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
-          <h2 className="text-lg font-bold text-white mb-4">Author Profile</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Author Name" id="author-name" required>
-              <input
-                id="author-name"
-                type="text"
-                value={config.author.name}
-                onChange={(e) =>
-                  setConfig({
-                    ...config,
-                    author: { ...config.author, name: e.target.value },
-                  })
-                }
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                required
-              />
-            </FormField>
-
-            <FormField label="Author Title" id="author-title" required>
-              <input
-                id="author-title"
-                type="text"
-                value={config.author.title}
-                onChange={(e) =>
-                  setConfig({
-                    ...config,
-                    author: { ...config.author, title: e.target.value },
-                  })
-                }
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                required
-              />
-            </FormField>
+          <div className="flex items-center justify-between pb-3 border-b border-gray-800">
+            <h2 className="text-lg font-bold text-white">Author Profile</h2>
+            <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/8">
+              <FlagIcon code={activeLang} size={14} />
+              {activeLang === "en" ? "English Profile" : "Hồ sơ Tiếng Việt"}
+            </span>
           </div>
 
-          <FormField label="Short Bio" id="author-bio">
-            <textarea
-              id="author-bio"
-              rows={3}
-              value={config.author.bio}
+          <FormField label="Author Name (Shared)" id="author-name" required>
+            <input
+              id="author-name"
+              type="text"
+              value={config.author.name}
               onChange={(e) =>
                 setConfig({
                   ...config,
-                  author: { ...config.author, bio: e.target.value },
+                  author: { ...config.author, name: e.target.value },
                 })
               }
               className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+              required
             />
           </FormField>
+
+          {activeLang === "en" ? (
+            <>
+              <FormField label="Author Title (English)" id="author-title" required>
+                <input
+                  id="author-title"
+                  type="text"
+                  value={config.author.title}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      author: { ...config.author, title: e.target.value },
+                    })
+                  }
+                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  required
+                />
+              </FormField>
+
+              <FormField label="Short Bio (English)" id="author-bio">
+                <textarea
+                  id="author-bio"
+                  rows={3}
+                  value={config.author.bio}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      author: { ...config.author, bio: e.target.value },
+                    })
+                  }
+                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </FormField>
+
+              <FormField label="Location (English)" id="author-location">
+                <input
+                  id="author-location"
+                  type="text"
+                  value={config.author.location}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      author: { ...config.author, location: e.target.value },
+                    })
+                  }
+                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </FormField>
+            </>
+          ) : (
+            <>
+              <FormField
+                label="Chức danh tác giả (Tiếng Việt)"
+                id="author-title-vi"
+                helper="Ví dụ: Lập trình viên Web Sáng tạo"
+              >
+                <input
+                  id="author-title-vi"
+                  type="text"
+                  value={config.author.title_vi || ""}
+                  placeholder={config.author.title}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      author: { ...config.author, title_vi: e.target.value },
+                    })
+                  }
+                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </FormField>
+
+              <FormField
+                label="Tiểu sử / Giới thiệu ngắn (Tiếng Việt)"
+                id="author-bio-vi"
+                helper="Hiển thị ở banner trang chủ (Hero) và chân trang (Footer)"
+              >
+                <textarea
+                  id="author-bio-vi"
+                  rows={3}
+                  value={config.author.bio_vi || ""}
+                  placeholder={config.author.bio}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      author: { ...config.author, bio_vi: e.target.value },
+                    })
+                  }
+                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </FormField>
+
+              <FormField
+                label="Địa điểm tác giả (Tiếng Việt)"
+                id="author-location-vi"
+                helper="Ví dụ: Thành phố Hồ Chí Minh, Việt Nam"
+              >
+                <input
+                  id="author-location-vi"
+                  type="text"
+                  value={config.author.location_vi || ""}
+                  placeholder={config.author.location}
+                  onChange={(e) =>
+                    setConfig({
+                      ...config,
+                      author: { ...config.author, location_vi: e.target.value },
+                    })
+                  }
+                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </FormField>
+            </>
+          )}
 
           <div className="space-y-4">
             <MediaImagePicker
@@ -211,7 +362,6 @@ export default function SiteConfigAdminPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
             <FormField label="Email Address" id="author-email">
               <input
                 id="author-email"
@@ -221,21 +371,6 @@ export default function SiteConfigAdminPage() {
                   setConfig({
                     ...config,
                     author: { ...config.author, email: e.target.value },
-                  })
-                }
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              />
-            </FormField>
-
-            <FormField label="Location" id="author-location">
-              <input
-                id="author-location"
-                type="text"
-                value={config.author.location}
-                onChange={(e) =>
-                  setConfig({
-                    ...config,
-                    author: { ...config.author, location: e.target.value },
                   })
                 }
                 className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"

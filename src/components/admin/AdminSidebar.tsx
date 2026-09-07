@@ -5,36 +5,46 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Icon from "@/components/ui/Icon";
+import { useTranslation } from "@/context/LanguageContext";
 
-const CONTENT_ITEMS = [
-  { label: "Skills", href: "/admin/skills", icon: "skills" },
-  { label: "Projects", href: "/admin/projects", icon: "projects" },
-  { label: "Photography", href: "/admin/photography", icon: "camera" },
-  { label: "Music Tracks", href: "/admin/music", icon: "music" },
-  { label: "Blog Posts", href: "/admin/blog", icon: "blog" },
-  { label: "Couple & Kỷ niệm", href: "/admin/couple", icon: "heart" },
-  { label: "Media Library", href: "/admin/media", icon: "image" },
+interface SidebarItemConfig {
+  key: string;
+  href: string;
+  icon: string;
+  defaultLabel: string;
+}
+
+const CONTENT_ITEMS: SidebarItemConfig[] = [
+  { key: "skills", href: "/admin/skills", icon: "skills", defaultLabel: "Skills" },
+  { key: "projects", href: "/admin/projects", icon: "projects", defaultLabel: "Projects" },
+  { key: "photography", href: "/admin/photography", icon: "camera", defaultLabel: "Photography" },
+  { key: "music", href: "/admin/music", icon: "music", defaultLabel: "Music Tracks" },
+  { key: "blog", href: "/admin/blog", icon: "blog", defaultLabel: "Blog Posts" },
+  { key: "couple", href: "/admin/couple", icon: "heart", defaultLabel: "Couple & Memories" },
+  { key: "media", href: "/admin/media", icon: "image", defaultLabel: "Media Library" },
 ];
 
-const SYSTEM_ITEMS = [
-  { label: "Site Config", href: "/admin/site-config", icon: "settings" },
-  { label: "Social Links", href: "/admin/social-links", icon: "links" },
-  { label: "Nav Links", href: "/admin/nav-links", icon: "nav" },
+const SYSTEM_ITEMS: SidebarItemConfig[] = [
+  { key: "siteConfig", href: "/admin/site-config", icon: "settings", defaultLabel: "Site Config" },
+  { key: "socialLinks", href: "/admin/social-links", icon: "links", defaultLabel: "Social Links" },
+  { key: "navLinks", href: "/admin/nav-links", icon: "nav", defaultLabel: "Nav Links" },
 ];
 
 function NavItem({
   item,
+  label,
   isActive,
   collapsed,
 }: {
-  item: { label: string; href: string; icon: string };
+  item: SidebarItemConfig;
+  label: string;
   isActive: boolean;
   collapsed: boolean;
 }) {
   return (
     <Link
       href={item.href}
-      title={collapsed ? item.label : undefined}
+      title={collapsed ? label : undefined}
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group relative",
         isActive
@@ -54,13 +64,14 @@ function NavItem({
       />
 
       {!collapsed && (
-        <span className="leading-none">{item.label}</span>
+        <span className="leading-none">{label}</span>
       )}
     </Link>
   );
 }
 
 export default function AdminSidebar() {
+  const { t } = useTranslation();
   const pathname = usePathname();
 
   const [collapsed, setCollapsed] = useState(false);
@@ -123,7 +134,7 @@ export default function AdminSidebar() {
         {!collapsed && (
           <button
             onClick={toggleCollapsed}
-            className="p-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all"
+            className="p-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all cursor-pointer"
             title="Collapse sidebar"
           >
             <Icon name="chevronLeft" size={14} />
@@ -135,7 +146,7 @@ export default function AdminSidebar() {
       <div className="px-2.5 pt-3 flex-shrink-0">
         <Link
           href="/admin"
-          title={collapsed ? "Dashboard" : undefined}
+          title={collapsed ? t("admin.sidebar.dashboard") : undefined}
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group relative",
             isActive("/admin")
@@ -151,7 +162,9 @@ export default function AdminSidebar() {
             size={17}
             className={isActive("/admin") ? "text-violet-400" : "text-slate-500 group-hover:text-slate-300"}
           />
-          {!collapsed && <span className="leading-none">Dashboard</span>}
+          {!collapsed && (
+            <span className="leading-none">{t("admin.sidebar.dashboard")}</span>
+          )}
         </Link>
       </div>
 
@@ -161,13 +174,14 @@ export default function AdminSidebar() {
         <div className="space-y-0.5">
           {!collapsed && (
             <p className="px-3 pb-1 text-[10px] font-bold text-slate-600 uppercase tracking-widest">
-              Content
+              {t("admin.sidebar.contentSection")}
             </p>
           )}
           {CONTENT_ITEMS.map((item) => (
             <NavItem
               key={item.href}
               item={item}
+              label={t(`admin.sidebar.${item.key}`)}
               isActive={isActive(item.href)}
               collapsed={collapsed}
             />
@@ -178,13 +192,14 @@ export default function AdminSidebar() {
         <div className="space-y-0.5">
           {!collapsed && (
             <p className="px-3 pb-1 text-[10px] font-bold text-slate-600 uppercase tracking-widest">
-              System
+              {t("admin.sidebar.systemSection")}
             </p>
           )}
           {SYSTEM_ITEMS.map((item) => (
             <NavItem
               key={item.href}
               item={item}
+              label={t(`admin.sidebar.${item.key}`)}
               isActive={isActive(item.href)}
               collapsed={collapsed}
             />
@@ -198,7 +213,7 @@ export default function AdminSidebar() {
         {collapsed && (
           <button
             onClick={toggleCollapsed}
-            className="w-full flex items-center justify-center p-2.5 rounded-xl text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all"
+            className="w-full flex items-center justify-center p-2.5 rounded-xl text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all cursor-pointer"
             title="Expand sidebar"
           >
             <Icon name="chevronRight" size={15} />
@@ -208,20 +223,20 @@ export default function AdminSidebar() {
         <Link
           href="/"
           target="_blank"
-          title={collapsed ? "View Site" : undefined}
+          title={collapsed ? t("admin.sidebar.viewSite") : undefined}
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-400 hover:text-slate-100 hover:bg-white/5 transition-all group"
         >
           <Icon name="globe" size={17} className="text-slate-500 group-hover:text-slate-300" />
-          {!collapsed && <span>View Site</span>}
+          {!collapsed && <span>{t("admin.sidebar.viewSite")}</span>}
         </Link>
 
         <button
           onClick={handleLogout}
-          title={collapsed ? "Logout" : undefined}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-400/70 hover:text-red-300 hover:bg-red-500/8 transition-all group"
+          title={collapsed ? t("admin.sidebar.logout") : undefined}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-400/70 hover:text-red-300 hover:bg-red-500/8 transition-all group cursor-pointer"
         >
           <Icon name="logout" size={17} className="text-red-400/50 group-hover:text-red-300" />
-          {!collapsed && <span>Logout</span>}
+          {!collapsed && <span>{t("admin.sidebar.logout")}</span>}
         </button>
       </div>
     </aside>

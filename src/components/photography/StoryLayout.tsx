@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import type { PhotoItem } from "@/lib/types";
 import Icon from "@/components/ui/Icon";
+import { useTranslation } from "@/context/LanguageContext";
 
 interface StoryLayoutProps {
   photos: PhotoItem[];
@@ -11,6 +12,7 @@ interface StoryLayoutProps {
 }
 
 export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps) {
+  const { t } = useTranslation();
   return (
     <div className="max-w-4xl mx-auto space-y-16">
       {photos.map((photo, index) => {
@@ -77,7 +79,7 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
                 <div className="flex items-center gap-2">
                   {photo.featured && (
                     <span className="px-2.5 py-0.5 rounded-full bg-amber-400 text-black font-bold text-[11px] shadow-sm flex items-center gap-1">
-                      ⭐ Nổi bật
+                      ⭐ {t("photography.featured", "Featured")}
                     </span>
                   )}
                   {photo.category && (

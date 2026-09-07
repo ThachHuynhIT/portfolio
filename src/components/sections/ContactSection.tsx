@@ -28,7 +28,7 @@ interface ContactFormData {
 }
 
 export default function ContactSection() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -297,7 +297,9 @@ export default function ContactSection() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-white mb-1">{t("contact.locationInfo")}</h3>
-                    <p className="text-white/60">{siteConfig.author.location}</p>
+                    <p className="text-white/60">
+                      {locale === "vi" && siteConfig.author.location_vi ? siteConfig.author.location_vi : siteConfig.author.location}
+                    </p>
                   </div>
                 </div>
               </GlassCard>

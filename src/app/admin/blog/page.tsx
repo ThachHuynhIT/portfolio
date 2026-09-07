@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import FlagIcon from "@/components/ui/FlagIcon";
 import { useToast } from "@/context/ToastContext";
 import type { BlogPost } from "@/lib/types";
 
@@ -95,7 +96,38 @@ export default function BlogAdminPage() {
             {posts.map((post) => (
               <tr key={post.slug} className="hover:bg-gray-800/50 transition-colors">
                 <td className="px-6 py-4">
-                  <div className="font-semibold text-white mb-1">{post.title}</div>
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className="font-semibold text-white">{post.title}</span>
+                    <span className="inline-flex items-center gap-1">
+                      <span
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-300 border border-blue-500/20"
+                        title="English"
+                      >
+                        <FlagIcon code="en" size={12} /> EN
+                      </span>
+                      {post.title_vi ? (
+                        <span
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                          title={`Tiếng Việt: ${post.title_vi}`}
+                        >
+                          <FlagIcon code="vi" size={12} /> VI
+                        </span>
+                      ) : (
+                        <span
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-800 text-gray-500 border border-gray-700/60"
+                          title="Chưa có bản dịch Tiếng Việt"
+                        >
+                          <FlagIcon code="vi" size={12} /> -
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  {post.title_vi && (
+                    <div className="text-xs text-slate-400 italic mb-1 flex items-center gap-1">
+                      <span>↳</span>
+                      <span>{post.title_vi}</span>
+                    </div>
+                  )}
                   <div className="text-xs text-gray-500 font-mono">/blog/{post.slug}</div>
                 </td>
                 <td className="px-6 py-4">

@@ -1,9 +1,12 @@
 [
   {
     "id": "proj-1",
-    "title": "AI-Powered Dashboard 2",
+    "title": "AI-Powered Dashboard",
     "description": "A real-time analytics dashboard with AI insights and predictive modeling.",
     "longDescription": "Built with Next.js 14, React Query, and integrated with OpenAI API for intelligent data analysis. Features include real-time charts, custom data visualization, and automated reporting.",
+    "title_vi": "Bảng Điều Khiển Tích Hợp AI 2",
+    "description_vi": "Bảng phân tích dữ liệu theo thời gian thực với phân tích AI và mô hình dự báo thông minh.",
+    "longDescription_vi": "Xây dựng với Next.js 14, React Query và tích hợp OpenAI API phục vụ phân tích dữ liệu tự động. Bao gồm biểu đồ trực quan động, phân tích chuyên sâu và xuất báo cáo tự động.",
     "image": "https://res.cloudinary.com/drlcckhqc/image/upload/v1787644421/portfolio/site/hero/crxqfky0yono3xqh0dx1.jpg",
     "tags": [
       "Next.js",
@@ -21,6 +24,9 @@
     "title": "3D Product Configurator",
     "description": "Interactive 3D product customization tool for e-commerce platforms.",
     "longDescription": "A WebGL-based 3D configurator allowing customers to customize products in real-time. Built with Three.js, React Three Fiber, and integrated with Shopify API.",
+    "title_vi": "Trình Tùy Biến Sản Phẩm 3D",
+    "description_vi": "Công cụ tùy biến sản phẩm 3D tương tác sống động dành cho các nền tảng thương mại điện tử.",
+    "longDescription_vi": "Ứng dụng cấu hình 3D trên nền tảng WebGL cho phép người dùng tùy chỉnh màu sắc, vật liệu sản phẩm trong thời gian thực. Phát triển với Three.js, React Three Fiber và Shopify API.",
     "image": "https://res.cloudinary.com/drlcckhqc/image/upload/v1787644405/portfolio/site/hero/mbheflawo5y0vd9crkkn.jpg",
     "tags": [
       "Three.js",
@@ -38,7 +44,10 @@
     "title": "Social Media Platform",
     "description": "Full-stack social platform with real-time messaging and content sharing.",
     "longDescription": "A complete social media solution featuring real-time messaging via WebSocket, user authentication, content moderation, and infinite scroll feeds.",
-    "image": "/projects/social.jpg",
+    "title_vi": "Mạng Xã Hội Tương Tác",
+    "description_vi": "Nền tảng mạng xã hội toàn diện với tin nhắn thời gian thực và chia sẻ bài viết đa phương tiện.",
+    "longDescription_vi": "Giải pháp mạng xã hội hoàn chỉnh trang bị tính năng nhắn tin tức thì qua WebSocket, xác thực tài khoản, kiểm duyệt nội dung và bảng tin cuộn vô tận.",
+    "image": "https://res.cloudinary.com/drlcckhqc/image/upload/v1787644421/portfolio/site/hero/crxqfky0yono3xqh0dx1.jpg",
     "tags": [
       "React",
       "Node.js",
@@ -55,7 +64,10 @@
     "title": "Crypto Portfolio Tracker",
     "description": "Real-time cryptocurrency portfolio management with DeFi integrations.",
     "longDescription": "Track your crypto investments across multiple blockchains with real-time price updates, portfolio analytics, and DeFi yield tracking.",
-    "image": "/projects/crypto.jpg",
+    "title_vi": "Trình Theo Dõi Danh Mục Crypto",
+    "description_vi": "Quản lý danh mục đầu tư tiền điện tử theo thời gian thực kết hợp giao thức DeFi.",
+    "longDescription_vi": "Theo dõi các khoản đầu tư trên nhiều chuỗi khối với cập nhật giá tức thời, phân tích lợi nhuận danh mục và theo dõi yield farming.",
+    "image": "https://res.cloudinary.com/drlcckhqc/image/upload/v1787637948/portfolio/site/og/x9dj1o62275e9o3in3rn.jpg",
     "tags": [
       "TypeScript",
       "Web3",

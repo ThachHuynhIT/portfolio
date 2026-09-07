@@ -42,9 +42,20 @@ export async function PUT(request: Request, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { title, excerpt, date, category, tags, readTime, content } = body;
+    const {
+      title,
+      title_vi,
+      excerpt,
+      excerpt_vi,
+      content_vi,
+      date,
+      category,
+      tags,
+      readTime,
+      content,
+    } = body;
 
-    const frontmatter = {
+    const frontmatter: Record<string, unknown> = {
       title: title || "",
       excerpt: excerpt || "",
       date: date || new Date().toISOString().split("T")[0],
@@ -52,6 +63,10 @@ export async function PUT(request: Request, { params }: RouteParams) {
       tags: tags || [],
       readTime: readTime || "5 min read",
     };
+
+    if (title_vi?.trim()) frontmatter.title_vi = title_vi.trim();
+    if (excerpt_vi?.trim()) frontmatter.excerpt_vi = excerpt_vi.trim();
+    if (content_vi?.trim()) frontmatter.content_vi = content_vi.trim();
 
     const fileContent = matter.stringify(content || "", frontmatter);
     fs.writeFileSync(filePath, fileContent, "utf-8");

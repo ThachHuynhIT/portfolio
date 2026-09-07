@@ -13,15 +13,19 @@ import {
   defaultLocale,
   translations,
   localeNames,
-  TranslationDict,
 } from "@/locales";
 
 interface LanguageContextType {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (key: string, params?: Record<string, string | number>) => string;
+  t: (
+    key: string,
+    paramsOrFallback?: Record<string, string | number> | string,
+    params?: Record<string, string | number>
+  ) => string;
   localeInfo: { name: string; nativeName: string; flag: string };
   isMounted: boolean;
+  refreshOverrides: () => Promise<void>;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -52,20 +56,25 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setIsMounted(true);
+    let initialLocale: Locale = defaultLocale;
+
     try {
       const savedLocale = localStorage.getItem(STORAGE_KEY) as Locale | null;
       if (savedLocale && (savedLocale === "en" || savedLocale === "vi")) {
-        setLocaleState(savedLocale);
+        initialLocale = savedLocale;
       } else {
-        // Auto-detect from browser
+        // Auto-detect from browser language
         const browserLang = navigator.language?.toLowerCase() || "";
         if (browserLang.startsWith("vi")) {
-          setLocaleState("vi");
+          initialLocale = "vi";
         }
       }
     } catch {
       // Ignore localStorage read errors in restricted contexts
     }
+
+    setLocaleState(initialLocale);
+    document.documentElement.lang = initialLocale;
   }, []);
 
   const setLocale = useCallback((newLocale: Locale) => {
@@ -73,21 +82,34 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(STORAGE_KEY, newLocale);
       document.cookie = `${STORAGE_KEY}=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
+      document.documentElement.lang = newLocale;
     } catch {
       // Ignore write errors
     }
   }, []);
 
   const t = useCallback(
-    (key: string, params?: Record<string, string | number>): string => {
+    (
+      key: string,
+      paramsOrFallback?: Record<string, string | number> | string,
+      params?: Record<string, string | number>
+    ): string => {
+      const fallbackStr = typeof paramsOrFallback === "string" ? paramsOrFallback : undefined;
+      const actualParams = typeof paramsOrFallback === "object" ? paramsOrFallback : params;
+
+      // 1. Check bundled static dictionary
       const activeDict = translations[locale] as unknown as Record<string, unknown>;
       const fallbackDict = translations[defaultLocale] as unknown as Record<string, unknown>;
 
-      let text = getNestedValue(activeDict, key) ?? getNestedValue(fallbackDict, key) ?? key;
+      let text =
+        getNestedValue(activeDict, key) ??
+        getNestedValue(fallbackDict, key) ??
+        fallbackStr ??
+        key;
 
-      // Replace interpolation parameters like {name} or {{name}}
-      if (params && typeof text === "string") {
-        Object.entries(params).forEach(([paramKey, paramValue]) => {
+      // 2. Replace interpolation parameters like {name} or {{name}}
+      if (actualParams && typeof text === "string") {
+        Object.entries(actualParams).forEach(([paramKey, paramValue]) => {
           text = text
             .replace(new RegExp(`\\{\\{${paramKey}\\}\\}`, "g"), String(paramValue))
             .replace(new RegExp(`\\{${paramKey}\\}`, "g"), String(paramValue));
@@ -99,6 +121,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     [locale]
   );
 
+  const refreshOverrides = useCallback(async () => {
+    // No-op: translations are bundled statically in src/locales/
+  }, []);
+
   return (
     <LanguageContext.Provider
       value={{
@@ -107,6 +133,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         t,
         localeInfo: localeNames[locale],
         isMounted,
+        refreshOverrides,
       }}
     >
       {children}
@@ -123,6 +150,6 @@ export function useLanguage() {
 }
 
 export function useTranslation() {
-  const { t, locale, setLocale, localeInfo, isMounted } = useLanguage();
-  return { t, locale, setLocale, localeInfo, isMounted };
+  const { t, locale, setLocale, localeInfo, isMounted, refreshOverrides } = useLanguage();
+  return { t, locale, setLocale, localeInfo, isMounted, refreshOverrides };
 }

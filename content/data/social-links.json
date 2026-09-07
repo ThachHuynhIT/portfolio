@@ -12,12 +12,5 @@
     "url": "https://www.linkedin.com/in/huynh-thach-web-dev/",
     "icon": "linkedin",
     "published": true
-  },
-  {
-    "id": "social-3",
-    "name": "Twitter",
-    "url": "https://twitter.com",
-    "icon": "twitter",
-    "published": true
   }
 ]

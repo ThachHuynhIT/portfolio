@@ -83,11 +83,11 @@ export default function BlogList({ posts, categories }: BlogListProps) {
                 </span>
 
                 <h2 className="text-xl font-semibold text-white mb-3 group-hover:text-purple-400 transition-colors">
-                  {post.title}
+                  {locale === "vi" && post.title_vi ? post.title_vi : post.title}
                 </h2>
 
                 <p className="text-white/60 text-sm mb-4 line-clamp-2">
-                  {post.excerpt}
+                  {locale === "vi" && post.excerpt_vi ? post.excerpt_vi : post.excerpt}
                 </p>
 
                 <div className="flex items-center justify-between text-sm text-white/40">

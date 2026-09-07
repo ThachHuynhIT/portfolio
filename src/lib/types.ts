@@ -4,6 +4,10 @@ export interface Project {
   title: string;
   description: string;
   longDescription?: string;
+  // Vietnamese multilingual fields
+  title_vi?: string;
+  description_vi?: string;
+  longDescription_vi?: string;
   image: string;
   tags: string[];
   liveUrl?: string;
@@ -17,6 +21,10 @@ export interface BlogPost {
   slug: string;
   title: string;
   excerpt: string;
+  // Vietnamese multilingual fields
+  title_vi?: string;
+  excerpt_vi?: string;
+  content_vi?: string;
   date: string;
   category: string;
   tags: string[];
@@ -45,7 +53,8 @@ export interface ContactFormData {
 // Navigation Types
 export interface NavLink {
   id: string;
-  label: string;
+  label: string; // English / Default
+  label_vi?: string; // Vietnamese
   href: string;
   order?: number;
   published?: boolean;
@@ -64,16 +73,21 @@ export interface SocialLink {
 export interface SiteAuthor {
   name: string;
   title: string;
+  title_vi?: string;
   bio: string;
+  bio_vi?: string;
   avatar: string;
   email: string;
   location: string;
+  location_vi?: string;
 }
 
 export interface SiteConfig {
   name: string;
   title: string;
+  title_vi?: string;
   description: string;
+  description_vi?: string;
   url: string;
   ogImage: string;
   author: SiteAuthor;

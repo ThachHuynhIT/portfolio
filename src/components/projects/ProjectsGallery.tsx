@@ -1,58 +1,33 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
-import { AnimatedSection, GlassCard, TiltCard, Button } from "@/components/ui";
-import { staggerContainer, fadeInUp } from "@/lib/animations";
-import { projects } from "@/lib/constants";
-import { Project } from "@/lib/types";
+import { GlassCard, TiltCard, Button } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
+import type { Project } from "@/lib/types";
 
-interface ProjectModalProps {
-  project: Project | null;
-  onClose: () => void;
+interface ProjectsGalleryProps {
+  initialProjects: Project[];
 }
 
-function ProjectModal({ project, onClose }: ProjectModalProps) {
+function ProjectDetailModal({
+  project,
+  onClose,
+}: {
+  project: Project | null;
+  onClose: () => void;
+}) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!project) return;
-
     previouslyFocused.current = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
-
-    // Focus the modal after mounting
     dialogRef.current?.focus();
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-        return;
-      }
-
-      // Focus trap
-      if (e.key === "Tab" && dialogRef.current) {
-        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-
-        if (e.shiftKey) {
-          if (document.activeElement === first) {
-            e.preventDefault();
-            last?.focus();
-          }
-        } else {
-          if (document.activeElement === last) {
-            e.preventDefault();
-            first?.focus();
-          }
-        }
-      }
+      if (e.key === "Escape") onClose();
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -64,7 +39,6 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
   }, [project, onClose]);
 
   const { t, locale } = useTranslation();
-
   if (!project) return null;
 
   const displayTitle = locale === "vi" && project.title_vi ? project.title_vi : project.title;
@@ -81,29 +55,22 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
     >
-      {/* Backdrop */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+      <div
         onClick={onClose}
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
       />
-
-      {/* Modal */}
       <motion.div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={displayTitle}
         tabIndex={-1}
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
         className="relative z-10 w-full max-w-2xl focus:outline-none"
       >
         <GlassCard className="p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
-          {/* Close button */}
           <button
             onClick={onClose}
             aria-label={t("projects.closeModal")}
@@ -112,7 +79,6 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
             ✕
           </button>
 
-          {/* Project Image */}
           <div className="relative aspect-video rounded-xl overflow-hidden mb-6 bg-slate-950 border border-white/10 shadow-lg">
             {project.image ? (
               <img
@@ -132,11 +98,9 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
             )}
           </div>
 
-          {/* Project Info */}
           <h3 className="text-2xl font-bold text-white mb-3">{displayTitle}</h3>
           <p className="text-white/70 text-sm sm:text-base mb-6 leading-relaxed">{displayLongDesc}</p>
 
-          {/* Tags */}
           <div className="flex flex-wrap gap-2 mb-6">
             {project.tags.map((tag) => (
               <span
@@ -148,7 +112,6 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
             ))}
           </div>
 
-          {/* Actions */}
           <div className="flex gap-4">
             {project.liveUrl && (
               <Button
@@ -177,58 +140,122 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
   );
 }
 
-export default function ProjectsSection() {
+export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProps) {
   const { t, locale } = useTranslation();
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
 
-  // Pick featured projects for homepage display (compact 6 projects)
-  const featuredProjects = useMemo(() => {
-    const featured = projects.filter((p) => p.featured && p.published !== false);
-    return featured.length > 0 ? featured.slice(0, 6) : projects.slice(0, 6);
-  }, []);
+  // Extract all unique tags
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    initialProjects.forEach((p) => {
+      p.tags?.forEach((tag) => set.add(tag));
+    });
+    return Array.from(set);
+  }, [initialProjects]);
+
+  // Filter projects by tag and search query
+  const filteredProjects = useMemo(() => {
+    return initialProjects.filter((project) => {
+      const matchTag =
+        selectedTag === "all" || project.tags?.includes(selectedTag);
+
+      const title = locale === "vi" && project.title_vi ? project.title_vi : project.title;
+      const desc = locale === "vi" && project.description_vi ? project.description_vi : project.description;
+
+      const q = searchQuery.toLowerCase().trim();
+      const matchSearch =
+        !q ||
+        title.toLowerCase().includes(q) ||
+        desc.toLowerCase().includes(q) ||
+        project.tags?.some((tag) => tag.toLowerCase().includes(q));
+
+      return matchTag && matchSearch;
+    });
+  }, [initialProjects, selectedTag, searchQuery, locale]);
 
   return (
-    <section id="projects" className="relative py-28 overflow-hidden">
-      {/* Background ambient lighting */}
-      <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-radial from-cyan-500/5 via-transparent to-transparent pointer-events-none" />
+    <div className="min-h-screen pt-32 pb-24 text-white">
+      <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
 
-      <div className="container mx-auto px-6 max-w-7xl">
-        <AnimatedSection>
-          <div className="text-center mb-16">
-            <span className="text-xs text-purple-400 font-semibold tracking-widest uppercase mb-3 block">
-              {t("projects.badge")}
-            </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
-              {t("projects.titlePrefix")}
-              <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
-                {t("projects.titleHighlight")}
-              </span>
-            </h2>
-            <p className="text-white/60 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-              {t("projects.subtitle")}
-            </p>
+        {/* Page Header */}
+        <div className="text-center mb-14">
+          <span className="text-xs text-purple-400 font-semibold tracking-widest uppercase mb-3 block">
+            {t("projects.badge")}
+          </span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-tight">
+            {t("projects.allProjectsTitle")}
+          </h1>
+          <p className="text-white/60 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+            {t("projects.allProjectsSubtitle")}
+          </p>
+        </div>
+
+        {/* Search & Tag Filters Bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10">
+          {/* Search Input */}
+          <div className="relative w-full sm:w-80">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={locale === "vi" ? "Tìm kiếm dự án, công nghệ..." : "Search projects, tags..."}
+              className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-all"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs"
+              >
+                ✕
+              </button>
+            )}
           </div>
-        </AnimatedSection>
 
-        {/* Compact 3-column Grid */}
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"
-        >
-          {featuredProjects.map((project) => {
-            const cardTitle = locale === "vi" && project.title_vi ? project.title_vi : project.title;
-            const cardDesc = locale === "vi" && project.description_vi ? project.description_vi : project.description;
+          {/* Tags Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 scrollbar-none">
+            <button
+              type="button"
+              onClick={() => setSelectedTag("all")}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedTag === "all"
+                  ? "bg-white text-black font-semibold shadow-md"
+                  : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5"
+                }`}
+            >
+              {locale === "vi" ? "Tất cả" : "All"} ({initialProjects.length})
+            </button>
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => setSelectedTag(tag)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedTag === tag
+                    ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-semibold shadow-md shadow-purple-500/20"
+                    : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5"
+                  }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
 
-            return (
-              <motion.div key={project.id} variants={fadeInUp}>
+        {/* Projects Grid */}
+        {filteredProjects.length > 0 ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProjects.map((project) => {
+              const cardTitle = locale === "vi" && project.title_vi ? project.title_vi : project.title;
+              const cardDesc = locale === "vi" && project.description_vi ? project.description_vi : project.description;
+
+              return (
                 <TiltCard
+                  key={project.id}
                   className="h-full group cursor-pointer"
-                  onClick={() => setSelectedProject(project)}
+                  onClick={() => setActiveProject(project)}
                 >
-                  <div className="p-4 sm:p-5 flex flex-col h-full">
+                  <div className="p-5 flex flex-col h-full">
                     {/* Project Thumbnail Image */}
                     <div className="relative aspect-[16/10] rounded-xl overflow-hidden mb-4 bg-slate-950 border border-white/10 shadow-sm">
                       {project.image ? (
@@ -251,7 +278,7 @@ export default function ProjectsSection() {
                     </div>
 
                     {/* Project Info */}
-                    <h3 className="text-base sm:text-lg font-bold text-white mb-2 line-clamp-1 group-hover:text-purple-300 transition-colors">
+                    <h3 className="text-lg font-bold text-white mb-2 line-clamp-1 group-hover:text-purple-300 transition-colors">
                       {cardTitle}
                     </h3>
                     <p className="text-white/60 text-xs sm:text-sm mb-4 line-clamp-2 leading-relaxed flex-grow">
@@ -260,7 +287,7 @@ export default function ProjectsSection() {
 
                     {/* Tags */}
                     <div className="flex flex-wrap gap-1.5 pt-3 border-t border-white/5">
-                      {project.tags.slice(0, 3).map((tag) => (
+                      {project.tags.slice(0, 4).map((tag) => (
                         <span
                           key={tag}
                           className="px-2 py-0.5 text-[11px] font-medium text-white/70 bg-white/5 border border-white/10 rounded-md"
@@ -271,34 +298,25 @@ export default function ProjectsSection() {
                     </div>
                   </div>
                 </TiltCard>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-
-        {/* View All Projects Button */}
-        <div className="mt-14 text-center">
-          <Link
-            href="/projects"
-            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold text-white bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
-          >
-            <span>{t("projects.viewAll")}</span>
-            <span className="transition-transform duration-200 group-hover:translate-x-1">
-              →
-            </span>
-          </Link>
-        </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-24 rounded-2xl bg-white/[0.02] border border-white/5">
+            <p className="text-white/60 text-base">{t("projects.noProjectsFound")}</p>
+          </div>
+        )}
       </div>
 
-      {/* Project Detail Modal */}
+      {/* Modal Detail */}
       <AnimatePresence>
-        {selectedProject && (
-          <ProjectModal
-            project={selectedProject}
-            onClose={() => setSelectedProject(null)}
+        {activeProject && (
+          <ProjectDetailModal
+            project={activeProject}
+            onClose={() => setActiveProject(null)}
           />
         )}
       </AnimatePresence>
-    </section>
+    </div>
   );
 }

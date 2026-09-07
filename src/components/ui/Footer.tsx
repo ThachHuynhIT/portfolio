@@ -6,11 +6,14 @@ import { navLinks, socialLinks, siteConfig } from "@/lib/constants";
 import { useTranslation } from "@/context/LanguageContext";
 
 export default function Footer() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
 
-  const getNavLabel = (link: { href: string; label: string }) => {
+  const getNavLabel = (link: { href: string; label: string; label_vi?: string }) => {
+    if (locale === "vi" && link.label_vi?.trim()) {
+      return link.label_vi;
+    }
     const cleanKey = link.href.replace(/^[/#]+/, "");
     const translationKey = `nav.${cleanKey || "home"}`;
     const translated = t(translationKey);
@@ -41,7 +44,7 @@ export default function Footer() {
               {siteConfig.author.name}
             </Link>
             <p className="text-white/60 max-w-md mb-6">
-              {t("hero.bio")}
+              {locale === "vi" && siteConfig.author.bio_vi ? siteConfig.author.bio_vi : (t("hero.bio") || siteConfig.author.bio)}
             </p>
             <div className="flex gap-4">
               {socialLinks.map((social) => (

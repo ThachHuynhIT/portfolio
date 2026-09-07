@@ -6,6 +6,7 @@ import AdminHeader from "@/components/admin/AdminHeader";
 import AdminModal from "@/components/admin/AdminModal";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import FlagIcon from "@/components/ui/FlagIcon";
 import { useToast } from "@/context/ToastContext";
 import type { NavLink } from "@/lib/types";
 
@@ -20,6 +21,7 @@ export default function NavLinksAdminPage() {
   const [deleteTarget, setDeleteTarget] = useState<NavLink | null>(null);
 
   const [formLabel, setFormLabel] = useState("");
+  const [formLabelVi, setFormLabelVi] = useState("");
   const [formHref, setFormHref] = useState("");
   const [formPublished, setFormPublished] = useState(true);
   const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
@@ -47,6 +49,7 @@ export default function NavLinksAdminPage() {
 
   const openCreateModal = () => {
     setFormLabel("");
+    setFormLabelVi("");
     setFormHref("#");
     setFormPublished(true);
     setIsCreating(true);
@@ -56,6 +59,7 @@ export default function NavLinksAdminPage() {
   const openEditModal = (link: NavLink) => {
     setEditingLink(link);
     setFormLabel(link.label);
+    setFormLabelVi(link.label_vi || "");
     setFormHref(link.href);
     setFormPublished(link.published !== false);
     setIsCreating(false);
@@ -88,14 +92,14 @@ export default function NavLinksAdminPage() {
 
     const payload = {
       label: formLabel,
+      label_vi: formLabelVi || undefined,
       href: formHref,
       published: formPublished,
     };
 
     try {
-      let res: Response;
       if (isCreating) {
-        res = await fetch("/api/admin/nav-links", {
+        const res = await fetch("/api/admin/nav-links", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -103,7 +107,7 @@ export default function NavLinksAdminPage() {
         if (!res.ok) throw new Error("Failed to create nav link");
         toast.success(`Nav link "${formLabel}" added successfully!`);
       } else if (editingLink) {
-        res = await fetch("/api/admin/nav-links", {
+        const res = await fetch("/api/admin/nav-links", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: editingLink.id, ...payload }),
@@ -129,11 +133,11 @@ export default function NavLinksAdminPage() {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete nav link");
-      toast.success(`Nav link "${deleteTarget.label}" deleted successfully!`);
+      toast.success(`Nav link "${deleteTarget.label}" deleted!`);
       setDeleteTarget(null);
       fetchLinks();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to delete nav link";
+      const msg = err instanceof Error ? err.message : "Failed to delete link";
       toast.error(msg);
     }
   };
@@ -143,10 +147,9 @@ export default function NavLinksAdminPage() {
     if (targetIndex < 0 || targetIndex >= links.length) return;
 
     const reordered = [...links];
-    const [movedItem] = reordered.splice(index, 1);
-    reordered.splice(targetIndex, 0, movedItem);
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(targetIndex, 0, moved);
 
-    // Optimistically update
     setLinks(reordered);
 
     try {
@@ -181,13 +184,14 @@ export default function NavLinksAdminPage() {
     <div className="max-w-4xl">
       <AdminHeader
         title="Navigation Links"
-        description="Reorder, customize labels, targets, and visibility of main site navigation links."
+        description="Reorder, customize bilingual labels, targets, and visibility of main site navigation links."
         icon="nav"
+        closeHref="/admin"
         action={
           <div className="flex items-center gap-3">
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
+              onChange={(e) => setStatusFilter(e.target.value as "all" | "published" | "draft")}
               className="px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none"
             >
               <option value="all">All ({links.length})</option>
@@ -196,7 +200,7 @@ export default function NavLinksAdminPage() {
             </select>
             <button
               onClick={openCreateModal}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20 cursor-pointer"
             >
               <span className="text-base leading-none">+</span>
               Add Link
@@ -210,7 +214,7 @@ export default function NavLinksAdminPage() {
           <thead className="bg-gray-950 text-gray-400 uppercase text-xs border-b border-gray-800">
             <tr>
               <th className="px-4 py-4 text-center w-28">Order</th>
-              <th className="px-6 py-4">Label</th>
+              <th className="px-6 py-4">Labels (EN / VI)</th>
               <th className="px-6 py-4">Target Href</th>
               <th className="px-6 py-4">Status</th>
               <th className="px-6 py-4 text-right">Actions</th>
@@ -232,7 +236,7 @@ export default function NavLinksAdminPage() {
                           type="button"
                           disabled={originalIndex === 0}
                           onClick={() => handleMove(originalIndex, "up")}
-                          className="w-6 h-5 flex items-center justify-center rounded bg-white/5 hover:bg-purple-600/30 text-[10px] text-slate-300 hover:text-purple-300 disabled:opacity-20 disabled:hover:bg-white/5 disabled:hover:text-slate-500 transition-all active:scale-95"
+                          className="w-6 h-5 flex items-center justify-center rounded bg-white/5 hover:bg-purple-600/30 text-[10px] text-slate-300 hover:text-purple-300 disabled:opacity-20 disabled:hover:bg-white/5 disabled:hover:text-slate-500 transition-all active:scale-95 cursor-pointer"
                           title="Move Up"
                         >
                           ▲
@@ -241,7 +245,7 @@ export default function NavLinksAdminPage() {
                           type="button"
                           disabled={originalIndex === links.length - 1}
                           onClick={() => handleMove(originalIndex, "down")}
-                          className="w-6 h-5 flex items-center justify-center rounded bg-white/5 hover:bg-purple-600/30 text-[10px] text-slate-300 hover:text-purple-300 disabled:opacity-20 disabled:hover:bg-white/5 disabled:hover:text-slate-500 transition-all active:scale-95"
+                          className="w-6 h-5 flex items-center justify-center rounded bg-white/5 hover:bg-purple-600/30 text-[10px] text-slate-300 hover:text-purple-300 disabled:opacity-20 disabled:hover:bg-white/5 disabled:hover:text-slate-500 transition-all active:scale-95 cursor-pointer"
                           title="Move Down"
                         >
                           ▼
@@ -249,13 +253,31 @@ export default function NavLinksAdminPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 font-semibold text-white">{link.label}</td>
+
+                  {/* Bilingual Labels */}
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-1.5 font-semibold text-white">
+                        <FlagIcon locale="en" width={14} height={9} />
+                        <span>{link.label}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-purple-300/80">
+                        <FlagIcon locale="vi" width={14} height={9} />
+                        <span>
+                          {link.label_vi || (
+                            <span className="text-slate-500 italic text-[11px]">Chưa có tiếng Việt</span>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+
                   <td className="px-6 py-4 font-mono text-xs text-cyan-400">{link.href}</td>
                   <td className="px-6 py-4">
                     <button
                       type="button"
                       onClick={() => handleTogglePublish(link)}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                         link.published !== false
                           ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
                           : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
@@ -269,13 +291,13 @@ export default function NavLinksAdminPage() {
                   <td className="px-6 py-4 text-right space-x-2">
                     <button
                       onClick={() => openEditModal(link)}
-                      className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg text-xs font-medium transition-all"
+                      className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg text-xs font-medium transition-all cursor-pointer"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => setDeleteTarget(link)}
-                      className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-medium transition-all"
+                      className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-medium transition-all cursor-pointer"
                     >
                       Delete
                     </button>
@@ -294,7 +316,7 @@ export default function NavLinksAdminPage() {
         title={isCreating ? "Add Nav Link" : "Edit Nav Link"}
         subtitle={
           isCreating
-            ? "Configure link label, URL/anchor target, and header visibility."
+            ? "Configure bilingual link label, URL/anchor target, and header visibility."
             : `Editing "${editingLink?.label}".`
         }
         icon="nav"
@@ -304,49 +326,73 @@ export default function NavLinksAdminPage() {
         isSaving={isSaving}
         maxWidth="max-w-lg"
       >
-        <FormField label="Link Label" id="nav-label" required>
-          <input
-            id="nav-label"
-            type="text"
-            value={formLabel}
-            onChange={(e) => setFormLabel(e.target.value)}
-            placeholder="Home, Projects, Blog..."
-            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
-            required
-          />
-        </FormField>
+        <div className="space-y-4">
+          <FormField label="Menu Label (English / Default)" id="nav-label" required>
+            <div className="relative flex items-center">
+              <div className="absolute left-3.5 pointer-events-none">
+                <FlagIcon locale="en" width={16} height={11} />
+              </div>
+              <input
+                id="nav-label"
+                type="text"
+                value={formLabel}
+                onChange={(e) => setFormLabel(e.target.value)}
+                placeholder="e.g. Projects"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm"
+                required
+              />
+            </div>
+          </FormField>
 
-        <FormField label="Target Href" id="nav-href" required hint="e.g. #projects or /blog">
-          <input
-            id="nav-href"
-            type="text"
-            value={formHref}
-            onChange={(e) => setFormHref(e.target.value)}
-            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
-            required
-          />
-        </FormField>
+          <FormField label="Nhãn Menu (Tiếng Việt)" id="nav-label-vi">
+            <div className="relative flex items-center">
+              <div className="absolute left-3.5 pointer-events-none">
+                <FlagIcon locale="vi" width={16} height={11} />
+              </div>
+              <input
+                id="nav-label-vi"
+                type="text"
+                value={formLabelVi}
+                onChange={(e) => setFormLabelVi(e.target.value)}
+                placeholder="Ví dụ: Dự án"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm"
+              />
+            </div>
+          </FormField>
 
-        <div className="flex items-center gap-2 pt-1">
-          <input
-            type="checkbox"
-            id="nav-published"
-            checked={formPublished}
-            onChange={(e) => setFormPublished(e.target.checked)}
-            className="rounded border-white/20 bg-slate-950 text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer"
-          />
-          <label htmlFor="nav-published" className="text-sm text-gray-200 cursor-pointer">
-            Published (Visible on header navbar)
-          </label>
+          <FormField label="Target Href" id="nav-href" required>
+            <input
+              id="nav-href"
+              type="text"
+              value={formHref}
+              onChange={(e) => setFormHref(e.target.value)}
+              placeholder="#projects, /blog, /music, etc."
+              className="w-full px-4 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm font-mono"
+              required
+            />
+          </FormField>
+
+          <div className="pt-2">
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-300">
+              <input
+                type="checkbox"
+                checked={formPublished}
+                onChange={(e) => setFormPublished(e.target.checked)}
+                className="w-4 h-4 rounded bg-slate-950 border-white/10 text-purple-600 focus:ring-purple-500"
+              />
+              Show in Header / Navigation bar
+            </label>
+          </div>
         </div>
       </AdminModal>
 
+      {/* Confirm Delete Dialog */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        title="Delete Nav Link"
+        title="Delete Navigation Link"
         message={`Are you sure you want to delete "${deleteTarget?.label}"?`}
-        confirmLabel="Delete"
-        isDangerous
+        confirmLabel="Delete Link"
+        isDestructive
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />

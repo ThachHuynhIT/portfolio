@@ -19,7 +19,8 @@ const Hero3DScene = dynamic(
 );
 
 export default function HeroSection() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+
   // Mutable ref instead of React state: Hero3DScene reads x/y inside an
   // r3f useFrame loop every animation frame, so mutating this object in
   // place avoids re-rendering the whole Hero tree on every mousemove.
@@ -55,10 +56,10 @@ export default function HeroSection() {
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#030014]"
       onMouseMove={handleMouseMove}
     >
-      {/* 3D Background */}
+      {/* 3D Background - Original interactive centerpiece */}
       {isMounted && (
         <SceneContainer>
           <Hero3DScene mousePosition={mousePositionRef.current} />
@@ -84,10 +85,10 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6"
+            className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight"
           >
             <span className="text-white">{t("hero.greetingPrefix")}</span>
-            <span className="bg-gradient-to-r from-purple-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent ml-3">
               {siteConfig.author.name.split(" ")[0]}
             </span>
           </motion.h1>
@@ -97,9 +98,9 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-xl md:text-2xl text-white/60 mb-12 max-w-2xl mx-auto"
+            className="text-xl md:text-2xl text-white/70 mb-12 max-w-2xl mx-auto leading-relaxed"
           >
-            {t("hero.bio")}
+            {locale === "vi" && siteConfig.author.bio_vi ? siteConfig.author.bio_vi : t("hero.bio")}
           </motion.p>
 
           {/* CTA Buttons */}
@@ -136,7 +137,7 @@ export default function HeroSection() {
       </div>
 
       {/* Gradient Overlays */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/40 to-[#030014] pointer-events-none" />
       <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-radial from-purple-500/10 via-transparent to-transparent pointer-events-none" />
     </section>
   );

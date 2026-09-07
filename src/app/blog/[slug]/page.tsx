@@ -1,11 +1,10 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { Metadata } from "next";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
 import { getPostBySlug, getAllPosts } from "@/lib/blog";
-import { GlassCard } from "@/components/ui";
+import BlogPostView from "@/components/blog/BlogPostView";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -104,105 +103,35 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
+  const contentEn = (
+    <MDXRemote
+      source={post.content}
+      components={mdxComponents}
+      options={{
+        mdxOptions: {
+          rehypePlugins: [rehypeHighlight, rehypeSlug],
+        },
+      }}
+    />
+  );
+
+  const contentVi = post.content_vi ? (
+    <MDXRemote
+      source={post.content_vi}
+      components={mdxComponents}
+      options={{
+        mdxOptions: {
+          rehypePlugins: [rehypeHighlight, rehypeSlug],
+        },
+      }}
+    />
+  ) : null;
+
   return (
-    <article className="min-h-screen pt-32 pb-20">
-      {/* Background */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-radial from-purple-500/10 via-transparent to-transparent" />
-      </div>
-
-      <div className="container mx-auto px-6 max-w-3xl">
-        {/* Back Link */}
-        <Link
-          href="/blog"
-          className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-8"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          Back to Blog
-        </Link>
-
-        {/* Header */}
-        <header className="mb-12">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="px-3 py-1 text-xs font-medium text-purple-400 bg-purple-500/10 rounded-full">
-              {post.category}
-            </span>
-            <span className="text-white/40 text-sm">{post.readTime}</span>
-          </div>
-
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            {post.title}
-          </h1>
-
-          <p className="text-xl text-white/60 mb-6">{post.excerpt}</p>
-
-          <div className="flex items-center gap-4 text-sm text-white/40">
-            <time dateTime={post.date}>
-              {new Date(post.date).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </time>
-          </div>
-
-          {/* Tags */}
-          <div className="flex flex-wrap gap-2 mt-6">
-            {post.tags.map((tag) => (
-              <span
-                key={tag}
-                className="px-3 py-1 text-sm text-white/60 bg-white/5 border border-white/10 rounded-full"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-        </header>
-
-        {/* Content */}
-        <GlassCard className="p-8 md:p-12">
-          <div className="prose prose-invert max-w-none">
-            <MDXRemote
-              source={post.content}
-              components={mdxComponents}
-              options={{
-                mdxOptions: {
-                  rehypePlugins: [rehypeHighlight, rehypeSlug],
-                },
-              }}
-            />
-          </div>
-        </GlassCard>
-
-        {/* Author */}
-        <div className="mt-12">
-          <GlassCard className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center text-2xl">
-                👨‍💻
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-white">Thach Huynh</h3>
-                <p className="text-white/60 text-sm">
-                  Creative Web Developer specializing in immersive digital experiences.
-                </p>
-              </div>
-            </div>
-          </GlassCard>
-        </div>
-      </div>
-    </article>
+    <BlogPostView
+      post={post}
+      contentEn={contentEn}
+      contentVi={contentVi}
+    />
   );
 }

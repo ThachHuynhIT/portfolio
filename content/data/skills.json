@@ -4,7 +4,7 @@
     "name": "React",
     "icon": "⚛️",
     "category": "frontend",
-    "level": 85,
+    "level": 100,
     "published": true
   },
   {
@@ -12,7 +12,7 @@
     "name": "Next.js",
     "icon": "▲",
     "category": "frontend",
-    "level": 90,
+    "level": 100,
     "published": true
   },
   {
@@ -20,7 +20,7 @@
     "name": "TypeScript",
     "icon": "📘",
     "category": "frontend",
-    "level": 92,
+    "level": 100,
     "published": true
   },
   {
@@ -28,7 +28,7 @@
     "name": "Three.js",
     "icon": "🎮",
     "category": "frontend",
-    "level": 85,
+    "level": 100,
     "published": true
   },
   {
@@ -36,7 +36,7 @@
     "name": "Tailwind CSS",
     "icon": "🎨",
     "category": "frontend",
-    "level": 95,
+    "level": 100,
     "published": true
   },
   {
@@ -44,7 +44,7 @@
     "name": "Node.js",
     "icon": "🟢",
     "category": "backend",
-    "level": 88,
+    "level": 100,
     "published": true
   },
   {
@@ -52,7 +52,7 @@
     "name": "Python",
     "icon": "🐍",
     "category": "backend",
-    "level": 80,
+    "level": 100,
     "published": true
   },
   {
@@ -60,7 +60,7 @@
     "name": "PostgreSQL",
     "icon": "🐘",
     "category": "backend",
-    "level": 82,
+    "level": 100,
     "published": true
   },
   {
@@ -68,7 +68,7 @@
     "name": "MongoDB",
     "icon": "🍃",
     "category": "backend",
-    "level": 78,
+    "level": 100,
     "published": true
   },
   {
@@ -76,7 +76,7 @@
     "name": "Docker",
     "icon": "🐳",
     "category": "tools",
-    "level": 75,
+    "level": 100,
     "published": true
   },
   {
@@ -84,7 +84,7 @@
     "name": "Git",
     "icon": "📦",
     "category": "tools",
-    "level": 90,
+    "level": 100,
     "published": true
   },
   {
@@ -92,7 +92,7 @@
     "name": "Figma",
     "icon": "🎯",
     "category": "design",
-    "level": 70,
+    "level": 100,
     "published": true
   }
 ]

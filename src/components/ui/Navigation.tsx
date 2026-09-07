@@ -12,7 +12,7 @@ import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 const SECTION_IDS = ["home", "about", "skills", "projects", "contact"];
 
 export default function Navigation() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("home");
@@ -20,7 +20,10 @@ export default function Navigation() {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  const getNavLabel = (link: { href: string; label: string }) => {
+  const getNavLabel = (link: { href: string; label: string; label_vi?: string }) => {
+    if (locale === "vi" && link.label_vi?.trim()) {
+      return link.label_vi;
+    }
     const cleanKey = link.href.replace(/^[/#]+/, "");
     const translationKey = `nav.${cleanKey || "home"}`;
     const translated = t(translationKey);
@@ -172,7 +175,7 @@ export default function Navigation() {
               </div>
             </div>
             <span className="font-bold text-lg text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-cyan-400 transition-all duration-300">
-              Portfolio
+              ThachHuynh
             </span>
           </Link>
 
