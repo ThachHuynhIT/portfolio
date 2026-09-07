@@ -2,8 +2,6 @@ import path from "path";
 import { cloudinary } from "@/lib/cloudinary";
 import { readJsonFile, writeJsonFile, generateId } from "@/lib/data-manager";
 import type { MediaAsset, MediaCategory } from "@/lib/types";
-// @ts-expect-error heic-convert does not provide official TS declarations
-import convertHeic from "heic-convert";
 
 const REGISTRY_FILE = "media-registry.json";
 
@@ -95,6 +93,9 @@ export async function convertHeicIfNeeded(
 
   if (isHeic) {
     try {
+      // Lazy-load heic-convert only when converting an actual HEIC file
+      // @ts-expect-error heic-convert does not provide official TS declarations
+      const { default: convertHeic } = await import("heic-convert");
       const converted = await convertHeic({
         buffer,
         format: "JPEG",
