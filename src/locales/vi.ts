@@ -26,6 +26,7 @@ export const vi: TranslationDict = {
   hero: {
     available: "Sẵn sàng cho dự án mới",
     greetingPrefix: "Xin chào, mình là ",
+    greeting: "ThachHuynh",
     bio: "Lập trình viên web đam mê kiến tạo những trải nghiệm số sống động cùng công nghệ hiện đại.",
     viewWork: "Xem dự án",
     downloadCV: "Tải CV",
