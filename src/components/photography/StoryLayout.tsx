@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import ImageWithSkeleton from "@/components/ui/ImageWithSkeleton";
 import { motion } from "framer-motion";
 import type { PhotoItem } from "@/lib/types";
 import Icon from "@/components/ui/Icon";
@@ -50,7 +50,7 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
               className="relative w-full aspect-[16/10] overflow-hidden bg-black cursor-pointer"
               onClick={() => onSelectPhoto(photo)}
             >
-              <Image
+              <ImageWithSkeleton
                 src={photo.image}
                 alt={title}
                 fill

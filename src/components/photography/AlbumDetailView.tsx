@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import ImageWithSkeleton from "@/components/ui/ImageWithSkeleton";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import type { PhotoItem, PhotoAlbum } from "@/lib/types";
@@ -70,7 +70,7 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
         <section className="relative overflow-hidden rounded-3xl border border-white/10 mb-12 shadow-2xl bg-slate-950">
           {coverUrl && (
             <div className="absolute inset-0 z-0">
-              <Image
+              <ImageWithSkeleton
                 src={coverUrl}
                 alt={albumTitle}
                 fill
@@ -254,7 +254,7 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
                   >
                     <div className="relative aspect-[16/10] w-full bg-slate-950 overflow-hidden">
                       {item.coverImage && (
-                        <Image
+                        <ImageWithSkeleton
                           src={item.coverImage}
                           alt={title}
                           fill

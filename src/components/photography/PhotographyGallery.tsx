@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Image from "next/image";
+import ImageWithSkeleton from "@/components/ui/ImageWithSkeleton";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import type { PhotoItem, PhotoAlbum } from "@/lib/types";
@@ -149,7 +149,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
         {/* ── Hero Header ── */}
         <section className="relative overflow-hidden rounded-3xl border border-white/10 mb-10 shadow-2xl bg-slate-950">
           <div className="absolute inset-0 z-0">
-            <Image
+            <ImageWithSkeleton
               src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2000&q=85"
               alt="Photography Hero Background"
               fill
@@ -558,7 +558,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                       {/* Cover Photo */}
                       <div className="relative aspect-[16/10] w-full bg-slate-950 overflow-hidden">
                         {coverUrl && (
-                          <Image
+                          <ImageWithSkeleton
                             src={coverUrl}
                             alt={title}
                             fill
@@ -607,10 +607,11 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                                 className="relative w-7 h-7 rounded-full overflow-hidden border-2 border-slate-900 bg-slate-800"
                                 style={{ zIndex: 3 - idx }}
                               >
-                                <Image
+                                <ImageWithSkeleton
                                   src={p.image}
                                   alt={p.title}
                                   fill
+                                  sizes="28px"
                                   className="object-cover"
                                 />
                               </div>

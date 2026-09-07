@@ -137,3 +137,30 @@ body {
   outline: 2px solid #8b5cf6;
   outline-offset: 2px;
 }
+
+/* Skeleton Shimmer Animation */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* GPU acceleration for smoother transforms */
+.gpu-layer {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Rendering performance for long lists */
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 350px;
+}
+

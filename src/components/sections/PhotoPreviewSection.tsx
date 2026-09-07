@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { AnimatedSection, GlassCard } from "@/components/ui";
+import { AnimatedSection, GlassCard, ImageWithSkeleton } from "@/components/ui";
 import { photography } from "@/lib/constants";
 import { useTranslation } from "@/context/LanguageContext";
 import type { PhotoItem } from "@/lib/types";
@@ -81,10 +81,13 @@ export default function PhotoPreviewSection() {
                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                 className="absolute inset-0"
               >
-                <img
+                <ImageWithSkeleton
                   src={currentPhoto.image}
                   alt={currentPhoto.title}
-                  className="w-full h-full object-cover object-center"
+                  fill
+                  priority
+                  sizes="(max-width: 1200px) 100vw, 1200px"
+                  className="object-cover object-center"
                 />
 
                 {/* Gradient Shadows for readability */}
@@ -180,10 +183,12 @@ export default function PhotoPreviewSection() {
                     : "border-white/10 opacity-50 hover:opacity-100"
                 }`}
               >
-                <img
+                <ImageWithSkeleton
                   src={photo.image}
                   alt={photo.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="160px"
+                  className="object-cover"
                 />
               </button>
             ))}

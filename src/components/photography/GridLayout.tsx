@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import ImageWithSkeleton from "@/components/ui/ImageWithSkeleton";
 import { motion } from "framer-motion";
 import type { PhotoItem } from "@/lib/types";
 import Icon from "@/components/ui/Icon";
@@ -44,7 +44,7 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
           >
             {/* Card Image */}
             <div className="relative w-full aspect-[4/3] overflow-hidden bg-black/40">
-              <Image
+              <ImageWithSkeleton
                 src={photo.image}
                 alt={title}
                 fill
