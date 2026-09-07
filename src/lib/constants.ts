@@ -4,7 +4,8 @@ import socialLinksData from "../../content/data/social-links.json";
 import skillsData from "../../content/data/skills.json";
 import projectsData from "../../content/data/projects.json";
 import photographyData from "../../content/data/photography.json";
-import type { NavLink, Project, Skill, SocialLink, SiteConfig, PhotoItem } from "./types";
+import albumsData from "../../content/data/photography-albums.json";
+import type { NavLink, Project, Skill, SocialLink, SiteConfig, PhotoItem, PhotoAlbum } from "./types";
 
 export const siteConfig: SiteConfig = siteConfigData as SiteConfig;
 export const navLinks: NavLink[] = (navLinksData as NavLink[])
@@ -15,5 +16,16 @@ export const skills: Skill[] = (skillsData as Skill[]).filter((item) => item.pub
 export const projects: Project[] = (projectsData as Project[]).filter((item) => item.published !== false);
 export const photography: PhotoItem[] = (photographyData as PhotoItem[])
   .filter((item) => item.published !== false)
-  .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  .sort((a, b) => {
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
+    return (a.order ?? 0) - (b.order ?? 0);
+  });
+export const albums: PhotoAlbum[] = (albumsData as PhotoAlbum[])
+  .filter((item) => item.published !== false)
+  .sort((a, b) => {
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
+    return (a.order ?? 0) - (b.order ?? 0);
+  });
 

@@ -13,7 +13,7 @@ interface MasonryLayoutProps {
 }
 
 export default function MasonryLayout({ photos, onSelectPhoto }: MasonryLayoutProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const columns = useMemo(() => {
     const cols: PhotoItem[][] = [[], [], []];
     photos.forEach((photo, index) => {
@@ -27,6 +27,8 @@ export default function MasonryLayout({ photos, onSelectPhoto }: MasonryLayoutPr
       {columns.map((colPhotos, colIndex) => (
         <div key={colIndex} className="flex flex-col gap-6">
           {colPhotos.map((photo, pIdx) => {
+            const title = locale === "vi" && photo.title_vi ? photo.title_vi : photo.title;
+            const desc = locale === "vi" && photo.description_vi ? photo.description_vi : photo.description;
             const isVideo = photo.mediaType === "video" || Boolean(photo.videoUrl);
             const isPortrait = photo.aspectRatio === "portrait";
             const aspectClass = isPortrait
@@ -59,7 +61,7 @@ export default function MasonryLayout({ photos, onSelectPhoto }: MasonryLayoutPr
                 <div className={`relative w-full overflow-hidden ${aspectClass}`}>
                   <Image
                     src={photo.image}
-                    alt={photo.title}
+                    alt={title}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -109,12 +111,12 @@ export default function MasonryLayout({ photos, onSelectPhoto }: MasonryLayoutPr
                   {/* Info Overlay on Bottom */}
                   <div className="absolute bottom-0 inset-x-0 p-5 translate-y-2 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100 z-10">
                     <h3 className="text-base font-bold text-white mb-1 group-hover:text-cyan-300 transition-colors">
-                      {photo.title}
+                      {title}
                     </h3>
 
-                    {photo.description && photo.description.trim() !== "" && (
+                    {desc && desc.trim() !== "" && (
                       <p className="text-xs text-white/70 line-clamp-2 mb-3">
-                        {photo.description}
+                        {desc}
                       </p>
                     )}
 

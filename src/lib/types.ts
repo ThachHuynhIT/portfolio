@@ -113,7 +113,11 @@ export interface PhotoEditingInfo {
 export interface PhotoItem {
   id: string;
   title: string;
+  title_vi?: string;
   description?: string;
+  description_vi?: string;
+  location?: string;
+  location_vi?: string;
   category: string;
   tags: string[];
   image: string;
@@ -124,10 +128,27 @@ export interface PhotoItem {
   featured?: boolean;
   published?: boolean;
   date: string;
-  location?: string;
   camera?: PhotoCameraExif;
   editing?: PhotoEditingInfo;
   order?: number;
+  albumId?: string;
+}
+
+export interface PhotoAlbum {
+  id: string;
+  title: string;
+  title_vi?: string;
+  slug: string;
+  description?: string;
+  description_vi?: string;
+  coverImage: string;
+  coverPhotoId?: string;
+  photoIds: string[];
+  order?: number;
+  featured?: boolean;
+  published?: boolean;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 // Media Management Types

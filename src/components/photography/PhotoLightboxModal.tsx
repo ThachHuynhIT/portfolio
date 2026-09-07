@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import type { PhotoItem } from "@/lib/types";
 import Icon from "@/components/ui/Icon";
+import { useTranslation } from "@/context/LanguageContext";
 
 interface PhotoLightboxModalProps {
   photo: PhotoItem | null;
@@ -21,6 +22,7 @@ export default function PhotoLightboxModal({
   onClose,
   onSelectPhoto,
 }: PhotoLightboxModalProps) {
+  const { locale } = useTranslation();
   const [showBefore, setShowBefore] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const [showInfo, setShowInfo] = useState(true);
@@ -281,16 +283,18 @@ export default function PhotoLightboxModal({
 
                 {/* Title & Description */}
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-2">{photo.title}</h2>
-                  {photo.description && photo.description.trim() !== "" && (
+                  <h2 className="text-xl font-bold text-white mb-2">
+                    {locale === "vi" && photo.title_vi ? photo.title_vi : photo.title}
+                  </h2>
+                  {(locale === "vi" && photo.description_vi ? photo.description_vi : photo.description) && (
                     <p className="text-sm text-slate-300/80 leading-relaxed">
-                      {photo.description}
+                      {locale === "vi" && photo.description_vi ? photo.description_vi : photo.description}
                     </p>
                   )}
-                  {photo.location && photo.location.trim() !== "" && (
+                  {(locale === "vi" && photo.location_vi ? photo.location_vi : photo.location) && (
                     <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-2.5">
                       <Icon name="globe" size={13} className="text-cyan-400" />
-                      <span>{photo.location}</span>
+                      <span>{locale === "vi" && photo.location_vi ? photo.location_vi : photo.location}</span>
                     </div>
                   )}
                 </div>

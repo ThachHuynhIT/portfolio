@@ -1,115 +1,213 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import dynamic from "next/dynamic";
-import { AnimatedSection, GlassCard } from "@/components/ui";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { AnimatedSection } from "@/components/ui";
 import { skills } from "@/lib/constants";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
 
-// Dynamic imports for 3D components
-const SceneContainer = dynamic(
-  () => import("@/components/3d/SceneContainer"),
-  { ssr: false }
-);
-
-const FloatingTechStack = dynamic(
-  () => import("@/components/3d/FloatingTechStack"),
-  { ssr: false }
-);
-
 const categories = ["frontend", "backend", "tools", "design"] as const;
+
+type CategoryType = (typeof categories)[number] | "all";
+
+const categoryIcons: Record<string, string> = {
+  frontend: "💻",
+  backend: "⚙️",
+  tools: "🛠️",
+  design: "🎨",
+};
 
 export default function SkillsSection() {
   const { t } = useTranslation();
-  const [isMounted, setIsMounted] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryType>("all");
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const publishedSkills = skills.filter((s) => s.published !== false);
+
+  const displayedCategories =
+    selectedCategory === "all"
+      ? categories
+      : categories.filter((cat) => cat === selectedCategory);
 
   return (
-    <section id="skills" className="relative py-32 overflow-hidden">
-      {/* 3D Background */}
-      {isMounted && (
-        <div className="absolute inset-0 opacity-30">
-          <SceneContainer>
-            <ambientLight intensity={0.5} />
-            <pointLight position={[10, 10, 10]} intensity={1} />
-            <FloatingTechStack />
-          </SceneContainer>
-        </div>
-      )}
+    <section id="skills" className="relative py-28 overflow-hidden">
+      {/* Subtle ambient lighting */}
+      <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-r from-cyan-600/10 via-purple-600/10 to-indigo-600/10 blur-[120px] rounded-full" />
+      </div>
 
-      <div className="relative z-10 container mx-auto px-6">
+      <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
+        {/* ── Section Header ── */}
         <AnimatedSection>
-          <div className="text-center mb-16">
-            <span className="text-sm text-cyan-500 font-medium tracking-wider uppercase mb-4 block">
-              {t("skills.badge")}
+          <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/[0.04] text-cyan-400 border border-white/10 mb-4 backdrop-blur-md">
+              <span>⚡</span>
+              <span>{t("skills.badge")}</span>
             </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-5 tracking-tight">
               {t("skills.titlePrefix")}
-              <span className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
                 {t("skills.titleHighlight")}
               </span>
             </h2>
-            <p className="text-white/60 max-w-2xl mx-auto">
+
+            <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto font-light leading-relaxed">
               {t("skills.subtitle")}
             </p>
           </div>
         </AnimatedSection>
 
-        {/* Skills Grid by Category */}
-        <div className="space-y-12">
-          {categories.map((category) => (
-            <AnimatedSection key={category}>
-              <h3 className="text-xl font-semibold text-white mb-6">
-                {t(`skills.categories.${category}`)}
-              </h3>
-              <motion.div
-                variants={staggerContainer}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
+        {/* ── Category Filter Tabs ── */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
+          <button
+            type="button"
+            onClick={() => setSelectedCategory("all")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+              selectedCategory === "all"
+                ? "bg-white text-slate-950 shadow-lg shadow-white/10"
+                : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5"
+            }`}
+          >
+            <span>✨</span>
+            <span>{t("photography.all") || "Tất cả"}</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                selectedCategory === "all"
+                  ? "bg-slate-900 text-white"
+                  : "bg-white/10 text-slate-400"
+              }`}
+            >
+              {publishedSkills.length}
+            </span>
+          </button>
+
+          {categories.map((cat) => {
+            const count = publishedSkills.filter((s) => s.category === cat).length;
+            const isSelected = selectedCategory === cat;
+
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  isSelected
+                    ? "bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-cyan-500/20"
+                    : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5"
+                }`}
               >
-                {skills
-                  .filter((skill) => skill.category === category)
-                  .map((skill) => (
-                    <motion.div key={skill.name} variants={fadeInUp}>
-                      <GlassCard className="p-4 text-center group cursor-pointer">
-                        <div className="h-10 flex items-center justify-center mb-2">
-                          {skill.icon && (skill.icon.startsWith("http") || skill.icon.startsWith("/")) ? (
-                            <img
-                              src={skill.icon}
-                              alt={skill.name}
-                              className="w-8 h-8 object-contain transition-transform group-hover:scale-110"
-                            />
-                          ) : (
-                            <span className="text-3xl">{skill.icon || "⚡"}</span>
-                          )}
-                        </div>
-                        <div className="text-white/80 text-sm font-medium">
-                          {skill.name}
-                        </div>
-                        {/* Skill level bar */}
-                        <div className="mt-3 h-1 bg-white/10 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            whileInView={{ width: `${skill.level}%` }}
-                            transition={{ duration: 1, delay: 0.2 }}
-                            viewport={{ once: true }}
-                            className="h-full bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full"
-                          />
-                        </div>
-                      </GlassCard>
-                    </motion.div>
-                  ))}
-              </motion.div>
-            </AnimatedSection>
-          ))}
+                <span>{categoryIcons[cat]}</span>
+                <span>{t(`skills.categories.${cat}`)}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                    isSelected
+                      ? "bg-black/30 text-white"
+                      : "bg-white/10 text-slate-400"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
+
+        {/* ── Skills Grouped Listing (Simplified, No %) ── */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={selectedCategory}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25 }}
+            className={`grid gap-6 ${
+              displayedCategories.length === 1
+                ? "grid-cols-1 max-w-2xl mx-auto"
+                : "grid-cols-1 md:grid-cols-2"
+            }`}
+          >
+            {displayedCategories.map((category) => {
+              const categorySkills = publishedSkills.filter(
+                (skill) => skill.category === category
+              );
+
+              if (categorySkills.length === 0) return null;
+
+              return (
+                <div
+                  key={category}
+                  className="rounded-3xl bg-slate-900/50 border border-white/10 p-6 sm:p-7 backdrop-blur-md hover:border-white/20 transition-all shadow-xl flex flex-col justify-between"
+                >
+                  {/* Category Card Header */}
+                  <div className="flex items-center justify-between pb-5 mb-5 border-b border-white/10">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-white/[0.06] border border-white/10 flex items-center justify-center text-xl shadow-inner">
+                        {categoryIcons[category]}
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-white">
+                          {t(`skills.categories.${category}`)}
+                        </h3>
+                        <p className="text-xs text-slate-400">
+                          {categorySkills.length} {t("skills.badge").toLowerCase()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className="text-[11px] px-2.5 py-1 rounded-full bg-white/[0.04] text-slate-400 font-mono border border-white/5">
+                      {category.toUpperCase()}
+                    </span>
+                  </div>
+
+                  {/* Skills List as Clean Interactive Chips (No %) */}
+                  <motion.div
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="visible"
+                    className="flex flex-wrap gap-2.5"
+                  >
+                    {categorySkills.map((skill) => {
+                      const isImg =
+                        skill.icon &&
+                        (skill.icon.startsWith("http") || skill.icon.startsWith("/"));
+
+                      return (
+                        <motion.div
+                          key={skill.name}
+                          variants={fadeInUp}
+                          whileHover={{ scale: 1.04, y: -2 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                          className="group inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-colors cursor-default"
+                        >
+                          {/* Skill Icon */}
+                          <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                            {isImg ? (
+                              <img
+                                src={skill.icon}
+                                alt={skill.name}
+                                className="w-5 h-5 object-contain"
+                              />
+                            ) : (
+                              <span className="text-base leading-none">
+                                {skill.icon || "⚡"}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Skill Name */}
+                          <span className="text-xs sm:text-sm font-medium text-slate-200 group-hover:text-white transition-colors">
+                            {skill.name}
+                          </span>
+                        </motion.div>
+                      );
+                    })}
+                  </motion.div>
+                </div>
+              );
+            })}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </section>
   );

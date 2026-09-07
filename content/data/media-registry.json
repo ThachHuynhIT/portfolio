@@ -1,5 +1,47 @@
 [
   {
+    "id": "media-1788770931665-awjxzt",
+    "publicId": "portfolio/photography/photos/photo-processed-2-1788770928424",
+    "filename": "photo-processed-2-1788770928424.jpg",
+    "url": "http://res.cloudinary.com/drlcckhqc/image/upload/v1788770932/portfolio/photography/photos/photo-processed-2-1788770928424.jpg",
+    "secureUrl": "https://res.cloudinary.com/drlcckhqc/image/upload/v1788770932/portfolio/photography/photos/photo-processed-2-1788770928424.jpg",
+    "category": "photo",
+    "subType": "processed",
+    "format": "jpg",
+    "bytes": 1606315,
+    "width": 3708,
+    "height": 3708,
+    "resourceType": "image",
+    "tags": [
+      "portfolio",
+      "photo",
+      "processed",
+      "photography"
+    ],
+    "createdAt": "2026-09-07T08:48:52Z"
+  },
+  {
+    "id": "media-1788769522534-6rjja0",
+    "publicId": "portfolio/photography/photos/photo-processed-2-1788769518678",
+    "filename": "photo-processed-2-1788769518678.jpg",
+    "url": "http://res.cloudinary.com/drlcckhqc/image/upload/v1788769522/portfolio/photography/photos/photo-processed-2-1788769518678.jpg",
+    "secureUrl": "https://res.cloudinary.com/drlcckhqc/image/upload/v1788769522/portfolio/photography/photos/photo-processed-2-1788769518678.jpg",
+    "category": "photo",
+    "subType": "processed",
+    "format": "jpg",
+    "bytes": 1606315,
+    "width": 3708,
+    "height": 3708,
+    "resourceType": "image",
+    "tags": [
+      "portfolio",
+      "photo",
+      "processed",
+      "photography"
+    ],
+    "createdAt": "2026-09-07T08:25:22Z"
+  },
+  {
     "id": "media-1788512563659-f0hxhj",
     "publicId": "portfolio/music/audio/music-audio-nguyen-van-muoi-1788512557332",
     "filename": "music-audio-nguyen-van-muoi-1788512557332.mp3",

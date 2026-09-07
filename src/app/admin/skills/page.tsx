@@ -200,7 +200,6 @@ export default function SkillsAdminPage() {
               <th className="px-6 py-4">{t("admin.skills.colSkill", "SKILL & ICON")}</th>
               <th className="px-6 py-4">{t("admin.common.name", "NAME")}</th>
               <th className="px-6 py-4">{t("admin.skills.colCategory", "CATEGORY")}</th>
-              <th className="px-6 py-4">{t("admin.skills.colProficiency", "PROFICIENCY")}</th>
               <th className="px-6 py-4">{t("admin.skills.colStatus", "STATUS")}</th>
               <th className="px-6 py-4 text-right">{t("admin.skills.colActions", "ACTIONS")}</th>
             </tr>
@@ -222,17 +221,6 @@ export default function SkillsAdminPage() {
                   <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-800 text-gray-300 border border-gray-700 uppercase">
                     {skill.category}
                   </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-24 bg-gray-800 h-2 rounded-full overflow-hidden">
-                      <div
-                        className="bg-gradient-to-r from-purple-500 to-cyan-500 h-full"
-                        style={{ width: `${skill.level}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-gray-400">{skill.level}%</span>
-                  </div>
                 </td>
                 <td className="px-6 py-4">
                   <button
@@ -320,18 +308,6 @@ export default function SkillsAdminPage() {
             <option value="tools">Tools</option>
             <option value="design">Design</option>
           </select>
-        </FormField>
-
-        <FormField label={`${t("admin.skills.fieldLevel", "Proficiency Level")} (${formLevel}%)`} id="skill-level" required>
-          <input
-            id="skill-level"
-            type="range"
-            min={1}
-            max={100}
-            value={formLevel}
-            onChange={(e) => setFormLevel(Number(e.target.value))}
-            className="w-full accent-purple-500 cursor-pointer"
-          />
         </FormField>
 
         <div className="flex items-center gap-2 pt-1">

@@ -12,10 +12,14 @@ interface GridLayoutProps {
 }
 
 export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {photos.map((photo, index) => {
+        const title = locale === "vi" && photo.title_vi ? photo.title_vi : photo.title;
+        const desc = locale === "vi" && photo.description_vi ? photo.description_vi : photo.description;
+        const location = locale === "vi" && photo.location_vi ? photo.location_vi : photo.location;
         const isVideo = photo.mediaType === "video" || Boolean(photo.videoUrl);
 
         const hasCameraInfo = Boolean(
@@ -42,7 +46,7 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
             <div className="relative w-full aspect-[4/3] overflow-hidden bg-black/40">
               <Image
                 src={photo.image}
-                alt={photo.title}
+                alt={title}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -93,16 +97,16 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
               <div>
                 <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
                   <span>{photo.date}</span>
-                  {photo.location && photo.location.trim() !== "" && (
-                    <span className="truncate max-w-[140px]">{photo.location}</span>
+                  {location && location.trim() !== "" && (
+                    <span className="truncate max-w-[140px]">{location}</span>
                   )}
                 </div>
                 <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1 mb-2">
-                  {photo.title}
+                  {title}
                 </h3>
-                {photo.description && photo.description.trim() !== "" && (
+                {desc && desc.trim() !== "" && (
                   <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-4">
-                    {photo.description}
+                    {desc}
                   </p>
                 )}
               </div>

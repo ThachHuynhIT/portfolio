@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import type { PhotoItem } from "@/lib/types";
 import BeforeAfterSlider from "./BeforeAfterSlider";
 import Icon from "@/components/ui/Icon";
+import { useTranslation } from "@/context/LanguageContext";
 
 interface CompareLayoutProps {
   photos: PhotoItem[];
@@ -11,6 +12,7 @@ interface CompareLayoutProps {
 }
 
 export default function CompareLayout({ photos, onSelectPhoto }: CompareLayoutProps) {
+  const { locale } = useTranslation();
   const comparablePhotos = photos.filter((p) => !!p.beforeImage);
 
   if (comparablePhotos.length === 0) {
@@ -32,6 +34,9 @@ export default function CompareLayout({ photos, onSelectPhoto }: CompareLayoutPr
   return (
     <div className="space-y-12">
       {comparablePhotos.map((photo, index) => {
+        const title = locale === "vi" && photo.title_vi ? photo.title_vi : photo.title;
+        const location = locale === "vi" && photo.location_vi ? photo.location_vi : photo.location;
+
         const hasCameraInfo = Boolean(
           photo.camera &&
             (photo.camera.make ||
@@ -51,12 +56,12 @@ export default function CompareLayout({ photos, onSelectPhoto }: CompareLayoutPr
         return (
           <motion.div
             key={photo.id}
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.08, duration: 0.4 }}
-            className="rounded-3xl bg-slate-900/60 border border-white/10 p-6 md:p-8 backdrop-blur-xl shadow-2xl"
+            className="rounded-3xl p-6 md:p-8 bg-slate-900/40 border border-white/10 shadow-xl"
           >
-            {/* Header Info */}
+            {/* Header info */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div>
                 <div className="flex items-center gap-2 mb-2">
@@ -66,11 +71,11 @@ export default function CompareLayout({ photos, onSelectPhoto }: CompareLayoutPr
                     </span>
                   )}
                   {photo.date && <span className="text-xs text-slate-400">{photo.date}</span>}
-                  {photo.location && photo.location.trim() !== "" && (
-                    <span className="text-xs text-slate-400">• {photo.location}</span>
+                  {location && location.trim() !== "" && (
+                    <span className="text-xs text-slate-400">• {location}</span>
                   )}
                 </div>
-                <h3 className="text-xl md:text-2xl font-bold text-white">{photo.title}</h3>
+                <h3 className="text-xl md:text-2xl font-bold text-white">{title}</h3>
               </div>
 
               <button

@@ -9,7 +9,7 @@ import { useTranslation } from "@/context/LanguageContext";
 import type { PhotoItem } from "@/lib/types";
 
 export default function PhotoPreviewSection() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   // Filter featured photos
   const featuredPhotos: PhotoItem[] = useMemo(() => {
@@ -38,6 +38,9 @@ export default function PhotoPreviewSection() {
   if (featuredPhotos.length === 0) return null;
 
   const currentPhoto = featuredPhotos[currentIndex];
+  const photoTitle = locale === "vi" && currentPhoto.title_vi ? currentPhoto.title_vi : currentPhoto.title;
+  const photoDesc = locale === "vi" && currentPhoto.description_vi ? currentPhoto.description_vi : currentPhoto.description;
+  const photoLoc = locale === "vi" && currentPhoto.location_vi ? currentPhoto.location_vi : currentPhoto.location;
 
   return (
     <section
@@ -108,18 +111,18 @@ export default function PhotoPreviewSection() {
                     </div>
 
                     <h3 className="text-xl sm:text-3xl font-extrabold text-white tracking-tight">
-                      {currentPhoto.title}
+                      {photoTitle}
                     </h3>
 
-                    {currentPhoto.description && (
+                    {photoDesc && (
                       <p className="text-white/80 text-xs sm:text-sm line-clamp-2 leading-relaxed">
-                        {currentPhoto.description}
+                        {photoDesc}
                       </p>
                     )}
 
-                    {currentPhoto.location && (
+                    {photoLoc && (
                       <p className="text-cyan-400/90 text-xs flex items-center gap-1 font-medium">
-                        <span>📍</span> {currentPhoto.location}
+                        <span>📍</span> {photoLoc}
                       </p>
                     )}
                   </div>

@@ -12,10 +12,13 @@ interface StoryLayoutProps {
 }
 
 export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   return (
     <div className="max-w-4xl mx-auto space-y-16">
       {photos.map((photo, index) => {
+        const title = locale === "vi" && photo.title_vi ? photo.title_vi : photo.title;
+        const desc = locale === "vi" && photo.description_vi ? photo.description_vi : photo.description;
+        const location = locale === "vi" && photo.location_vi ? photo.location_vi : photo.location;
         const isVideo = photo.mediaType === "video" || Boolean(photo.videoUrl);
 
         const hasCameraInfo = Boolean(
@@ -49,7 +52,7 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
             >
               <Image
                 src={photo.image}
-                alt={photo.title}
+                alt={title}
                 fill
                 sizes="(max-width: 1024px) 100vw, 900px"
                 className="object-cover transition-transform duration-700 group-hover:scale-103"
@@ -68,25 +71,18 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
               <div className="absolute bottom-4 right-4 z-10">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-black/60 text-white backdrop-blur-md border border-white/20 hover:bg-black/80 transition-colors">
                   <Icon name={isVideo ? "play" : "maximize"} size={13} />
-                  <span>{isVideo ? "Watch Video" : "View Details"}</span>
+                  <span>{isVideo ? "Xem Video" : "Xem Ảnh Lớn"}</span>
                 </span>
               </div>
             </div>
 
-            {/* Narrative Content */}
-            <div className="p-6 md:p-8 space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 border-b border-white/5 pb-4">
+            {/* Editorial Content */}
+            <div className="p-6 md:p-8 space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
                 <div className="flex items-center gap-2">
-                  {photo.featured && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-amber-400 text-black font-bold text-[11px] shadow-sm flex items-center gap-1">
-                      ⭐ {t("photography.featured", "Featured")}
-                    </span>
-                  )}
-                  {photo.category && (
-                    <span className="px-3 py-1 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/30 font-medium">
-                      {photo.category}
-                    </span>
-                  )}
+                  <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-white font-medium">
+                    {photo.category}
+                  </span>
                   {isVideo && (
                     <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-bold uppercase text-[10px]">
                       Video
@@ -94,10 +90,10 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
                   )}
                   {photo.date && <span>{photo.date}</span>}
                 </div>
-                {photo.location && photo.location.trim() !== "" && (
+                {location && location.trim() !== "" && (
                   <span className="flex items-center gap-1 text-slate-300">
                     <Icon name="globe" size={12} className="text-cyan-400" />
-                    {photo.location}
+                    {location}
                   </span>
                 )}
               </div>
@@ -107,11 +103,11 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
                   className="text-2xl md:text-3xl font-bold text-white mb-3 hover:text-cyan-300 transition-colors cursor-pointer"
                   onClick={() => onSelectPhoto(photo)}
                 >
-                  {photo.title}
+                  {title}
                 </h2>
-                {photo.description && photo.description.trim() !== "" && (
+                {desc && desc.trim() !== "" && (
                   <p className="text-base text-slate-300/90 leading-relaxed font-light">
-                    {photo.description}
+                    {desc}
                   </p>
                 )}
               </div>
