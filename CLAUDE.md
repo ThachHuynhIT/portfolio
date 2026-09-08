@@ -75,8 +75,15 @@ Path alias `@/*` maps to `./src/*`.
 
 ### 4. Styling Conventions
 - Tailwind v4 is configured via `@import "tailwindcss"` + `@theme inline` in `src/app/globals.css` (no `tailwind.config.js`).
-- Design tokens: `--background: #050505`, `--foreground: #fafafa`, `--purple-500: #8b5cf6`, `--cyan-500: #06b6d4`.
+- Design tokens: `--background: #050505`, `--foreground: #fafafa`, `--purple-500: #8b5cf6`, `--cyan-500: #06b6d4`. These tokens flip automatically per theme (see below), so `bg-background`/`text-foreground` need no extra work.
 - Reusable utility classes: `.gradient-text`, `.glass`, `.glow-purple`, `.glow-cyan`, `.animate-float`, `.animate-pulse-glow`, `.animate-gradient`.
 
-### 5. Form Handling
+### 5. Light/Dark Theme Toggle
+- **Dark is the default/original look.** `globals.css` declares `@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));` — any Tailwind class prefixed `light:` (e.g. `light:text-neutral-900`) applies **only** when an ancestor (or the element itself) has `data-theme="light"`. When styling a component, **add** `light:` classes alongside the existing unprefixed ones; never remove/replace the dark classes.
+- `data-theme` is set on `<html>` at runtime by `ThemeProvider` (`src/context/ThemeContext.tsx`), driven by `useTheme()`/`ThemeToggle` (`src/components/ui/ThemeToggle.tsx`, rendered in `Navigation.tsx`). Preference is persisted to `localStorage["portfolio_theme"]` and falls back to `prefers-color-scheme`. An inline blocking script in `src/app/layout.tsx` (`THEME_INIT_SCRIPT`) sets `data-theme` before hydration to avoid a flash of the wrong theme — **keep it in sync** with `detectPreferredTheme()`/`isExcludedRoute()` in `ThemeContext.tsx` if that logic changes.
+- **Excluded routes stay dark-only**: `EXCLUDED_ROUTE_PREFIXES` in `src/lib/constants.ts` (`/admin`, `/contra`, `/couple`) are forced to `resolvedTheme = "dark"` regardless of user preference — do not add `light:` classes inside those subtrees.
+- **The photography lightbox (`PhotoLightboxModal.tsx`) is an intentional additional exception** — it stays dark-only ("theater mode" for viewing photos) even outside excluded routes. Don't add `light:` classes to it.
+- When converting a component: use `light:text-neutral-900/800/600/500` for `text-white` at decreasing opacity, `light:bg-neutral-900/[0.0N]` for `bg-white/N` surfaces, `light:border-neutral-900/10-15` for `border-white/N`, and `light:bg-white/70-90` for `bg-black/N` used as page/card chrome. Do **not** add a `light:` variant to a `bg-black/N` (or similar) overlay that sits on top of a photo/thumbnail for caption legibility — that overlay is correct in both themes.
+
+### 6. Form Handling
 - Forms must use `react-hook-form` + `@hookform/resolvers` + `zod` schemas for validation (as demonstrated in `ContactSection.tsx`).

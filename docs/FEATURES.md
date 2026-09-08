@@ -19,7 +19,8 @@ Tài liệu này cung cấp mô tả chi tiết về tất cả các tính năng
 11. [🌐 Hệ Thống Đa Ngôn Ngữ (i18n Anh/Việt)](#11-hệ-thống-đa-ngôn-ngữ)
 12. [🗄️ Lớp Dữ Liệu & Hạ Tầng (Prisma, PostgreSQL, Cloudinary)](#12-lớp-dữ-liệu--hạ-tầng)
 13. [🎨 UI Component Primitives & Subsystem Lõi](#13-ui-component-primitives--subsystem-lõi)
-14. [⚠️ Điểm Cần Lưu Ý / Rủi Ro Kỹ Thuật](#14-điểm-cần-lưu-ý--rủi-ro-kỹ-thuật)
+14. [🌗 Chế Độ Sáng / Tối (Light/Dark Theme Toggle)](#14-chế-độ-sáng--tối-lightdark-theme-toggle)
+15. [⚠️ Điểm Cần Lưu Ý / Rủi Ro Kỹ Thuật](#15-điểm-cần-lưu-ý--rủi-ro-kỹ-thuật)
 
 ---
 
@@ -338,7 +339,25 @@ Không dùng `next-intl` hay locale-prefixed routing — là hệ thống tự v
 
 ---
 
-## 14. ⚠️ Điểm Cần Lưu Ý / Rủi Ro Kỹ Thuật
+## 14. 🌗 Chế Độ Sáng / Tối (Light/Dark Theme Toggle)
+
+Toàn site hỗ trợ chuyển đổi giữa **Dark** (giao diện gốc, mặc định) và **Light** — nút bấm hình mặt trăng/mặt trời (`ThemeToggle.tsx`) đặt trong `Navigation` (cả bản desktop lẫn mobile menu).
+
+### 14.1. Cơ Chế Kỹ Thuật
+- **Không dùng biến thể `dark:` của Tailwind** — vì giao diện gốc vốn đã là dark, dự án định nghĩa biến thể cộng thêm `light:` (`@custom-variant light` trong `globals.css`): mọi class có tiền tố `light:` chỉ áp dụng khi phần tử (hoặc tổ tiên) có `data-theme="light"`. Class không tiền tố giữ nguyên là giao diện dark gốc.
+- `ThemeContext.tsx` (`ThemeProvider`, hook `useTheme()`) quản lý state `theme`, ghi `data-theme` lên `<html>`, lưu lựa chọn vào `localStorage["portfolio_theme"]`; nếu chưa từng chọn, tự nhận diện qua `prefers-color-scheme` của hệ điều hành (và tiếp tục lắng nghe thay đổi live nếu người dùng chưa từng chọn thủ công).
+- **Chống nháy sai theme (FOUC)**: một inline `<script>` chặn render (`THEME_INIT_SCRIPT` trong `src/app/layout.tsx`) tự set `data-theme` lên `<html>` **trước khi hydrate**, dùng đúng logic với `ThemeContext.tsx` — 2 nơi này phải luôn đồng bộ nếu sửa logic detect theme.
+- Design tokens (`--background`, `--foreground`, `--glass-bg`, `--glow-*-color`, `--scrollbar-*`, `--selection-*`) được định nghĩa lại trong khối `[data-theme="light"]` ở `globals.css`; các utility dùng `bg-background`/`text-foreground` tự động đổi màu theo theme mà không cần tiền tố `light:`.
+
+### 14.2. Phạm Vi Áp Dụng
+- Đã phủ `light:` cho: Navigation/Footer, các section trang chủ (Hero/About/Skills/Projects/Contact/Photo & Blog Preview), Blog (`BlogList`, `BlogPostView`), Music Player/Sidebar/Room, và toàn bộ module Photography (`PhotographyGallery`, `GridLayout`, `MasonryLayout`, `StoryLayout`, `CompareLayout`, `BeforeAfterSlider`, `AlbumDetailView`) cùng trang Projects (`ProjectsGallery`).
+- **Route luôn giữ Dark, không đổi theo lựa chọn người dùng** (`EXCLUDED_ROUTE_PREFIXES` trong `constants.ts`): `/admin`, `/contra`, `/couple`.
+- **Ngoại lệ theo component (bất kể route)**: modal xem ảnh toàn màn hình `PhotoLightboxModal.tsx` cố tình **luôn ở chế độ Dark** ("theater mode" để xem ảnh) — quyết định sản phẩm có chủ đích, không phải thiếu sót.
+- Các overlay gradient tối phủ lên trực tiếp ảnh/thumbnail (badge danh mục, caption khi hover, nút play video...) **giữ nguyên không đổi theo theme** ở cả 2 chế độ — vì đây là lớp phủ đảm bảo độ tương phản chữ trên ảnh, không phải "chrome" của trang.
+
+---
+
+## 15. ⚠️ Điểm Cần Lưu Ý / Rủi Ro Kỹ Thuật
 
 Các điểm phát hiện được khi khảo sát toàn bộ source — nên đọc trước khi mở rộng/chỉnh sửa tính năng liên quan.
 
@@ -353,5 +372,6 @@ Các điểm phát hiện được khi khảo sát toàn bộ source — nên đ
 | 🟡 Thấp | Bucket List không persist | Trạng thái tick "đã hoàn thành" ở trang Couple chỉ là state cục bộ trong component, mất khi tải lại trang. |
 | 🟡 Thấp | `<html lang="en">` cố định phía server | Locale thực tế chỉ đổi ở client sau khi mount — có thể ảnh hưởng nhẹ tới SEO/accessibility ở lần request đầu (chưa đọc cookie locale ở server). |
 | 🟡 Thấp | Trùng lặp logic resolve nhãn đa ngôn ngữ | `Navigation.tsx` và `Footer.tsx` cùng có logic chọn `label`/`label_vi`/`t()` cho nav-links nhưng **không chia sẻ chung một hàm** — sửa logic phải sửa ở cả 2 nơi. |
+| 🟡 Thấp | Theme sáng phải thêm `light:` thủ công từng component | Vì dự án dùng biến thể cộng thêm (`light:`) thay vì `dark:` chuẩn của Tailwind, **component mới/route mới không tự động hỗ trợ Light mode** — phải chủ động thêm class `light:` khi build UI mới, dễ bị bỏ sót nếu không biết quy ước (xem [mục 14](#14-chế-độ-sáng--tối-lightdark-theme-toggle) và `CLAUDE.md`). |
 | 🟡 Thấp | Phòng nghe chung nhạc không bền | `/api/music/rooms*` lưu state trong biến `globalThis` (in-memory) — mất khi restart/redeploy server, không hoạt động đúng khi chạy nhiều instance (không phù hợp môi trường serverless đa instance). |
 | ℹ️ Ghi chú | Tag filter blog chưa có UI | `getAllTags()`/`getPostsByTag()` đã viết sẵn trong `src/lib/blog.ts` nhưng chưa có nơi nào gọi tới — hiện tại blog chỉ lọc được theo category. |
