@@ -107,13 +107,13 @@ export default function ContactSection() {
             <span className="text-sm text-cyan-500 font-medium tracking-wider uppercase mb-4 block">
               {t("contact.badge")}
             </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            <h2 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">
               {t("contact.titlePrefix")}
               <span className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
                 {t("contact.titleHighlight")}
               </span>
             </h2>
-            <p className="text-white/60 max-w-2xl mx-auto">
+            <p className="text-white/60 light:text-neutral-500 max-w-2xl mx-auto">
               {t("contact.subtitle")}
             </p>
           </div>
@@ -127,7 +127,7 @@ export default function ContactSection() {
                 <div
                   role="status"
                   aria-live="polite"
-                  className="mb-6 p-4 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-sm text-white/80"
+                  className="mb-6 p-4 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-sm text-white/80 light:text-neutral-700"
                 >
                   <p>
                     {t("contact.unconnectedNotice")}
@@ -156,7 +156,7 @@ export default function ContactSection() {
                 <div>
                   <label
                     htmlFor="contact-name"
-                    className="block text-sm font-medium text-white/70 mb-2"
+                    className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
                   >
                     {t("contact.nameLabel")}
                   </label>
@@ -169,7 +169,7 @@ export default function ContactSection() {
                     aria-describedby={
                       errors.name ? "contact-name-error" : undefined
                     }
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                    className="w-full px-4 py-3 bg-white/5 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/15 rounded-xl text-white light:text-neutral-900 placeholder:text-white/40 light:placeholder:text-neutral-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
                   />
                   {errors.name && (
                     <p
@@ -185,7 +185,7 @@ export default function ContactSection() {
                 <div>
                   <label
                     htmlFor="contact-email"
-                    className="block text-sm font-medium text-white/70 mb-2"
+                    className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
                   >
                     {t("contact.emailLabel")}
                   </label>
@@ -198,7 +198,7 @@ export default function ContactSection() {
                     aria-describedby={
                       errors.email ? "contact-email-error" : undefined
                     }
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                    className="w-full px-4 py-3 bg-white/5 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/15 rounded-xl text-white light:text-neutral-900 placeholder:text-white/40 light:placeholder:text-neutral-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
                   />
                   {errors.email && (
                     <p
@@ -214,7 +214,7 @@ export default function ContactSection() {
                 <div>
                   <label
                     htmlFor="contact-subject"
-                    className="block text-sm font-medium text-white/70 mb-2"
+                    className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
                   >
                     {t("contact.subjectLabel")}
                   </label>
@@ -227,7 +227,7 @@ export default function ContactSection() {
                     aria-describedby={
                       errors.subject ? "contact-subject-error" : undefined
                     }
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                    className="w-full px-4 py-3 bg-white/5 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/15 rounded-xl text-white light:text-neutral-900 placeholder:text-white/40 light:placeholder:text-neutral-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
                   />
                   {errors.subject && (
                     <p
@@ -243,7 +243,7 @@ export default function ContactSection() {
                 <div>
                   <label
                     htmlFor="contact-message"
-                    className="block text-sm font-medium text-white/70 mb-2"
+                    className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
                   >
                     {t("contact.messageLabel")}
                   </label>
@@ -256,7 +256,7 @@ export default function ContactSection() {
                     aria-describedby={
                       errors.message ? "contact-message-error" : undefined
                     }
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all resize-none"
+                    className="w-full px-4 py-3 bg-white/5 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/15 rounded-xl text-white light:text-neutral-900 placeholder:text-white/40 light:placeholder:text-neutral-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all resize-none"
                   />
                   {errors.message && (
                     <p
@@ -293,10 +293,10 @@ export default function ContactSection() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-1">{t("contact.emailInfo")}</h3>
+                    <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">{t("contact.emailInfo")}</h3>
                     <a
                       href={`mailto:${siteConfig.author.email}`}
-                      className="text-white/60 hover:text-white transition-colors"
+                      className="text-white/60 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 transition-colors"
                     >
                       {siteConfig.author.email}
                     </a>
@@ -313,8 +313,8 @@ export default function ContactSection() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-1">{t("contact.locationInfo")}</h3>
-                    <p className="text-white/60">
+                    <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">{t("contact.locationInfo")}</h3>
+                    <p className="text-white/60 light:text-neutral-500">
                       {locale === "vi" && siteConfig.author.location_vi ? siteConfig.author.location_vi : siteConfig.author.location}
                     </p>
                   </div>
@@ -329,8 +329,8 @@ export default function ContactSection() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-1">{t("contact.availabilityInfo")}</h3>
-                    <p className="text-white/60">{t("contact.workHours")}</p>
+                    <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">{t("contact.availabilityInfo")}</h3>
+                    <p className="text-white/60 light:text-neutral-500">{t("contact.workHours")}</p>
                     <p className="text-green-500 text-sm mt-1">● {t("contact.openForProjects")}</p>
                   </div>
                 </div>

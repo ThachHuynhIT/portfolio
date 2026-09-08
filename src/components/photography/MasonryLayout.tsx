@@ -54,7 +54,7 @@ export default function MasonryLayout({ photos, onSelectPhoto }: MasonryLayoutPr
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: (colIndex * 3 + pIdx) * 0.05, duration: 0.4 }}
-                className="group relative rounded-2xl overflow-hidden bg-slate-900/60 border border-white/10 shadow-lg hover:shadow-2xl hover:shadow-purple-500/10 hover:border-white/20 transition-all duration-300 cursor-pointer"
+                className="group relative rounded-2xl overflow-hidden bg-slate-900/60 border border-white/10 shadow-lg hover:shadow-2xl hover:shadow-purple-500/10 hover:border-white/20 transition-all duration-300 cursor-pointer light:bg-white light:border-neutral-900/10 light:shadow-neutral-400/10 light:hover:border-neutral-900/15"
                 onClick={() => onSelectPhoto(photo)}
               >
                 {/* Image Container */}

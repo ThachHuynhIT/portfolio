@@ -43,7 +43,7 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.08, duration: 0.5 }}
-            className="group rounded-3xl overflow-hidden bg-slate-900/50 border border-white/10 hover:border-white/20 transition-all duration-300"
+            className="group rounded-3xl overflow-hidden bg-slate-900/50 border border-white/10 hover:border-white/20 transition-all duration-300 light:bg-white light:border-neutral-900/10 light:hover:border-neutral-900/15"
           >
             {/* Main Visual */}
             <div
@@ -78,9 +78,9 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
 
             {/* Editorial Content */}
             <div className="p-6 md:p-8 space-y-5">
-              <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+              <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 light:text-neutral-500">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-white font-medium">
+                  <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-white font-medium light:bg-neutral-900/10 light:text-neutral-900">
                     {photo.category}
                   </span>
                   {isVideo && (
@@ -91,7 +91,7 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
                   {photo.date && <span>{photo.date}</span>}
                 </div>
                 {location && location.trim() !== "" && (
-                  <span className="flex items-center gap-1 text-slate-300">
+                  <span className="flex items-center gap-1 text-slate-300 light:text-neutral-600">
                     <Icon name="globe" size={12} className="text-cyan-400" />
                     {location}
                   </span>
@@ -100,13 +100,13 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
 
               <div>
                 <h2
-                  className="text-2xl md:text-3xl font-bold text-white mb-3 hover:text-cyan-300 transition-colors cursor-pointer"
+                  className="text-2xl md:text-3xl font-bold text-white mb-3 hover:text-cyan-300 transition-colors cursor-pointer light:text-neutral-900"
                   onClick={() => onSelectPhoto(photo)}
                 >
                   {title}
                 </h2>
                 {desc && desc.trim() !== "" && (
-                  <p className="text-base text-slate-300/90 leading-relaxed font-light">
+                  <p className="text-base text-slate-300/90 leading-relaxed font-light light:text-neutral-600">
                     {desc}
                   </p>
                 )}
@@ -116,22 +116,22 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
               {(hasCameraInfo || hasEditingInfo) && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                   {hasCameraInfo && (
-                    <div className="rounded-xl bg-white/[0.03] border border-white/5 p-4 text-xs">
+                    <div className="rounded-xl bg-white/[0.03] border border-white/5 p-4 text-xs light:bg-neutral-900/[0.03] light:border-neutral-900/10">
                       <div className="flex items-center gap-2 text-cyan-400 font-semibold mb-2">
                         <Icon name="camera" size={13} />
                         <span>Gear & Settings</span>
                       </div>
                       {(photo.camera?.make || photo.camera?.model) && (
-                        <p className="text-slate-200 font-medium">
+                        <p className="text-slate-200 font-medium light:text-neutral-700">
                           {[photo.camera?.make, photo.camera?.model].filter(Boolean).join(" ")}
                         </p>
                       )}
                       {photo.camera?.lens && (
-                        <p className="text-slate-400 mt-0.5">
+                        <p className="text-slate-400 mt-0.5 light:text-neutral-500">
                           {photo.camera.lens}
                         </p>
                       )}
-                      <p className="text-slate-400 font-mono mt-1 text-[11px]">
+                      <p className="text-slate-400 font-mono mt-1 text-[11px] light:text-neutral-500">
                         {[photo.camera?.focalLength, photo.camera?.aperture, photo.camera?.shutterSpeed, photo.camera?.iso ? `ISO ${photo.camera.iso}` : ""]
                           .filter(Boolean)
                           .join(" • ")}
@@ -146,10 +146,10 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
                         <span>Color Concept</span>
                       </div>
                       {photo.editing?.colorGrade && (
-                        <p className="text-slate-200 font-medium">{photo.editing.colorGrade}</p>
+                        <p className="text-slate-200 font-medium light:text-neutral-700">{photo.editing.colorGrade}</p>
                       )}
                       {photo.editing?.notes && (
-                        <p className="text-slate-400 mt-1 text-xs leading-relaxed">
+                        <p className="text-slate-400 mt-1 text-xs leading-relaxed light:text-neutral-500">
                           {photo.editing.notes}
                         </p>
                       )}

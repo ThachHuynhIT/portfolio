@@ -11,7 +11,7 @@ export default function PhotographyLoading() {
       </div>
 
       {/* Toolbar Skeleton (Tabs & Controls) */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10 pb-6 border-b border-white/10">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10 pb-6 border-b border-white/10 light:border-neutral-900/10">
         <div className="flex items-center gap-2">
           <Skeleton className="h-10 w-28 rounded-xl" />
           <Skeleton className="h-10 w-28 rounded-xl" />

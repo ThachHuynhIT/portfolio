@@ -87,7 +87,7 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/80 light:bg-white/80 backdrop-blur-sm"
       />
 
       {/* Modal */}
@@ -107,13 +107,13 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
           <button
             onClick={onClose}
             aria-label={t("projects.closeModal")}
-            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all z-20"
+            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 flex items-center justify-center text-white/60 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] transition-all z-20"
           >
             ✕
           </button>
 
           {/* Project Image */}
-          <div className="relative aspect-video rounded-xl overflow-hidden mb-6 bg-slate-950 border border-white/10 shadow-lg">
+          <div className="relative aspect-video rounded-xl overflow-hidden mb-6 bg-slate-950 border border-white/10 light:border-neutral-900/10 shadow-lg light:shadow-neutral-400/10">
             {project.image ? (
               <ImageWithSkeleton
                 src={project.image}
@@ -135,15 +135,15 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
           </div>
 
           {/* Project Info */}
-          <h3 className="text-2xl font-bold text-white mb-3">{displayTitle}</h3>
-          <p className="text-white/70 text-sm sm:text-base mb-6 leading-relaxed">{displayLongDesc}</p>
+          <h3 className="text-2xl font-bold text-white light:text-neutral-900 mb-3">{displayTitle}</h3>
+          <p className="text-white/70 light:text-neutral-600 text-sm sm:text-base mb-6 leading-relaxed">{displayLongDesc}</p>
 
           {/* Tags */}
           <div className="flex flex-wrap gap-2 mb-6">
             {project.tags.map((tag) => (
               <span
                 key={tag}
-                className="px-3 py-1 text-xs font-medium text-white/80 bg-white/5 border border-white/10 rounded-full"
+                className="px-3 py-1 text-xs font-medium text-white/80 light:text-neutral-700 bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 rounded-full"
               >
                 {tag}
               </span>
@@ -200,13 +200,13 @@ export default function ProjectsSection() {
             <span className="text-xs text-purple-400 font-semibold tracking-widest uppercase mb-3 block">
               {t("projects.badge")}
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-4 tracking-tight">
               {t("projects.titlePrefix")}
               <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
                 {t("projects.titleHighlight")}
               </span>
             </h2>
-            <p className="text-white/60 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+            <p className="text-white/60 light:text-neutral-500 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
               {t("projects.subtitle")}
             </p>
           </div>
@@ -232,7 +232,7 @@ export default function ProjectsSection() {
                 >
                   <div className="p-4 sm:p-5 flex flex-col h-full">
                     {/* Project Thumbnail Image */}
-                    <div className="relative aspect-[16/10] rounded-xl overflow-hidden mb-4 bg-slate-950 border border-white/10 shadow-sm">
+                    <div className="relative aspect-[16/10] rounded-xl overflow-hidden mb-4 bg-slate-950 border border-white/10 light:border-neutral-900/10 shadow-sm light:shadow-neutral-400/10">
                       {project.image ? (
                         <ImageWithSkeleton
                           src={project.image}
@@ -254,19 +254,19 @@ export default function ProjectsSection() {
                     </div>
 
                     {/* Project Info */}
-                    <h3 className="text-base sm:text-lg font-bold text-white mb-2 line-clamp-1 group-hover:text-purple-300 transition-colors">
+                    <h3 className="text-base sm:text-lg font-bold text-white light:text-neutral-900 mb-2 line-clamp-1 group-hover:text-purple-300 transition-colors">
                       {cardTitle}
                     </h3>
-                    <p className="text-white/60 text-xs sm:text-sm mb-4 line-clamp-2 leading-relaxed flex-grow">
+                    <p className="text-white/60 light:text-neutral-500 text-xs sm:text-sm mb-4 line-clamp-2 leading-relaxed flex-grow">
                       {cardDesc}
                     </p>
 
                     {/* Tags */}
-                    <div className="flex flex-wrap gap-1.5 pt-3 border-t border-white/5">
+                    <div className="flex flex-wrap gap-1.5 pt-3 border-t border-white/5 light:border-neutral-900/10">
                       {project.tags.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
-                          className="px-2 py-0.5 text-[11px] font-medium text-white/70 bg-white/5 border border-white/10 rounded-md"
+                          className="px-2 py-0.5 text-[11px] font-medium text-white/70 light:text-neutral-600 bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 rounded-md"
                         >
                           {tag}
                         </span>
@@ -283,7 +283,7 @@ export default function ProjectsSection() {
         <div className="mt-14 text-center">
           <Link
             href="/projects"
-            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold text-white bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold text-white light:text-neutral-900 bg-white/[0.06] light:bg-neutral-900/[0.05] hover:bg-white/[0.12] light:hover:bg-neutral-900/[0.08] border border-white/15 light:border-neutral-900/10 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
           >
             <span>{t("projects.viewAll")}</span>
             <span className="transition-transform duration-200 group-hover:translate-x-1">

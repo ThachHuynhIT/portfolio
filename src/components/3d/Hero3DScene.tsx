@@ -7,6 +7,7 @@ import * as THREE from "three";
 
 interface Hero3DSceneProps {
   mousePosition: { x: number; y: number };
+  theme?: "light" | "dark";
 }
 
 /**
@@ -139,15 +140,15 @@ function OrbitingParticles() {
 /**
  * Background grid effect
  */
-function BackgroundGrid() {
+function BackgroundGrid({ theme = "dark" }: { theme?: "light" | "dark" }) {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]}>
       <planeGeometry args={[50, 50, 50, 50]} />
       <meshBasicMaterial
-        color="#1a1a2e"
+        color={theme === "light" ? "#c4bfe0" : "#1a1a2e"}
         wireframe
         transparent
-        opacity={0.15}
+        opacity={theme === "light" ? 0.25 : 0.15}
       />
     </mesh>
   );
@@ -181,12 +182,12 @@ function Lighting() {
 /**
  * Main Hero 3D Scene Component
  */
-export default function Hero3DScene({ mousePosition }: Hero3DSceneProps) {
+export default function Hero3DScene({ mousePosition, theme = "dark" }: Hero3DSceneProps) {
   return (
     <>
       <Lighting />
-      <fog attach="fog" args={["#050505", 8, 30]} />
-      <BackgroundGrid />
+      <fog attach="fog" args={[theme === "light" ? "#faf9fc" : "#050505", 8, 30]} />
+      <BackgroundGrid theme={theme} />
       <FloatingGeometry mousePosition={mousePosition} />
       <OrbitingParticles />
     </>

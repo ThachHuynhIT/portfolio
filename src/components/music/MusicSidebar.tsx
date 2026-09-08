@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useMusic, TabView } from "@/context/MusicContext";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 export default function MusicSidebar() {
   const { t, locale } = useTranslation();
@@ -79,11 +80,12 @@ export default function MusicSidebar() {
           </Link>
 
           <div className="flex items-center gap-1.5">
+            <ThemeToggle size="sm" />
             <LanguageSwitcher variant="pill" size="sm" />
             {/* Close button for mobile drawer */}
             <button
               onClick={() => setIsMobileSidebarOpen(false)}
-              className="md:hidden p-2 text-white/60 hover:text-white rounded-lg bg-white/5"
+              className="md:hidden p-2 text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 rounded-lg bg-white/5 light:bg-neutral-900/[0.04]"
               aria-label="Close sidebar"
             >
               ✕
@@ -222,7 +224,7 @@ export default function MusicSidebar() {
                 <span className="flex-1 text-left truncate">
                   {g === "All" ? t("music.all") : g}
                 </span>
-                <span className="text-[11px] text-white/40">{count}</span>
+                <span className="text-[11px] text-white/40 light:text-neutral-500">{count}</span>
               </button>
             );
           })}
@@ -238,8 +240,8 @@ export default function MusicSidebar() {
             {isPlaying && <span className="music-status-dot-ping" />}
           </div>
           <div className="text-[11px] leading-tight">
-            <div className="text-white/80 font-medium">Web Audio Engine</div>
-            <div className="text-white/40">24-bit Lossless Stream</div>
+            <div className="text-white/80 light:text-neutral-800 font-medium">Web Audio Engine</div>
+            <div className="text-white/40 light:text-neutral-500">24-bit Lossless Stream</div>
           </div>
         </div>
       </div>

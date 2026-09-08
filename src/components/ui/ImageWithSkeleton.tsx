@@ -38,7 +38,7 @@ export default function ImageWithSkeleton({
   if (!src) {
     return (
       <div
-        className={`relative flex items-center justify-center bg-slate-900/60 border border-white/5 text-slate-500 text-xs ${
+        className={`relative flex items-center justify-center bg-slate-900/60 border border-white/5 text-slate-500 light:bg-slate-100 light:border-neutral-900/10 light:text-slate-500 text-xs ${
           fill ? "w-full h-full" : ""
         } ${containerClassName}`}
       >
@@ -67,7 +67,7 @@ export default function ImageWithSkeleton({
 
       {/* Error State */}
       {hasError ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 text-slate-500 text-xs p-3 text-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 text-slate-500 light:bg-white/85 light:text-slate-600 text-xs p-3 text-center">
           <span className="text-xl mb-1">🖼️</span>
           <span>{fallbackText || "Unable to display image"}</span>
         </div>

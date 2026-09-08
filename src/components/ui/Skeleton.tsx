@@ -29,7 +29,7 @@ export function TwinklingStars({ className = "" }: { className?: string }) {
       {STAR_LAYOUT.map((star, i) => (
         <span
           key={i}
-          className="absolute rounded-full bg-white animate-twinkle"
+          className="absolute rounded-full bg-white light:bg-neutral-400 animate-twinkle"
           style={{
             top: star.top,
             left: star.left,
@@ -68,11 +68,11 @@ export function Skeleton({
 
   return (
     <div
-      className={`relative overflow-hidden bg-white/[0.05] border border-white/5 ${variantClasses} ${className}`}
+      className={`relative overflow-hidden bg-white/[0.05] border border-white/5 light:bg-neutral-900/[0.04] light:border-neutral-900/[0.06] ${variantClasses} ${className}`}
       {...props}
     >
       {shimmer && (
-        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
+        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/[0.08] to-transparent light:via-neutral-900/[0.06] pointer-events-none" />
       )}
     </div>
   );
@@ -90,7 +90,7 @@ export function PhotoSkeleton({
 }) {
   return (
     <div
-      className={`relative w-full rounded-2xl overflow-hidden bg-slate-900/60 border border-white/10 ${aspectRatio} ${className}`}
+      className={`relative w-full rounded-2xl overflow-hidden bg-slate-900/60 border border-white/10 light:bg-slate-100 light:border-neutral-900/10 ${aspectRatio} ${className}`}
     >
       <Skeleton className="w-full h-full rounded-2xl" />
       {/* Subtle bottom gradient bar */}
@@ -108,7 +108,7 @@ export function PhotoSkeleton({
 export function CardSkeleton({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`rounded-2xl sm:rounded-3xl bg-slate-900/50 border border-white/10 p-5 backdrop-blur-sm overflow-hidden flex flex-col justify-between ${className}`}
+      className={`rounded-2xl sm:rounded-3xl bg-slate-900/50 border border-white/10 light:bg-white light:border-neutral-900/10 light:shadow-sm light:shadow-neutral-400/20 p-5 backdrop-blur-sm overflow-hidden flex flex-col justify-between ${className}`}
     >
       {/* Thumbnail */}
       <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden mb-4">
@@ -131,7 +131,7 @@ export function CardSkeleton({ className = "" }: { className?: string }) {
       </div>
 
       {/* Footer / CTA */}
-      <div className="flex items-center justify-between pt-3 border-t border-white/5">
+      <div className="flex items-center justify-between pt-3 border-t border-white/5 light:border-neutral-900/10">
         <Skeleton className="h-4 w-24 rounded" />
         <Skeleton className="h-8 w-20 rounded-xl" />
       </div>

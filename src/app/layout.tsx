@@ -5,6 +5,7 @@ import "./globals.css";
 import { Navigation, Footer } from "@/components/ui";
 import { MusicProvider } from "@/context/MusicContext";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 // Floating overlay with no SSR value — mounted on every route, so keep it
 // out of the initial/shared bundle.
@@ -60,25 +61,44 @@ export const viewport: Viewport = {
 
 import GlobalBackground from "@/components/layout/GlobalBackground";
 
+// KEEP IN SYNC WITH detectPreferredTheme()/isExcludedRoute() in
+// src/context/ThemeContext.tsx — runs before hydration to set data-theme
+// on <html> pre-paint, avoiding a flash of the wrong theme.
+const THEME_INIT_SCRIPT = `(function(){try{
+  var excluded=["/admin","/contra","/couple"];
+  var path=window.location.pathname;
+  if(excluded.some(function(p){return path.indexOf(p)===0})){
+    document.documentElement.setAttribute("data-theme","dark");
+    return;
+  }
+  var stored=localStorage.getItem("portfolio_theme");
+  var theme=stored==="light"||stored==="dark"?stored:
+    (window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+  document.documentElement.setAttribute("data-theme",theme);
+}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${spaceGrotesk.variable} antialiased bg-[#030014] text-white font-sans selection:bg-purple-500/30 selection:text-white`}
+        className={`${inter.variable} ${spaceGrotesk.variable} antialiased bg-background text-foreground font-sans`}
       >
-        <GlobalBackground />
-        <LanguageProvider>
-          <MusicProvider>
-            <Navigation />
-            <main>{children}</main>
-            <Footer />
-            <GlobalMusicPlayer />
-          </MusicProvider>
-        </LanguageProvider>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <ThemeProvider>
+          <GlobalBackground />
+          <LanguageProvider>
+            <MusicProvider>
+              <Navigation />
+              <main>{children}</main>
+              <Footer />
+              <GlobalMusicPlayer />
+            </MusicProvider>
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -40,19 +40,19 @@ export default function SkillsSection() {
         {/* ── Section Header ── */}
         <AnimatedSection>
           <div className="text-center mb-12">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/[0.04] text-cyan-400 border border-white/10 mb-4 backdrop-blur-md">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/[0.04] light:bg-neutral-900/[0.04] text-cyan-400 border border-white/10 light:border-neutral-900/10 mb-4 backdrop-blur-md">
               <span>⚡</span>
               <span>{t("skills.badge")}</span>
             </span>
 
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-5 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-5 tracking-tight">
               {t("skills.titlePrefix")}
               <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
                 {t("skills.titleHighlight")}
               </span>
             </h2>
 
-            <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto font-light leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-300 light:text-neutral-600 max-w-2xl mx-auto font-light leading-relaxed">
               {t("skills.subtitle")}
             </p>
           </div>
@@ -65,8 +65,8 @@ export default function SkillsSection() {
             onClick={() => setSelectedCategory("all")}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
               selectedCategory === "all"
-                ? "bg-white text-slate-950 shadow-lg shadow-white/10"
-                : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5"
+                ? "bg-white light:bg-neutral-900 text-slate-950 light:text-white shadow-lg shadow-white/10 light:shadow-neutral-400/20"
+                : "bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] border border-white/5 light:border-neutral-900/10"
             }`}
           >
             <span>✨</span>
@@ -74,8 +74,8 @@ export default function SkillsSection() {
             <span
               className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                 selectedCategory === "all"
-                  ? "bg-slate-900 text-white"
-                  : "bg-white/10 text-slate-400"
+                  ? "bg-slate-900 text-white light:bg-neutral-900 light:text-white"
+                  : "bg-white/10 light:bg-neutral-900/[0.06] text-slate-400 light:text-neutral-500"
               }`}
             >
               {publishedSkills.length}
@@ -94,7 +94,7 @@ export default function SkillsSection() {
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
                   isSelected
                     ? "bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-cyan-500/20"
-                    : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5"
+                    : "bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] border border-white/5 light:border-neutral-900/10"
                 }`}
               >
                 <span>{categoryIcons[cat]}</span>
@@ -103,7 +103,7 @@ export default function SkillsSection() {
                   className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                     isSelected
                       ? "bg-black/30 text-white"
-                      : "bg-white/10 text-slate-400"
+                      : "bg-white/10 light:bg-neutral-900/[0.06] text-slate-400 light:text-neutral-500"
                   }`}
                 >
                   {count}
@@ -137,25 +137,25 @@ export default function SkillsSection() {
               return (
                 <div
                   key={category}
-                  className="rounded-3xl bg-slate-900/50 border border-white/10 p-6 sm:p-7 backdrop-blur-md hover:border-white/20 transition-all shadow-xl flex flex-col justify-between"
+                  className="rounded-3xl bg-slate-900/50 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/10 p-6 sm:p-7 backdrop-blur-md hover:border-white/20 light:hover:border-neutral-900/15 transition-all shadow-xl light:shadow-neutral-400/10 flex flex-col justify-between"
                 >
                   {/* Category Card Header */}
-                  <div className="flex items-center justify-between pb-5 mb-5 border-b border-white/10">
+                  <div className="flex items-center justify-between pb-5 mb-5 border-b border-white/10 light:border-neutral-900/10">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-white/[0.06] border border-white/10 flex items-center justify-center text-xl shadow-inner">
+                      <div className="w-10 h-10 rounded-2xl bg-white/[0.06] light:bg-neutral-900/[0.06] border border-white/10 light:border-neutral-900/10 flex items-center justify-center text-xl shadow-inner">
                         {categoryIcons[category]}
                       </div>
                       <div>
-                        <h3 className="text-base font-bold text-white">
+                        <h3 className="text-base font-bold text-white light:text-neutral-900">
                           {t(`skills.categories.${category}`)}
                         </h3>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-slate-400 light:text-neutral-500">
                           {categorySkills.length} {t("skills.badge").toLowerCase()}
                         </p>
                       </div>
                     </div>
 
-                    <span className="text-[11px] px-2.5 py-1 rounded-full bg-white/[0.04] text-slate-400 font-mono border border-white/5">
+                    <span className="text-[11px] px-2.5 py-1 rounded-full bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-500 font-mono border border-white/5 light:border-neutral-900/10">
                       {category.toUpperCase()}
                     </span>
                   </div>
@@ -178,7 +178,7 @@ export default function SkillsSection() {
                           variants={fadeInUp}
                           whileHover={{ scale: 1.04, y: -2 }}
                           transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                          className="group inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-colors cursor-default"
+                          className="group inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/[0.04] light:bg-neutral-900/[0.04] hover:bg-white/[0.08] light:hover:bg-neutral-900/[0.06] border border-white/10 light:border-neutral-900/10 hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-colors cursor-default"
                         >
                           {/* Skill Icon */}
                           <div className="w-5 h-5 flex items-center justify-center shrink-0">
@@ -196,7 +196,7 @@ export default function SkillsSection() {
                           </div>
 
                           {/* Skill Name */}
-                          <span className="text-xs sm:text-sm font-medium text-slate-200 group-hover:text-white transition-colors">
+                          <span className="text-xs sm:text-sm font-medium text-slate-200 light:text-neutral-700 group-hover:text-white light:group-hover:text-neutral-900 transition-colors">
                             {skill.name}
                           </span>
                         </motion.div>

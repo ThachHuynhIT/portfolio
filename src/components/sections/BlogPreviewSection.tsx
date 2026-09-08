@@ -28,13 +28,13 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
             <span className="text-xs text-purple-400 font-semibold tracking-widest uppercase mb-3 block">
               {t("blogPreview.badge")}
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-4 tracking-tight">
               {t("blogPreview.titlePrefix")}
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
                 {t("blogPreview.titleHighlight")}
               </span>
             </h2>
-            <p className="text-white/60 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+            <p className="text-white/60 light:text-neutral-500 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
               {t("blogPreview.subtitle")}
             </p>
           </div>
@@ -62,25 +62,25 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
                         <span className="inline-block px-3 py-1 text-xs font-semibold text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded-full">
                           {post.category}
                         </span>
-                        <span className="text-xs text-white/40 font-medium">
+                        <span className="text-xs text-white/40 light:text-neutral-500 font-medium">
                           {post.readTime}
                         </span>
                       </div>
 
                       {/* Post Title */}
-                      <h3 className="text-lg sm:text-xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors line-clamp-2 leading-snug">
+                      <h3 className="text-lg sm:text-xl font-bold text-white light:text-neutral-900 mb-3 group-hover:text-purple-300 transition-colors line-clamp-2 leading-snug">
                         {title}
                       </h3>
 
                       {/* Excerpt */}
-                      <p className="text-white/60 text-xs sm:text-sm mb-6 line-clamp-3 leading-relaxed">
+                      <p className="text-white/60 light:text-neutral-600 text-xs sm:text-sm mb-6 line-clamp-3 leading-relaxed">
                         {excerpt}
                       </p>
                     </div>
 
                     <div>
                       {/* Date & Tags */}
-                      <div className="flex items-center justify-between text-xs text-white/40 pt-4 border-t border-white/5 mb-3">
+                      <div className="flex items-center justify-between text-xs text-white/40 light:text-neutral-500 pt-4 border-t border-white/5 light:border-neutral-900/10 mb-3">
                         <time dateTime={post.date}>
                           {new Date(post.date).toLocaleDateString(
                             locale === "vi" ? "vi-VN" : "en-US",
@@ -96,7 +96,7 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
                         {post.tags.slice(0, 3).map((tag) => (
                           <span
                             key={tag}
-                            className="px-2 py-0.5 text-[10px] text-white/50 bg-white/5 rounded"
+                            className="px-2 py-0.5 text-[10px] text-white/50 light:text-neutral-500 bg-white/5 light:bg-neutral-900/[0.04] rounded"
                           >
                             #{tag}
                           </span>
@@ -114,7 +114,7 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
         <div className="mt-14 text-center">
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold text-white bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold text-white light:text-neutral-900 bg-white/[0.06] light:bg-neutral-900/[0.05] hover:bg-white/[0.12] light:hover:bg-neutral-900/[0.08] border border-white/15 light:border-neutral-900/10 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
           >
             <span>{t("blogPreview.viewAll")}</span>
             <span className="transition-transform duration-200 group-hover:translate-x-1">

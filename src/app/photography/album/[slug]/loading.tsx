@@ -10,7 +10,7 @@ export default function AlbumDetailLoading() {
       </div>
 
       {/* Album Banner Skeleton */}
-      <div className="relative aspect-[21/9] w-full rounded-3xl overflow-hidden mb-12 border border-white/10 bg-slate-900/60 p-8 sm:p-14 flex flex-col justify-end">
+      <div className="relative aspect-[21/9] w-full rounded-3xl overflow-hidden mb-12 border border-white/10 bg-slate-900/60 p-8 sm:p-14 flex flex-col justify-end light:border-neutral-900/10 light:bg-slate-100">
         <Skeleton className="h-6 w-32 rounded-full mb-4" />
         <Skeleton className="h-10 sm:h-12 w-2/3 sm:w-1/2 rounded-2xl mb-4" />
         <Skeleton className="h-4 w-full sm:w-2/3 rounded-lg mb-2" />

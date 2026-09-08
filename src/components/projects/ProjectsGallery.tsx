@@ -58,7 +58,7 @@ function ProjectDetailModal({
     >
       <div
         onClick={onClose}
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm light:bg-white/80"
       />
       <motion.div
         ref={dialogRef}
@@ -75,12 +75,12 @@ function ProjectDetailModal({
           <button
             onClick={onClose}
             aria-label={t("projects.closeModal")}
-            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all z-20"
+            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all z-20 light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06]"
           >
             ✕
           </button>
 
-          <div className="relative aspect-video rounded-xl overflow-hidden mb-6 bg-slate-950 border border-white/10 shadow-lg">
+          <div className="relative aspect-video rounded-xl overflow-hidden mb-6 bg-slate-950 border border-white/10 shadow-lg light:bg-slate-100 light:border-neutral-900/10">
             {project.image ? (
               <Image
                 src={project.image}
@@ -102,14 +102,14 @@ function ProjectDetailModal({
             )}
           </div>
 
-          <h3 className="text-2xl font-bold text-white mb-3">{displayTitle}</h3>
-          <p className="text-white/70 text-sm sm:text-base mb-6 leading-relaxed">{displayLongDesc}</p>
+          <h3 className="text-2xl font-bold text-white mb-3 light:text-neutral-900">{displayTitle}</h3>
+          <p className="text-white/70 text-sm sm:text-base mb-6 leading-relaxed light:text-neutral-600">{displayLongDesc}</p>
 
           <div className="flex flex-wrap gap-2 mb-6">
             {project.tags.map((tag) => (
               <span
                 key={tag}
-                className="px-3 py-1 text-xs font-medium text-white/80 bg-white/5 border border-white/10 rounded-full"
+                className="px-3 py-1 text-xs font-medium text-white/80 bg-white/5 border border-white/10 rounded-full light:text-neutral-700 light:bg-neutral-900/[0.04] light:border-neutral-900/10"
               >
                 {tag}
               </span>
@@ -180,7 +180,7 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
   }, [initialProjects, selectedTag, searchQuery, locale]);
 
   return (
-    <div className="min-h-screen pt-32 pb-24 text-white">
+    <div className="min-h-screen pt-32 pb-24 text-white light:text-neutral-900">
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
 
         {/* Page Header */}
@@ -188,10 +188,10 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
           <span className="text-xs text-purple-400 font-semibold tracking-widest uppercase mb-3 block">
             {t("projects.badge")}
           </span>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-tight light:text-neutral-900">
             {t("projects.allProjectsTitle")}
           </h1>
-          <p className="text-white/60 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+          <p className="text-white/60 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed light:text-neutral-600">
             {t("projects.allProjectsSubtitle")}
           </p>
         </div>
@@ -205,13 +205,13 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={locale === "vi" ? "Tìm kiếm dự án, công nghệ..." : "Search projects, tags..."}
-              className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-all"
+              className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-all light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-900 light:placeholder-neutral-400"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs light:text-neutral-500 light:hover:text-neutral-900"
               >
                 ✕
               </button>
@@ -224,8 +224,8 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
               type="button"
               onClick={() => setSelectedTag("all")}
               className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedTag === "all"
-                  ? "bg-white text-black font-semibold shadow-md"
-                  : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5"
+                  ? "bg-white text-black font-semibold shadow-md light:bg-neutral-900 light:text-white light:shadow-neutral-400/20"
+                  : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5 light:bg-neutral-900/[0.04] light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06] light:border-neutral-900/10"
                 }`}
             >
               {locale === "vi" ? "Tất cả" : "All"} ({initialProjects.length})
@@ -237,7 +237,7 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
                 onClick={() => setSelectedTag(tag)}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedTag === tag
                     ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-semibold shadow-md shadow-purple-500/20"
-                    : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5"
+                    : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5 light:bg-neutral-900/[0.04] light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06] light:border-neutral-900/10"
                   }`}
               >
                 {tag}
@@ -261,7 +261,7 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
                 >
                   <div className="p-5 flex flex-col h-full">
                     {/* Project Thumbnail Image */}
-                    <div className="relative aspect-[16/10] rounded-xl overflow-hidden mb-4 bg-slate-950 border border-white/10 shadow-sm">
+                    <div className="relative aspect-[16/10] rounded-xl overflow-hidden mb-4 bg-slate-950 border border-white/10 shadow-sm light:bg-slate-100 light:border-neutral-900/10">
                       {project.image ? (
                         <Image
                           src={project.image}
@@ -283,19 +283,19 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
                     </div>
 
                     {/* Project Info */}
-                    <h3 className="text-lg font-bold text-white mb-2 line-clamp-1 group-hover:text-purple-300 transition-colors">
+                    <h3 className="text-lg font-bold text-white mb-2 line-clamp-1 group-hover:text-purple-300 transition-colors light:text-neutral-900">
                       {cardTitle}
                     </h3>
-                    <p className="text-white/60 text-xs sm:text-sm mb-4 line-clamp-2 leading-relaxed flex-grow">
+                    <p className="text-white/60 text-xs sm:text-sm mb-4 line-clamp-2 leading-relaxed flex-grow light:text-neutral-600">
                       {cardDesc}
                     </p>
 
                     {/* Tags */}
-                    <div className="flex flex-wrap gap-1.5 pt-3 border-t border-white/5">
+                    <div className="flex flex-wrap gap-1.5 pt-3 border-t border-white/5 light:border-neutral-900/10">
                       {project.tags.slice(0, 4).map((tag) => (
                         <span
                           key={tag}
-                          className="px-2 py-0.5 text-[11px] font-medium text-white/70 bg-white/5 border border-white/10 rounded-md"
+                          className="px-2 py-0.5 text-[11px] font-medium text-white/70 bg-white/5 border border-white/10 rounded-md light:text-neutral-600 light:bg-neutral-900/[0.04] light:border-neutral-900/10"
                         >
                           {tag}
                         </span>
@@ -307,8 +307,8 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
             })}
           </div>
         ) : (
-          <div className="text-center py-24 rounded-2xl bg-white/[0.02] border border-white/5">
-            <p className="text-white/60 text-base">{t("projects.noProjectsFound")}</p>
+          <div className="text-center py-24 rounded-2xl bg-white/[0.02] border border-white/5 light:bg-neutral-900/[0.03] light:border-neutral-900/10">
+            <p className="text-white/60 text-base light:text-neutral-600">{t("projects.noProjectsFound")}</p>
           </div>
         )}
       </div>

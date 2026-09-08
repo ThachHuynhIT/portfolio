@@ -33,7 +33,7 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
         <div className="flex items-center justify-between mb-8">
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors light:text-neutral-600 light:hover:text-neutral-900"
           >
             <svg
               className="w-4 h-4"
@@ -52,11 +52,11 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
           </Link>
 
           {/* Translation Availability Indicator */}
-          <div className="flex items-center gap-2 text-xs text-white/50 bg-white/[0.03] px-3 py-1.5 rounded-full border border-white/8">
-            <span className="text-[11px] uppercase tracking-wider text-white/40">
+          <div className="flex items-center gap-2 text-xs text-white/50 bg-white/[0.03] px-3 py-1.5 rounded-full border border-white/8 light:text-neutral-500 light:bg-neutral-900/[0.04] light:border-neutral-900/10">
+            <span className="text-[11px] uppercase tracking-wider text-white/40 light:text-neutral-500">
               {isVi ? "Ngôn ngữ:" : "Language:"}
             </span>
-            <span className="inline-flex items-center gap-1 text-white/80 font-medium">
+            <span className="inline-flex items-center gap-1 text-white/80 font-medium light:text-neutral-800">
               <FlagIcon code={isVi ? "vi" : "en"} size={14} />
               {isVi ? "Tiếng Việt" : "English"}
             </span>
@@ -74,16 +74,16 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
             <span className="px-3 py-1 text-xs font-medium text-purple-400 bg-purple-500/10 rounded-full">
               {post.category}
             </span>
-            <span className="text-white/40 text-sm">{post.readTime}</span>
+            <span className="text-white/40 text-sm light:text-neutral-500">{post.readTime}</span>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">
             {title}
           </h1>
 
-          <p className="text-xl text-white/60 mb-6">{excerpt}</p>
+          <p className="text-xl text-white/60 light:text-neutral-600 mb-6">{excerpt}</p>
 
-          <div className="flex items-center gap-4 text-sm text-white/40">
+          <div className="flex items-center gap-4 text-sm text-white/40 light:text-neutral-500">
             <time dateTime={post.date}>
               {new Date(post.date).toLocaleDateString(isVi ? "vi-VN" : "en-US", {
                 month: "long",
@@ -98,7 +98,7 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
             {post.tags.map((tag) => (
               <span
                 key={tag}
-                className="px-3 py-1 text-sm text-white/60 bg-white/5 border border-white/10 rounded-full"
+                className="px-3 py-1 text-sm text-white/60 bg-white/5 border border-white/10 rounded-full light:text-neutral-600 light:bg-neutral-900/[0.04] light:border-neutral-900/10"
               >
                 #{tag}
               </span>
@@ -121,8 +121,8 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
                 👨‍💻
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white">Thach Huynh</h3>
-                <p className="text-white/60 text-sm">
+                <h3 className="text-lg font-semibold text-white light:text-neutral-900">Thach Huynh</h3>
+                <p className="text-white/60 text-sm light:text-neutral-600">
                   {isVi
                     ? "Lập trình viên Web Sáng tạo chuyên về các trải nghiệm kỹ thuật số sống động và hiện đại."
                     : "Creative Web Developer specializing in immersive digital experiences."}

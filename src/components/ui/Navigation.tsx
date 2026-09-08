@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { navLinks } from "@/lib/constants";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 const SECTION_IDS = ["home", "about", "skills", "projects", "contact"];
 
@@ -140,7 +141,8 @@ export default function Navigation() {
   if (
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/music") ||
-    pathname?.startsWith("/couple")
+    pathname?.startsWith("/couple") ||
+    pathname?.startsWith("/contra")
   ) {
     return null;
   }
@@ -155,8 +157,8 @@ export default function Navigation() {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         isScrolled
-          ? "bg-black/80 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/40 py-3"
-          : "bg-gradient-to-b from-black/70 to-transparent backdrop-blur-sm py-4"
+          ? "bg-black/80 light:bg-white/80 backdrop-blur-xl border-b border-white/10 light:border-neutral-900/10 shadow-lg shadow-black/40 light:shadow-neutral-400/20 py-3"
+          : "bg-gradient-to-b from-black/70 light:from-white/70 to-transparent backdrop-blur-sm py-4"
       )}
     >
       <nav className="container mx-auto px-6 max-w-7xl">
@@ -174,13 +176,13 @@ export default function Navigation() {
                 </span>
               </div>
             </div>
-            <span className="font-bold text-lg text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-cyan-400 transition-all duration-300">
+            <span className="font-bold text-lg text-white light:text-neutral-900 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-cyan-400 transition-all duration-300">
               ThachHuynh
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <ul className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
+          <ul className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] light:bg-neutral-900/[0.03] border border-white/[0.08] light:border-neutral-900/[0.08] backdrop-blur-md">
             {navLinks.map((link) => {
               const active = isLinkActive(link.href);
               const isMusic = link.href === "/music";
@@ -193,8 +195,8 @@ export default function Navigation() {
                     className={cn(
                       "relative flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200",
                       active
-                        ? "text-white bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 shadow-sm shadow-purple-500/20"
-                        : "text-white/70 hover:text-white hover:bg-white/[0.06] border border-transparent"
+                        ? "text-white light:text-neutral-900 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 shadow-sm shadow-purple-500/20"
+                        : "text-white/70 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 hover:bg-white/[0.06] light:hover:bg-neutral-900/[0.05] border border-transparent"
                     )}
                   >
                     {isMusic && (
@@ -217,7 +219,7 @@ export default function Navigation() {
                     {active && (
                       <motion.span
                         layoutId="activeNavTab"
-                        className="absolute inset-0 rounded-full bg-white/[0.03] -z-10"
+                        className="absolute inset-0 rounded-full bg-white/[0.03] light:bg-neutral-900/[0.03] -z-10"
                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                       />
                     )}
@@ -227,8 +229,9 @@ export default function Navigation() {
             })}
           </ul>
 
-          {/* Desktop Right: Language Switcher & Contact Button */}
+          {/* Desktop Right: Theme Toggle, Language Switcher & Contact Button */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle size="sm" />
             <LanguageSwitcher variant="pill" size="sm" />
             <Link
               href={getResolvedHref("#contact")}
@@ -250,32 +253,33 @@ export default function Navigation() {
             </Link>
           </div>
 
-          {/* Mobile Right Controls: Language Switcher & Hamburger */}
+          {/* Mobile Right Controls: Theme Toggle, Language Switcher & Hamburger */}
           <div className="flex md:hidden items-center gap-2">
+            <ThemeToggle size="sm" />
             <LanguageSwitcher variant="pill" size="sm" />
             <button
               ref={menuButtonRef}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="relative w-10 h-10 flex flex-col justify-center items-center rounded-xl bg-white/[0.05] border border-white/10 text-white"
+              className="relative w-10 h-10 flex flex-col justify-center items-center rounded-xl bg-white/[0.05] light:bg-neutral-900/[0.05] border border-white/10 light:border-neutral-900/10 text-white light:text-neutral-900"
               aria-label="Toggle menu"
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-menu"
             >
               <span
                 className={cn(
-                  "w-5 h-0.5 bg-white transition-all duration-300",
+                  "w-5 h-0.5 bg-white light:bg-neutral-900 transition-all duration-300",
                   isMobileMenuOpen && "rotate-45 translate-y-1.5"
                 )}
               />
               <span
                 className={cn(
-                  "w-5 h-0.5 bg-white my-1 transition-all duration-300",
+                  "w-5 h-0.5 bg-white light:bg-neutral-900 my-1 transition-all duration-300",
                   isMobileMenuOpen && "opacity-0"
                 )}
               />
               <span
                 className={cn(
-                  "w-5 h-0.5 bg-white transition-all duration-300",
+                  "w-5 h-0.5 bg-white light:bg-neutral-900 transition-all duration-300",
                   isMobileMenuOpen && "-rotate-45 -translate-y-1.5"
                 )}
               />
@@ -293,7 +297,7 @@ export default function Navigation() {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="md:hidden mt-3 rounded-2xl bg-black/95 border border-white/10 backdrop-blur-2xl p-4 shadow-2xl shadow-black/80 overflow-hidden"
+              className="md:hidden mt-3 rounded-2xl bg-black/95 light:bg-white/95 border border-white/10 light:border-neutral-900/10 backdrop-blur-2xl p-4 shadow-2xl shadow-black/80 light:shadow-neutral-400/30 overflow-hidden"
             >
               <ul className="flex flex-col gap-1.5">
                 {navLinks.map((link, index) => {
@@ -313,8 +317,8 @@ export default function Navigation() {
                         className={cn(
                           "flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium transition-all duration-200",
                           active
-                            ? "bg-gradient-to-r from-purple-500/20 to-cyan-500/20 text-white border border-purple-500/30"
-                            : "text-white/70 hover:text-white hover:bg-white/[0.06] border border-transparent"
+                            ? "bg-gradient-to-r from-purple-500/20 to-cyan-500/20 text-white light:text-neutral-900 border border-purple-500/30"
+                            : "text-white/70 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 hover:bg-white/[0.06] light:hover:bg-neutral-900/[0.05] border border-transparent"
                         )}
                       >
                         <span className="flex items-center gap-2">
@@ -328,7 +332,7 @@ export default function Navigation() {
                     </motion.li>
                   );
                 })}
-                <li className="pt-2 border-t border-white/10 mt-1">
+                <li className="pt-2 border-t border-white/10 light:border-neutral-900/10 mt-1">
                   <Link
                     href={getResolvedHref("#contact")}
                     onClick={(e) => handleNavClick(e, "#contact")}

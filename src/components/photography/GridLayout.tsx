@@ -39,7 +39,7 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.04, duration: 0.35 }}
-            className="group rounded-2xl overflow-hidden bg-slate-900/50 border border-white/10 hover:border-cyan-500/40 hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-300 cursor-pointer flex flex-col"
+            className="group rounded-2xl overflow-hidden bg-slate-900/50 border border-white/10 hover:border-cyan-500/40 hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-300 cursor-pointer flex flex-col light:bg-white light:border-neutral-900/10 light:shadow-neutral-400/10"
             onClick={() => onSelectPhoto(photo)}
           >
             {/* Card Image */}
@@ -95,17 +95,17 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
             {/* Card Body */}
             <div className="p-5 flex-1 flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-2 light:text-neutral-500">
                   <span>{photo.date}</span>
                   {location && location.trim() !== "" && (
                     <span className="truncate max-w-[140px]">{location}</span>
                   )}
                 </div>
-                <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1 mb-2">
+                <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1 mb-2 light:text-neutral-900">
                   {title}
                 </h3>
                 {desc && desc.trim() !== "" && (
-                  <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-4">
+                  <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-4 light:text-neutral-500">
                     {desc}
                   </p>
                 )}
@@ -113,7 +113,7 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
 
               {/* Camera Exif bottom pill - only render if info exists */}
               {hasCameraInfo && (
-                <div className="pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-500">
+                <div className="pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-500 light:border-neutral-900/10 light:text-neutral-400">
                   <span className="font-mono text-cyan-400/90">
                     {photo.camera?.model || photo.camera?.make}
                   </span>

@@ -56,13 +56,13 @@ export default function PhotoPreviewSection() {
             <span className="text-xs text-cyan-400 font-semibold tracking-widest uppercase mb-3 block">
               {t("photoPreview.badge")}
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-4 tracking-tight">
               {t("photoPreview.titlePrefix")}
               <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
                 {t("photoPreview.titleHighlight")}
               </span>
             </h2>
-            <p className="text-white/60 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+            <p className="text-white/60 light:text-neutral-500 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
               {t("photoPreview.subtitle")}
             </p>
           </div>
@@ -71,7 +71,7 @@ export default function PhotoPreviewSection() {
         {/* Featured Slider Component */}
         <div className="relative max-w-5xl mx-auto">
           {/* Main Showcase Card */}
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-2xl bg-slate-950 aspect-[16/10] sm:aspect-[21/10] group">
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 light:border-neutral-900/10 shadow-2xl light:shadow-neutral-400/20 bg-slate-950 aspect-[16/10] sm:aspect-[21/10] group">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentPhoto.id}
@@ -165,7 +165,7 @@ export default function PhotoPreviewSection() {
                 className={`h-2 rounded-full transition-all duration-300 ${
                   currentIndex === idx
                     ? "w-8 bg-gradient-to-r from-cyan-400 to-purple-500 shadow-sm shadow-cyan-500/50"
-                    : "w-2 bg-white/20 hover:bg-white/40"
+                    : "w-2 bg-white/20 light:bg-neutral-900/15 hover:bg-white/40 light:hover:bg-neutral-900/25"
                 }`}
               />
             ))}
@@ -180,7 +180,7 @@ export default function PhotoPreviewSection() {
                 className={`relative aspect-[16/10] rounded-xl overflow-hidden border transition-all duration-200 ${
                   currentIndex === idx
                     ? "border-cyan-400 ring-2 ring-cyan-400/30 scale-105"
-                    : "border-white/10 opacity-50 hover:opacity-100"
+                    : "border-white/10 light:border-neutral-900/10 opacity-50 hover:opacity-100"
                 }`}
               >
                 <ImageWithSkeleton
@@ -199,7 +199,7 @@ export default function PhotoPreviewSection() {
         <div className="mt-14 text-center">
           <Link
             href="/photography"
-            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold text-white bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 hover:border-cyan-400/40 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 group"
+            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold text-white light:text-neutral-900 bg-white/[0.06] light:bg-neutral-900/[0.05] hover:bg-white/[0.12] light:hover:bg-neutral-900/[0.08] border border-white/15 light:border-neutral-900/10 hover:border-cyan-400/40 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 group"
           >
             <span>{t("photoPreview.viewAll")}</span>
             <span className="transition-transform duration-200 group-hover:translate-x-1">

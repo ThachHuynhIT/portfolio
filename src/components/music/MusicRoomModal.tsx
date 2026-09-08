@@ -115,13 +115,13 @@ export default function MusicRoomModal() {
                   🎧
                 </div>
                 <div>
-                  <h2 className="text-lg font-extrabold text-white">{t("music.room.modalTitle", "Listen Together")}</h2>
-                  <p className="text-xs text-white/50">{t("music.room.modalSubtitle", "Sync music live with friends in shared rooms")}</p>
+                  <h2 className="text-lg font-extrabold text-white light:text-neutral-900">{t("music.room.modalTitle", "Listen Together")}</h2>
+                  <p className="text-xs text-white/50 light:text-neutral-500">{t("music.room.modalSubtitle", "Sync music live with friends in shared rooms")}</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsRoomModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white flex items-center justify-center text-sm transition-colors"
+                className="w-8 h-8 rounded-full bg-white/5 light:bg-neutral-900/[0.04] hover:bg-white/10 light:hover:bg-neutral-900/[0.06] text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 flex items-center justify-center text-sm transition-colors"
                 title={t("music.room.close", "Close")}
               >
                 ✕
@@ -129,7 +129,7 @@ export default function MusicRoomModal() {
             </div>
 
             {/* Mode Switcher */}
-            <div className="grid grid-cols-2 gap-1 p-1 bg-white/5 rounded-xl mb-4 border border-white/10">
+            <div className="grid grid-cols-2 gap-1 p-1 bg-white/5 light:bg-neutral-900/[0.04] rounded-xl mb-4 border border-white/10 light:border-neutral-900/10">
               <button
                 onClick={() => {
                   setActiveTab("create");
@@ -138,7 +138,7 @@ export default function MusicRoomModal() {
                 className={`py-2 text-xs font-bold rounded-lg transition-all ${
                   activeTab === "create"
                     ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-500/30"
-                    : "text-white/60 hover:text-white"
+                    : "text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900"
                 }`}
               >
                 ✨ {t("music.room.createTab", "Create Room")}
@@ -151,7 +151,7 @@ export default function MusicRoomModal() {
                 className={`py-2 text-xs font-bold rounded-lg transition-all ${
                   activeTab === "join"
                     ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md shadow-cyan-500/30"
-                    : "text-white/60 hover:text-white"
+                    : "text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900"
                 }`}
               >
                 🚀 {t("music.room.joinTab", "Join by Code")}
@@ -168,7 +168,7 @@ export default function MusicRoomModal() {
             {activeTab === "create" ? (
               <form onSubmit={handleCreate} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-semibold text-white/70 light:text-neutral-600 uppercase tracking-wider mb-1.5">
                     {t("music.room.nicknameLabel", "Your Nickname")}
                   </label>
                   <input
@@ -184,7 +184,7 @@ export default function MusicRoomModal() {
 
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-semibold text-white/70 uppercase tracking-wider">
+                    <label className="text-xs font-semibold text-white/70 light:text-neutral-600 uppercase tracking-wider">
                       {t("music.room.roomCodeLabel", "Room Code (Exactly 5 Characters)")}
                     </label>
                     <button
@@ -211,7 +211,7 @@ export default function MusicRoomModal() {
                       required
                       className="music-room-input text-center tracking-[0.35em] text-lg font-mono font-bold text-purple-300 uppercase"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/40 font-mono">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/40 light:text-neutral-500 font-mono">
                       {createCode.length}/5
                     </span>
                   </div>
@@ -228,7 +228,7 @@ export default function MusicRoomModal() {
             ) : (
               <form onSubmit={handleJoin} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-semibold text-white/70 light:text-neutral-600 uppercase tracking-wider mb-1.5">
                     {t("music.room.nicknameLabel", "Your Nickname")}
                   </label>
                   <input
@@ -243,7 +243,7 @@ export default function MusicRoomModal() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-semibold text-white/70 light:text-neutral-600 uppercase tracking-wider mb-1.5">
                     {t("music.room.roomCodeLabel", "Enter 5-Character Room Code")}
                   </label>
                   <div className="relative">
@@ -261,9 +261,9 @@ export default function MusicRoomModal() {
                       }
                       maxLength={5}
                       required
-                      className="music-room-input text-center tracking-[0.35em] text-lg font-mono font-bold text-cyan-300 uppercase placeholder:tracking-normal placeholder:font-sans placeholder:text-white/30"
+                      className="music-room-input text-center tracking-[0.35em] text-lg font-mono font-bold text-cyan-300 uppercase placeholder:tracking-normal placeholder:font-sans placeholder:text-white/30 light:text-neutral-400"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/40 font-mono">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/40 light:text-neutral-500 font-mono">
                       {joinCode.length}/5
                     </span>
                   </div>

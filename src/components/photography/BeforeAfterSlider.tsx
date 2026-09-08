@@ -86,7 +86,7 @@ export default function BeforeAfterSlider({
   return (
     <div
       ref={containerRef}
-      className={`relative select-none overflow-hidden rounded-2xl bg-black/40 border border-white/10 shadow-2xl cursor-ew-resize group ${aspectClass} ${className}`}
+      className={`relative select-none overflow-hidden rounded-2xl bg-black/40 border border-white/10 light:border-neutral-900/10 shadow-2xl cursor-ew-resize group ${aspectClass} ${className}`}
       onMouseDown={onMouseDown}
       onTouchStart={() => setIsDragging(true)}
       role="slider"

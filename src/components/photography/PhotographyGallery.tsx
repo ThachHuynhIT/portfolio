@@ -138,7 +138,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
   };
 
   return (
-    <div className="min-h-screen pt-28 pb-24 text-white">
+    <div className="min-h-screen pt-28 pb-24 text-white light:text-neutral-900">
       {/* Background ambient lighting */}
       <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-tr from-purple-600/10 via-indigo-600/10 to-cyan-500/10 blur-[130px] rounded-full" />
@@ -146,8 +146,13 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
-        {/* ── Hero Header ── */}
-        <section className="relative overflow-hidden rounded-3xl border border-white/10 mb-10 shadow-2xl bg-slate-950">
+        {/* ── Hero Header ──
+            NOTE: this banner sits on a fixed background photo with a dark
+            gradient overlay for text legibility ("theater" style, same
+            rationale as the lightbox) — its internal overlay/text stays
+            dark-only in both themes; only the outer card border gets a
+            light: counterpart so it remains visible against a light page. */}
+        <section className="relative overflow-hidden rounded-3xl border border-white/10 light:border-neutral-900/10 mb-10 shadow-2xl bg-slate-950">
           <div className="absolute inset-0 z-0">
             <ImageWithSkeleton
               src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2000&q=85"
@@ -231,14 +236,14 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
         </section>
 
         {/* ── Main View Switcher: All Photos vs Albums ── */}
-        <div className="flex items-center justify-center sm:justify-start gap-2 p-1.5 rounded-2xl bg-white/[0.04] border border-white/10 w-fit mb-8 shadow-inner">
+        <div className="flex items-center justify-center sm:justify-start gap-2 p-1.5 rounded-2xl bg-white/[0.04] light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 w-fit mb-8 shadow-inner">
           <button
             type="button"
             onClick={() => setActiveTab("photos")}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
               activeTab === "photos"
                 ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/25"
-                : "text-slate-400 hover:text-white hover:bg-white/5"
+                : "text-slate-400 hover:text-white hover:bg-white/5 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.04]"
             }`}
           >
             <Icon name="camera" size={15} />
@@ -251,7 +256,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
               activeTab === "albums"
                 ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25"
-                : "text-slate-400 hover:text-white hover:bg-white/5"
+                : "text-slate-400 hover:text-white hover:bg-white/5 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.04]"
             }`}
           >
             <Icon name="grid" size={15} />
@@ -270,21 +275,21 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                   <Icon
                     name="search"
                     size={16}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 light:text-neutral-500"
                   />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={t("photography.searchPlaceholder")}
-                    className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                    className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 transition-all light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-900 light:placeholder-neutral-400"
                   />
                   {searchQuery && (
                     <button
                       type="button"
                       onClick={() => setSearchQuery("")}
                       aria-label={t("photography.clearSearch", "Clear search")}
-                      className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white light:text-neutral-500 light:hover:text-neutral-900"
                     >
                       <Icon name="close" size={14} />
                     </button>
@@ -292,7 +297,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                 </div>
 
                 {/* Layout Mode Switcher */}
-                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.04] border border-white/10 self-start md:self-auto">
+                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.04] border border-white/10 light:bg-neutral-900/[0.04] light:border-neutral-900/10 self-start md:self-auto">
                   <button
                     type="button"
                     onClick={() => setLayoutMode("masonry")}
@@ -300,7 +305,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     className={`flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       layoutMode === "masonry"
                         ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white shadow-md shadow-purple-500/20 font-semibold"
-                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                        : "text-slate-400 hover:text-white hover:bg-white/5 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.04]"
                     }`}
                   >
                     <Icon name="masonry" size={14} />
@@ -314,7 +319,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     className={`flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       layoutMode === "grid"
                         ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white shadow-md shadow-purple-500/20 font-semibold"
-                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                        : "text-slate-400 hover:text-white hover:bg-white/5 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.04]"
                     }`}
                   >
                     <Icon name="grid" size={14} />
@@ -328,7 +333,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     className={`flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       layoutMode === "compare"
                         ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white shadow-md shadow-purple-500/20 font-semibold"
-                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                        : "text-slate-400 hover:text-white hover:bg-white/5 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.04]"
                     }`}
                   >
                     <Icon name="compare" size={14} />
@@ -342,7 +347,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     className={`flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       layoutMode === "story"
                         ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white shadow-md shadow-purple-500/20 font-semibold"
-                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                        : "text-slate-400 hover:text-white hover:bg-white/5 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.04]"
                     }`}
                   >
                     <Icon name="image" size={14} />
@@ -358,8 +363,8 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                   onClick={() => setSelectedCategory("all")}
                   className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${
                     selectedCategory === "all"
-                      ? "bg-white text-black font-semibold shadow-lg shadow-white/10"
-                      : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5"
+                      ? "bg-white text-black font-semibold shadow-lg shadow-white/10 light:bg-neutral-900 light:text-white light:shadow-neutral-400/20"
+                      : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5 light:bg-neutral-900/[0.04] light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06] light:border-neutral-900/10"
                   }`}
                 >
                   {t("photography.all")} ({initialPhotos.length})
@@ -372,7 +377,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 flex items-center gap-1.5 ${
                       selectedCategory === "featured"
                         ? "bg-gradient-to-r from-amber-400 to-amber-500 text-black font-bold shadow-lg shadow-amber-500/20"
-                        : "bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/30"
+                        : "bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/30 light:text-amber-700"
                     }`}
                   >
                     <span>⭐ {t("photography.featured")}</span>
@@ -380,7 +385,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                       className={`text-[10px] px-1.5 py-0.2 rounded-full ${
                         selectedCategory === "featured"
                           ? "bg-black/20 text-black font-extrabold"
-                          : "bg-amber-400/20 text-amber-200"
+                          : "bg-amber-400/20 text-amber-200 light:text-amber-800"
                       }`}
                     >
                       {stats.featuredCount}
@@ -399,14 +404,14 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                       onClick={() => setSelectedCategory(cat)}
                       className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 flex items-center gap-1.5 ${
                         isActive
-                          ? "bg-white text-black font-semibold shadow-lg shadow-white/10"
-                          : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5"
+                          ? "bg-white text-black font-semibold shadow-lg shadow-white/10 light:bg-neutral-900 light:text-white light:shadow-neutral-400/20"
+                          : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5 light:bg-neutral-900/[0.04] light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06] light:border-neutral-900/10"
                       }`}
                     >
                       <span>{cat}</span>
                       <span
                         className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                          isActive ? "bg-black/10 text-black font-bold" : "bg-white/10 text-slate-400"
+                          isActive ? "bg-black/10 text-black font-bold" : "bg-white/10 text-slate-400 light:bg-neutral-900/[0.06] light:text-neutral-500"
                         }`}
                       >
                         {count}
@@ -420,14 +425,14 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
             {/* Active Layout Display */}
             <section>
               {filteredPhotos.length === 0 ? (
-                <div className="text-center py-20 bg-white/[0.02] border border-white/5 rounded-3xl p-8">
-                  <div className="w-12 h-12 rounded-full bg-white/5 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                <div className="text-center py-20 bg-white/[0.02] border border-white/5 rounded-3xl p-8 light:bg-neutral-900/[0.03] light:border-neutral-900/10">
+                  <div className="w-12 h-12 rounded-full bg-white/5 text-slate-400 flex items-center justify-center mx-auto mb-3 light:bg-neutral-900/[0.04] light:text-neutral-500">
                     <Icon name="search" size={20} />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-1">
+                  <h3 className="text-lg font-semibold text-white mb-1 light:text-neutral-900">
                     No matching artworks found
                   </h3>
-                  <p className="text-sm text-slate-400 max-w-sm mx-auto mb-4">
+                  <p className="text-sm text-slate-400 max-w-sm mx-auto mb-4 light:text-neutral-500">
                     Try searching with different keywords or reset filters to display all artworks.
                   </p>
                   <button
@@ -436,7 +441,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                       setSelectedCategory("all");
                       setSearchQuery("");
                     }}
-                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors"
+                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors light:bg-neutral-900/[0.06] light:hover:bg-neutral-900/10 light:text-neutral-900"
                   >
                     Reset Filters
                   </button>
@@ -490,47 +495,47 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                 <Icon
                   name="search"
                   size={16}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 light:text-neutral-500"
                 />
                 <input
                   type="text"
                   value={albumSearchQuery}
                   onChange={(e) => setAlbumSearchQuery(e.target.value)}
                   placeholder={t("photography.searchAlbumsPlaceholder") || "Tìm kiếm album..."}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 transition-all light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-900 light:placeholder-neutral-400"
                 />
                 {albumSearchQuery && (
                   <button
                     type="button"
                     onClick={() => setAlbumSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white light:text-neutral-500 light:hover:text-neutral-900"
                   >
                     <Icon name="close" size={14} />
                   </button>
                 )}
               </div>
 
-              <div className="text-xs text-slate-400 font-mono">
+              <div className="text-xs text-slate-400 font-mono light:text-neutral-500">
                 {t("photography.albumsCount") || "Albums"}: <strong>{filteredAlbums.length}</strong>
               </div>
             </div>
 
             {/* Albums Grid */}
             {filteredAlbums.length === 0 ? (
-              <div className="text-center py-20 bg-white/[0.02] border border-white/5 rounded-3xl p-8">
-                <div className="w-12 h-12 rounded-full bg-white/5 text-slate-400 flex items-center justify-center mx-auto mb-3">
+              <div className="text-center py-20 bg-white/[0.02] border border-white/5 rounded-3xl p-8 light:bg-neutral-900/[0.03] light:border-neutral-900/10">
+                <div className="w-12 h-12 rounded-full bg-white/5 text-slate-400 flex items-center justify-center mx-auto mb-3 light:bg-neutral-900/[0.04] light:text-neutral-500">
                   <Icon name="grid" size={20} />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-1">
+                <h3 className="text-lg font-semibold text-white mb-1 light:text-neutral-900">
                   {t("photography.noAlbumsFound") || "Không tìm thấy Album nào"}
                 </h3>
-                <p className="text-sm text-slate-400 max-w-sm mx-auto mb-4">
+                <p className="text-sm text-slate-400 max-w-sm mx-auto mb-4 light:text-neutral-500">
                   {t("photography.noAlbumsDesc") || "Thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc để hiển thị toàn bộ album."}
                 </p>
                 <button
                   type="button"
                   onClick={() => setAlbumSearchQuery("")}
-                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors"
+                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors light:bg-neutral-900/[0.06] light:hover:bg-neutral-900/10 light:text-neutral-900"
                 >
                   {t("photography.resetAlbumSearch") || "Đặt lại tìm kiếm"}
                 </button>
@@ -554,10 +559,10 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     <Link
                       key={album.id}
                       href={`/photography/album/${album.slug}`}
-                      className="group relative rounded-3xl overflow-hidden bg-slate-900/60 border border-white/10 hover:border-cyan-500/40 shadow-xl hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-300 flex flex-col"
+                      className="group relative rounded-3xl overflow-hidden bg-slate-900/60 border border-white/10 hover:border-cyan-500/40 shadow-xl hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-300 flex flex-col light:bg-white light:border-neutral-900/10 light:shadow-neutral-400/10"
                     >
                       {/* Cover Photo */}
-                      <div className="relative aspect-[16/10] w-full bg-slate-950 overflow-hidden">
+                      <div className="relative aspect-[16/10] w-full bg-slate-950 overflow-hidden light:bg-slate-100">
                         {coverUrl && (
                           <ImageWithSkeleton
                             src={coverUrl}
@@ -589,23 +594,23 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                       {/* Album Body */}
                       <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                         <div>
-                          <h3 className="text-xl font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1 mb-2">
+                          <h3 className="text-xl font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1 mb-2 light:text-neutral-900">
                             {title}
                           </h3>
                           {desc && (
-                            <p className="text-xs text-slate-300/80 line-clamp-2 leading-relaxed font-light">
+                            <p className="text-xs text-slate-300/80 line-clamp-2 leading-relaxed font-light light:text-neutral-600">
                               {desc}
                             </p>
                           )}
                         </div>
 
                         {/* Miniature Avatars + CTA */}
-                        <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                        <div className="pt-4 border-t border-white/5 flex items-center justify-between light:border-neutral-900/10">
                           <div className="flex items-center -space-x-2">
                             {previewPhotos.map((p, idx) => (
                               <div
                                 key={p.id}
-                                className="relative w-7 h-7 rounded-full overflow-hidden border-2 border-slate-900 bg-slate-800"
+                                className="relative w-7 h-7 rounded-full overflow-hidden border-2 border-slate-900 bg-slate-800 light:border-white light:bg-neutral-100"
                                 style={{ zIndex: 3 - idx }}
                               >
                                 <ImageWithSkeleton
@@ -618,7 +623,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                               </div>
                             ))}
                             {photoCount > 3 && (
-                              <div className="w-7 h-7 rounded-full bg-white/10 border-2 border-slate-900 flex items-center justify-center text-[10px] font-bold text-slate-300">
+                              <div className="w-7 h-7 rounded-full bg-white/10 border-2 border-slate-900 flex items-center justify-center text-[10px] font-bold text-slate-300 light:bg-neutral-900/10 light:border-white light:text-neutral-600">
                                 +{photoCount - 3}
                               </div>
                             )}

@@ -63,7 +63,7 @@ export default function MusicRoomBar() {
 
           <button
             onClick={handleCopyCode}
-            className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] text-white/80 hover:text-white transition-colors flex items-center gap-1"
+            className="px-2.5 py-1 rounded-lg bg-white/10 light:bg-neutral-900/[0.06] hover:bg-white/20 light:hover:bg-neutral-900/10 text-[11px] text-white/80 light:text-neutral-800 hover:text-white light:hover:text-neutral-900 transition-colors flex items-center gap-1"
             title="Copy Full Room Invite Link"
           >
             <span>{copied ? t("music.room.linkCopied", "✓ Link Copied!") : t("music.room.inviteLink", "🔗 Invite Link")}</span>
@@ -84,7 +84,7 @@ export default function MusicRoomBar() {
               </div>
             ))}
           </div>
-          <span className="text-xs text-white/60">
+          <span className="text-xs text-white/60 light:text-neutral-600">
             {room.members.length} {room.members.length === 1 ? t("music.room.listener", "listener") : t("music.room.listeners", "listeners")}
           </span>
         </div>
@@ -92,12 +92,12 @@ export default function MusicRoomBar() {
         {/* Right: Quick Reactions, Chat Toggle & Leave */}
         <div className="flex items-center gap-1.5">
           {/* Reaction Triggers */}
-          <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
+          <div className="flex items-center gap-1 bg-white/5 light:bg-neutral-900/[0.04] p-1 rounded-xl border border-white/10 light:border-neutral-900/10">
             {REACTIONS.slice(0, 4).map((emoji) => (
               <button
                 key={emoji}
                 onClick={() => sendReaction(emoji)}
-                className="w-7 h-7 rounded-lg hover:bg-white/10 active:scale-125 flex items-center justify-center text-sm transition-transform"
+                className="w-7 h-7 rounded-lg hover:bg-white/10 light:hover:bg-neutral-900/[0.06] active:scale-125 flex items-center justify-center text-sm transition-transform"
                 title={`Send ${emoji} reaction`}
               >
                 {emoji}
@@ -111,7 +111,7 @@ export default function MusicRoomBar() {
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all border ${
               isRoomChatOpen
                 ? "bg-cyan-500 text-black border-cyan-400 font-bold"
-                : "bg-white/10 hover:bg-white/15 text-white/90 border-white/10"
+                : "bg-white/10 light:bg-neutral-900/[0.06] hover:bg-white/15 light:hover:bg-neutral-900/10 text-white/90 light:text-neutral-800 border-white/10 light:border-neutral-900/10"
             }`}
             title="Open Room Live Chat"
           >
@@ -145,15 +145,15 @@ export default function MusicRoomBar() {
             className="music-room-chat-drawer"
           >
             {/* Chat Header */}
-            <div className="flex items-center justify-between p-3 border-b border-white/10 bg-white/5">
+            <div className="flex items-center justify-between p-3 border-b border-white/10 light:border-neutral-900/10 bg-white/5 light:bg-neutral-900/[0.04]">
               <div className="flex items-center gap-2">
                 <span className="text-base">💬</span>
-                <span className="font-bold text-xs text-white">Room #{room.code} Chat</span>
-                <span className="text-[10px] text-white/40">({room.members.length} {t("music.room.online", "online")})</span>
+                <span className="font-bold text-xs text-white light:text-neutral-900">Room #{room.code} Chat</span>
+                <span className="text-[10px] text-white/40 light:text-neutral-500">({room.members.length} {t("music.room.online", "online")})</span>
               </div>
               <button
                 onClick={() => setIsRoomChatOpen(false)}
-                className="text-white/40 hover:text-white text-xs p-1"
+                className="text-white/40 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 text-xs p-1"
               >
                 ✕
               </button>
@@ -181,7 +181,7 @@ export default function MusicRoomBar() {
             </div>
 
             {/* Quick Reactions Bar in Chat */}
-            <div className="px-3 py-1.5 border-t border-white/5 bg-white/[0.02] flex items-center justify-between">
+            <div className="px-3 py-1.5 border-t border-white/5 light:border-neutral-900/10 bg-white/[0.02] light:bg-neutral-900/[0.04] flex items-center justify-between">
               {REACTIONS.map((emoji) => (
                 <button
                   key={emoji}
@@ -195,7 +195,7 @@ export default function MusicRoomBar() {
             </div>
 
             {/* Chat Input */}
-            <form onSubmit={handleSendChat} className="p-2.5 border-t border-white/10 flex gap-2">
+            <form onSubmit={handleSendChat} className="p-2.5 border-t border-white/10 light:border-neutral-900/10 flex gap-2">
               <input
                 type="text"
                 placeholder={t("music.room.chatPlaceholder", "Say something to the lounge...")}

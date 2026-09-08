@@ -19,6 +19,25 @@
   --music-text-muted: rgba(255, 255, 255, 0.55);
 }
 
+/*
+ * Light theme override. Only the surface/text tokens flip — the brand
+ * accent colors (primary/secondary/accent + their glows) stay identical
+ * since they're saturated hues that read fine on both backgrounds.
+ * Zen mode intentionally stays dark-only (see .music-studio-app--zen and
+ * .music-zen-fullscreen further down, which hardcode their own bg/color
+ * instead of reading these variables) so it's unaffected by this block.
+ */
+[data-theme="light"] {
+  --music-bg: #faf9fc;
+  --music-sidebar-bg: rgba(255, 255, 255, 0.85);
+  --music-surface: rgba(10, 10, 20, 0.04);
+  --music-surface-hover: rgba(10, 10, 20, 0.08);
+  --music-border: rgba(10, 10, 20, 0.1);
+  --music-border-hover: rgba(10, 10, 20, 0.18);
+  --music-text: #0a0a0f;
+  --music-text-muted: rgba(10, 10, 20, 0.55);
+}
+
 /* ── Page Root & Overall Studio Layout ───────────────────── */
 .music-page-root {
   height: 100vh;
@@ -44,6 +63,7 @@
   inset: 0;
   z-index: 9999;
   background: #020204;
+  color: #fafafa;
   max-width: 100vw;
   height: 100vh;
   overflow: hidden;
@@ -1653,6 +1673,7 @@
   inset: 0;
   z-index: 9999;
   background: #030306;
+  color: #fafafa;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
