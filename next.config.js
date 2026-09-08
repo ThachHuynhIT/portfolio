@@ -22,22 +22,13 @@ const nextConfig = {
     return config;
   },
   images: {
-    formats: ["image/avif", "image/webp"],
-    minimumCacheTTL: 2592000, // 30 days — photo/album/project images rarely change
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
-      {
-        protocol: "https",
-        hostname: "res.cloudinary.com",
-      },
-      {
-        protocol: "https",
-        hostname: "**",
-      },
-    ],
+    // Cloudinary already does on-the-fly resizing/format-conversion at its
+    // CDN edge. Using its own transformation URLs (via the custom loader
+    // below) instead of Next.js's built-in optimizer means the browser
+    // fetches resized images directly from Cloudinary, instead of every
+    // request round-tripping through our own server first.
+    loader: "custom",
+    loaderFile: "./src/lib/cloudinary-image-loader.ts",
   },
 };
 
