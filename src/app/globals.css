@@ -217,3 +217,61 @@ body {
   contain-intrinsic-size: 1px 350px;
 }
 
+/*
+ * Blog code block syntax highlighting (rehype-highlight token classes).
+ * The <pre>/<code> background is intentionally dark-only in BOTH site
+ * themes (see mdxComponents in src/app/blog/[slug]/page.tsx), so a single
+ * dark-optimized palette works unconditionally — no light: variants needed.
+ */
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-section,
+.hljs-link {
+  color: #c084fc;
+}
+
+.hljs-string,
+.hljs-attr,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+  color: #86efac;
+}
+
+.hljs-title,
+.hljs-name,
+.hljs-title.function_,
+.hljs-title.class_ {
+  color: #67e8f9;
+}
+
+.hljs-number,
+.hljs-meta,
+.hljs-built_in,
+.hljs-builtin-name {
+  color: #fca5a5;
+}
+
+.hljs-comment,
+.hljs-quote,
+.hljs-deletion {
+  color: #71717a;
+  font-style: italic;
+}
+
+.hljs-attribute,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-regexp {
+  color: #fcd34d;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 700;
+}
+
