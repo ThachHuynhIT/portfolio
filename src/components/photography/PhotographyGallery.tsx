@@ -277,13 +277,14 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={t("photography.searchPlaceholder")}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                    className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 transition-all"
                   />
                   {searchQuery && (
                     <button
                       type="button"
                       onClick={() => setSearchQuery("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                      aria-label={t("photography.clearSearch", "Clear search")}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white"
                     >
                       <Icon name="close" size={14} />
                     </button>
@@ -296,7 +297,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     type="button"
                     onClick={() => setLayoutMode("masonry")}
                     title="Masonry Layout"
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    className={`flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       layoutMode === "masonry"
                         ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white shadow-md shadow-purple-500/20 font-semibold"
                         : "text-slate-400 hover:text-white hover:bg-white/5"
@@ -310,7 +311,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     type="button"
                     onClick={() => setLayoutMode("grid")}
                     title="Grid Layout"
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    className={`flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       layoutMode === "grid"
                         ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white shadow-md shadow-purple-500/20 font-semibold"
                         : "text-slate-400 hover:text-white hover:bg-white/5"
@@ -324,7 +325,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     type="button"
                     onClick={() => setLayoutMode("compare")}
                     title="Before & After Retouch Comparison"
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    className={`flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       layoutMode === "compare"
                         ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white shadow-md shadow-purple-500/20 font-semibold"
                         : "text-slate-400 hover:text-white hover:bg-white/5"
@@ -338,7 +339,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     type="button"
                     onClick={() => setLayoutMode("story")}
                     title="Editorial Story Layout"
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    className={`flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       layoutMode === "story"
                         ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white shadow-md shadow-purple-500/20 font-semibold"
                         : "text-slate-400 hover:text-white hover:bg-white/5"

@@ -25,6 +25,7 @@ export default function HeroSection() {
   // r3f useFrame loop every animation frame, so mutating this object in
   // place avoids re-rendering the whole Hero tree on every mousemove.
   const mousePositionRef = useRef({ x: 0, y: 0 });
+  const rafPendingRef = useRef(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -34,10 +35,19 @@ export default function HeroSection() {
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLElement>) => {
       const { clientX, clientY } = e;
-      const { innerWidth, innerHeight } = window;
 
-      mousePositionRef.current.x = (clientX / innerWidth - 0.5) * 2;
-      mousePositionRef.current.y = (clientY / innerHeight - 0.5) * 2;
+      // Throttle to one update per animation frame — the r3f scene already
+      // smooths toward this value with a lerp, so sub-frame precision from
+      // native mousemove event rates (60-120+Hz) buys nothing visually.
+      if (rafPendingRef.current) return;
+      rafPendingRef.current = true;
+
+      requestAnimationFrame(() => {
+        const { innerWidth, innerHeight } = window;
+        mousePositionRef.current.x = (clientX / innerWidth - 0.5) * 2;
+        mousePositionRef.current.y = (clientY / innerHeight - 0.5) * 2;
+        rafPendingRef.current = false;
+      });
     },
     []
   );
@@ -61,7 +71,7 @@ export default function HeroSection() {
     >
       {/* 3D Background - Original interactive centerpiece */}
       {isMounted && (
-        <SceneContainer>
+        <SceneContainer highQuality>
           <Hero3DScene mousePosition={mousePositionRef.current} />
         </SceneContainer>
       )}

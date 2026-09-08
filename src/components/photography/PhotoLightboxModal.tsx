@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import type { PhotoItem } from "@/lib/types";
 import Icon from "@/components/ui/Icon";
+import { Skeleton, TwinklingStars } from "@/components/ui/Skeleton";
 import { useTranslation } from "@/context/LanguageContext";
 
 interface PhotoLightboxModalProps {
@@ -26,6 +27,14 @@ export default function PhotoLightboxModal({
   const [showBefore, setShowBefore] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const [showInfo, setShowInfo] = useState(true);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  // Reset the loading state whenever the displayed image changes (new
+  // photo selected, or before/after toggled) — otherwise the skeleton
+  // would only ever show once, on the very first image.
+  useEffect(() => {
+    setIsImageLoaded(false);
+  }, [photo?.id, showBefore]);
 
   const currentIndex = photo ? photos.findIndex((p) => p.id === photo.id) : -1;
   const hasPrev = currentIndex > 0;
@@ -200,7 +209,9 @@ export default function PhotoLightboxModal({
             <button
               type="button"
               onClick={handleNext}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/15 hover:border-cyan-400/50 backdrop-blur-md transition-all shadow-xl active:scale-95"
+              className={`absolute top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/15 hover:border-cyan-400/50 backdrop-blur-md transition-all shadow-xl active:scale-95 ${
+                showInfo ? "right-4 md:right-[25rem]" : "right-4"
+              }`}
               aria-label="Next photo"
             >
               <Icon name="chevronRight" size={20} />
@@ -236,13 +247,24 @@ export default function PhotoLightboxModal({
                 }`}
                 onClick={() => setIsZoomed(!isZoomed)}
               >
+                {!isImageLoaded && (
+                  <div className="absolute inset-0 rounded-lg overflow-hidden">
+                    <Skeleton className="w-full h-full rounded-lg" />
+                    <TwinklingStars />
+                  </div>
+                )}
+
                 <Image
                   src={currentDisplayImage}
                   alt={photo.title}
                   width={1920}
                   height={1280}
-                  className="max-h-[82vh] w-auto max-w-full object-contain rounded-lg shadow-2xl"
+                  sizes="(max-width: 768px) 100vw, 90vw"
+                  className={`max-h-[82vh] w-auto max-w-full object-contain rounded-lg shadow-2xl transition-opacity duration-500 ${
+                    isImageLoaded ? "opacity-100" : "opacity-0"
+                  }`}
                   priority
+                  onLoad={() => setIsImageLoaded(true)}
                 />
 
                 {showBefore && (

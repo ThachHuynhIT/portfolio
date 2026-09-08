@@ -1,15 +1,20 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useMemo, Suspense } from "react";
+import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMusic, Track, EqPreset } from "@/context/MusicContext";
 import MusicSidebar from "./MusicSidebar";
-import LyricsView from "./LyricsView";
-import ZenModeView from "./ZenModeView";
-import MusicRoomModal from "./MusicRoomModal";
 import MusicRoomBar from "./MusicRoomBar";
 import LiveReactionOverlay from "./LiveReactionOverlay";
+
+// Split out of the initial /music bundle — only needed once the user
+// switches into lyrics/zen mode or opens the room modal.
+const LyricsView = dynamic(() => import("./LyricsView"), { ssr: false });
+const ZenModeView = dynamic(() => import("./ZenModeView"), { ssr: false });
+const MusicRoomModal = dynamic(() => import("./MusicRoomModal"), { ssr: false });
 import {
   SpectrumBarsVisualizer,
   WaveVisualizer,
@@ -445,10 +450,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                 {/* Thumbnail with hover play overlay */}
                                 <div className="music-search-item-thumb">
                                   {track.thumbnailUrl ? (
-                                    <img
+                                    <Image
                                       src={track.thumbnailUrl}
                                       alt={track.title}
-                                      className="w-full h-full object-cover"
+                                      fill
+                                      sizes="38px"
+                                      className="object-cover"
                                     />
                                   ) : (
                                     <div className="w-full h-full flex items-center justify-center text-xs">
@@ -700,10 +707,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       <div className="flex items-center gap-3.5 min-w-0">
                         <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-white/10 border border-white/10 relative group">
                           {currentTrack.thumbnailUrl ? (
-                            <img
+                            <Image
                               src={currentTrack.thumbnailUrl}
                               alt={currentTrack.title}
-                              className="w-full h-full object-cover"
+                              fill
+                              sizes="48px"
+                              className="object-cover"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-lg">🎵</div>
@@ -783,7 +792,13 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         <div className="music-vinyl-grooves" />
                         <div className="music-vinyl-center">
                           {currentTrack.thumbnailUrl ? (
-                            <img src={currentTrack.thumbnailUrl} alt="" className="music-vinyl-art" />
+                            <Image
+                              src={currentTrack.thumbnailUrl}
+                              alt=""
+                              fill
+                              sizes="86px"
+                              className="music-vinyl-art"
+                            />
                           ) : (
                             <div className="music-vinyl-placeholder">TH</div>
                           )}
@@ -798,9 +813,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         transition={{ type: "spring", stiffness: 300, damping: 20 }}
                       >
                         {currentTrack.thumbnailUrl ? (
-                          <img
+                          <Image
                             src={currentTrack.thumbnailUrl}
                             alt={currentTrack.title}
+                            fill
+                            sizes="(max-width: 640px) 180px, 240px"
+                            priority
                             className="music-cover-img"
                           />
                         ) : (
@@ -992,7 +1010,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         >
                           <div className="music-grid-thumb">
                             {t.thumbnailUrl ? (
-                              <img src={t.thumbnailUrl} alt={t.title} />
+                              <Image
+                                src={t.thumbnailUrl}
+                                alt={t.title}
+                                fill
+                                sizes="(max-width: 640px) 45vw, 180px"
+                              />
                             ) : (
                               <div className="music-grid-default-art">🎵</div>
                             )}
@@ -1103,7 +1126,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           >
                             <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 relative bg-white/10">
                               {topT.thumbnailUrl ? (
-                                <img src={topT.thumbnailUrl} alt={topT.title} className="w-full h-full object-cover" />
+                                <Image src={topT.thumbnailUrl} alt={topT.title} fill sizes="40px" className="object-cover" />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-xs">🎵</div>
                               )}
@@ -1278,7 +1301,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                             <div className="flex-1 min-w-0 flex items-center gap-3 pr-2">
                               <div className="w-11 h-11 rounded-lg overflow-hidden bg-white/10 flex-shrink-0 shadow relative">
                                 {track.thumbnailUrl ? (
-                                  <img src={track.thumbnailUrl} alt={track.title} className="w-full h-full object-cover" />
+                                  <Image src={track.thumbnailUrl} alt={track.title} fill sizes="44px" className="object-cover" />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-sm">🎵</div>
                                 )}
@@ -1524,10 +1547,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               <div className="flex-1 min-w-0 flex items-center gap-3 pr-2">
                                 <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 flex-shrink-0 shadow relative">
                                   {track.thumbnailUrl ? (
-                                    <img
+                                    <Image
                                       src={track.thumbnailUrl}
                                       alt={track.title}
-                                      className="w-full h-full object-cover"
+                                      fill
+                                      sizes="40px"
+                                      className="object-cover"
                                     />
                                   ) : (
                                     <div className="w-full h-full flex items-center justify-center text-xs">
@@ -1620,12 +1645,14 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           )}
                         </div>
 
-                        <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 bg-white/10 border border-white/10">
+                        <div className="relative w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 bg-white/10 border border-white/10">
                           {track.thumbnailUrl ? (
-                            <img
+                            <Image
                               src={track.thumbnailUrl}
                               alt=""
-                              className="w-full h-full object-cover"
+                              fill
+                              sizes="44px"
+                              className="object-cover"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-xs">
@@ -1821,7 +1848,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 className={`music-dock-art ${isPlaying ? "animate-[spin_6s_linear_infinite]" : ""}`}
               >
                 {currentTrack.thumbnailUrl ? (
-                  <img src={currentTrack.thumbnailUrl} alt="" />
+                  <Image src={currentTrack.thumbnailUrl} alt="" fill sizes="38px" />
                 ) : (
                   <span>🎵</span>
                 )}
@@ -1882,7 +1909,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
               <div className="music-bar-track">
                 <div className="music-bar-thumb">
                   {currentTrack.thumbnailUrl ? (
-                    <img src={currentTrack.thumbnailUrl} alt="" />
+                    <Image src={currentTrack.thumbnailUrl} alt="" fill sizes="52px" />
                   ) : (
                     <div className="music-default-art">🎵</div>
                   )}

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image, { ImageProps } from "next/image";
-import { Skeleton } from "./Skeleton";
+import { Skeleton, TwinklingStars } from "./Skeleton";
 
 export interface ImageWithSkeletonProps
   extends Omit<ImageProps, "onLoad" | "onError"> {
@@ -61,6 +61,7 @@ export default function ImageWithSkeleton({
           } transition-opacity duration-500 ${skeletonClassName}`}
         >
           <Skeleton className="w-full h-full rounded-none" />
+          <TwinklingStars />
         </div>
       )}
 

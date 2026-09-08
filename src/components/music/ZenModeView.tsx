@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMusic, EqPreset } from "@/context/MusicContext";
 import { useTranslation } from "@/context/LanguageContext";
@@ -220,7 +221,7 @@ export default function ZenModeView() {
                 <div className="music-vinyl-grooves" />
                 <div className="music-zen-giant-art">
                   {currentTrack.thumbnailUrl ? (
-                    <img src={currentTrack.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                    <Image src={currentTrack.thumbnailUrl} alt="" fill sizes="120px" className="object-cover" />
                   ) : (
                     <span className="text-4xl">🎵</span>
                   )}

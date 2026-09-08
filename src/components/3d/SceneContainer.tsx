@@ -7,6 +7,12 @@ import { Component, Suspense, ReactNode, useEffect, useState } from "react";
 interface SceneContainerProps {
   children: ReactNode;
   className?: string;
+  /**
+   * Set true only for the primary interactive centerpiece scene (e.g. Hero).
+   * Decorative/background scenes default to false to skip antialiasing and
+   * cap DPR lower, since multiple such canvases can run concurrently.
+   */
+  highQuality?: boolean;
 }
 
 const STATIC_FALLBACK = (
@@ -57,14 +63,34 @@ function usePrefersReducedMotion() {
 }
 
 /**
+ * Pauses the Canvas render loop while the browser tab is in the background,
+ * so decorative/always-mounted scenes (e.g. the site-wide starry background)
+ * stop competing for GPU/CPU budget when the user isn't looking at the tab.
+ */
+function useIsTabVisible() {
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => setIsVisible(!document.hidden);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
+  return isVisible;
+}
+
+/**
  * Wrapper component for React Three Fiber scenes
  * Handles canvas setup, performance settings, and loading states
  */
 export default function SceneContainer({
   children,
   className = "",
+  highQuality = false,
 }: SceneContainerProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
+  const isTabVisible = useIsTabVisible();
 
   if (prefersReducedMotion) {
     return <div className={`absolute inset-0 ${className}`}>{STATIC_FALLBACK}</div>;
@@ -75,9 +101,10 @@ export default function SceneContainer({
       <SceneErrorBoundary>
         <Canvas
           camera={{ position: [0, 0, 8], fov: 50 }}
-          dpr={[1, 2]}
+          dpr={highQuality ? [1, 2] : [1, 1.5]}
+          frameloop={isTabVisible ? "always" : "never"}
           gl={{
-            antialias: true,
+            antialias: highQuality,
             alpha: true,
             powerPreference: "high-performance",
           }}

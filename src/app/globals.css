@@ -152,6 +152,22 @@ body {
   animation: shimmer 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Twinkling Stars Loading Overlay (image placeholders) */
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.15;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+.animate-twinkle {
+  animation: twinkle 2.4s ease-in-out infinite;
+}
+
 /* GPU acceleration for smoother transforms */
 .gpu-layer {
   transform: translateZ(0);

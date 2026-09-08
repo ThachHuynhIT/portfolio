@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 import * as THREE from "three";
 import SceneContainer from "./SceneContainer";
+import { usePerformanceTier } from "@/hooks/usePerformanceTier";
 
 /**
  * Nebula Dust & Star Clusters layer
@@ -80,6 +81,12 @@ function CosmicParticles({ count = 1200 }: { count?: number }) {
  * Provides a stunning deep-space aesthetic that runs seamlessly across the portfolio.
  */
 export default function StarryBackground3D() {
+  // This canvas is mounted globally on every non-admin route, so on
+  // touch/low-core devices we halve the point counts to keep it cheap
+  // even while other decorative canvases run concurrently on the same page.
+  const performanceTier = usePerformanceTier();
+  const isLowTier = performanceTier === "low";
+
   return (
     <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden bg-[#030014]">
       {/* Deep cosmic gradient overlays to ensure high contrast for typography */}
@@ -92,14 +99,14 @@ export default function StarryBackground3D() {
         <Stars
           radius={100}
           depth={50}
-          count={5000}
+          count={isLowTier ? 2500 : 5000}
           factor={4}
           saturation={0}
           fade
           speed={0.8}
         />
         {/* Floating cosmic dust & colored stellar particles */}
-        <CosmicParticles count={1500} />
+        <CosmicParticles count={isLowTier ? 750 : 1500} />
       </SceneContainer>
     </div>
   );

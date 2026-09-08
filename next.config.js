@@ -5,6 +5,7 @@ process.env.NEXT_IGNORE_INCORRECT_LOCKFILE = "1";
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["heic-convert", "libheif-js"],
+    optimizePackageImports: ["framer-motion"],
   },
   webpack: (config, { isServer }) => {
     config.module = config.module || {};
@@ -21,6 +22,8 @@ const nextConfig = {
     return config;
   },
   images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 2592000, // 30 days — photo/album/project images rarely change
     remotePatterns: [
       {
         protocol: "https",

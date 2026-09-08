@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMusic } from "@/context/MusicContext";
@@ -65,10 +66,12 @@ export default function GlobalMusicPlayer() {
               }`}
             >
               {currentTrack.thumbnailUrl ? (
-                <img
+                <Image
                   src={currentTrack.thumbnailUrl}
                   alt={currentTrack.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="48px"
+                  className="object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-lg bg-gradient-to-br from-purple-900 to-indigo-950">

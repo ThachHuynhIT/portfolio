@@ -1,5 +1,50 @@
 import React from "react";
 
+// Fixed layout (not Math.random()) so server- and client-rendered markup
+// always match — random values here would otherwise differ between the
+// server render and the client's first render, causing a hydration
+// mismatch (see FloatingHearts fix on the couple page for the same issue).
+const STAR_LAYOUT = [
+  { top: "12%", left: "18%", size: 2, delay: "0s", duration: "2.2s" },
+  { top: "22%", left: "72%", size: 3, delay: "0.4s", duration: "2.6s" },
+  { top: "68%", left: "8%", size: 2, delay: "0.8s", duration: "2s" },
+  { top: "45%", left: "50%", size: 1.5, delay: "1.2s", duration: "2.8s" },
+  { top: "80%", left: "85%", size: 2.5, delay: "0.2s", duration: "2.4s" },
+  { top: "35%", left: "28%", size: 1.5, delay: "1.6s", duration: "2.2s" },
+  { top: "15%", left: "45%", size: 2, delay: "1s", duration: "3s" },
+  { top: "60%", left: "65%", size: 1.5, delay: "0.6s", duration: "2.5s" },
+  { top: "88%", left: "35%", size: 2, delay: "1.4s", duration: "2.3s" },
+  { top: "5%", left: "88%", size: 1.5, delay: "0.9s", duration: "2.7s" },
+  { top: "50%", left: "10%", size: 2.5, delay: "1.8s", duration: "2.1s" },
+  { top: "75%", left: "55%", size: 1.5, delay: "0.3s", duration: "2.9s" },
+] as const;
+
+/**
+ * Twinkling star field overlay for image loading placeholders — layered
+ * on top of the shimmer sweep, not a replacement for it.
+ */
+export function TwinklingStars({ className = "" }: { className?: string }) {
+  return (
+    <div className={`absolute inset-0 pointer-events-none ${className}`}>
+      {STAR_LAYOUT.map((star, i) => (
+        <span
+          key={i}
+          className="absolute rounded-full bg-white animate-twinkle"
+          style={{
+            top: star.top,
+            left: star.left,
+            width: star.size,
+            height: star.size,
+            animationDelay: star.delay,
+            animationDuration: star.duration,
+            boxShadow: "0 0 4px 1px rgba(255,255,255,0.6)",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   variant?: "rounded" | "circular" | "rectangular";

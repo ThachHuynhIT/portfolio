@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import Image from "next/image";
+import ImageWithSkeleton from "@/components/ui/ImageWithSkeleton";
 
 interface BeforeAfterSliderProps {
   beforeImage: string;
@@ -102,7 +102,7 @@ export default function BeforeAfterSlider({
     >
       {/* ── After Image (Base layer - full width) ── */}
       <div className="absolute inset-0 w-full h-full">
-        <Image
+        <ImageWithSkeleton
           src={afterImage}
           alt={`${alt} - ${afterLabel}`}
           fill
@@ -123,7 +123,7 @@ export default function BeforeAfterSlider({
           clipPath: `inset(0 ${100 - sliderPos}% 0 0)`,
         }}
       >
-        <Image
+        <ImageWithSkeleton
           src={beforeImage}
           alt={`${alt} - ${beforeLabel}`}
           fill

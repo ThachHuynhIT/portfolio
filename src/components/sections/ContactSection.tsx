@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useInView } from "framer-motion";
 import dynamic from "next/dynamic";
 import { AnimatedSection, GlassCard, Button } from "@/components/ui";
 import { siteConfig } from "@/lib/constants";
 import { useTranslation } from "@/context/LanguageContext";
+import { usePerformanceTier } from "@/hooks/usePerformanceTier";
 
 // Dynamic imports for 3D components
 const SceneContainer = dynamic(
@@ -30,6 +32,12 @@ interface ContactFormData {
 export default function ContactSection() {
   const { t, locale } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  // Only mount the WebGL canvas once the section is about to scroll into
+  // view — avoids a 3rd concurrent Canvas running from page load while the
+  // visitor is still looking at the Hero section above.
+  const isNearView = useInView(sectionRef, { once: true, margin: "200px" });
+  const performanceTier = usePerformanceTier();
 
   useEffect(() => {
     setIsMounted(true);
@@ -73,13 +81,22 @@ export default function ContactSection() {
     : undefined;
 
   return (
-    <section id="contact" className="relative py-32 overflow-hidden">
+    <section
+      id="contact"
+      ref={sectionRef}
+      className="relative py-32 overflow-hidden"
+    >
       {/* 3D Particle Background */}
-      {isMounted && (
+      {isMounted && isNearView && (
         <div className="absolute inset-0 opacity-40">
           <SceneContainer>
             <ambientLight intensity={0.5} />
-            <ParticleField count={500} color="#8b5cf6" size={0.02} spread={25} />
+            <ParticleField
+              count={performanceTier === "low" ? 200 : 500}
+              color="#8b5cf6"
+              size={0.02}
+              spread={25}
+            />
           </SceneContainer>
         </div>
       )}

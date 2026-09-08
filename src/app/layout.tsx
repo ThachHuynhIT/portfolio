@@ -1,10 +1,17 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
+import dynamic from "next/dynamic";
 import "./globals.css";
 import { Navigation, Footer } from "@/components/ui";
 import { MusicProvider } from "@/context/MusicContext";
 import { LanguageProvider } from "@/context/LanguageContext";
-import GlobalMusicPlayer from "@/components/music/GlobalMusicPlayer";
+
+// Floating overlay with no SSR value — mounted on every route, so keep it
+// out of the initial/shared bundle.
+const GlobalMusicPlayer = dynamic(
+  () => import("@/components/music/GlobalMusicPlayer"),
+  { ssr: false }
+);
 
 const inter = Inter({
   variable: "--font-inter",
@@ -43,6 +50,12 @@ export const metadata: Metadata = {
     description:
       "A passionate web developer crafting immersive digital experiences with cutting-edge technologies.",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 import GlobalBackground from "@/components/layout/GlobalBackground";

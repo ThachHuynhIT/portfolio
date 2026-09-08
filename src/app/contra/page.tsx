@@ -9,7 +9,7 @@ import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 const ContraGame = dynamic(() => import("@/components/game/ContraGame"), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center w-[800px] h-[480px] bg-black border-2 border-gray-700 rounded-lg">
+    <div className="flex items-center justify-center w-full max-w-[800px] aspect-[800/480] mx-auto bg-black border-2 border-gray-700 rounded-lg">
       <div className="text-center">
         <p className="text-red-500 text-2xl font-mono font-bold animate-pulse">LOADING...</p>
         <p className="text-gray-500 text-sm font-mono mt-2">Preparing battlefield</p>

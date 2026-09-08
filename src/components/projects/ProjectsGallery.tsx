@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard, TiltCard, Button } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
@@ -81,10 +82,13 @@ function ProjectDetailModal({
 
           <div className="relative aspect-video rounded-xl overflow-hidden mb-6 bg-slate-950 border border-white/10 shadow-lg">
             {project.image ? (
-              <img
+              <Image
                 src={project.image}
                 alt={displayTitle}
-                className="w-full h-full object-cover"
+                fill
+                sizes="(max-width: 640px) 100vw, 672px"
+                priority
+                className="object-cover"
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-6xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20">
@@ -259,11 +263,12 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
                     {/* Project Thumbnail Image */}
                     <div className="relative aspect-[16/10] rounded-xl overflow-hidden mb-4 bg-slate-950 border border-white/10 shadow-sm">
                       {project.image ? (
-                        <img
+                        <Image
                           src={project.image}
                           alt={cardTitle}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          loading="lazy"
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center text-4xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20">

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, createContext, useContext } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./couple.module.css";
 import type { CoupleData, CouplePhotoMemory } from "@/lib/types";
@@ -239,17 +240,36 @@ function getSpecialDateCountdown(dateStr: string) {
 // ============================================================
 // 💕 FLOATING HEARTS
 // ============================================================
+interface FloatingHeart {
+  id: number;
+  emoji: string;
+  left: string;
+  delay: string;
+  duration: string;
+  size: string;
+}
+
 function FloatingHearts() {
-  const hearts = useMemo(() => {
+  // Randomized per-heart styling must only be computed on the client — doing
+  // it in useMemo (which also runs during SSR) produces different random
+  // values on the server vs. the client's first render, causing a hydration
+  // mismatch. Starting empty and filling in after mount keeps SSR output
+  // stable; the hearts are purely decorative so a one-frame delayed
+  // appearance is imperceptible.
+  const [hearts, setHearts] = useState<FloatingHeart[]>([]);
+
+  useEffect(() => {
     const heartEmojis = ["💕", "💗", "💖", "💝", "❤️", "💘", "💓", "🩷", "🩵"];
-    return Array.from({ length: 18 }, (_, i) => ({
-      id: i,
-      emoji: heartEmojis[i % heartEmojis.length],
-      left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 10}s`,
-      duration: `${9 + Math.random() * 12}s`,
-      size: `${0.85 + Math.random() * 1.1}rem`,
-    }));
+    setHearts(
+      Array.from({ length: 18 }, (_, i) => ({
+        id: i,
+        emoji: heartEmojis[i % heartEmojis.length],
+        left: `${Math.random() * 100}%`,
+        delay: `${Math.random() * 10}s`,
+        duration: `${9 + Math.random() * 12}s`,
+        size: `${0.85 + Math.random() * 1.1}rem`,
+      }))
+    );
   }, []);
 
   return (
@@ -463,11 +483,12 @@ function PhotosSection() {
               onClick={() => setLightboxIndex(index)}
             >
               <div className={styles.photoMediaWrapper}>
-                <img
+                <Image
                   src={photo.image}
                   alt={photo.title}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px"
                   className={styles.photoImage}
-                  loading="lazy"
                 />
                 {photo.category && (
                   <span className={styles.photoOverlayBadge}>{photo.category}</span>
@@ -561,9 +582,12 @@ function PhotosSection() {
 
               {/* Image Container */}
               <div className={styles.lightboxMedia}>
-                <img
+                <Image
                   src={activePhoto.image}
                   alt={activePhoto.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 60vw"
+                  priority
                   className={styles.lightboxImage}
                 />
               </div>
