@@ -30,38 +30,8 @@ export default function HeroSection() {
   const rafPendingRef = useRef(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Fades the Hero's own 3D background (the purple sphere scene) out as the
-  // visitor scrolls away from it, revealing the site-wide starfield/warp
-  // tunnel background underneath. Mutated directly on the DOM node (never
-  // React state) so scrolling doesn't re-render the Hero tree — same
-  // performance rationale as mousePositionRef above.
-  const heroSceneWrapperRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    let rafPending = false;
-
-    const applyFade = () => {
-      if (heroSceneWrapperRef.current) {
-        const fadeDistance = window.innerHeight * 0.7;
-        const opacity = Math.max(0, 1 - window.scrollY / fadeDistance);
-        heroSceneWrapperRef.current.style.opacity = String(opacity);
-      }
-      rafPending = false;
-    };
-
-    const onScroll = () => {
-      if (rafPending) return;
-      rafPending = true;
-      requestAnimationFrame(applyFade);
-    };
-
-    applyFade();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const handleMouseMove = useCallback(
@@ -101,15 +71,11 @@ export default function HeroSection() {
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background"
       onMouseMove={handleMouseMove}
     >
-      {/* 3D Background - Original interactive centerpiece.
-          Wrapped so its opacity can fade out on scroll (see
-          heroSceneWrapperRef above) without touching SceneContainer itself. */}
+      {/* 3D Background - Original interactive centerpiece */}
       {isMounted && (
-        <div ref={heroSceneWrapperRef} className="absolute inset-0">
-          <SceneContainer highQuality>
-            <Hero3DScene mousePosition={mousePositionRef.current} theme={resolvedTheme} />
-          </SceneContainer>
-        </div>
+        <SceneContainer highQuality>
+          <Hero3DScene mousePosition={mousePositionRef.current} theme={resolvedTheme} />
+        </SceneContainer>
       )}
 
       {/* Content Overlay */}

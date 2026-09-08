@@ -1,10 +1,80 @@
 "use client";
 
+import React, { useRef, useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
+import * as THREE from "three";
 import SceneContainer from "./SceneContainer";
-import WarpTunnel from "./WarpTunnel";
 import { usePerformanceTier } from "@/hooks/usePerformanceTier";
-import { useScrollProgressRef } from "@/hooks/useScrollProgress";
+
+/**
+ * Nebula Dust & Star Clusters layer
+ */
+function CosmicParticles({ count = 1200 }: { count?: number }) {
+  const pointsRef = useRef<THREE.Points>(null);
+
+  const [positions, colors] = useMemo(() => {
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+
+    for (let i = 0; i < count; i++) {
+      // Cylindrical / spherical spread across space
+      const radius = 5 + Math.random() * 35;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = (Math.random() - 0.5) * Math.PI;
+
+      pos[i * 3] = radius * Math.cos(theta) * Math.cos(phi);
+      pos[i * 3 + 1] = radius * Math.sin(phi);
+      pos[i * 3 + 2] = radius * Math.sin(theta) * Math.cos(phi);
+
+      // Subtle cyan to violet to silver-white palette
+      const seed = Math.random();
+      if (seed < 0.4) {
+        // Soft violet
+        col[i * 3] = 0.65;
+        col[i * 3 + 1] = 0.45;
+        col[i * 3 + 2] = 0.95;
+      } else if (seed < 0.75) {
+        // Soft cyan
+        col[i * 3] = 0.3;
+        col[i * 3 + 1] = 0.8;
+        col[i * 3 + 2] = 0.95;
+      } else {
+        // Diamond white
+        col[i * 3] = 0.95;
+        col[i * 3 + 1] = 0.95;
+        col[i * 3 + 2] = 1.0;
+      }
+    }
+
+    return [pos, col];
+  }, [count]);
+
+  useFrame((state) => {
+    if (pointsRef.current) {
+      // Very slow, majestic rotation
+      pointsRef.current.rotation.y = state.clock.elapsedTime * 0.012;
+      pointsRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.006) * 0.05;
+    }
+  });
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.05}
+        vertexColors
+        transparent
+        opacity={0.7}
+        sizeAttenuation
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+}
 
 /**
  * StarryBackground3D - Complete 3D Starry Sky background without any bulky shapes.
@@ -16,11 +86,6 @@ export default function StarryBackground3D() {
   // even while other decorative canvases run concurrently on the same page.
   const performanceTier = usePerformanceTier();
   const isLowTier = performanceTier === "low";
-
-  // Mutable ref updated on scroll (never a React state) — WarpTunnel reads
-  // it every frame inside useFrame, same high-frequency-value pattern as
-  // HeroSection's mousePositionRef.
-  const scrollProgressRef = useScrollProgressRef();
 
   return (
     <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden bg-[#030014]">
@@ -40,10 +105,8 @@ export default function StarryBackground3D() {
           fade
           speed={0.8}
         />
-        {/* Rotating 3D particle tunnel — spins faster the further you
-            scroll, and accelerates into hyperspace-style light streaks
-            once you approach the bottom of the page. */}
-        <WarpTunnel scrollProgressRef={scrollProgressRef} count={isLowTier ? 280 : 550} />
+        {/* Floating cosmic dust & colored stellar particles */}
+        <CosmicParticles count={isLowTier ? 750 : 1500} />
       </SceneContainer>
     </div>
   );
