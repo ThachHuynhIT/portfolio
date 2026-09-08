@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifySession } from "@/lib/admin-auth";
+import { requireAdminSession } from "@/lib/admin-auth";
 import { uploadAndRegisterMedia } from "@/lib/media-service";
 import path from "path";
 
 export async function POST(req: NextRequest) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
 
   try {
     const formData = await req.formData();

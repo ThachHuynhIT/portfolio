@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifySession } from "@/lib/admin-auth";
+import { requireAdminSession } from "@/lib/admin-auth";
 import { getAllPosts } from "@/lib/blog";
 import fs from "fs";
 import path from "path";
@@ -11,9 +11,8 @@ const BLOG_DIR = path.join(process.cwd(), "content/blog");
  * GET /api/admin/blog — List all blog posts (frontmatter only)
  */
 export async function GET() {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   const posts = getAllPosts().map(({ content: _content, ...meta }) => meta);
   return NextResponse.json(posts);
 }
@@ -22,9 +21,8 @@ export async function GET() {
  * POST /api/admin/blog — Create a new blog post
  */
 export async function POST(request: Request) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const body = await request.json();
     const {

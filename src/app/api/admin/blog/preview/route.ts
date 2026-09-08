@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
-import { verifySession } from "@/lib/admin-auth";
+import { requireAdminSession } from "@/lib/admin-auth";
 import { serialize } from "next-mdx-remote/serialize";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
 
 export async function POST(request: Request) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
 
   try {
     const body = await request.json();

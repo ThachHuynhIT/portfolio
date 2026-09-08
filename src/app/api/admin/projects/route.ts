@@ -1,22 +1,20 @@
 import { NextResponse } from "next/server";
-import { verifySession } from "@/lib/admin-auth";
+import { requireAdminSession } from "@/lib/admin-auth";
 import { readJsonFile, writeJsonFile, generateId } from "@/lib/data-manager";
 import type { Project } from "@/lib/types";
 
 const FILE = "projects.json";
 
 export async function GET() {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   const data = readJsonFile<Project[]>(FILE, []);
   return NextResponse.json(data);
 }
 
 export async function POST(request: Request) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const body = await request.json();
     const projects = readJsonFile<Project[]>(FILE, []);
@@ -30,9 +28,8 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const body = await request.json();
     const { id, ...updates } = body;
@@ -51,9 +48,8 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

@@ -327,16 +327,26 @@ export async function syncAssetsFromCloudinary(): Promise<{
 
   let addedCount = 0;
 
-  // 1. Fetch images from Cloudinary
-  try {
-    const imageRes = await cloudinary.api.resources({
+  // Fetch images and videos/audio from Cloudinary in parallel (independent API calls)
+  const [imageResult, videoResult] = await Promise.allSettled([
+    cloudinary.api.resources({
       type: "upload",
       prefix: "portfolio",
       max_results: 500,
-    });
+    }),
+    cloudinary.api.resources({
+      resource_type: "video",
+      type: "upload",
+      prefix: "portfolio",
+      max_results: 500,
+    }),
+  ]);
 
-    if (imageRes.resources && Array.isArray(imageRes.resources)) {
-      for (const res of imageRes.resources) {
+  // 1. Process images
+  if (imageResult.status === "fulfilled") {
+    const resources = imageResult.value.resources;
+    if (resources && Array.isArray(resources)) {
+      for (const res of resources) {
         if (!existingPublicIds.has(res.public_id)) {
           const { category, subType } = inferCategoryFromPublicId(res.public_id);
           const filename = path.basename(res.public_id) + `.${res.format || "jpg"}`;
@@ -362,21 +372,15 @@ export async function syncAssetsFromCloudinary(): Promise<{
         }
       }
     }
-  } catch (err) {
-    console.error("[MediaService] Error scanning images from Cloudinary:", err);
+  } else {
+    console.error("[MediaService] Error scanning images from Cloudinary:", imageResult.reason);
   }
 
-  // 2. Fetch videos & audio from Cloudinary
-  try {
-    const videoRes = await cloudinary.api.resources({
-      resource_type: "video",
-      type: "upload",
-      prefix: "portfolio",
-      max_results: 500,
-    });
-
-    if (videoRes.resources && Array.isArray(videoRes.resources)) {
-      for (const res of videoRes.resources) {
+  // 2. Process videos & audio
+  if (videoResult.status === "fulfilled") {
+    const resources = videoResult.value.resources;
+    if (resources && Array.isArray(resources)) {
+      for (const res of resources) {
         if (!existingPublicIds.has(res.public_id)) {
           const { category, subType } = inferCategoryFromPublicId(res.public_id);
           const filename = path.basename(res.public_id) + `.${res.format || "mp4"}`;
@@ -403,8 +407,8 @@ export async function syncAssetsFromCloudinary(): Promise<{
         }
       }
     }
-  } catch (err) {
-    console.error("[MediaService] Error scanning videos/audios from Cloudinary:", err);
+  } else {
+    console.error("[MediaService] Error scanning videos/audios from Cloudinary:", videoResult.reason);
   }
 
   // Sort and save updated registry

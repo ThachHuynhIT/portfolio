@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifySession } from "@/lib/admin-auth";
+import { requireAdminSession } from "@/lib/admin-auth";
 import { readJsonFile, writeJsonFile, generateId } from "@/lib/data-manager";
 import type { PhotoItem, PhotoAlbum } from "@/lib/types";
 
@@ -7,9 +7,8 @@ const FILE = "photography.json";
 const ALBUMS_FILE = "photography-albums.json";
 
 export async function GET() {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   const data = readJsonFile<PhotoItem[]>(FILE, []);
   const sorted = [...data].sort((a, b) => {
     if (a.featured && !b.featured) return -1;
@@ -20,9 +19,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const body = await request.json();
     const photos = readJsonFile<PhotoItem[]>(FILE, []);
@@ -72,9 +70,8 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const body = await request.json();
     const { id, ...updates } = body;
@@ -174,9 +171,8 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

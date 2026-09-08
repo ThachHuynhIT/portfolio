@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifySession } from "@/lib/admin-auth";
+import { requireAdminSession } from "@/lib/admin-auth";
 import { getPostBySlug } from "@/lib/blog";
 import fs from "fs";
 import path from "path";
@@ -15,9 +15,8 @@ interface RouteParams {
  * GET /api/admin/blog/[slug] — Get full blog post (with content)
  */
 export async function GET(_request: Request, { params }: RouteParams) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   const { slug } = await params;
   const post = getPostBySlug(slug);
   if (!post) {
@@ -30,9 +29,8 @@ export async function GET(_request: Request, { params }: RouteParams) {
  * PUT /api/admin/blog/[slug] — Update a blog post
  */
 export async function PUT(request: Request, { params }: RouteParams) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const { slug } = await params;
     const filePath = path.join(BLOG_DIR, `${slug}.mdx`);
@@ -81,9 +79,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
  * DELETE /api/admin/blog/[slug] — Delete a blog post
  */
 export async function DELETE(_request: Request, { params }: RouteParams) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const { slug } = await params;
     const filePath = path.join(BLOG_DIR, `${slug}.mdx`);

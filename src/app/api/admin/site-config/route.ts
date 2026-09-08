@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifySession } from "@/lib/admin-auth";
+import { requireAdminSession } from "@/lib/admin-auth";
 import { readJsonFile, writeJsonFile } from "@/lib/data-manager";
 import type { SiteConfig } from "@/lib/types";
 
@@ -15,17 +15,15 @@ const defaultConfig: SiteConfig = {
 };
 
 export async function GET() {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   const data = readJsonFile<SiteConfig>(FILE, defaultConfig);
   return NextResponse.json(data);
 }
 
 export async function PUT(request: Request) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const body = await request.json();
     writeJsonFile(FILE, body as SiteConfig);

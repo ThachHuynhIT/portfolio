@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifySession } from "@/lib/admin-auth";
+import { requireAdminSession } from "@/lib/admin-auth";
 import { readJsonFile, writeJsonFile, generateId } from "@/lib/data-manager";
 import type { CoupleData, CouplePhotoMemory } from "@/lib/types";
 
@@ -31,18 +31,16 @@ function ensureDataArrays(data: CoupleData): CoupleData {
 }
 
 export async function GET() {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
 
   const data = readJsonFile<CoupleData>(FILE, DEFAULT_COUPLE_DATA);
   return NextResponse.json(ensureDataArrays(data));
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
 
   try {
     const body = await req.json();
@@ -172,9 +170,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
 
   try {
     const body = await req.json();
@@ -256,9 +253,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
 
   try {
     const { searchParams } = new URL(req.url);
