@@ -49,9 +49,9 @@ export default function BlogAdminPage() {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete post");
+      setPosts((prev) => prev.filter((p) => p.slug !== deleteTarget.slug));
       toast.success(t.admin.blog.toastDeleted);
       setDeleteTarget(null);
-      fetchPosts();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to delete post";
       toast.error(msg);

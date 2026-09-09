@@ -85,8 +85,8 @@ export default function SkillsAdminPage() {
         body: JSON.stringify({ id: skill.id, published: nextPublished }),
       });
       if (!res.ok) throw new Error("Failed to toggle publish status");
+      setSkills((prev) => prev.map((s) => (s.id === skill.id ? { ...s, published: nextPublished } : s)));
       toast.success(`"${skill.name}" is now ${nextPublished ? "Published" : "Draft"}`);
-      fetchSkills();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to toggle status");
     }
@@ -113,6 +113,8 @@ export default function SkillsAdminPage() {
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to create skill");
+        const created: Skill = await res.json();
+        setSkills((prev) => [...prev, created]);
         toast.success(`Skill "${formName}" added successfully!`);
       } else if (editingSkill) {
         res = await fetch("/api/admin/skills", {
@@ -121,10 +123,11 @@ export default function SkillsAdminPage() {
           body: JSON.stringify({ id: editingSkill.id, ...payload }),
         });
         if (!res.ok) throw new Error("Failed to update skill");
+        const updated: Skill = await res.json();
+        setSkills((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
         toast.success(`Skill "${formName}" updated successfully!`);
       }
       closeModal();
-      fetchSkills();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save skill";
       toast.error(msg);
@@ -141,9 +144,9 @@ export default function SkillsAdminPage() {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete skill");
+      setSkills((prev) => prev.filter((s) => s.id !== deleteTarget.id));
       toast.success(`Skill "${deleteTarget.name}" deleted successfully!`);
       setDeleteTarget(null);
-      fetchSkills();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to delete skill";
       toast.error(msg);

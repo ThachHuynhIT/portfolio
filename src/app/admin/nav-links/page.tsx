@@ -105,8 +105,8 @@ export default function NavLinksAdminPage() {
         body: JSON.stringify({ id: link.id, published: nextPublished }),
       });
       if (!res.ok) throw new Error("Failed to toggle publish status");
+      setLinks((prev) => prev.map((l) => (l.id === link.id ? { ...l, published: nextPublished } : l)));
       toast.success(`"${link.label}" is now ${nextPublished ? "Published" : "Draft"}`);
-      fetchLinks();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to toggle status");
     }
@@ -143,6 +143,8 @@ export default function NavLinksAdminPage() {
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to create nav link");
+        const created: NavLink = await res.json();
+        setLinks((prev) => [...prev, created]);
         toast.success(`Nav link "${formLabel}" added successfully!`);
       } else if (editingLink) {
         const res = await fetch("/api/admin/nav-links", {
@@ -151,10 +153,11 @@ export default function NavLinksAdminPage() {
           body: JSON.stringify({ id: editingLink.id, ...payload }),
         });
         if (!res.ok) throw new Error("Failed to update nav link");
+        const updated: NavLink = await res.json();
+        setLinks((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
         toast.success(`Nav link "${formLabel}" updated successfully!`);
       }
       closeModal();
-      fetchLinks();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save nav link";
       toast.error(msg);
@@ -171,9 +174,9 @@ export default function NavLinksAdminPage() {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete nav link");
+      setLinks((prev) => prev.filter((l) => l.id !== deleteTarget.id));
       toast.success(`Nav link "${deleteTarget.label}" deleted!`);
       setDeleteTarget(null);
-      fetchLinks();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to delete link";
       toast.error(msg);

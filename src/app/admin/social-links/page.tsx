@@ -81,8 +81,8 @@ export default function SocialLinksAdminPage() {
         body: JSON.stringify({ id: link.id, published: nextPublished }),
       });
       if (!res.ok) throw new Error("Failed to toggle publish status");
+      setLinks((prev) => prev.map((l) => (l.id === link.id ? { ...l, published: nextPublished } : l)));
       toast.success(`"${link.name}" is now ${nextPublished ? "Published" : "Draft"}`);
-      fetchLinks();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to toggle status");
     }
@@ -108,6 +108,8 @@ export default function SocialLinksAdminPage() {
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to create social link");
+        const created: SocialLink = await res.json();
+        setLinks((prev) => [...prev, created]);
         toast.success(`Social link "${formName}" added successfully!`);
       } else if (editingLink) {
         res = await fetch("/api/admin/social-links", {
@@ -116,10 +118,11 @@ export default function SocialLinksAdminPage() {
           body: JSON.stringify({ id: editingLink.id, ...payload }),
         });
         if (!res.ok) throw new Error("Failed to update social link");
+        const updated: SocialLink = await res.json();
+        setLinks((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
         toast.success(`Social link "${formName}" updated successfully!`);
       }
       closeModal();
-      fetchLinks();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save social link";
       toast.error(msg);
@@ -136,9 +139,9 @@ export default function SocialLinksAdminPage() {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete social link");
+      setLinks((prev) => prev.filter((l) => l.id !== deleteTarget.id));
       toast.success(`Social link "${deleteTarget.name}" deleted successfully!`);
       setDeleteTarget(null);
-      fetchLinks();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to delete social link";
       toast.error(msg);

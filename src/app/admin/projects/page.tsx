@@ -114,8 +114,8 @@ export default function ProjectsAdminPage() {
         body: JSON.stringify({ id: project.id, published: nextPublished }),
       });
       if (!res.ok) throw new Error("Failed to toggle publish status");
+      setProjects((prev) => prev.map((p) => (p.id === project.id ? { ...p, published: nextPublished } : p)));
       toast.success(`"${project.title}" is now ${nextPublished ? "Published" : "Draft"}`);
-      fetchProjects();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to toggle status");
     }
@@ -148,6 +148,8 @@ export default function ProjectsAdminPage() {
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("Failed to create project");
+        const created: Project = await res.json();
+        setProjects((prev) => [...prev, created]);
         toast.success(`Project "${formTitle}" added successfully!`);
       } else if (editingProject) {
         const res = await fetch("/api/admin/projects", {
@@ -156,10 +158,11 @@ export default function ProjectsAdminPage() {
           body: JSON.stringify({ id: editingProject.id, ...payload }),
         });
         if (!res.ok) throw new Error("Failed to update project");
+        const updated: Project = await res.json();
+        setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
         toast.success(`Project "${formTitle}" updated successfully!`);
       }
       closeModal();
-      fetchProjects();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save project";
       toast.error(msg);
@@ -176,9 +179,9 @@ export default function ProjectsAdminPage() {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete project");
+      setProjects((prev) => prev.filter((p) => p.id !== deleteTarget.id));
       toast.success(`Project "${deleteTarget.title}" deleted!`);
       setDeleteTarget(null);
-      fetchProjects();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to delete project";
       toast.error(msg);

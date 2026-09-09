@@ -153,9 +153,9 @@ export default function CoupleAdminPage() {
   // -------------------------------------------------------------
   // Data Fetching
   // -------------------------------------------------------------
-  const fetchData = async () => {
+  const fetchData = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const res = await fetch("/api/admin/couple");
       if (res.status === 401) {
         router.push("/admin/login");
@@ -199,7 +199,7 @@ export default function CoupleAdminPage() {
 
       toast.success("Đã xóa thành công!");
       setDeleteDialog({ isOpen: false, section: "", title: "" });
-      await fetchData();
+      await fetchData(false);
     } catch (err) {
       console.error(err);
       toast.error("Lỗi khi xóa mục");
@@ -229,7 +229,7 @@ export default function CoupleAdminPage() {
       if (!res.ok) throw new Error("Failed to update status");
 
       toast.success(newStatus ? "Đã chuyển sang Published (Công khai)!" : "Đã chuyển sang Draft (Nháp)!");
-      await fetchData();
+      await fetchData(false);
     } catch {
       toast.error("Lỗi khi cập nhật trạng thái");
     }
@@ -319,7 +319,7 @@ export default function CoupleAdminPage() {
 
       toast.success(editingPhoto ? "Cập nhật ảnh thành công!" : "Thêm ảnh mới thành công!");
       setIsPhotoModalOpen(false);
-      await fetchData();
+      await fetchData(false);
     } catch (err: any) {
       toast.error(err.message || "Lỗi khi lưu ảnh");
     }
@@ -372,7 +372,7 @@ export default function CoupleAdminPage() {
 
       toast.success(editingMemory ? "Cập nhật mốc kỷ niệm thành công!" : "Thêm mốc kỷ niệm mới thành công!");
       setIsMemoryModalOpen(false);
-      await fetchData();
+      await fetchData(false);
     } catch (err: any) {
       toast.error(err.message || "Lỗi khi lưu mốc kỷ niệm");
     }
@@ -426,7 +426,7 @@ export default function CoupleAdminPage() {
 
       toast.success(editingBirthday ? "Cập nhật ngày sinh thành công!" : "Thêm ngày sinh thành công!");
       setIsBirthdayModalOpen(false);
-      await fetchData();
+      await fetchData(false);
     } catch (err: any) {
       toast.error(err.message || "Lỗi khi lưu ngày sinh");
     }
@@ -475,7 +475,7 @@ export default function CoupleAdminPage() {
 
       toast.success(editingDate ? "Cập nhật ngày đặc biệt thành công!" : "Thêm ngày đặc biệt thành công!");
       setIsDateModalOpen(false);
-      await fetchData();
+      await fetchData(false);
     } catch (err: any) {
       toast.error(err.message || "Lỗi khi lưu ngày đặc biệt");
     }
@@ -526,7 +526,7 @@ export default function CoupleAdminPage() {
 
       toast.success(editingBucket ? "Cập nhật dự định thành công!" : "Thêm dự định mới thành công!");
       setIsBucketModalOpen(false);
-      await fetchData();
+      await fetchData(false);
     } catch (err: any) {
       toast.error(err.message || "Lỗi khi lưu dự định");
     }
@@ -549,7 +549,7 @@ export default function CoupleAdminPage() {
       toast.success(item.done ? "Đã chuyển thành chưa xong" : "Đã hoàn thành! 🎉");
     } catch (err) {
       toast.error("Không thể cập nhật trạng thái");
-      fetchData();
+      fetchData(false);
     }
   };
 
@@ -598,7 +598,7 @@ export default function CoupleAdminPage() {
 
       toast.success(editingLetter ? "Cập nhật thư tình thành công!" : "Gửi thư tình mới thành công! 💕");
       setIsLetterModalOpen(false);
-      await fetchData();
+      await fetchData(false);
     } catch (err: any) {
       toast.error(err.message || "Lỗi khi lưu thư");
     }
@@ -651,7 +651,7 @@ export default function CoupleAdminPage() {
 
       toast.success(editingFavorite ? "Cập nhật sở thích thành công!" : "Thêm sở thích mới thành công!");
       setIsFavoriteModalOpen(false);
-      await fetchData();
+      await fetchData(false);
     } catch (err: any) {
       toast.error(err.message || "Lỗi khi lưu sở thích");
     }
@@ -681,7 +681,7 @@ export default function CoupleAdminPage() {
       if (!res.ok) throw new Error("Failed to save info");
 
       toast.success("Cập nhật thông tin cặp đôi thành công!");
-      await fetchData();
+      await fetchData(false);
     } catch (err) {
       console.error(err);
       toast.error("Không thể cập nhật thông tin");

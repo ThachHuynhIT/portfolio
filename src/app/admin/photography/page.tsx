@@ -478,12 +478,15 @@ export default function PhotographyAdminPage() {
       }
 
       if (res.ok) {
+        const saved: PhotoItem = await res.json();
+        setPhotos((prev) =>
+          isCreating ? [...prev, saved] : prev.map((p) => (p.id === saved.id ? saved : p))
+        );
         toast.success(
           isCreating ? t.admin.photography.toastCreated : t.admin.photography.toastUpdated
         );
         closeModal();
-        fetchPhotos();
-        fetchAlbums(); // refresh album photo counts
+        fetchAlbums(); // album photoIds may have changed on either side of an album move
       } else {
         toast.error("Failed to save artwork.");
       }
@@ -504,8 +507,8 @@ export default function PhotographyAdminPage() {
         body: JSON.stringify({ id: photo.id, published: newStatus }),
       });
       if (res.ok) {
+        setPhotos((prev) => prev.map((p) => (p.id === photo.id ? { ...p, published: newStatus } : p)));
         toast.success(newStatus ? t.admin.photography.toastPublished : t.admin.photography.toastDraft);
-        fetchPhotos();
       } else {
         toast.error("Failed to update status");
       }
@@ -523,8 +526,8 @@ export default function PhotographyAdminPage() {
         body: JSON.stringify({ id: photo.id, featured: nextFeatured }),
       });
       if (res.ok) {
+        setPhotos((prev) => prev.map((p) => (p.id === photo.id ? { ...p, featured: nextFeatured } : p)));
         toast.success(nextFeatured ? t.admin.photography.toastFeatured : t.admin.photography.toastUnfeatured);
-        fetchPhotos();
       } else {
         toast.error("Failed to update featured status");
       }
@@ -540,10 +543,10 @@ export default function PhotographyAdminPage() {
         method: "DELETE",
       });
       if (res.ok) {
+        setPhotos((prev) => prev.filter((p) => p.id !== deleteTarget.id));
         toast.success(t.admin.photography.toastDeleted);
         setDeleteTarget(null);
-        fetchPhotos();
-        fetchAlbums();
+        fetchAlbums(); // the deleted photo may have been unlinked from an album's photoIds
       } else {
         toast.error("Failed to delete artwork.");
       }
@@ -710,14 +713,17 @@ export default function PhotographyAdminPage() {
       }
 
       if (res.ok) {
+        const saved: PhotoAlbum = await res.json();
+        setAlbums((prev) =>
+          isCreatingAlbum ? [...prev, saved] : prev.map((a) => (a.id === saved.id ? saved : a))
+        );
         toast.success(
           isCreatingAlbum
             ? t.admin.photography.toastAlbumCreated
             : t.admin.photography.toastAlbumUpdated
         );
         closeAlbumModal();
-        fetchAlbums();
-        fetchPhotos();
+        fetchPhotos(); // photo.albumId links were resynced server-side for this album's photoIds change
       } else {
         toast.error("Failed to save album");
       }
@@ -738,8 +744,8 @@ export default function PhotographyAdminPage() {
         body: JSON.stringify({ id: album.id, published: nextStatus }),
       });
       if (res.ok) {
+        setAlbums((prev) => prev.map((a) => (a.id === album.id ? { ...a, published: nextStatus } : a)));
         toast.success(nextStatus ? t.admin.photography.toastPublished : t.admin.photography.toastDraft);
-        fetchAlbums();
       }
     } catch {
       toast.error("Failed to update album status");
@@ -755,8 +761,8 @@ export default function PhotographyAdminPage() {
         body: JSON.stringify({ id: album.id, featured: nextFeatured }),
       });
       if (res.ok) {
+        setAlbums((prev) => prev.map((a) => (a.id === album.id ? { ...a, featured: nextFeatured } : a)));
         toast.success(nextFeatured ? t.admin.photography.toastFeatured : t.admin.photography.toastUnfeatured);
-        fetchAlbums();
       }
     } catch {
       toast.error("Failed to update featured album status");
@@ -770,10 +776,10 @@ export default function PhotographyAdminPage() {
         method: "DELETE",
       });
       if (res.ok) {
+        setAlbums((prev) => prev.filter((a) => a.id !== deleteAlbumTarget.id));
         toast.success(t.admin.photography.toastAlbumDeleted);
         setDeleteAlbumTarget(null);
-        fetchAlbums();
-        fetchPhotos();
+        fetchPhotos(); // photos linked to this album had their albumId unlinked server-side
       } else {
         toast.error("Failed to delete album.");
       }
