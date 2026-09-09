@@ -10,7 +10,13 @@ import type { NavLink, Project, Skill, SocialLink, SiteConfig, PhotoItem, PhotoA
 export const siteConfig: SiteConfig = siteConfigData as SiteConfig;
 export const navLinks: NavLink[] = (navLinksData as NavLink[])
   .filter((item) => item.published !== false)
-  .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  .map((item) => ({
+    ...item,
+    children: item.children
+      ?.filter((child) => child.published !== false)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+  }));
 export const socialLinks: SocialLink[] = (socialLinksData as SocialLink[]).filter((item) => item.published !== false);
 export const skills: Skill[] = (skillsData as Skill[]).filter((item) => item.published !== false);
 export const projects: Project[] = (projectsData as Project[]).filter((item) => item.published !== false);

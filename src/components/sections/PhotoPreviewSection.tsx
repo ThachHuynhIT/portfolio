@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedSection, GlassCard, ImageWithSkeleton } from "@/components/ui";
 import { photography } from "@/lib/constants";
 import { useTranslation } from "@/context/LanguageContext";
+import cloudinaryImageLoader from "@/lib/cloudinary-image-loader";
 import type { PhotoItem } from "@/lib/types";
 
 export default function PhotoPreviewSection() {
@@ -19,6 +20,11 @@ export default function PhotoPreviewSection() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [visitedIndices, setVisitedIndices] = useState<Set<number>>(() => new Set([0]));
+
+  useEffect(() => {
+    setVisitedIndices((prev) => (prev.has(currentIndex) ? prev : new Set(prev).add(currentIndex)));
+  }, [currentIndex]);
 
   const nextSlide = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % featuredPhotos.length);
@@ -71,69 +77,86 @@ export default function PhotoPreviewSection() {
         {/* Featured Slider Component */}
         <div className="relative max-w-5xl mx-auto">
           {/* Main Showcase Card */}
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 light:border-neutral-900/10 shadow-2xl light:shadow-neutral-400/20 bg-slate-950 aspect-[16/10] sm:aspect-[21/10] group">
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 light:border-neutral-900/10 shadow-2xl light:shadow-neutral-400/20 bg-slate-950 aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/10] group">
+            {/* Image layer: every visited slide stays mounted and crossfades via opacity,
+                so revisits are instant and first visits keep the previous photo visible
+                (instead of flashing the dark container) while the new one loads. */}
+            <div className="absolute inset-0">
+              {featuredPhotos.map((photo, idx) => {
+                const isActive = idx === currentIndex;
+                if (!isActive && !visitedIndices.has(idx)) return null;
+                return (
+                  <div
+                    key={photo.id}
+                    className={`absolute inset-0 transition-opacity duration-500 ease-out ${
+                      isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                    }`}
+                  >
+                    <ImageWithSkeleton
+                      src={photo.image}
+                      alt={photo.title}
+                      fill
+                      priority={isActive}
+                      placeholderSrc={cloudinaryImageLoader({ src: photo.image, width: 32, quality: 30 })}
+                      sizes="(max-width: 1024px) 100vw, 1200px"
+                      className="object-cover object-center"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Gradient Shadows for readability (static, independent of the active slide) */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/60 sm:opacity-50" />
+
+            {/* Slide Content Overlay (text has no load latency, so a hard crossfade is fine here) */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentPhoto.id}
-                initial={{ opacity: 0, scale: 1.05 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-0"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute bottom-0 inset-x-0 p-6 sm:p-8 lg:p-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4 z-20"
               >
-                <ImageWithSkeleton
-                  src={currentPhoto.image}
-                  alt={currentPhoto.title}
-                  fill
-                  priority
-                  sizes="(max-width: 1200px) 100vw, 1200px"
-                  className="object-cover object-center"
-                />
-
-                {/* Gradient Shadows for readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/60 sm:opacity-50" />
-
-                {/* Slide Content Overlay */}
-                <div className="absolute bottom-0 inset-x-0 p-6 sm:p-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4 z-20">
-                  <div className="space-y-2 max-w-xl">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-400 text-black shadow-sm">
-                        ⭐ {t("photography.featured")}
+                <div className="space-y-2 max-w-xl">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-400 text-black shadow-sm">
+                      ⭐ {t("photography.featured")}
+                    </span>
+                    {currentPhoto.category && (
+                      <span className="px-3 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white backdrop-blur-md border border-white/15">
+                        {currentPhoto.category}
                       </span>
-                      {currentPhoto.category && (
-                        <span className="px-3 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white backdrop-blur-md border border-white/15">
-                          {currentPhoto.category}
-                        </span>
-                      )}
-                      {currentPhoto.camera?.model && (
-                        <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-black/60 text-cyan-300 border border-cyan-500/20">
-                          📷 {currentPhoto.camera.make} {currentPhoto.camera.model}
-                        </span>
-                      )}
-                    </div>
-
-                    <h3 className="text-xl sm:text-3xl font-extrabold text-white tracking-tight">
-                      {photoTitle}
-                    </h3>
-
-                    {photoDesc && (
-                      <p className="text-white/80 text-xs sm:text-sm line-clamp-2 leading-relaxed">
-                        {photoDesc}
-                      </p>
                     )}
-
-                    {photoLoc && (
-                      <p className="text-cyan-400/90 text-xs flex items-center gap-1 font-medium">
-                        <span>📍</span> {photoLoc}
-                      </p>
+                    {currentPhoto.camera?.model && (
+                      <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-black/60 text-cyan-300 border border-cyan-500/20">
+                        📷 {currentPhoto.camera.make} {currentPhoto.camera.model}
+                      </span>
                     )}
                   </div>
 
-                  {/* Thumbnail counter */}
-                  <div className="text-xs font-mono text-white/50 bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-md border border-white/10 self-start sm:self-auto">
-                    {currentIndex + 1} / {featuredPhotos.length}
-                  </div>
+                  <h3 className="text-xl sm:text-3xl font-extrabold text-white tracking-tight">
+                    {photoTitle}
+                  </h3>
+
+                  {photoDesc && (
+                    <p className="text-white/80 text-xs sm:text-sm line-clamp-2 leading-relaxed">
+                      {photoDesc}
+                    </p>
+                  )}
+
+                  {photoLoc && (
+                    <p className="text-cyan-400/90 text-xs flex items-center gap-1 font-medium">
+                      <span>📍</span> {photoLoc}
+                    </p>
+                  )}
+                </div>
+
+                {/* Thumbnail counter */}
+                <div className="text-xs font-mono text-white/50 bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-md border border-white/10 self-start sm:self-auto">
+                  {currentIndex + 1} / {featuredPhotos.length}
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -172,7 +195,7 @@ export default function PhotoPreviewSection() {
           </div>
 
           {/* Quick Preview Thumbnail Strip */}
-          <div className="hidden sm:grid grid-cols-6 gap-3 mt-6">
+          <div className="hidden sm:grid grid-cols-3 lg:grid-cols-6 gap-2.5 lg:gap-3 mt-6">
             {featuredPhotos.slice(0, 6).map((photo, idx) => (
               <button
                 key={photo.id}

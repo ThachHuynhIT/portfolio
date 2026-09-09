@@ -32,28 +32,38 @@
     "order": 3
   },
   {
-    "id": "nav-music",
-    "label": "Music",
-    "label_vi": "Âm nhạc",
-    "href": "/music",
-    "published": true,
-    "order": 4
-  },
-  {
-    "id": "nav-photography",
-    "label": "Photography",
-    "label_vi": "Nhiếp ảnh",
-    "href": "/photography",
-    "published": true,
-    "order": 5
-  },
-  {
     "id": "nav-5",
     "label": "Blog",
     "label_vi": "Bài viết",
     "href": "/blog",
     "published": true,
-    "order": 6
+    "order": 4
+  },
+  {
+    "id": "nav-creative",
+    "label": "Creative",
+    "label_vi": "Sáng tạo",
+    "href": "/creative",
+    "published": true,
+    "order": 5,
+    "children": [
+      {
+        "id": "nav-music",
+        "label": "Music",
+        "label_vi": "Âm nhạc",
+        "href": "/music",
+        "published": true,
+        "order": 0
+      },
+      {
+        "id": "nav-photography",
+        "label": "Photography",
+        "label_vi": "Nhiếp ảnh",
+        "href": "/photography",
+        "published": true,
+        "order": 1
+      }
+    ]
   },
   {
     "id": "nav-6",
@@ -61,7 +71,7 @@
     "label_vi": "Contra",
     "href": "/contra",
     "published": false,
-    "order": 7
+    "order": 6
   },
   {
     "id": "nav-1788511274849-1puo1o",
@@ -69,6 +79,6 @@
     "label_vi": "Tình yêu",
     "href": "/couple",
     "published": false,
-    "order": 8
+    "order": 7
   }
 ]

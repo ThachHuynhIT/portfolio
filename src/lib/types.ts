@@ -51,6 +51,15 @@ export interface ContactFormData {
 }
 
 // Navigation Types
+export interface NavSubLink {
+  id: string;
+  label: string; // English / Default
+  label_vi?: string; // Vietnamese
+  href: string;
+  order?: number;
+  published?: boolean;
+}
+
 export interface NavLink {
   id: string;
   label: string; // English / Default
@@ -58,6 +67,7 @@ export interface NavLink {
   href: string;
   order?: number;
   published?: boolean;
+  children?: NavSubLink[];
 }
 
 // Social Link Types

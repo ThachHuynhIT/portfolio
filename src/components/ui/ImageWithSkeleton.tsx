@@ -9,6 +9,8 @@ export interface ImageWithSkeletonProps
   containerClassName?: string;
   skeletonClassName?: string;
   fallbackText?: string;
+  /** Low-res/blurred URL painted instantly behind the skeleton while the real image loads. */
+  placeholderSrc?: string;
 }
 
 /**
@@ -28,6 +30,7 @@ export default function ImageWithSkeleton({
   containerClassName = "",
   skeletonClassName = "",
   fallbackText,
+  placeholderSrc,
   priority = false,
   ...props
 }: ImageWithSkeletonProps) {
@@ -53,6 +56,17 @@ export default function ImageWithSkeleton({
         fill ? "w-full h-full" : "inline-block"
       } ${containerClassName}`}
     >
+      {/* Instant low-res/blurred placeholder painted while the real image loads */}
+      {placeholderSrc && !isLoaded && !hasError && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={placeholderSrc}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 z-0 w-full h-full object-cover scale-110 blur-md transition-opacity duration-500 opacity-100"
+        />
+      )}
+
       {/* Shimmer Skeleton Placeholder while loading */}
       {!isLoaded && !hasError && (
         <div

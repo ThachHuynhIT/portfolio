@@ -9,7 +9,11 @@ import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import FlagIcon from "@/components/ui/FlagIcon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
-import type { NavLink } from "@/lib/types";
+import type { NavLink, NavSubLink } from "@/lib/types";
+
+type SubLinkForm = Pick<NavSubLink, "label" | "label_vi" | "href"> & { id?: string };
+
+const emptySubLink = (): SubLinkForm => ({ label: "", label_vi: "", href: "" });
 
 export default function NavLinksAdminPage() {
   const router = useRouter();
@@ -26,6 +30,7 @@ export default function NavLinksAdminPage() {
   const [formLabelVi, setFormLabelVi] = useState("");
   const [formHref, setFormHref] = useState("");
   const [formPublished, setFormPublished] = useState(true);
+  const [formChildren, setFormChildren] = useState<SubLinkForm[]>([]);
   const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
 
   const fetchLinks = async () => {
@@ -54,6 +59,7 @@ export default function NavLinksAdminPage() {
     setFormLabelVi("");
     setFormHref("#");
     setFormPublished(true);
+    setFormChildren([]);
     setIsCreating(true);
     setEditingLink(null);
   };
@@ -64,7 +70,25 @@ export default function NavLinksAdminPage() {
     setFormLabelVi(link.label_vi || "");
     setFormHref(link.href);
     setFormPublished(link.published !== false);
+    setFormChildren(
+      (link.children || []).map((child) => ({
+        id: child.id,
+        label: child.label,
+        label_vi: child.label_vi || "",
+        href: child.href,
+      }))
+    );
     setIsCreating(false);
+  };
+
+  const addSubLink = () => setFormChildren((prev) => [...prev, emptySubLink()]);
+
+  const updateSubLink = (index: number, patch: Partial<SubLinkForm>) => {
+    setFormChildren((prev) => prev.map((child, i) => (i === index ? { ...child, ...patch } : child)));
+  };
+
+  const removeSubLink = (index: number) => {
+    setFormChildren((prev) => prev.filter((_, i) => i !== index));
   };
 
   const closeModal = () => {
@@ -92,11 +116,23 @@ export default function NavLinksAdminPage() {
     e.preventDefault();
     setIsSaving(true);
 
+    const children: NavSubLink[] = formChildren
+      .filter((child) => child.label.trim() && child.href.trim())
+      .map((child, index) => ({
+        id: child.id || `sub-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        label: child.label.trim(),
+        label_vi: child.label_vi?.trim() || undefined,
+        href: child.href.trim(),
+        order: index,
+        published: true,
+      }));
+
     const payload = {
       label: formLabel,
       label_vi: formLabelVi || undefined,
       href: formHref,
       published: formPublished,
+      children,
     };
 
     try {
@@ -274,7 +310,16 @@ export default function NavLinksAdminPage() {
                     </div>
                   </td>
 
-                  <td className="px-6 py-4 font-mono text-xs text-cyan-400">{link.href}</td>
+                  <td className="px-6 py-4 font-mono text-xs text-cyan-400">
+                    {link.href}
+                    {!!link.children?.length && (
+                      <div className="mt-1 font-sans">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-500/10 text-violet-300 border border-violet-500/20">
+                          {link.children.length} sub-item{link.children.length > 1 ? "s" : ""}
+                        </span>
+                      </div>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <button
                       type="button"
@@ -384,6 +429,63 @@ export default function NavLinksAdminPage() {
               />
               {t("admin.navLinks.fieldPublished", "Show in Header / Navigation bar")}
             </label>
+          </div>
+
+          <div className="pt-3 border-t border-white/10 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-300">
+                {t("admin.navLinks.fieldSubItems", "Sub-items (dropdown)")}
+              </span>
+              <button
+                type="button"
+                onClick={addSubLink}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <span className="text-sm leading-none">+</span>
+                {t("admin.navLinks.addSubItem", "Add sub-item")}
+              </button>
+            </div>
+
+            {formChildren.length === 0 && (
+              <p className="text-xs text-slate-500 italic">
+                {t("admin.navLinks.noSubItems", "No sub-items — this link renders as a plain nav item.")}
+              </p>
+            )}
+
+            {formChildren.map((child, index) => (
+              <div key={index} className="flex items-start gap-2 bg-slate-950/60 border border-white/10 rounded-xl p-2.5">
+                <div className="flex-1 grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    value={child.label}
+                    onChange={(e) => updateSubLink(index, { label: e.target.value })}
+                    placeholder={t("admin.navLinks.fieldLabelEnPlaceholder", "e.g. Projects")}
+                    className="w-full px-2.5 py-1.5 bg-slate-950 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500 text-xs"
+                  />
+                  <input
+                    type="text"
+                    value={child.label_vi}
+                    onChange={(e) => updateSubLink(index, { label_vi: e.target.value })}
+                    placeholder={t("admin.navLinks.fieldLabelViPlaceholder", "Ví dụ: Dự án")}
+                    className="w-full px-2.5 py-1.5 bg-slate-950 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500 text-xs"
+                  />
+                  <input
+                    type="text"
+                    value={child.href}
+                    onChange={(e) => updateSubLink(index, { href: e.target.value })}
+                    placeholder={t("admin.navLinks.fieldHrefPlaceholder", "#projects, /blog, /music, etc.")}
+                    className="col-span-2 w-full px-2.5 py-1.5 bg-slate-950 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500 text-xs font-mono"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeSubLink(index)}
+                  className="px-2 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-medium transition-all cursor-pointer"
+                >
+                  {t("admin.common.delete", "Delete")}
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       </AdminModal>
