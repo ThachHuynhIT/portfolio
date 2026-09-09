@@ -69,8 +69,8 @@ portfolio/
 │   │   ├── tools/             # Route các công cụ tiện ích
 │   │   │   └── json-validator/
 │   │   │       └── page.tsx
-│   │   ├── globals.css        # Tailwind v4 configuration, theme variables & utilities
-│   │   ├── layout.tsx         # Root layout chung (Nav, Main, Footer, Fonts)
+│   │   ├── globals.css        # Tailwind v4 configuration, theme variables (dark + light) & utilities
+│   │   ├── layout.tsx         # Root layout chung (Nav, Main, Footer, Fonts, THEME_INIT_SCRIPT chống nháy theme)
 │   │   └── page.tsx           # Trang chủ Portfolio (One-page scroll)
 │   ├── components/            # React Components
 │   │   ├── 3d/                # Three.js / React Three Fiber components
@@ -98,12 +98,15 @@ portfolio/
 │   │       ├── Footer.tsx
 │   │       ├── GlassCard.tsx
 │   │       ├── Navigation.tsx
+│   │       ├── ThemeToggle.tsx  # Nút chuyển Light/Dark (mặt trăng/mặt trời)
 │   │       ├── TiltCard.tsx
 │   │       └── index.ts
+│   ├── context/                # React Context providers toàn site
+│   │   └── ThemeContext.tsx    # ThemeProvider + useTheme() — quản lý data-theme trên <html>
 │   └── lib/                   # Utilities, types, constants, logic
 │       ├── animations.ts      # Framer Motion animation variants
 │       ├── blog.ts            # MDX file reader & parser (Server-only)
-│       ├── constants.ts       # Central source of truth cho data & siteConfig
+│       ├── constants.ts       # Central source of truth cho data & siteConfig (bao gồm EXCLUDED_ROUTE_PREFIXES cho theme)
 │       ├── types.ts           # TypeScript interfaces & domain models
 │       └── utils.ts           # Helper functions (cn helper: clsx + tailwind-merge)
 ├── CLAUDE.md                  # Hướng dẫn tác vụ dành cho AI Agents / Claude
@@ -202,6 +205,19 @@ Công cụ kiểm tra tính toàn vẹn dữ liệu JSON:
 
 ---
 
+### 3.6. Hệ Thống Chế Độ Sáng/Tối (`src/context/ThemeContext.tsx`, `src/components/ui/ThemeToggle.tsx`)
+
+Giao diện gốc của site là **Dark** (không đổi); Light mode được thêm vào dưới dạng lớp phủ **cộng thêm**, không phải đảo ngược từng class:
+
+- **Biến thể Tailwind tuỳ biến**: `globals.css` khai báo `@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));` — mọi class tiền tố `light:` chỉ có hiệu lực khi `<html>` (hoặc tổ tiên gần nhất) có `data-theme="light"`. Component chỉ cần **thêm** class `light:` bên cạnh class dark gốc, không xoá/thay class cũ.
+- **`ThemeProvider`** (bọc toàn app ở `layout.tsx`, bên trong `<script>` chống nháy theme): phát hiện theme ưu tiên qua `localStorage["portfolio_theme"]`, fallback `prefers-color-scheme`; tiếp tục lắng nghe sự kiện đổi theme OS nếu người dùng chưa từng chọn thủ công. Ghi `data-theme` lên `document.documentElement` mỗi khi theme đổi.
+- **Chống FOUC (Flash of Unstyled/Incorrect Content)**: một inline script chặn render trong `layout.tsx` (`THEME_INIT_SCRIPT`) chạy **trước khi React hydrate**, set sẵn `data-theme` bằng đúng logic của `ThemeContext.tsx` — 2 nơi này bắt buộc đồng bộ.
+- **Route ngoại lệ luôn Dark**: `EXCLUDED_ROUTE_PREFIXES` (`src/lib/constants.ts`) = `/admin`, `/contra`, `/couple` — `resolvedTheme` bị ép về `"dark"` bất kể lựa chọn người dùng khi đang ở các route này.
+- **Ngoại lệ theo component**: modal `PhotoLightboxModal.tsx` trong module Photography chủ đích luôn Dark ("theater mode"), độc lập với theme hiện tại của trang.
+- Design tokens theo theme (`--background`, `--foreground`, `--glass-bg`, `--glow-purple-color`, `--glow-cyan-color`, `--scrollbar-*`, `--selection-*`) được định nghĩa lại trong khối `[data-theme="light"]` — các utility Tailwind theo token (`bg-background`, `text-foreground`) tự đổi màu mà **không** cần tiền tố `light:`.
+
+---
+
 ## 4. Quản Lý Trạng Thái & Luồng Dữ Liệu (State Management)
 
 | Thành phần | Cơ chế State | Mục đích |
@@ -212,6 +228,7 @@ Công cụ kiểm tra tính toàn vẹn dữ liệu JSON:
 | **3D Animations** | `useRef` + Three.js `useFrame` | Truyền tọa độ chuột trực tiếp vào GPU loop, tránh re-render React DOM |
 | **2D Arcade Game** | Internal Engine State + Refs | Vòng lặp game độc lập 60 FPS, chỉ tương tác với React khi Pause / Game Over |
 | **JSON Validator** | React Local State (`useState`) | Quản lý danh sách file upload, kết quả phân tích và bộ lọc lỗi |
+| **Light/Dark Theme** | React Context (`ThemeContext`) + `localStorage` + `data-theme` attribute | Đồng bộ theme giữa inline blocking script, Context và CSS (`light:` variant), loại trừ theo route (`EXCLUDED_ROUTE_PREFIXES`) |
 
 ---
 

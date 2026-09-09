@@ -1,10 +1,47 @@
 @import "tailwindcss";
 
+/*
+ * Additive light-mode variant: the site defaults to its original dark
+ * styling (unprefixed classes), and `light:` classes layer on top when
+ * `data-theme="light"` is set on <html> by ThemeContext. This avoids
+ * inverting every existing dark-styled class to a `dark:` prefix.
+ */
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+
 :root {
   --background: #050505;
   --foreground: #fafafa;
   --purple-500: #8b5cf6;
   --cyan-500: #06b6d4;
+
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glow-purple-color: rgba(139, 92, 246, 0.4);
+  --glow-cyan-color: rgba(6, 182, 212, 0.4);
+  --scrollbar-track: #050505;
+  --scrollbar-thumb-from: #8b5cf6;
+  --scrollbar-thumb-to: #06b6d4;
+  --scrollbar-thumb-hover-from: #7c3aed;
+  --scrollbar-thumb-hover-to: #0891b2;
+  --selection-bg: rgba(139, 92, 246, 0.3);
+  --selection-fg: #fafafa;
+}
+
+[data-theme="light"] {
+  --background: #faf9fc;
+  --foreground: #0a0a0f;
+
+  --glass-bg: rgba(10, 10, 20, 0.04);
+  --glass-border: rgba(10, 10, 20, 0.1);
+  --glow-purple-color: rgba(139, 92, 246, 0.25);
+  --glow-cyan-color: rgba(6, 182, 212, 0.25);
+  --scrollbar-track: #ececf3;
+  --scrollbar-thumb-from: #8b5cf6;
+  --scrollbar-thumb-to: #06b6d4;
+  --scrollbar-thumb-hover-from: #7c3aed;
+  --scrollbar-thumb-hover-to: #0891b2;
+  --selection-bg: rgba(139, 92, 246, 0.2);
+  --selection-fg: #0a0a0f;
 }
 
 @theme inline {
@@ -20,22 +57,22 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #050505;
+  background: var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #8b5cf6, #06b6d4);
+  background: linear-gradient(to bottom, var(--scrollbar-thumb-from), var(--scrollbar-thumb-to));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #7c3aed, #0891b2);
+  background: linear-gradient(to bottom, var(--scrollbar-thumb-hover-from), var(--scrollbar-thumb-hover-to));
 }
 
 /* Selection */
 ::selection {
-  background: rgba(139, 92, 246, 0.3);
-  color: #fafafa;
+  background: var(--selection-bg);
+  color: var(--selection-fg);
 }
 
 /* Base styles */
@@ -65,19 +102,19 @@ body {
 
 /* Glass Effect */
 .glass {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glass-border);
 }
 
 /* Glow Effects */
 .glow-purple {
-  box-shadow: 0 0 60px -15px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 0 60px -15px var(--glow-purple-color);
 }
 
 .glow-cyan {
-  box-shadow: 0 0 60px -15px rgba(6, 182, 212, 0.4);
+  box-shadow: 0 0 60px -15px var(--glow-cyan-color);
 }
 
 /* Animations */
@@ -137,3 +174,104 @@ body {
   outline: 2px solid #8b5cf6;
   outline-offset: 2px;
 }
+
+/* Skeleton Shimmer Animation */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Twinkling Stars Loading Overlay (image placeholders) */
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.15;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+.animate-twinkle {
+  animation: twinkle 2.4s ease-in-out infinite;
+}
+
+/* GPU acceleration for smoother transforms */
+.gpu-layer {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Rendering performance for long lists */
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 350px;
+}
+
+/*
+ * Blog code block syntax highlighting (rehype-highlight token classes).
+ * The <pre>/<code> background is intentionally dark-only in BOTH site
+ * themes (see mdxComponents in src/app/blog/[slug]/page.tsx), so a single
+ * dark-optimized palette works unconditionally — no light: variants needed.
+ */
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-section,
+.hljs-link {
+  color: #c084fc;
+}
+
+.hljs-string,
+.hljs-attr,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+  color: #86efac;
+}
+
+.hljs-title,
+.hljs-name,
+.hljs-title.function_,
+.hljs-title.class_ {
+  color: #67e8f9;
+}
+
+.hljs-number,
+.hljs-meta,
+.hljs-built_in,
+.hljs-builtin-name {
+  color: #fca5a5;
+}
+
+.hljs-comment,
+.hljs-quote,
+.hljs-deletion {
+  color: #71717a;
+  font-style: italic;
+}
+
+.hljs-attribute,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-regexp {
+  color: #fcd34d;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 700;
+}
+

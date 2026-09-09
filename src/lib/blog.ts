@@ -25,22 +25,27 @@ export function getAllPosts(): BlogPost[] {
         const fileContents = fs.readFileSync(filePath, "utf-8");
         const { data, content } = matter(fileContents);
 
-        return {
+        const postItem: BlogPost = {
           slug,
-          title: data.title || "",
-          excerpt: data.excerpt || "",
-          date: data.date || "",
-          category: data.category || "",
-          tags: data.tags || [],
-          readTime: data.readTime || "",
+          title: String(data.title || ""),
+          title_vi: data.title_vi ? String(data.title_vi) : undefined,
+          excerpt: String(data.excerpt || ""),
+          excerpt_vi: data.excerpt_vi ? String(data.excerpt_vi) : undefined,
+          content_vi: data.content_vi ? String(data.content_vi) : undefined,
+          date: String(data.date || ""),
+          category: String(data.category || ""),
+          tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
+          readTime: String(data.readTime || ""),
           content,
         };
+
+        return postItem;
       } catch (error) {
         console.error(`Skipping malformed blog post "${file}":`, error);
         return null;
       }
     })
-    .filter((post): post is BlogPost => post !== null)
+    .filter((post: BlogPost | null): post is BlogPost => post !== null)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return posts;
@@ -59,16 +64,21 @@ export function getPostBySlug(slug: string): BlogPost | null {
   const fileContents = fs.readFileSync(filePath, "utf-8");
   const { data, content } = matter(fileContents);
 
-  return {
+  const postItem: BlogPost = {
     slug,
-    title: data.title || "",
-    excerpt: data.excerpt || "",
-    date: data.date || "",
-    category: data.category || "",
-    tags: data.tags || [],
-    readTime: data.readTime || "",
+    title: String(data.title || ""),
+    title_vi: data.title_vi ? String(data.title_vi) : undefined,
+    excerpt: String(data.excerpt || ""),
+    excerpt_vi: data.excerpt_vi ? String(data.excerpt_vi) : undefined,
+    content_vi: data.content_vi ? String(data.content_vi) : undefined,
+    date: String(data.date || ""),
+    category: String(data.category || ""),
+    tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
+    readTime: String(data.readTime || ""),
     content,
   };
+
+  return postItem;
 }
 
 /**

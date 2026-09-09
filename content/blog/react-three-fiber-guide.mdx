@@ -1,10 +1,96 @@
 ---
 title: "Building Immersive 3D Experiences with React Three Fiber"
+title_vi: "Xây dựng trải nghiệm 3D sống động với React Three Fiber"
 excerpt: "Learn how to create stunning 3D visualizations for your web applications using React Three Fiber and Three.js."
+excerpt_vi: "Học cách tạo trực quan hóa 3D ấn tượng cho các ứng dụng web bằng React Three Fiber và Three.js."
 date: "2024-11-20"
 category: "Tutorial"
 tags: ["react", "three.js", "3d", "webgl"]
 readTime: "8 min read"
+content_vi: |
+  # Xây dựng trải nghiệm 3D sống động với React Three Fiber
+
+  React Three Fiber là một thư viện render React mạnh mẽ dành cho Three.js, giúp việc xây dựng không gian 3D trở nên dễ dàng như khi viết các component React thông thường. Trong bài viết này, chúng ta sẽ khám phá cách tạo các trải nghiệm trực quan hóa 3D đỉnh cao trên nền web.
+
+  ## Tại sao lại chọn React Three Fiber?
+
+  Three.js rất tuyệt vời, nhưng cú pháp thường mang tính mệnh lệnh và dài dòng. React Three Fiber mang sức mạnh khai báo (declarative) quen thuộc của React vào thế giới đồ họa 3D:
+
+  ```typescript
+  import { Canvas } from "@react-three/fiber";
+
+  function Scene() {
+    return (
+      <Canvas>
+        <mesh>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="hotpink" />
+        </mesh>
+      </Canvas>
+    );
+  }
+  ```
+
+  ## Những khái niệm cốt lõi
+
+  ### 1. Component Canvas
+
+  Canvas là khung nhìn (viewport) 3D của bạn. Nó tự động thiết lập scene, camera và WebGL renderer:
+
+  ```tsx
+  <Canvas
+    camera={{ position: [0, 0, 5], fov: 75 }}
+    dpr={[1, 2]} // Tỉ lệ pixel phản hồi theo màn hình
+  >
+    {/* Các phần tử 3D của bạn */}
+  </Canvas>
+  ```
+
+  ### 2. Sử dụng Hooks
+
+  React Three Fiber cung cấp các hook hữu ích như `useFrame` để thực hiện chuyển động từng khung hình:
+
+  ```typescript
+  import { useFrame } from "@react-three/fiber";
+  import { useRef } from "react";
+
+  function RotatingBox() {
+    const meshRef = useRef<THREE.Mesh>(null);
+
+    useFrame((state, delta) => {
+      if (meshRef.current) {
+        meshRef.current.rotation.x += delta;
+      }
+    });
+
+    return (
+      <mesh ref={meshRef}>
+        <boxGeometry />
+        <meshStandardMaterial />
+      </mesh>
+    );
+  }
+  ```
+
+  ### 3. Bộ công cụ React Three Drei
+
+  Drei là tập hợp các helper phong phú dành riêng cho R3F:
+
+  - `<OrbitControls />` - Điều khiển xoay / phóng to camera
+  - `<Float />` - Hoạt ảnh trôi bồng bềnh tự nhiên
+  - `<Text />` - Chữ nổi 3D
+  - `<Environment />` - Môi trường ánh sáng HDR
+
+  ## Mẹo tối ưu hóa hiệu năng
+
+  1. **Dùng `useMemo`** cho geometry và material để tránh tái khởi tạo
+  2. **Áp dụng frustum culling** cho các khung cảnh lớn
+  3. **Tận dụng instancing (`instancedMesh`)** khi có nhiều vật thể giống nhau
+  4. **Tối ưu hình ảnh texture** với dung lượng nén phù hợp
+
+  ## Lời kết
+
+  React Three Fiber mở ra một chân trời sáng tạo mới cho các lập trình viên frontend. Hãy thử nghiệm và tạo ra những giao diện 3D độc đáo cho dự án của bạn nhé! 🚀
 ---
 
 # Building Immersive 3D Experiences with React Three Fiber

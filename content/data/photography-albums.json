@@ -1,0 +1,97 @@
+[
+  {
+    "id": "album-cyberpunk",
+    "title": "Cyberpunk Nights & Urban Rain",
+    "title_vi": "Đêm Cyberpunk & Mưa Thành Thị",
+    "slug": "cyberpunk-nights-urban-rain",
+    "description": "Moody nocturnal explorations through neon-lit streets, rain reflections, and glowing cityscape alleys.",
+    "description_vi": "Những góc phố đêm rực rỡ sắc màu neon, vệt phản chiếu sau mưa và cảm xúc điện ảnh huyền bí.",
+    "coverImage": "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1600&q=85",
+    "coverPhotoId": "photo-1",
+    "photoIds": [
+      "photo-1",
+      "photo-5",
+      "photo-6"
+    ],
+    "order": 1,
+    "featured": true,
+    "published": true,
+    "createdAt": "2024-11-15T08:00:00.000Z",
+    "updatedAt": "2024-11-15T08:00:00.000Z"
+  },
+  {
+    "id": "album-highlands",
+    "title": "Vietnamese Highlands & Misty Dawn",
+    "title_vi": "Cao Nguyên & Bình Minh Trong Sương",
+    "slug": "vietnamese-highlands-misty-dawn",
+    "description": "Ethereal sunrise light breaking through mountain mists and pine-covered ridges across Dalat and Ta Xua.",
+    "description_vi": "Khoảnh khắc bình minh xuyên qua lớp sương sớm trên những ngọn đồi thông và biển mây bồng bềnh tại Đà Lạt, Tà Xùa.",
+    "coverImage": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=85",
+    "coverPhotoId": "photo-2",
+    "photoIds": [
+      "photo-2",
+      "photo-8"
+    ],
+    "order": 2,
+    "featured": true,
+    "published": true,
+    "createdAt": "2024-10-10T08:00:00.000Z",
+    "updatedAt": "2024-10-10T08:00:00.000Z"
+  },
+  {
+    "id": "album-portraits",
+    "title": "Portraits in Light & Shadow",
+    "title_vi": "Chân Dung Ánh Sáng & Chiều Sâu",
+    "slug": "portraits-light-and-shadow",
+    "description": "Explorations of human emotion, dramatic chiaroscuro studio lighting, and serene natural window frames.",
+    "description_vi": "Khắc họa cảm xúc con người qua nghệ thuật tương phản sáng tối và ánh sáng tự nhiên tinh tế.",
+    "coverImage": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=85",
+    "coverPhotoId": "photo-3",
+    "photoIds": [
+      "photo-3",
+      "photo-9"
+    ],
+    "order": 3,
+    "featured": true,
+    "published": true,
+    "createdAt": "2024-09-25T08:00:00.000Z",
+    "updatedAt": "2024-09-25T08:00:00.000Z"
+  },
+  {
+    "id": "album-architecture",
+    "title": "Geometry & Modern Architecture",
+    "title_vi": "Hình Khối & Kiến Trúc Hiện Đại",
+    "slug": "geometry-modern-architecture",
+    "description": "Abstract reflections, striking glass facades, and futuristic concrete curves from dynamic perspectives.",
+    "description_vi": "Những đường nét uốn lượn của bê tông, thép và các tấm kính phản chiếu hoàng hôn đầy mê hoặc.",
+    "coverImage": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=85",
+    "coverPhotoId": "photo-4",
+    "photoIds": [
+      "photo-4",
+      "photo-7"
+    ],
+    "order": 4,
+    "featured": false,
+    "published": true,
+    "createdAt": "2024-08-20T08:00:00.000Z",
+    "updatedAt": "2024-08-20T08:00:00.000Z"
+  },
+  {
+    "id": "album-1788769482539-fxyy8w",
+    "title": "Model Kit",
+    "title_vi": "Mô Hình (Model Kit)",
+    "slug": "model-kit",
+    "description": "Model Kit Collection",
+    "description_vi": "Bộ sưu tập mô hình và tác phẩm ráp hoàn thiện",
+    "coverImage": "https://res.cloudinary.com/drlcckhqc/image/upload/v1788770932/portfolio/photography/photos/photo-processed-2-1788770928424.jpg",
+    "photoIds": [
+      "photo-1788770966229-ffk7h2"
+    ],
+    "featured": true,
+    "published": true,
+    "order": 5,
+    "createdAt": "2026-09-07T08:24:42.539Z",
+    "updatedAt": "2026-09-07T09:06:16.990Z",
+    "coverPhotoId": "photo-1788770966229-ffk7h2"
+  }
+]

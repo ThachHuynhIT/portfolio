@@ -5,50 +5,65 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import Icon from "@/components/ui/Icon";
+import { useTranslation } from "@/context/LanguageContext";
 
 interface DashboardStats {
   skillsCount: number;
   projectsCount: number;
+  photographyCount: number;
   blogCount: number;
   socialCount: number;
   musicCount: number;
 }
 
-const STAT_CARDS = [
+const STAT_CONFIG = [
   {
     key: "skillsCount" as const,
-    label: "Skills",
+    labelKey: "admin.dashboard.stats.skills",
+    defaultLabel: "Skills",
     icon: "skills",
     href: "/admin/skills",
     accent: "violet",
   },
   {
     key: "projectsCount" as const,
-    label: "Projects",
+    labelKey: "admin.dashboard.stats.projects",
+    defaultLabel: "Projects",
     icon: "projects",
     href: "/admin/projects",
     accent: "cyan",
   },
   {
-    key: "musicCount" as const,
-    label: "Music Tracks",
-    icon: "music",
-    href: "/admin/music",
+    key: "photographyCount" as const,
+    labelKey: "admin.dashboard.stats.photography",
+    defaultLabel: "Photography",
+    icon: "camera",
+    href: "/admin/photography",
     accent: "indigo",
   },
   {
+    key: "musicCount" as const,
+    labelKey: "admin.dashboard.stats.music",
+    defaultLabel: "Music Tracks",
+    icon: "music",
+    href: "/admin/music",
+    accent: "pink",
+  },
+  {
     key: "blogCount" as const,
-    label: "Blog Posts",
+    labelKey: "admin.dashboard.stats.blog",
+    defaultLabel: "Blog Posts",
     icon: "blog",
     href: "/admin/blog",
     accent: "emerald",
   },
   {
     key: "socialCount" as const,
-    label: "Social Links",
+    labelKey: "admin.dashboard.stats.social",
+    defaultLabel: "Social Links",
     icon: "links",
     href: "/admin/social-links",
-    accent: "pink",
+    accent: "violet",
   },
 ];
 
@@ -60,44 +75,19 @@ const ACCENT_CLASSES: Record<string, string> = {
   pink: "bg-pink-500/10 text-pink-400 border-pink-500/20",
 };
 
-const QUICK_ACTIONS = [
-  {
-    icon: "music",
-    label: "Music Studio",
-    description: "Upload and manage audio tracks, cover art, and stream stats for the /music lounge.",
-    actions: [
-      { label: "Add Track", href: "/admin/music/new", primary: true },
-      { label: "Manage", href: "/admin/music", primary: false },
-    ],
-  },
-  {
-    icon: "settings",
-    label: "Site Configuration",
-    description: "Update author bio, job title, contact details, and site metadata.",
-    actions: [{ label: "Edit Config", href: "/admin/site-config", primary: true }],
-  },
-  {
-    icon: "blog",
-    label: "Blog Platform",
-    description: "Write new MDX articles, manage drafts, categories, and tags.",
-    actions: [
-      { label: "New Post", href: "/admin/blog/new", primary: true },
-      { label: "All Posts", href: "/admin/blog", primary: false },
-    ],
-  },
-];
-
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadStats() {
       try {
-        const [skillsRes, projectsRes, blogRes, socialRes, musicRes] = await Promise.all([
+        const [skillsRes, projectsRes, photoRes, blogRes, socialRes, musicRes] = await Promise.all([
           fetch("/api/admin/skills"),
           fetch("/api/admin/projects"),
+          fetch("/api/admin/photography"),
           fetch("/api/admin/blog"),
           fetch("/api/admin/social-links"),
           fetch("/api/music/tracks"),
@@ -108,9 +98,10 @@ export default function AdminDashboardPage() {
           return;
         }
 
-        const [skills, projects, blog, social, music] = await Promise.all([
+        const [skills, projects, photos, blog, social, music] = await Promise.all([
           skillsRes.json(),
           projectsRes.json(),
+          photoRes.json(),
           blogRes.json(),
           socialRes.json(),
           musicRes.json(),
@@ -119,6 +110,7 @@ export default function AdminDashboardPage() {
         setStats({
           skillsCount: Array.isArray(skills) ? skills.length : 0,
           projectsCount: Array.isArray(projects) ? projects.length : 0,
+          photographyCount: Array.isArray(photos) ? photos.length : 0,
           blogCount: Array.isArray(blog) ? blog.length : 0,
           socialCount: Array.isArray(social) ? social.length : 0,
           musicCount: Array.isArray(music) ? music.length : 0,
@@ -132,17 +124,53 @@ export default function AdminDashboardPage() {
     loadStats();
   }, [router]);
 
+  const quickActions = [
+    {
+      icon: "camera",
+      label: t("admin.sidebar.photography"),
+      description: t("admin.dashboard.descriptions.photo"),
+      actions: [
+        { label: t("admin.dashboard.actions.managePhotos"), href: "/admin/photography", primary: true },
+        { label: t("admin.dashboard.actions.viewGallery"), href: "/photography", primary: false },
+      ],
+    },
+    {
+      icon: "music",
+      label: t("admin.sidebar.music"),
+      description: t("admin.dashboard.descriptions.music"),
+      actions: [
+        { label: t("admin.dashboard.actions.addTrack"), href: "/admin/music/new", primary: true },
+        { label: t("admin.dashboard.actions.manage"), href: "/admin/music", primary: false },
+      ],
+    },
+    {
+      icon: "settings",
+      label: t("admin.sidebar.siteConfig"),
+      description: t("admin.dashboard.descriptions.siteConfig"),
+      actions: [{ label: t("admin.dashboard.actions.editConfig"), href: "/admin/site-config", primary: true }],
+    },
+    {
+      icon: "blog",
+      label: t("admin.sidebar.blog"),
+      description: t("admin.dashboard.descriptions.blog"),
+      actions: [
+        { label: t("admin.dashboard.actions.newPost"), href: "/admin/blog/new", primary: true },
+        { label: t("admin.dashboard.actions.allPosts"), href: "/admin/blog", primary: false },
+      ],
+    },
+  ];
+
   return (
-    <div className="max-w-5xl space-y-8">
+    <div className="space-y-8">
       <AdminHeader
-        title="Dashboard"
-        description="Overview of your portfolio content and site health."
+        title={t("admin.dashboard.title")}
+        description={t("admin.dashboard.description")}
         icon="dashboard"
       />
 
       {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        {STAT_CARDS.map((card) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {STAT_CONFIG.map((card) => (
           <Link
             key={card.key}
             href={card.href}
@@ -158,7 +186,9 @@ export default function AdminDashboardPage() {
                 stats?.[card.key] ?? 0
               )}
             </p>
-            <p className="text-xs text-slate-500 mt-0.5 font-medium">{card.label}</p>
+            <p className="text-xs text-slate-500 mt-0.5 font-medium">
+              {t(card.labelKey)}
+            </p>
           </Link>
         ))}
       </div>
@@ -166,10 +196,10 @@ export default function AdminDashboardPage() {
       {/* ── Quick Actions ── */}
       <div>
         <h2 className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-3">
-          Quick Actions
+          {t("admin.dashboard.quickActions")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {QUICK_ACTIONS.map((section) => (
+          {quickActions.map((section) => (
             <div
               key={section.label}
               className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.07] flex flex-col justify-between gap-4"
@@ -205,7 +235,7 @@ export default function AdminDashboardPage() {
       {/* ── Tech Stack Reference ── */}
       <div>
         <h2 className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-3">
-          Tech Stack
+          {t("admin.dashboard.techStack")}
         </h2>
         <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.07]">
           <div className="flex flex-wrap gap-3 items-center">

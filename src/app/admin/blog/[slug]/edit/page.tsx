@@ -3,26 +3,44 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
+import AdminFormFooter from "@/components/admin/AdminFormFooter";
 import FormField from "@/components/admin/FormField";
 import MarkdownPreview from "@/components/admin/MarkdownPreview";
+import MediaPickerModal from "@/components/admin/MediaPickerModal";
+import LanguageTabSelector from "@/components/admin/LanguageTabSelector";
+import FlagIcon from "@/components/ui/FlagIcon";
+import { useToast } from "@/context/ToastContext";
+import { useTranslation } from "@/context/TranslationContext";
 
 export default function EditBlogPostPage() {
   const router = useRouter();
   const params = useParams();
   const slugParam = params?.slug as string;
+  const { toast } = useToast();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
+  const [contentLang, setContentLang] = useState<"en" | "vi">("en");
+  const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
 
+  // English content
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
+  const [content, setContent] = useState("");
+
+  // Vietnamese content
+  const [title_vi, setTitleVi] = useState("");
+  const [excerpt_vi, setExcerptVi] = useState("");
+  const [content_vi, setContentVi] = useState("");
+
+  // Shared metadata
   const [date, setDate] = useState("");
   const [category, setCategory] = useState("");
   const [tags, setTags] = useState("");
   const [readTime, setReadTime] = useState("");
-  const [content, setContent] = useState("");
 
   useEffect(() => {
     async function loadPost() {
@@ -38,12 +56,15 @@ export default function EditBlogPostPage() {
         }
         const post = await res.json();
         setTitle(post.title || "");
+        setTitleVi(post.title_vi || "");
         setExcerpt(post.excerpt || "");
+        setExcerptVi(post.excerpt_vi || "");
+        setContent(post.content || "");
+        setContentVi(post.content_vi || "");
         setDate(post.date || "");
         setCategory(post.category || "");
         setTags(Array.isArray(post.tags) ? post.tags.join(", ") : "");
         setReadTime(post.readTime || "");
-        setContent(post.content || "");
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
@@ -58,6 +79,13 @@ export default function EditBlogPostPage() {
     loadPost();
   }, [slugParam, router]);
 
+  const copyEnglishToVietnamese = () => {
+    if (!content_vi && content) {
+      setContentVi(content);
+      toast.success(t.admin.blog.copyEnToViSuccess);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -69,12 +97,15 @@ export default function EditBlogPostPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
+          title_vi,
           excerpt,
+          excerpt_vi,
           date,
           category,
           tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
           readTime,
           content,
+          content_vi,
         }),
       });
 
@@ -84,13 +115,12 @@ export default function EditBlogPostPage() {
         throw new Error(data.error || "Failed to update blog post");
       }
 
+      toast.success(t.admin.blog.toastUpdated);
       router.push("/admin/blog");
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Failed to update blog post");
-      }
+      const msg = err instanceof Error ? err.message : "Failed to update blog post";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -99,7 +129,9 @@ export default function EditBlogPostPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-purple-400 animate-pulse font-medium">Loading post data...</div>
+        <div className="text-purple-400 animate-pulse font-medium">
+          {t.admin.blog.loadingPostData}
+        </div>
       </div>
     );
   }
@@ -107,9 +139,10 @@ export default function EditBlogPostPage() {
   return (
     <div>
       <AdminHeader
-        title={`Edit: ${title}`}
-        description={`Editing /blog/${slugParam}.mdx`}
+        title={`${t.admin.common.edit}: ${title}`}
+        description={t.admin.blog.editDescription}
         icon="blog"
+        closeHref="/admin/blog"
       />
 
       {error && (
@@ -118,47 +151,118 @@ export default function EditBlogPostPage() {
         </div>
       )}
 
+      {/* Multilingual Switcher Header */}
+      <LanguageTabSelector
+        activeLang={contentLang}
+        onChange={setContentLang}
+        hasTranslation={{
+          en: Boolean(title.trim()),
+          vi: Boolean(title_vi.trim()),
+        }}
+        label={t.admin.blog.contentLangLabel}
+        className="mb-6"
+      />
+
+      {contentLang === "vi" && (
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs mb-6">
+          <FlagIcon code="vi" size={16} />
+          <span>{t.admin.blog.viDraftNotice}</span>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Metadata Form */}
         <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-4">
-          <h2 className="text-lg font-bold text-white mb-4">Post Metadata (Frontmatter)</h2>
+          <div className="flex items-center justify-between pb-2 border-b border-gray-800">
+            <h2 className="text-lg font-bold text-white">{t.admin.blog.postMetadata}</h2>
+            <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/8">
+              <FlagIcon code={contentLang} size={14} />
+              {contentLang === "en" ? t.common.english : t.common.vietnamese}
+            </span>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Title" id="post-title" required>
-              <input
-                id="post-title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+          {contentLang === "en" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField label={`${t.admin.blog.titleEn} *`} id="post-title" required>
+                <input
+                  id="post-title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  required
+                />
+              </FormField>
+
+              <FormField label={`${t.admin.blog.sharedUrlSlug} (${t.admin.common.optional})`} id="post-slug">
+                <input
+                  id="post-slug"
+                  type="text"
+                  value={slugParam}
+                  disabled
+                  className="w-full px-4 py-2 bg-gray-950 border border-gray-800 rounded-xl text-gray-500 font-mono cursor-not-allowed"
+                />
+              </FormField>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                label={t.admin.blog.titleVi}
+                id="post-title-vi"
+                helper={t.admin.blog.titleViHelper}
+              >
+                <input
+                  id="post-title-vi"
+                  type="text"
+                  value={title_vi}
+                  onChange={(e) => setTitleVi(e.target.value)}
+                  placeholder={title || t.admin.blog.fieldTitlePlaceholder}
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                />
+              </FormField>
+
+              <FormField label={`${t.admin.blog.sharedUrlSlug} (${t.admin.common.optional})`} id="post-slug">
+                <input
+                  id="post-slug"
+                  type="text"
+                  value={slugParam}
+                  disabled
+                  className="w-full px-4 py-2 bg-gray-950 border border-gray-800 rounded-xl text-gray-500 font-mono cursor-not-allowed"
+                />
+              </FormField>
+            </div>
+          )}
+
+          {contentLang === "en" ? (
+            <FormField label={`${t.admin.blog.excerptEn} *`} id="post-excerpt" required>
+              <textarea
+                id="post-excerpt"
+                rows={2}
+                value={excerpt}
+                onChange={(e) => setExcerpt(e.target.value)}
                 className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
                 required
               />
             </FormField>
-
-            <FormField label="URL Slug (Read-only)" id="post-slug">
-              <input
-                id="post-slug"
-                type="text"
-                value={slugParam}
-                disabled
-                className="w-full px-4 py-2 bg-gray-950 border border-gray-800 rounded-xl text-gray-500 font-mono cursor-not-allowed"
+          ) : (
+            <FormField
+              label={t.admin.blog.excerptVi}
+              id="post-excerpt-vi"
+              helper={t.admin.blog.excerptViHelper}
+            >
+              <textarea
+                id="post-excerpt-vi"
+                rows={2}
+                value={excerpt_vi}
+                onChange={(e) => setExcerptVi(e.target.value)}
+                placeholder={excerpt || t.admin.blog.fieldExcerptPlaceholder}
+                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
               />
             </FormField>
-          </div>
+          )}
 
-          <FormField label="Excerpt / Summary" id="post-excerpt" required>
-            <textarea
-              id="post-excerpt"
-              rows={2}
-              value={excerpt}
-              onChange={(e) => setExcerpt(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              required
-            />
-          </FormField>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <FormField label="Publish Date" id="post-date" required>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2 border-t border-gray-800">
+            <FormField label={t.admin.blog.fieldDate} id="post-date" required>
               <input
                 id="post-date"
                 type="date"
@@ -169,7 +273,7 @@ export default function EditBlogPostPage() {
               />
             </FormField>
 
-            <FormField label="Category" id="post-cat" required>
+            <FormField label={t.admin.blog.fieldCategory} id="post-cat" required>
               <input
                 id="post-cat"
                 type="text"
@@ -180,7 +284,7 @@ export default function EditBlogPostPage() {
               />
             </FormField>
 
-            <FormField label="Tags (comma separated)" id="post-tags">
+            <FormField label={t.admin.blog.fieldTags} id="post-tags">
               <input
                 id="post-tags"
                 type="text"
@@ -190,7 +294,7 @@ export default function EditBlogPostPage() {
               />
             </FormField>
 
-            <FormField label="Read Time" id="post-time">
+            <FormField label={t.admin.blog.fieldReadTime} id="post-time">
               <input
                 id="post-time"
                 type="text"
@@ -204,8 +308,33 @@ export default function EditBlogPostPage() {
 
         {/* Content Editor & Preview Tabs */}
         <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800">
-          <div className="flex items-center justify-between border-b border-gray-800 pb-4 mb-4">
-            <h2 className="text-lg font-bold text-white">Post Content (MDX)</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 pb-4 mb-4 gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <FlagIcon code={contentLang} size={18} />
+                <h2 className="text-lg font-bold text-white">
+                  {contentLang === "en" ? t.admin.blog.contentEnMdx : t.admin.blog.contentViMdx}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsImagePickerOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-purple-300 hover:text-white rounded-lg text-xs font-medium border border-gray-700 transition-all shadow-sm"
+              >
+                <span>🖼️</span>
+                <span>{t.admin.blog.insertImage}</span>
+              </button>
+              {contentLang === "vi" && !content_vi && content && (
+                <button
+                  type="button"
+                  onClick={copyEnglishToVietnamese}
+                  className="flex items-center gap-1.5 px-3 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 rounded-lg text-xs font-medium border border-purple-500/30 transition-all"
+                >
+                  <span>📋</span>
+                  <span>{t.admin.blog.copyEnToVi}</span>
+                </button>
+              )}
+            </div>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -216,7 +345,7 @@ export default function EditBlogPostPage() {
                     : "bg-gray-800 text-gray-400 hover:text-white"
                 }`}
               >
-                ✏️ Edit Content
+                ✏️ {t.admin.blog.tabEdit}
               </button>
               <button
                 type="button"
@@ -227,7 +356,7 @@ export default function EditBlogPostPage() {
                     : "bg-gray-800 text-gray-400 hover:text-white"
                 }`}
               >
-                👁️ Live Preview
+                👁️ {t.admin.blog.tabPreview}
               </button>
             </div>
           </div>
@@ -235,35 +364,59 @@ export default function EditBlogPostPage() {
           {activeTab === "edit" ? (
             <textarea
               rows={18}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
+              value={contentLang === "en" ? content : content_vi}
+              onChange={(e) => {
+                if (contentLang === "en") {
+                  setContent(e.target.value);
+                } else {
+                  setContentVi(e.target.value);
+                }
+              }}
+              placeholder={
+                contentLang === "en"
+                  ? t.admin.blog.contentPlaceholderEn
+                  : t.admin.blog.contentPlaceholderVi
+              }
               className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-purple-500 leading-relaxed"
             />
           ) : (
             <div className="p-6 bg-gray-950 border border-gray-800 rounded-xl min-h-[400px]">
-              <MarkdownPreview content={content} />
+              <MarkdownPreview
+                content={
+                  contentLang === "en"
+                    ? content
+                    : content_vi || t.admin.blog.noViContentPreview + content
+                }
+              />
             </div>
           )}
         </div>
 
         {/* Submit Actions */}
-        <div className="flex justify-end gap-4">
-          <button
-            type="button"
-            onClick={() => router.push("/admin/blog")}
-            className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium rounded-xl text-sm transition-all"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-medium rounded-xl text-sm shadow-lg shadow-purple-500/25 hover:opacity-90 disabled:opacity-50 transition-all"
-          >
-            {saving ? "Saving Changes..." : "Save Changes"}
-          </button>
-        </div>
+        <AdminFormFooter
+          closeHref="/admin/blog"
+          closeLabel={t.admin.common.cancel}
+          saveLabel={t.admin.blog.editTitle}
+          isSaving={saving}
+        />
       </form>
+
+      {/* Image Picker Modal for Blog */}
+      <MediaPickerModal
+        isOpen={isImagePickerOpen}
+        onClose={() => setIsImagePickerOpen(false)}
+        onSelect={(url, asset) => {
+          const alt = asset?.filename ? asset.filename.split(".")[0] : "image";
+          if (contentLang === "en") {
+            setContent((prev) => `${prev}\n\n![${alt}](${url})\n\n`);
+          } else {
+            setContentVi((prev) => `${prev}\n\n![${alt}](${url})\n\n`);
+          }
+          toast.success(t.admin.blog.imageInserted);
+        }}
+        title={t.admin.blog.imagePickerTitle}
+        defaultCategory="blog"
+      />
     </div>
   );
 }

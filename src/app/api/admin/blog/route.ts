@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifySession } from "@/lib/admin-auth";
+import { requireAdminSession } from "@/lib/admin-auth";
 import { getAllPosts } from "@/lib/blog";
 import fs from "fs";
 import path from "path";
@@ -11,9 +11,8 @@ const BLOG_DIR = path.join(process.cwd(), "content/blog");
  * GET /api/admin/blog — List all blog posts (frontmatter only)
  */
 export async function GET() {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   const posts = getAllPosts().map(({ content: _content, ...meta }) => meta);
   return NextResponse.json(posts);
 }
@@ -22,12 +21,23 @@ export async function GET() {
  * POST /api/admin/blog — Create a new blog post
  */
 export async function POST(request: Request) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const body = await request.json();
-    const { slug, title, excerpt, date, category, tags, readTime, content } = body;
+    const {
+      slug,
+      title,
+      title_vi,
+      excerpt,
+      excerpt_vi,
+      content_vi,
+      date,
+      category,
+      tags,
+      readTime,
+      content,
+    } = body;
 
     if (!slug || !title) {
       return NextResponse.json({ error: "Slug and title are required" }, { status: 400 });
@@ -51,7 +61,7 @@ export async function POST(request: Request) {
       fs.mkdirSync(BLOG_DIR, { recursive: true });
     }
 
-    const frontmatter = {
+    const frontmatter: Record<string, unknown> = {
       title,
       excerpt: excerpt || "",
       date: date || new Date().toISOString().split("T")[0],
@@ -59,6 +69,10 @@ export async function POST(request: Request) {
       tags: tags || [],
       readTime: readTime || "5 min read",
     };
+
+    if (title_vi?.trim()) frontmatter.title_vi = title_vi.trim();
+    if (excerpt_vi?.trim()) frontmatter.excerpt_vi = excerpt_vi.trim();
+    if (content_vi?.trim()) frontmatter.content_vi = content_vi.trim();
 
     const fileContent = matter.stringify(content || "", frontmatter);
     fs.writeFileSync(filePath, fileContent, "utf-8");

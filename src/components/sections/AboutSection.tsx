@@ -2,17 +2,19 @@
 
 import { motion } from "framer-motion";
 import { AnimatedSection, GlassCard } from "@/components/ui";
-import { siteConfig } from "@/lib/constants";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
-
-const stats = [
-  { label: "Years Experience", value: "5+" },
-  { label: "Projects Completed", value: "50+" },
-  { label: "Happy Clients", value: "30+" },
-  { label: "Technologies", value: "20+" },
-];
+import { useTranslation } from "@/context/LanguageContext";
 
 export default function AboutSection() {
+  const { t } = useTranslation();
+
+  const stats = [
+    { label: t("about.stats.years"), value: "5+" },
+    { label: t("about.stats.projects"), value: "50+" },
+    { label: t("about.stats.clients"), value: "30+" },
+    { label: t("about.stats.tech"), value: "20+" },
+  ];
+
   return (
     <section id="about" className="relative py-32 overflow-hidden">
       {/* Background gradient */}
@@ -22,12 +24,12 @@ export default function AboutSection() {
         <AnimatedSection>
           <div className="text-center mb-16">
             <span className="text-sm text-purple-500 font-medium tracking-wider uppercase mb-4 block">
-              About Me
+              {t("about.badge")}
             </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Crafting Digital{" "}
+            <h2 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">
+              {t("about.titlePrefix")}
               <span className="bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent">
-                Experiences
+                {t("about.titleHighlight")}
               </span>
             </h2>
           </div>
@@ -37,24 +39,13 @@ export default function AboutSection() {
           {/* Left: Bio */}
           <AnimatedSection>
             <GlassCard className="p-8">
-              <h3 className="text-2xl font-semibold text-white mb-6">
-                {siteConfig.author.title}
+              <h3 className="text-2xl font-semibold text-white light:text-neutral-900 mb-6">
+                {t("about.role")}
               </h3>
-              <div className="space-y-4 text-white/70 leading-relaxed">
-                <p>
-                  I&apos;m a passionate web developer with over 5 years of experience
-                  creating modern, performant, and visually stunning web applications.
-                  My expertise lies in React, Next.js, and the entire JavaScript ecosystem.
-                </p>
-                <p>
-                  I specialize in building immersive digital experiences that push the
-                  boundaries of what&apos;s possible on the web. From 3D visualizations to
-                  complex data dashboards, I love tackling challenging problems.
-                </p>
-                <p>
-                  When I&apos;m not coding, you&apos;ll find me exploring the latest web technologies,
-                  contributing to open-source projects, or sharing my knowledge through blog posts.
-                </p>
+              <div className="space-y-4 text-white/70 light:text-neutral-600 leading-relaxed">
+                <p>{t("about.bioP1")}</p>
+                <p>{t("about.bioP2")}</p>
+                <p>{t("about.bioP3")}</p>
               </div>
             </GlassCard>
           </AnimatedSection>
@@ -67,13 +58,13 @@ export default function AboutSection() {
             viewport={{ once: true }}
             className="grid grid-cols-2 gap-4"
           >
-            {stats.map((stat, index) => (
+            {stats.map((stat) => (
               <motion.div key={stat.label} variants={fadeInUp}>
                 <GlassCard className="text-center p-6 h-full">
                   <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent mb-2">
                     {stat.value}
                   </div>
-                  <div className="text-white/60 text-sm">{stat.label}</div>
+                  <div className="text-white/60 light:text-neutral-500 text-sm">{stat.label}</div>
                 </GlassCard>
               </motion.div>
             ))}

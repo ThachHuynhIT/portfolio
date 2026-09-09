@@ -23,9 +23,15 @@ function getPrismaClient(): PrismaClient {
     return globalThis.__prisma;
   }
 
-  const connectionString = process.env.DATABASE_URL;
+  let connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error("DATABASE_URL environment variable is not set.");
+  }
+
+  // Prevent pg-connection-string v3 deprecation warning for sslmode=require
+  if (connectionString.includes("sslmode=require") && !connectionString.includes("uselibpqcompat")) {
+    const separator = connectionString.includes("?") ? "&" : "?";
+    connectionString = `${connectionString}${separator}uselibpqcompat=true`;
   }
 
   const pool = new Pool({ connectionString });

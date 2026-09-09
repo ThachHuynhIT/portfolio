@@ -46,9 +46,23 @@ declare global {
 const rooms = globalThis.globalMusicRooms || new Map<string, MusicRoom>();
 globalThis.globalMusicRooms = rooms;
 
+// Throttle cleanup to at most once per minute — rooms only go stale after an
+// hour, so scanning the whole map on every single request is wasted work.
+const CLEANUP_INTERVAL_MS = 60000;
+declare global {
+  // eslint-disable-next-line no-var
+  var globalMusicRoomsLastCleanup: number | undefined;
+}
+
 // Helper to cleanup stale rooms (inactive for > 1 hour)
 function cleanupStaleRooms() {
   const now = Date.now();
+  const lastCleanup = globalThis.globalMusicRoomsLastCleanup || 0;
+  if (now - lastCleanup < CLEANUP_INTERVAL_MS) {
+    return;
+  }
+  globalThis.globalMusicRoomsLastCleanup = now;
+
   for (const [code, room] of rooms.entries()) {
     if (now - room.lastUpdated > 3600000) {
       rooms.delete(code);

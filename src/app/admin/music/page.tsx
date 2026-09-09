@@ -30,24 +30,5 @@ export default async function AdminMusicPage() {
     createdAt: t.createdAt.toISOString(),
   }));
 
-  return (
-    <div className="max-w-7xl space-y-6">
-      <AdminHeader
-        title="Music Tracks"
-        description="Upload and manage audio tracks for the /music lounge. Preview, filter, and batch-manage your library."
-        icon="music"
-        action={
-          <Link
-            href="/admin/music/new"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
-          >
-            <span className="text-base leading-none">+</span>
-            Add Track
-          </Link>
-        }
-      />
-
-      <AdminMusicClient tracks={serialized} />
-    </div>
-  );
+  return <AdminMusicClient tracks={serialized} />;
 }

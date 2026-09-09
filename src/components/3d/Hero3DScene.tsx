@@ -7,6 +7,7 @@ import * as THREE from "three";
 
 interface Hero3DSceneProps {
   mousePosition: { x: number; y: number };
+  theme?: "light" | "dark";
 }
 
 /**
@@ -40,7 +41,13 @@ function FloatingGeometry({ mousePosition }: Hero3DSceneProps) {
   return (
     <Float speed={1.5} rotationIntensity={0.3} floatIntensity={0.5}>
       <group ref={meshRef}>
-        {/* Outer distorted sphere */}
+        {/* Outer distorted sphere.
+            Kept low-metalness/emissive: a highly metallic PBR material with
+            no environment map to reflect renders as a flat gray/near-black
+            blob (only direct-light specular shows) — invisible against the
+            old dark-only background but glaring as an opaque gray disc once
+            the page could also be light. Leaning on diffuse color + a bit of
+            emissive keeps the sphere reading as vivid purple in both themes. */}
         <mesh scale={2.5}>
           <icosahedronGeometry args={[1, 4]} />
           <MeshDistortMaterial
@@ -48,10 +55,12 @@ function FloatingGeometry({ mousePosition }: Hero3DSceneProps) {
             attach="material"
             distort={0.4}
             speed={2}
-            roughness={0.2}
-            metalness={0.8}
+            roughness={0.4}
+            metalness={0.15}
+            emissive="#8b5cf6"
+            emissiveIntensity={0.25}
             transparent
-            opacity={0.8}
+            opacity={0.75}
           />
         </mesh>
 
@@ -139,15 +148,15 @@ function OrbitingParticles() {
 /**
  * Background grid effect
  */
-function BackgroundGrid() {
+function BackgroundGrid({ theme = "dark" }: { theme?: "light" | "dark" }) {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3, 0]}>
       <planeGeometry args={[50, 50, 50, 50]} />
       <meshBasicMaterial
-        color="#1a1a2e"
+        color={theme === "light" ? "#c4bfe0" : "#1a1a2e"}
         wireframe
         transparent
-        opacity={0.15}
+        opacity={theme === "light" ? 0.25 : 0.15}
       />
     </mesh>
   );
@@ -181,12 +190,12 @@ function Lighting() {
 /**
  * Main Hero 3D Scene Component
  */
-export default function Hero3DScene({ mousePosition }: Hero3DSceneProps) {
+export default function Hero3DScene({ mousePosition, theme = "dark" }: Hero3DSceneProps) {
   return (
     <>
       <Lighting />
-      <fog attach="fog" args={["#050505", 8, 30]} />
-      <BackgroundGrid />
+      <fog attach="fog" args={[theme === "light" ? "#faf9fc" : "#050505", 8, 30]} />
+      <BackgroundGrid theme={theme} />
       <FloatingGeometry mousePosition={mousePosition} />
       <OrbitingParticles />
     </>
