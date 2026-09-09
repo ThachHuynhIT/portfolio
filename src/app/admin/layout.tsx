@@ -4,32 +4,31 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import Icon from "@/components/ui/Icon";
+import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
+import { ToastProvider } from "@/context/ToastContext";
+import { useTranslation } from "@/context/LanguageContext";
 
-// Maps pathname prefixes to breadcrumb labels + icons
-const BREADCRUMBS: Record<string, { label: string; icon: string }> = {
-  "/admin/skills": { label: "Skills", icon: "skills" },
-  "/admin/projects": { label: "Projects", icon: "projects" },
-  "/admin/music": { label: "Music Tracks", icon: "music" },
-  "/admin/blog": { label: "Blog Posts", icon: "blog" },
-  "/admin/site-config": { label: "Site Config", icon: "settings" },
-  "/admin/social-links": { label: "Social Links", icon: "links" },
-  "/admin/nav-links": { label: "Nav Links", icon: "nav" },
-  "/admin/login": { label: "Login", icon: "dashboard" },
+// Maps pathname prefixes to translation keys + default labels + icons
+const BREADCRUMBS: Record<string, { key: string; defaultLabel: string; icon: string }> = {
+  "/admin/skills": { key: "admin.sidebar.skills", defaultLabel: "Skills", icon: "skills" },
+  "/admin/projects": { key: "admin.sidebar.projects", defaultLabel: "Projects", icon: "projects" },
+  "/admin/photography": { key: "admin.sidebar.photography", defaultLabel: "Photography", icon: "camera" },
+  "/admin/music": { key: "admin.sidebar.music", defaultLabel: "Music Tracks", icon: "music" },
+  "/admin/blog": { key: "admin.sidebar.blog", defaultLabel: "Blog Posts", icon: "blog" },
+  "/admin/couple": { key: "admin.sidebar.couple", defaultLabel: "Couple & Memories", icon: "heart" },
+  "/admin/media": { key: "admin.sidebar.media", defaultLabel: "Media Library", icon: "image" },
+  "/admin/site-config": { key: "admin.sidebar.siteConfig", defaultLabel: "Site Config", icon: "settings" },
+  "/admin/social-links": { key: "admin.sidebar.socialLinks", defaultLabel: "Social Links", icon: "links" },
+  "/admin/nav-links": { key: "admin.sidebar.navLinks", defaultLabel: "Nav Links", icon: "nav" },
+  "/admin/login": { key: "admin.common.admin", defaultLabel: "Login", icon: "dashboard" },
 };
-
-function getCurrentCrumb(pathname: string) {
-  if (pathname === "/admin") return { label: "Dashboard", icon: "dashboard" };
-  const match = Object.entries(BREADCRUMBS).find(([key]) =>
-    pathname.startsWith(key)
-  );
-  return match ? match[1] : { label: "Admin", icon: "dashboard" };
-}
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const isLoginPage = pathname === "/admin/login";
 
@@ -37,37 +36,74 @@ export default function AdminLayout({
     return <div className="min-h-screen bg-slate-950 text-white">{children}</div>;
   }
 
-  const crumb = getCurrentCrumb(pathname);
+  const match = Object.entries(BREADCRUMBS).find(([prefix]) =>
+    pathname.startsWith(prefix)
+  );
+
+  const currentCrumb = match
+    ? { label: t(match[1].key), icon: match[1].icon }
+    : pathname === "/admin"
+    ? { label: t("admin.sidebar.dashboard"), icon: "dashboard" }
+    : { label: t("admin.common.admin"), icon: "dashboard" };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex">
-      <AdminSidebar />
+    <ToastProvider>
+      <div className="h-screen w-screen overflow-hidden bg-slate-950 text-white flex">
+        <AdminSidebar />
 
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* ── Top breadcrumb bar ── */}
-        <header className="h-14 border-b border-white/5 bg-slate-950/80 backdrop-blur-md flex items-center px-6 gap-3 flex-shrink-0 sticky top-0 z-10">
-          <Link
-            href="/admin"
-            className="text-xs text-slate-500 hover:text-slate-300 transition-colors font-medium"
-          >
-            Admin
-          </Link>
-          {pathname !== "/admin" && (
-            <>
-              <span className="text-slate-700 text-xs">/</span>
-              <div className="flex items-center gap-1.5">
-                <Icon name={crumb.icon} size={13} className="text-slate-500" />
-                <span className="text-xs font-semibold text-slate-300">{crumb.label}</span>
+        <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+          {/* ── Top bar: Breadcrumb & Language Switcher ── */}
+          <header className="h-14 border-b border-white/5 bg-slate-950/80 backdrop-blur-md flex items-center justify-between px-6 gap-3 flex-shrink-0 z-10">
+            {/* Left: Breadcrumbs */}
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Link
+                href="/admin"
+                className="text-xs text-slate-500 hover:text-slate-300 transition-colors font-medium"
+              >
+                {t("admin.common.admin", "Admin")}
+              </Link>
+              {pathname !== "/admin" && (
+                <>
+                  <span className="text-slate-700 text-xs">/</span>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Icon name={currentCrumb.icon} size={13} className="text-slate-500 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-slate-300 truncate">
+                      {currentCrumb.label}
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Right: Quick Switcher (Flags) & View Site link */}
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {/* Flag-based Language Switcher */}
+              <div className="flex items-center gap-2">
+                <LanguageSwitcher variant="pill" size="sm" />
               </div>
-            </>
-          )}
-        </header>
 
-        {/* ── Page content ── */}
-        <main className="flex-1 p-7 overflow-y-auto">
-          {children}
-        </main>
+              <div className="h-4 w-px bg-white/10" />
+
+              <Link
+                href="/"
+                target="_blank"
+                title={t("admin.sidebar.viewSite", "View Site")}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/10 flex items-center gap-1.5 text-xs font-medium"
+              >
+                <Icon name="globe" size={14} className="text-slate-400" />
+                <span className="hidden sm:inline text-xs text-slate-400 hover:text-slate-200">
+                  {t("admin.sidebar.viewSite", "View Site")}
+                </span>
+              </Link>
+            </div>
+          </header>
+
+          {/* ── Page content ── */}
+          <main className="flex-1 p-7 overflow-y-auto min-h-0">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </ToastProvider>
   );
 }

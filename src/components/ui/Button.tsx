@@ -18,7 +18,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         className={cn(
           "relative inline-flex items-center justify-center font-medium transition-all duration-300",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black light:focus-visible:ring-offset-white",
           "disabled:cursor-not-allowed disabled:opacity-50",
           {
             // Sizes
@@ -28,11 +28,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             // Variants
             "bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-600 hover:to-cyan-600 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40":
               variant === "primary",
-            "bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm border border-white/10":
+            "bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm border border-white/10 light:bg-neutral-900/[0.06] light:text-neutral-900 light:hover:bg-neutral-900/10 light:border-neutral-900/10":
               variant === "secondary",
-            "text-white/80 hover:text-white hover:bg-white/5":
+            "text-white/80 hover:text-white hover:bg-white/5 light:text-neutral-700 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.04]":
               variant === "ghost",
-            "border border-white/20 text-white hover:bg-white/5 hover:border-white/40":
+            "border border-white/20 text-white hover:bg-white/5 hover:border-white/40 light:border-neutral-900/15 light:text-neutral-900 light:hover:bg-neutral-900/[0.04] light:hover:border-neutral-900/30":
               variant === "outline",
           },
           className

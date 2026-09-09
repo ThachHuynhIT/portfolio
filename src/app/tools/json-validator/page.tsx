@@ -9,7 +9,7 @@ export default function JsonValidatorPage() {
             JSON Parameter Validator
           </h1>
           <p className="text-gray-300 text-lg">
-            Kiểm tra các tb_def_parameter__id có tồn tại trong danh sách parameters hay không
+            Validate whether tb_def_parameter__id exists in the parameter definitions list
           </p>
         </div>
         <JsonValidator />

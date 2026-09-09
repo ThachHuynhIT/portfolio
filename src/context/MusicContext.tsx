@@ -24,7 +24,8 @@ export interface Track {
 }
 
 export type VisualizerStyle = "bars" | "wave" | "pulsar";
-export type TabView = "player" | "queue" | "info" | "lyrics";
+export type TabView = "player" | "charts" | "favorites" | "queue" | "info" | "lyrics";
+export type DeckMode = "vinyl" | "lyrics";
 export type RepeatMode = "none" | "all" | "one";
 export type EqPreset = "flat" | "bass_boost" | "vocal" | "electronic" | "chill";
 
@@ -113,6 +114,8 @@ interface MusicContextType {
   visualizerStyle: VisualizerStyle;
   isZenMode: boolean;
   activeTab: TabView;
+  deckMode: DeckMode;
+  setDeckMode: (mode: DeckMode) => void;
   isPlayerCollapsed: boolean;
   isMobileSidebarOpen: boolean;
   likedTrackIds: Set<string>;
@@ -297,7 +300,8 @@ export function MusicProvider({
   // View & UI State
   const [visualizerStyle, setVisualizerStyle] = useState<VisualizerStyle>("bars");
   const [isZenMode, setIsZenMode] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabView>("player");
+  const [activeTab, setActiveTab] = useState<TabView>("charts");
+  const [deckMode, setDeckMode] = useState<DeckMode>("vinyl");
   const [isPlayerCollapsed, setIsPlayerCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -1326,6 +1330,8 @@ export function MusicProvider({
         visualizerStyle,
         isZenMode,
         activeTab,
+        deckMode,
+        setDeckMode,
         isPlayerCollapsed,
         isMobileSidebarOpen,
         likedTrackIds,

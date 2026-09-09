@@ -3,6 +3,10 @@
 import { useState, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/context/ToastContext";
+import { useTranslation } from "@/context/TranslationContext";
+import AdminHeader from "@/components/admin/AdminHeader";
+import ConfirmDialog from "@/components/admin/ConfirmDialog";
 
 interface Track {
   id: string;
@@ -36,6 +40,8 @@ function formatTotalTime(tracks: Track[]): string {
 
 export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] }) {
   const router = useRouter();
+  const { toast } = useToast();
+  const { t } = useTranslation();
   const [tracks, setTracks] = useState<Track[]>(initial);
 
   // Search & Filter
@@ -53,8 +59,10 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Deleting state
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  // Deleting dialog states
+  const [deleteTarget, setDeleteTarget] = useState<Track | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isBatchDeleteDialogOpen, setIsBatchDeleteDialogOpen] = useState(false);
   const [isBatchOperating, setIsBatchOperating] = useState(false);
 
   // Unique genres
@@ -125,38 +133,54 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
 
   // Toggle publish status
   const handleTogglePublish = async (id: string, current: boolean) => {
-    const res = await fetch(`/api/music/tracks/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ published: !current }),
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      setTracks((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, published: updated.published } : t))
-      );
+    try {
+      const res = await fetch(`/api/music/tracks/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ published: !current }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setTracks((prev) =>
+          prev.map((t) => (t.id === id ? { ...t, published: updated.published } : t))
+        );
+        toast.success(
+          updated.published ? t.admin.photography.toastPublished : t.admin.photography.toastDraft
+        );
+      } else {
+        toast.error("Failed to update track status");
+      }
+    } catch {
+      toast.error("Failed to update track status");
     }
   };
 
   // Delete single track
-  const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to delete "${title}"? This cannot be undone.`)) return;
-    setDeletingId(id);
-    if (previewTrackId === id) {
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    if (previewTrackId === deleteTarget.id) {
       previewAudioRef.current?.pause();
       setPreviewTrackId(null);
     }
-    const res = await fetch(`/api/music/tracks/${id}`, { method: "DELETE" });
-    setDeletingId(null);
-    if (res.ok) {
-      setTracks((prev) => prev.filter((t) => t.id !== id));
-      setSelectedIds((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-    } else {
-      alert("Failed to delete track.");
+    try {
+      const res = await fetch(`/api/music/tracks/${deleteTarget.id}`, { method: "DELETE" });
+      if (res.ok) {
+        setTracks((prev) => prev.filter((t) => t.id !== deleteTarget.id));
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(deleteTarget.id);
+          return next;
+        });
+        toast.success(t.admin.music.toastDeleted);
+        setDeleteTarget(null);
+      } else {
+        toast.error("Failed to delete track.");
+      }
+    } catch {
+      toast.error("Failed to delete track.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -182,30 +206,46 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
     if (selectedIds.size === 0) return;
     setIsBatchOperating(true);
     const ids = Array.from(selectedIds);
-    await Promise.all(
-      ids.map((id) =>
-        fetch(`/api/music/tracks/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ published: publish }),
-        })
-      )
-    );
-    setTracks((prev) =>
-      prev.map((t) => (selectedIds.has(t.id) ? { ...t, published: publish } : t))
-    );
-    setIsBatchOperating(false);
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          fetch(`/api/music/tracks/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ published: publish }),
+          })
+        )
+      );
+      setTracks((prev) =>
+        prev.map((t) => (selectedIds.has(t.id) ? { ...t, published: publish } : t))
+      );
+      toast.success(
+        publish
+          ? `${t.admin.music.publishSelected} (${ids.length})`
+          : `${t.admin.music.unpublishSelected} (${ids.length})`
+      );
+    } catch {
+      toast.error("Failed to update selected tracks");
+    } finally {
+      setIsBatchOperating(false);
+    }
   };
 
-  const handleBatchDelete = async () => {
+  const handleConfirmBatchDelete = async () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Delete ${selectedIds.size} selected tracks? This cannot be undone.`)) return;
     setIsBatchOperating(true);
     const ids = Array.from(selectedIds);
-    await Promise.all(ids.map((id) => fetch(`/api/music/tracks/${id}`, { method: "DELETE" })));
-    setTracks((prev) => prev.filter((t) => !selectedIds.has(t.id)));
-    setSelectedIds(new Set());
-    setIsBatchOperating(false);
+    try {
+      await Promise.all(ids.map((id) => fetch(`/api/music/tracks/${id}`, { method: "DELETE" })));
+      setTracks((prev) => prev.filter((t) => !selectedIds.has(t.id)));
+      setSelectedIds(new Set());
+      toast.success(t.admin.music.toastDeleted);
+      setIsBatchDeleteDialogOpen(false);
+    } catch {
+      toast.error("Failed to delete selected tracks");
+    } finally {
+      setIsBatchOperating(false);
+    }
   };
 
   // Summary Metrics
@@ -215,11 +255,29 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
 
   return (
     <div className="space-y-6">
+      {/* ── Admin Header ── */}
+      <AdminHeader
+        title={t.admin.music.title}
+        description={t.admin.music.description}
+        icon="music"
+        action={
+          <Link
+            href="/admin/music/new"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
+          >
+            <span className="text-base leading-none">+</span>
+            {t.admin.music.addTrack}
+          </Link>
+        }
+      />
+
       {/* ── Top Metric Banner ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
         <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 backdrop-blur-md">
           <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs font-semibold uppercase">Total Tracks</span>
+            <span className="text-gray-400 text-xs font-semibold uppercase">
+              {t.admin.music.statTotalTracks}
+            </span>
             <span className="text-xl">🎵</span>
           </div>
           <p className="text-2xl font-bold text-white mt-2">{tracks.length}</p>
@@ -228,29 +286,37 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
 
         <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 backdrop-blur-md">
           <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs font-semibold uppercase">Published</span>
+            <span className="text-gray-400 text-xs font-semibold uppercase">
+              {t.admin.music.statPublished}
+            </span>
             <span className="text-xl">🟢</span>
           </div>
           <p className="text-2xl font-bold text-emerald-400 mt-2">{publishedCount}</p>
-          <span className="text-xs text-gray-500">{draftCount} in drafts</span>
+          <span className="text-xs text-gray-500">
+            {draftCount} {t.admin.music.inDrafts}
+          </span>
         </div>
 
         <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 backdrop-blur-md">
           <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs font-semibold uppercase">Total Plays</span>
+            <span className="text-gray-400 text-xs font-semibold uppercase">
+              {t.admin.music.statTotalPlays}
+            </span>
             <span className="text-xl">🔥</span>
           </div>
           <p className="text-2xl font-bold text-cyan-400 mt-2">{totalPlays.toLocaleString()}</p>
-          <span className="text-xs text-gray-500">Live stream listens</span>
+          <span className="text-xs text-gray-500">{t.admin.music.liveListens}</span>
         </div>
 
         <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 backdrop-blur-md">
           <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs font-semibold uppercase">Library Time</span>
+            <span className="text-gray-400 text-xs font-semibold uppercase">
+              {t.admin.music.statLibraryTime}
+            </span>
             <span className="text-xl">⏱️</span>
           </div>
           <p className="text-2xl font-bold text-purple-400 mt-2">{formatTotalTime(tracks)}</p>
-          <span className="text-xs text-gray-500">Audio runtime</span>
+          <span className="text-xs text-gray-500">{t.admin.music.audioRuntime}</span>
         </div>
 
         <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-900/40 to-cyan-900/40 border border-purple-500/20 flex flex-col justify-center items-center text-center">
@@ -258,7 +324,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
             href="/admin/music/new"
             className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 transition-all text-center"
           >
-            + Add New Track
+            + {t.admin.music.addTrack}
           </Link>
         </div>
       </div>
@@ -270,7 +336,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">🔍</span>
           <input
             type="text"
-            placeholder="Search tracks, artists, genres..."
+            placeholder={t.admin.music.searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-8 py-2 bg-gray-800/80 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-purple-500 transition-all placeholder:text-gray-500"
@@ -293,9 +359,9 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
             onChange={(e) => setStatusFilter(e.target.value as any)}
             className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-xs font-medium text-gray-300 focus:outline-none focus:border-purple-500"
           >
-            <option value="all">All Status</option>
-            <option value="published">Published Only</option>
-            <option value="draft">Drafts Only</option>
+            <option value="all">{t.admin.common.allStatus}</option>
+            <option value="published">{t.admin.common.published}</option>
+            <option value="draft">{t.admin.common.draft}</option>
           </select>
 
           {/* Genre Filter */}
@@ -304,7 +370,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
             onChange={(e) => setGenreFilter(e.target.value)}
             className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-xs font-medium text-gray-300 focus:outline-none focus:border-purple-500"
           >
-            <option value="all">All Genres</option>
+            <option value="all">{t.admin.music.allGenres}</option>
             {genres.filter((g) => g !== "all").map((g) => (
               <option key={g} value={g}>{g}</option>
             ))}
@@ -316,10 +382,10 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
             onChange={(e) => setSortBy(e.target.value as any)}
             className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-xs font-medium text-gray-300 focus:outline-none focus:border-purple-500"
           >
-            <option value="order">Sort: Custom Order</option>
-            <option value="plays">Sort: Most Played</option>
-            <option value="title">Sort: Track Title</option>
-            <option value="recent">Sort: Recently Added</option>
+            <option value="order">{t.admin.music.sortOrder}</option>
+            <option value="plays">{t.admin.music.sortPlays}</option>
+            <option value="title">{t.admin.music.sortTitle}</option>
+            <option value="recent">{t.admin.music.sortRecent}</option>
           </select>
 
           {/* View Toggle */}
@@ -347,13 +413,13 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
         <div className="p-3 px-4 rounded-xl bg-purple-950/40 border border-purple-500/30 flex items-center justify-between text-sm animate-fade-in">
           <div className="flex items-center gap-3">
             <span className="font-semibold text-purple-300">
-              {selectedIds.size} track{selectedIds.size > 1 ? "s" : ""} selected
+              {t.admin.music.selectedCount.replace("{count}", String(selectedIds.size))}
             </span>
             <button
               onClick={() => setSelectedIds(new Set())}
               className="text-xs text-gray-400 hover:text-white underline"
             >
-              Deselect all
+              {t.admin.music.deselectAll}
             </button>
           </div>
           <div className="flex items-center gap-2">
@@ -362,21 +428,21 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
               disabled={isBatchOperating}
               className="px-3 py-1.5 bg-emerald-600/80 hover:bg-emerald-600 text-white text-xs font-semibold rounded-lg transition-all"
             >
-              Publish Selected
+              {t.admin.music.publishSelected}
             </button>
             <button
               onClick={() => handleBatchPublish(false)}
               disabled={isBatchOperating}
               className="px-3 py-1.5 bg-yellow-600/80 hover:bg-yellow-600 text-white text-xs font-semibold rounded-lg transition-all"
             >
-              Unpublish Selected
+              {t.admin.music.unpublishSelected}
             </button>
             <button
-              onClick={handleBatchDelete}
+              onClick={() => setIsBatchDeleteDialogOpen(true)}
               disabled={isBatchOperating}
               className="px-3 py-1.5 bg-red-600/80 hover:bg-red-600 text-white text-xs font-semibold rounded-lg transition-all"
             >
-              Delete Selected
+              {t.admin.music.deleteSelected}
             </button>
           </div>
         </div>
@@ -386,25 +452,25 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
       {filtered.length === 0 ? (
         <div className="p-12 text-center rounded-2xl bg-gray-900 border border-gray-800 text-gray-400">
           <div className="text-4xl mb-3">🎵</div>
-          <h3 className="text-lg font-bold text-white mb-1">No tracks found</h3>
+          <h3 className="text-lg font-bold text-white mb-1">{t.admin.music.noTracksFound}</h3>
           <p className="text-sm max-w-sm mx-auto mb-4 text-gray-500">
             {tracks.length === 0
-              ? "Your music lounge is empty. Add your first track to get started!"
-              : "No tracks match the current search or filters."}
+              ? t.admin.music.noTracksDesc
+              : t.admin.music.noFilterResults}
           </p>
           {tracks.length === 0 ? (
             <Link
               href="/admin/music/new"
               className="inline-flex px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium text-sm transition-all"
             >
-              Add First Track
+              {t.admin.music.addTrack}
             </Link>
           ) : (
             <button
               onClick={() => { setSearch(""); setStatusFilter("all"); setGenreFilter("all"); }}
               className="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium transition-all"
             >
-              Reset Filters
+              {t.admin.music.resetFilters}
             </button>
           )}
         </div>
@@ -422,15 +488,15 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                     className="accent-purple-600 rounded cursor-pointer"
                   />
                 </th>
-                <th className="p-4 w-12 text-center">Preview</th>
-                <th className="p-4">Track Title</th>
-                <th className="p-4">Artist</th>
-                <th className="p-4">Album</th>
-                <th className="p-4">Genre</th>
-                <th className="p-4 text-center">Duration</th>
-                <th className="p-4 text-center">Plays</th>
-                <th className="p-4 text-center">Status</th>
-                <th className="p-4 text-right">Actions</th>
+                <th className="p-4 w-12 text-center">{t.admin.common.preview}</th>
+                <th className="p-4">{t.admin.music.colTrack}</th>
+                <th className="p-4">{t.admin.music.fieldArtist}</th>
+                <th className="p-4">{t.admin.music.colAlbum}</th>
+                <th className="p-4">{t.admin.music.fieldGenre}</th>
+                <th className="p-4 text-center">{t.admin.music.colDuration}</th>
+                <th className="p-4 text-center">{t.admin.music.colPlays}</th>
+                <th className="p-4 text-center">{t.admin.common.status}</th>
+                <th className="p-4 text-right">{t.admin.common.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800/60 text-sm">
@@ -482,7 +548,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                             {track.title}
                           </span>
                           <span className="text-xs text-gray-400 block truncate max-w-[200px]">
-                            Order: #{track.order}
+                            #{track.order}
                           </span>
                         </div>
                       </div>
@@ -520,7 +586,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                         title="Click to toggle publish status"
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${track.published ? "bg-emerald-400 animate-pulse" : "bg-gray-500"}`} />
-                        {track.published ? "Published" : "Draft"}
+                        {track.published ? t.admin.common.published : t.admin.common.draft}
                       </button>
                     </td>
 
@@ -531,14 +597,13 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                           href={`/admin/music/${track.id}/edit`}
                           className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white rounded-lg text-xs font-semibold transition-colors border border-gray-700"
                         >
-                          Edit
+                          {t.admin.common.edit}
                         </Link>
                         <button
-                          onClick={() => handleDelete(track.id, track.title)}
-                          disabled={deletingId === track.id}
+                          onClick={() => setDeleteTarget(track)}
                           className="px-3 py-1.5 bg-red-950/30 hover:bg-red-900/50 text-red-400 hover:text-red-300 rounded-lg text-xs font-semibold transition-colors border border-red-800/40"
                         >
-                          {deletingId === track.id ? "…" : "Delete"}
+                          {t.admin.common.delete}
                         </button>
                       </div>
                     </td>
@@ -593,7 +658,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                             : "bg-black/70 text-gray-300"
                         }`}
                       >
-                        {track.published ? "Published" : "Draft"}
+                        {track.published ? t.admin.common.published : t.admin.common.draft}
                       </button>
                     </div>
 
@@ -613,7 +678,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                   <p className="text-gray-400 text-xs truncate mb-2">{track.artist}</p>
 
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-                    <span>{track.genre || "No genre"}</span>
+                    <span>{track.genre || "—"}</span>
                     <span>{formatDuration(track.duration)}</span>
                     <span className="text-cyan-400 font-mono">🔥 {track.playCount}</span>
                   </div>
@@ -625,14 +690,13 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                     href={`/admin/music/${track.id}/edit`}
                     className="flex-1 text-center py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold rounded-lg transition-all"
                   >
-                    Edit
+                    {t.admin.common.edit}
                   </Link>
                   <button
-                    onClick={() => handleDelete(track.id, track.title)}
-                    disabled={deletingId === track.id}
+                    onClick={() => setDeleteTarget(track)}
                     className="px-3 py-1.5 bg-red-950/30 hover:bg-red-900/50 text-red-400 text-xs font-semibold rounded-lg transition-all"
                   >
-                    {deletingId === track.id ? "…" : "Delete"}
+                    {t.admin.common.delete}
                   </button>
                 </div>
               </div>
@@ -640,7 +704,30 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
           })}
         </div>
       )}
+
+      {/* ── Single Track Delete Dialog ── */}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        title={t.admin.music.deleteTitle}
+        message={t.admin.music.deleteMessage.replace("{title}", deleteTarget?.title || "")}
+        confirmLabel={t.admin.common.delete}
+        cancelLabel={t.admin.common.cancel}
+        isDangerous
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
+      {/* ── Batch Delete Dialog ── */}
+      <ConfirmDialog
+        isOpen={isBatchDeleteDialogOpen}
+        title={t.admin.music.deleteSelected}
+        message={t.admin.music.confirmBatchDelete.replace("{count}", String(selectedIds.size))}
+        confirmLabel={t.admin.music.deleteSelected}
+        cancelLabel={t.admin.common.cancel}
+        isDangerous
+        onConfirm={handleConfirmBatchDelete}
+        onCancel={() => setIsBatchDeleteDialogOpen(false)}
+      />
     </div>
   );
 }
-

@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMusic, EqPreset } from "@/context/MusicContext";
+import { useTranslation } from "@/context/LanguageContext";
 import LyricsView from "./LyricsView";
 import {
   SpectrumBarsVisualizer,
@@ -18,6 +20,7 @@ function formatTime(seconds: number): string {
 }
 
 export default function ZenModeView() {
+  const { t } = useTranslation();
   const {
     currentTrack,
     isPlaying,
@@ -116,7 +119,7 @@ export default function ZenModeView() {
                     : "text-white/60 hover:text-white"
                 }`}
               >
-                🎤 Karaoke Lyrics
+                {t("music.zen.karaoke", "🎤 Karaoke Lyrics")}
               </button>
               <button
                 onClick={() => setZenView("visualizer")}
@@ -126,7 +129,7 @@ export default function ZenModeView() {
                     : "text-white/60 hover:text-white"
                 }`}
               >
-                🌊 Full Visualizer
+                {t("music.zen.visualizer", "🌊 Full Visualizer")}
               </button>
               <button
                 onClick={() => setZenView("ambient")}
@@ -136,7 +139,7 @@ export default function ZenModeView() {
                     : "text-white/60 hover:text-white"
                 }`}
               >
-                🌧️ Nature Ambience
+                {t("music.zen.ambient", "🌧️ Nature Ambience")}
               </button>
             </div>
 
@@ -147,13 +150,14 @@ export default function ZenModeView() {
                 value={eqPreset}
                 onChange={(e) => setEqPreset(e.target.value as EqPreset)}
                 className="music-sort-select !bg-black/50 backdrop-blur-xl !text-xs hidden sm:block"
-                title="Equalizer Preset"
+                title={t("music.deck.eqLabel", "Equalizer Preset")}
+                aria-label="Equalizer Preset"
               >
-                <option value="flat">🎚️ Flat</option>
-                <option value="bass_boost">🔊 Bass Boost</option>
-                <option value="vocal">🎤 Vocal</option>
-                <option value="electronic">🌌 Synth/EDM</option>
-                <option value="chill">☕ Chill</option>
+                <option value="flat">{t("music.eq.flat", "🎚️ Flat")}</option>
+                <option value="bass_boost">{t("music.eq.bass_boost", "🔊 Bass Boost")}</option>
+                <option value="vocal">{t("music.eq.vocal", "🎤 Vocal")}</option>
+                <option value="electronic">{t("music.eq.electronic", "🌌 Synth/EDM")}</option>
+                <option value="chill">{t("music.eq.chill", "☕ Chill")}</option>
               </select>
 
               {/* Sleep timer in Zen Mode */}
@@ -168,14 +172,15 @@ export default function ZenModeView() {
                 className={`music-sort-select !bg-black/50 backdrop-blur-xl !text-xs hidden sm:block ${
                   sleepTimer.minutes !== null ? "!border-cyan-400 !text-cyan-300" : ""
                 }`}
-                title="Sleep Timer"
+                title={t("music.sleepTimer.title", "Sleep Timer")}
+                aria-label={t("music.sleepTimer.title", "Sleep Timer")}
               >
-                <option value="off">⏱️ Sleep: Off</option>
-                <option value="15">⏱️ 15m</option>
-                <option value="30">⏱️ 30m</option>
-                <option value="45">⏱️ 45m</option>
-                <option value="60">⏱️ 60m</option>
-                <option value="end">⏱️ End Track</option>
+                <option value="off">{t("music.sleepTimer.off", "⏱️ Sleep: Off")}</option>
+                <option value="15">{t("music.sleepTimer.m15", "⏱️ 15m")}</option>
+                <option value="30">{t("music.sleepTimer.m30", "⏱️ 30m")}</option>
+                <option value="45">{t("music.sleepTimer.m45", "⏱️ 45m")}</option>
+                <option value="60">{t("music.sleepTimer.m60", "⏱️ 60m")}</option>
+                <option value="end">{t("music.sleepTimer.endTrack", "⏱️ End Track")}</option>
               </select>
 
               {sleepTimer.remainingSeconds !== null && (
@@ -189,10 +194,10 @@ export default function ZenModeView() {
               <button
                 onClick={() => setIsZenMode(false)}
                 className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-xl transition-all"
-                title="Exit Fullscreen Zen Mode (Esc / Z)"
+                title={t("music.zen.exitTooltip", "Exit Fullscreen Zen Mode (Esc / Z)")}
               >
                 <span>✕</span>
-                <span className="hidden sm:inline">Exit Zen</span>
+                <span className="hidden sm:inline">{t("music.zen.exit", "Exit Zen")}</span>
               </button>
             </div>
           </motion.header>
@@ -216,7 +221,7 @@ export default function ZenModeView() {
                 <div className="music-vinyl-grooves" />
                 <div className="music-zen-giant-art">
                   {currentTrack.thumbnailUrl ? (
-                    <img src={currentTrack.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                    <Image src={currentTrack.thumbnailUrl} alt="" fill sizes="120px" className="object-cover" />
                   ) : (
                     <span className="text-4xl">🎵</span>
                   )}
@@ -273,10 +278,10 @@ export default function ZenModeView() {
           <div className="music-zen-ambient-view">
             <div className="text-center mb-8">
               <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-2">
-                🌧️ Nature Soundscape Mixer
+                🌧️ {t("music.zen.natureMixer", "Nature Soundscape Mixer")}
               </h2>
               <p className="text-sm text-white/60 max-w-md mx-auto">
-                Layer calming ambient sounds over your music for ultimate focus, coding, and meditation.
+                {t("music.zen.natureDesc", "Layer calming ambient sounds over your music for ultimate focus, coding, and meditation.")}
               </p>
             </div>
 
@@ -284,8 +289,8 @@ export default function ZenModeView() {
               {/* Rain Sound */}
               <div className={`music-ambient-card ${ambientSounds.rain ? "music-ambient-card--active" : ""}`}>
                 <div className="text-4xl mb-2">🌧️</div>
-                <div className="font-bold text-white text-base">Gentle Rain</div>
-                <p className="text-xs text-white/50 mb-4">Soft rain on a rooftop</p>
+                <div className="font-bold text-white text-base">{t("music.zen.rain", "Gentle Rain")}</div>
+                <p className="text-xs text-white/50 mb-4">{t("music.zen.rainDesc", "Soft rain on a rooftop")}</p>
 
                 <button
                   onClick={() => toggleAmbientSound("rain")}
@@ -295,7 +300,7 @@ export default function ZenModeView() {
                       : "bg-white/10 hover:bg-white/20 text-white"
                   }`}
                 >
-                  {ambientSounds.rain ? "Active" : "Turn On"}
+                  {ambientSounds.rain ? t("music.zen.active", "Active") : t("music.zen.turnOn", "Turn On")}
                 </button>
 
                 {ambientSounds.rain && (
@@ -314,8 +319,8 @@ export default function ZenModeView() {
               {/* Fireplace Sound */}
               <div className={`music-ambient-card ${ambientSounds.fire ? "music-ambient-card--active" : ""}`}>
                 <div className="text-4xl mb-2">🔥</div>
-                <div className="font-bold text-white text-base">Warm Fireplace</div>
-                <p className="text-xs text-white/50 mb-4">Cozy crackling firewood</p>
+                <div className="font-bold text-white text-base">{t("music.zen.fire", "Warm Fireplace")}</div>
+                <p className="text-xs text-white/50 mb-4">{t("music.zen.fireDesc", "Cozy crackling firewood")}</p>
 
                 <button
                   onClick={() => toggleAmbientSound("fire")}
@@ -325,7 +330,7 @@ export default function ZenModeView() {
                       : "bg-white/10 hover:bg-white/20 text-white"
                   }`}
                 >
-                  {ambientSounds.fire ? "Active" : "Turn On"}
+                  {ambientSounds.fire ? t("music.zen.active", "Active") : t("music.zen.turnOn", "Turn On")}
                 </button>
 
                 {ambientSounds.fire && (
@@ -344,8 +349,8 @@ export default function ZenModeView() {
               {/* Vinyl Crackle */}
               <div className={`music-ambient-card ${ambientSounds.vinyl ? "music-ambient-card--active" : ""}`}>
                 <div className="text-4xl mb-2">📻</div>
-                <div className="font-bold text-white text-base">Vinyl Noise</div>
-                <p className="text-xs text-white/50 mb-4">Vintage needle texture</p>
+                <div className="font-bold text-white text-base">{t("music.zen.vinyl", "Vinyl Noise")}</div>
+                <p className="text-xs text-white/50 mb-4">{t("music.zen.vinylDesc", "Vintage needle texture")}</p>
 
                 <button
                   onClick={() => toggleAmbientSound("vinyl")}
@@ -355,7 +360,7 @@ export default function ZenModeView() {
                       : "bg-white/10 hover:bg-white/20 text-white"
                   }`}
                 >
-                  {ambientSounds.vinyl ? "Active" : "Turn On"}
+                  {ambientSounds.vinyl ? t("music.zen.active", "Active") : t("music.zen.turnOn", "Turn On")}
                 </button>
 
                 {ambientSounds.vinyl && (
@@ -409,7 +414,7 @@ export default function ZenModeView() {
                   className={`text-lg transition-transform active:scale-125 ${
                     isCurrentLiked ? "text-red-400" : "text-white/40 hover:text-white"
                   }`}
-                  title="Like track"
+                  title={isCurrentLiked ? t("music.playerBar.unlikeTrack", "Liked!") : t("music.playerBar.likeTrack", "Like track")}
                 >
                   {isCurrentLiked ? "❤️" : "🤍"}
                 </button>
@@ -428,7 +433,7 @@ export default function ZenModeView() {
                 <button
                   onClick={prevTrack}
                   className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white text-sm"
-                  title="Previous Track"
+                  title={t("music.playerBar.prevTooltip", "Previous Track")}
                 >
                   ⏮
                 </button>
@@ -436,7 +441,7 @@ export default function ZenModeView() {
                 <button
                   onClick={togglePlay}
                   className="w-13 h-13 rounded-full bg-gradient-to-tr from-purple-600 via-indigo-500 to-cyan-400 text-white font-bold flex items-center justify-center shadow-lg shadow-purple-500/40 hover:scale-105 active:scale-95 transition-transform"
-                  title="Play / Pause (Space)"
+                  title={isPlaying ? t("music.playerBar.pauseTooltip", "Pause (Space)") : t("music.playerBar.playTooltip", "Play (Space)")}
                 >
                   {isPlaying ? "⏸" : "▶"}
                 </button>
@@ -444,7 +449,7 @@ export default function ZenModeView() {
                 <button
                   onClick={nextTrack}
                   className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white text-sm"
-                  title="Next Track"
+                  title={t("music.playerBar.nextTooltip", "Next Track")}
                 >
                   ⏭
                 </button>
@@ -455,6 +460,7 @@ export default function ZenModeView() {
                 <button
                   onClick={toggleMute}
                   className="text-white/60 hover:text-white text-sm p-1"
+                  title={t("music.playerBar.muteTooltip", "Mute / Unmute (M)")}
                 >
                   {isMuted || volume === 0 ? "🔇" : "🔊"}
                 </button>

@@ -1,10 +1,127 @@
 ---
 title: "Mastering Framer Motion for Stunning UI Animations"
+title_vi: "Làm chủ Framer Motion để tạo hoạt ảnh UI đỉnh cao"
 excerpt: "A comprehensive guide to creating smooth, performant animations in React using Framer Motion."
+excerpt_vi: "Hướng dẫn toàn diện để tạo hoạt ảnh mượt mà, hiệu năng cao trong React với Framer Motion."
 date: "2024-11-15"
 category: "Tutorial"
 tags: ["react", "animation", "framer-motion", "ui"]
 readTime: "6 min read"
+content_vi: |
+  # Làm chủ Framer Motion để tạo hoạt ảnh UI đỉnh cao
+
+  Framer Motion là một thư viện hoạt ảnh sẵn sàng cho môi trường production trong React, giúp việc tạo animation trở nên vô cùng dễ dàng và trực quan. Hãy cùng khám phá cách tạo các chuyển động UI ấn tượng để nâng tầm trải nghiệm người dùng.
+
+  ## Bắt đầu nhanh
+
+  Cài đặt Framer Motion:
+
+  ```bash
+  npm install framer-motion
+  ```
+
+  ## Hoạt ảnh cơ bản
+
+  Component `motion` là khối xây dựng nền tảng cho mọi chuyển động:
+
+  ```tsx
+  import { motion } from "framer-motion";
+
+  function FadeIn() {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        Xin chào thế giới!
+      </motion.div>
+    );
+  }
+  ```
+
+  ## Variants cho hoạt ảnh phức tạp
+
+  Variants cho phép bạn điều phối các hoạt ảnh nhịp nhàng giữa nhiều component:
+
+  ```tsx
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
+  function List({ items }) {
+    return (
+      <motion.ul variants={containerVariants} initial="hidden" animate="visible">
+        {items.map((item) => (
+          <motion.li key={item.id} variants={itemVariants}>
+            {item.name}
+          </motion.li>
+        ))}
+      </motion.ul>
+    );
+  }
+  ```
+
+  ## Hoạt ảnh kích hoạt khi cuộn trang (Scroll)
+
+  Sử dụng `useInView` để kích hoạt animation khi phần tử lọt vào tầm nhìn của người dùng:
+
+  ```tsx
+  import { motion, useInView } from "framer-motion";
+  import { useRef } from "react";
+
+  function ScrollReveal({ children }) {
+    const ref = useRef(null);
+    const isInView = useInView(ref, { once: true });
+
+    return (
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0, y: 50 }}
+        animate={isInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.6 }}
+      >
+        {children}
+      </motion.div>
+    );
+  }
+  ```
+
+  ## Cử chỉ tương tác (Gestures)
+
+  Tạo sự sống động qua các cử chỉ hover và tap:
+
+  ```tsx
+  <motion.button
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+    transition={{ type: "spring", stiffness: 400 }}
+  >
+    Bấm vào tôi
+  </motion.button>
+  ```
+
+  ## Thực tiễn tối ưu hiệu năng tốt nhất
+
+  1. **Dùng thuộc tính `layout` một cách chừng mực** - vì nó có chi phí tính toán cao
+  2. **Ưu tiên các thuộc tính transform** - `x`, `y`, `scale`, `rotate`
+  3. **Tận dụng `will-change`** cho các hoạt ảnh phức hợp
+  4. **Hỗ trợ `useReducedMotion`** cho người dùng nhạy cảm với chuyển động
+
+  ## Lời kết
+
+  Framer Motion giúp các hiệu ứng động trong React vừa mạnh mẽ vừa dễ tiếp cận. Hãy bắt đầu từ những chuyển động đơn giản và dần xây dựng nên những chuỗi trải nghiệm thị giác cuốn hút. ✨
 ---
 
 # Mastering Framer Motion for Stunning UI Animations

@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 import crypto from "crypto";
 
 const SESSION_COOKIE = "admin_session";
@@ -75,4 +76,18 @@ export async function destroySession(): Promise<void> {
   const store = await cookies();
   store.delete(SESSION_COOKIE);
   store.delete("admin_session_hash");
+}
+
+/**
+ * Guard for admin API routes: returns a 401 NextResponse if there is no valid
+ * session, or null if the caller is authorized. Usage:
+ *
+ *   const authError = await requireAdminSession();
+ *   if (authError) return authError;
+ */
+export async function requireAdminSession(): Promise<NextResponse | null> {
+  if (await verifySession()) {
+    return null;
+  }
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }

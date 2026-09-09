@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 
 // ═══════════════════════════════════════════════════
 // TYPES & INTERFACES
@@ -561,6 +561,13 @@ function createPowerUp(x: number, y: number, type: PowerUp["type"]): PowerUp {
 // ═══════════════════════════════════════════════════
 export default function ContraGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // UI-only banner state — the game itself only ever has keyboard input, so
+  // touch/coarse-pointer visitors are told up front rather than silently
+  // dropped into a canvas they can't control.
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
+  }, []);
   // Game state lives entirely in gameRef (mutated + read by the imperative canvas loop below).
   // Rendering is 100% canvas draw calls — nothing in the JSX below reads game state — so there is
   // no reason to mirror it into React state, which would otherwise re-render this component on
@@ -1777,12 +1784,18 @@ export default function ContraGame() {
         <p className="text-gray-600 text-xs font-mono tracking-widest mt-1">WEB EDITION</p>
       </div>
 
-      <div className="relative border-2 border-gray-800 rounded-lg overflow-hidden shadow-[0_0_40px_rgba(255,50,50,0.1)]">
+      {isTouchDevice && (
+        <div className="mb-4 max-w-md text-center text-xs font-mono text-amber-400 bg-amber-400/10 border border-amber-400/30 rounded-md px-4 py-2">
+          ⌨️ Trò chơi này chỉ hỗ trợ điều khiển bằng bàn phím — trải nghiệm tốt nhất trên máy tính.
+        </div>
+      )}
+
+      <div className="relative w-full max-w-[800px] border-2 border-gray-800 rounded-lg overflow-hidden shadow-[0_0_40px_rgba(255,50,50,0.1)]">
         <canvas
           ref={canvasRef}
           width={CANVAS_W}
           height={CANVAS_H}
-          className="block bg-black"
+          className="block w-full h-auto bg-black"
           style={{ imageRendering: "pixelated" }}
           tabIndex={0}
         />

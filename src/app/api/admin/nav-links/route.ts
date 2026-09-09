@@ -1,21 +1,19 @@
 import { NextResponse } from "next/server";
-import { verifySession } from "@/lib/admin-auth";
+import { requireAdminSession } from "@/lib/admin-auth";
 import { readJsonFile, writeJsonFile, generateId } from "@/lib/data-manager";
 import type { NavLink } from "@/lib/types";
 
 const FILE = "nav-links.json";
 
 export async function GET() {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   return NextResponse.json(readJsonFile<NavLink[]>(FILE, []));
 }
 
 export async function POST(request: Request) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const body = await request.json();
     const items = readJsonFile<NavLink[]>(FILE, []);
@@ -29,11 +27,22 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const body = await request.json();
+
+    // 1. Bulk reordering support
+    if (Array.isArray(body.items)) {
+      const itemsWithOrder: NavLink[] = body.items.map((item: NavLink, idx: number) => ({
+        ...item,
+        order: idx,
+      }));
+      writeJsonFile(FILE, itemsWithOrder);
+      return NextResponse.json(itemsWithOrder);
+    }
+
+    // 2. Single item update
     const { id, ...updates } = body;
     if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
 
@@ -50,9 +59,8 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (!(await verifySession())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
