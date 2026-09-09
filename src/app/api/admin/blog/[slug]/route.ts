@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { getPostBySlug } from "@/lib/blog";
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
-
-const BLOG_DIR = path.join(process.cwd(), "content/blog");
+import { db } from "@/lib/db";
 
 interface RouteParams {
   params: Promise<{ slug: string }>;
@@ -18,7 +15,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
   const authError = await requireAdminSession();
   if (authError) return authError;
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
   if (!post) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
@@ -33,9 +30,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
   if (authError) return authError;
   try {
     const { slug } = await params;
-    const filePath = path.join(BLOG_DIR, `${slug}.mdx`);
 
-    if (!fs.existsSync(filePath)) {
+    const existing = await db.cmsBlogPost.findUnique({ where: { slug } });
+    if (!existing) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
@@ -61,14 +58,27 @@ export async function PUT(request: Request, { params }: RouteParams) {
       tags: tags || [],
       readTime: readTime || "5 min read",
     };
-
     if (title_vi?.trim()) frontmatter.title_vi = title_vi.trim();
     if (excerpt_vi?.trim()) frontmatter.excerpt_vi = excerpt_vi.trim();
     if (content_vi?.trim()) frontmatter.content_vi = content_vi.trim();
 
-    const fileContent = matter.stringify(content || "", frontmatter);
-    fs.writeFileSync(filePath, fileContent, "utf-8");
+    await db.cmsBlogPost.update({
+      where: { slug },
+      data: {
+        title: title || "",
+        titleVi: title_vi?.trim() || null,
+        excerpt: excerpt || "",
+        excerptVi: excerpt_vi?.trim() || null,
+        contentVi: content_vi?.trim() || null,
+        date: date || new Date().toISOString().split("T")[0],
+        category: category || "Uncategorized",
+        tags: tags || [],
+        readTime: readTime || "5 min read",
+        content: content || "",
+      },
+    });
 
+    revalidateTag("blog");
     return NextResponse.json({ slug, ...frontmatter });
   } catch {
     return NextResponse.json({ error: "Failed to update post" }, { status: 500 });
@@ -83,13 +93,14 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
   if (authError) return authError;
   try {
     const { slug } = await params;
-    const filePath = path.join(BLOG_DIR, `${slug}.mdx`);
 
-    if (!fs.existsSync(filePath)) {
+    const existing = await db.cmsBlogPost.findUnique({ where: { slug } });
+    if (!existing) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
-    fs.unlinkSync(filePath);
+    await db.cmsBlogPost.delete({ where: { slug } });
+    revalidateTag("blog");
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Failed to delete post" }, { status: 500 });

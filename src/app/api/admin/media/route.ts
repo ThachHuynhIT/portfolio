@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
     const resourceType = searchParams.get("type") || "all";
     const search = searchParams.get("q") || "";
 
-    const allAssets = getMediaAssets(); // full list for computing stats
-    const filteredAssets = getMediaAssets({ category, resourceType, search });
+    const allAssets = await getMediaAssets(); // full list for computing stats
+    const filteredAssets = await getMediaAssets({ category, resourceType, search });
 
     // Compute stats
     let totalBytes = 0;

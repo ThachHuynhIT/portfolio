@@ -2,10 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navLinks, socialLinks, siteConfig } from "@/lib/constants";
 import { useTranslation } from "@/context/LanguageContext";
+import type { NavLink, SocialLink, SiteConfig } from "@/lib/types";
 
-export default function Footer() {
+export interface FooterProps {
+  navLinks: NavLink[];
+  socialLinks: SocialLink[];
+  siteConfig: SiteConfig;
+}
+
+export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProps) {
   const { t, locale } = useTranslation();
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();

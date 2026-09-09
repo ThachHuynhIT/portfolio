@@ -4,19 +4,22 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedSection, GlassCard, ImageWithSkeleton } from "@/components/ui";
-import { photography } from "@/lib/constants";
 import { useTranslation } from "@/context/LanguageContext";
 import cloudinaryImageLoader from "@/lib/cloudinary-image-loader";
 import type { PhotoItem } from "@/lib/types";
 
-export default function PhotoPreviewSection() {
+export interface PhotoPreviewSectionProps {
+  photography: PhotoItem[];
+}
+
+export default function PhotoPreviewSection({ photography }: PhotoPreviewSectionProps) {
   const { t, locale } = useTranslation();
 
   // Filter featured photos
   const featuredPhotos: PhotoItem[] = useMemo(() => {
-    const featured = photography.filter((p) => p.featured && p.published !== false);
+    const featured = photography.filter((p) => p.featured);
     return featured.length > 0 ? featured : photography.slice(0, 6);
-  }, []);
+  }, [photography]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);

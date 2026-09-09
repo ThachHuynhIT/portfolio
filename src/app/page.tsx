@@ -2,6 +2,10 @@ import dynamic from "next/dynamic";
 import { HeroSection, AboutSection } from "@/components/sections";
 import { SectionSkeleton } from "@/components/ui";
 import { getAllPosts } from "@/lib/blog";
+import { getPublishedSkills } from "@/lib/content/skills";
+import { getPublishedProjects } from "@/lib/content/projects";
+import { getPublishedPhotos } from "@/lib/content/photography";
+import { getPublishedSiteConfig } from "@/lib/content/site-config";
 
 // Below-the-fold dynamic imports with sleek Skeleton placeholders
 const SkillsSection = dynamic(
@@ -39,21 +43,28 @@ const ContactSection = dynamic(
   }
 );
 
-export default function Home() {
-  const recentPosts = getAllPosts().slice(0, 3);
+export default async function Home() {
+  const [allPosts, skills, projects, photography, siteConfig] = await Promise.all([
+    getAllPosts(),
+    getPublishedSkills(),
+    getPublishedProjects(),
+    getPublishedPhotos(),
+    getPublishedSiteConfig(),
+  ]);
+  const recentPosts = allPosts.slice(0, 3);
 
   return (
     <>
       {/* Above-the-fold immediate render for instant FCP */}
-      <HeroSection />
+      <HeroSection siteConfig={siteConfig} />
       <AboutSection />
 
       {/* Below-the-fold code-split sections */}
-      <SkillsSection />
-      <ProjectsSection />
-      <PhotoPreviewSection />
+      <SkillsSection skills={skills} />
+      <ProjectsSection projects={projects} />
+      <PhotoPreviewSection photography={photography} />
       <BlogPreviewSection posts={recentPosts} />
-      <ContactSection />
+      <ContactSection siteConfig={siteConfig} />
     </>
   );
 }
