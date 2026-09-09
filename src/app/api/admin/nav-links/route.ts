@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { requireAdminSession } from "@/lib/admin-auth";
-import { readJsonFile, writeJsonFile, generateId } from "@/lib/data-manager";
-import type { NavLink } from "@/lib/types";
-
-const FILE = "nav-links.json";
+import { listNavLinks, createNavLink, updateNavLink, reorderNavLinks, deleteNavLink } from "@/lib/content/nav-links";
 
 export async function GET() {
   const authError = await requireAdminSession();
   if (authError) return authError;
-  return NextResponse.json(readJsonFile<NavLink[]>(FILE, []));
+  return NextResponse.json(await listNavLinks());
 }
 
 export async function POST(request: Request) {
@@ -16,10 +14,8 @@ export async function POST(request: Request) {
   if (authError) return authError;
   try {
     const body = await request.json();
-    const items = readJsonFile<NavLink[]>(FILE, []);
-    const newItem: NavLink = { id: generateId("nav"), ...body };
-    items.push(newItem);
-    writeJsonFile(FILE, items);
+    const newItem = await createNavLink(body);
+    revalidateTag("nav-links");
     return NextResponse.json(newItem, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Failed to create" }, { status: 500 });
@@ -34,25 +30,20 @@ export async function PUT(request: Request) {
 
     // 1. Bulk reordering support
     if (Array.isArray(body.items)) {
-      const itemsWithOrder: NavLink[] = body.items.map((item: NavLink, idx: number) => ({
-        ...item,
-        order: idx,
-      }));
-      writeJsonFile(FILE, itemsWithOrder);
-      return NextResponse.json(itemsWithOrder);
+      const reordered = await reorderNavLinks(body.items);
+      revalidateTag("nav-links");
+      return NextResponse.json(reordered);
     }
 
     // 2. Single item update
     const { id, ...updates } = body;
     if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
 
-    const items = readJsonFile<NavLink[]>(FILE, []);
-    const index = items.findIndex((i) => i.id === id);
-    if (index === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const updated = await updateNavLink(id, updates);
+    if (!updated) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    items[index] = { ...items[index], ...updates };
-    writeJsonFile(FILE, items);
-    return NextResponse.json(items[index]);
+    revalidateTag("nav-links");
+    return NextResponse.json(updated);
   } catch {
     return NextResponse.json({ error: "Failed to update" }, { status: 500 });
   }
@@ -66,11 +57,10 @@ export async function DELETE(request: Request) {
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
 
-    const items = readJsonFile<NavLink[]>(FILE, []);
-    const filtered = items.filter((i) => i.id !== id);
-    if (filtered.length === items.length) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const deleted = await deleteNavLink(id);
+    if (!deleted) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    writeJsonFile(FILE, filtered);
+    revalidateTag("nav-links");
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });

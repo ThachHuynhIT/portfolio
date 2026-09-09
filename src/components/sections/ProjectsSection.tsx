@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { AnimatedSection, GlassCard, TiltCard, Button, ImageWithSkeleton } from "@/components/ui";
 import { staggerContainer, fadeInUp } from "@/lib/animations";
-import { projects } from "@/lib/constants";
 import { Project } from "@/lib/types";
 import { useTranslation } from "@/context/LanguageContext";
 
@@ -179,15 +178,19 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
   );
 }
 
-export default function ProjectsSection() {
+export interface ProjectsSectionProps {
+  projects: Project[];
+}
+
+export default function ProjectsSection({ projects }: ProjectsSectionProps) {
   const { t, locale } = useTranslation();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   // Pick featured projects for homepage display (compact 6 projects)
   const featuredProjects = useMemo(() => {
-    const featured = projects.filter((p) => p.featured && p.published !== false);
+    const featured = projects.filter((p) => p.featured);
     return featured.length > 0 ? featured.slice(0, 6) : projects.slice(0, 6);
-  }, []);
+  }, [projects]);
 
   return (
     <section id="projects" className="relative py-28 overflow-hidden">

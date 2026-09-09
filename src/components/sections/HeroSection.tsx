@@ -4,9 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui";
-import { siteConfig } from "@/lib/constants";
 import { useTranslation } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
+import type { SiteConfig } from "@/lib/types";
 
 // Dynamic imports for 3D components to avoid SSR issues with Three.js
 const SceneContainer = dynamic(
@@ -19,7 +19,11 @@ const Hero3DScene = dynamic(
   { ssr: false }
 );
 
-export default function HeroSection() {
+export interface HeroSectionProps {
+  siteConfig: SiteConfig;
+}
+
+export default function HeroSection({ siteConfig }: HeroSectionProps) {
   const { t, locale } = useTranslation();
   const { resolvedTheme } = useTheme();
 

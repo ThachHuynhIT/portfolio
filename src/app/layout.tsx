@@ -6,6 +6,9 @@ import { Navigation, Footer } from "@/components/ui";
 import { MusicProvider } from "@/context/MusicContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { getPublishedNavLinks } from "@/lib/content/nav-links";
+import { getPublishedSocialLinks } from "@/lib/content/social-links";
+import { getPublishedSiteConfig } from "@/lib/content/site-config";
 
 // Floating overlay with no SSR value — mounted on every route, so keep it
 // out of the initial/shared bundle.
@@ -77,11 +80,17 @@ const THEME_INIT_SCRIPT = `(function(){try{
   document.documentElement.setAttribute("data-theme",theme);
 }catch(e){}})();`;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [navLinks, socialLinks, siteConfig] = await Promise.all([
+    getPublishedNavLinks(),
+    getPublishedSocialLinks(),
+    getPublishedSiteConfig(),
+  ]);
+
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <body
@@ -92,9 +101,9 @@ export default function RootLayout({
           <GlobalBackground />
           <LanguageProvider>
             <MusicProvider>
-              <Navigation />
+              <Navigation navLinks={navLinks} />
               <main>{children}</main>
-              <Footer />
+              <Footer navLinks={navLinks} socialLinks={socialLinks} siteConfig={siteConfig} />
               <GlobalMusicPlayer />
             </MusicProvider>
           </LanguageProvider>

@@ -1,6 +1,5 @@
 import { Metadata } from "next";
-import { readJsonFile } from "@/lib/data-manager";
-import type { Project } from "@/lib/types";
+import { getPublishedProjects } from "@/lib/content/projects";
 import ProjectsGallery from "@/components/projects/ProjectsGallery";
 
 export const metadata: Metadata = {
@@ -17,9 +16,8 @@ export const metadata: Metadata = {
 
 export const revalidate = 60; // ISR
 
-export default function ProjectsPage() {
-  const allProjects = readJsonFile<Project[]>("projects.json", []);
-  const publishedProjects = allProjects.filter((p) => p.published !== false);
+export default async function ProjectsPage() {
+  const publishedProjects = await getPublishedProjects();
 
   return <ProjectsGallery initialProjects={publishedProjects} />;
 }

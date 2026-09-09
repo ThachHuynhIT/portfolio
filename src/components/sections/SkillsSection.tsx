@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/ui";
-import { skills } from "@/lib/constants";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
+import type { Skill } from "@/lib/types";
 
 const categories = ["frontend", "backend", "tools", "design"] as const;
 
@@ -18,11 +18,15 @@ const categoryIcons: Record<string, string> = {
   design: "🎨",
 };
 
-export default function SkillsSection() {
+export interface SkillsSectionProps {
+  skills: Skill[];
+}
+
+export default function SkillsSection({ skills }: SkillsSectionProps) {
   const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>("all");
 
-  const publishedSkills = skills.filter((s) => s.published !== false);
+  const publishedSkills = skills;
 
   const displayedCategories =
     selectedCategory === "all"

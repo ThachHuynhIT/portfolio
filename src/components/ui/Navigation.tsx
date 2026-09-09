@@ -5,14 +5,18 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { navLinks } from "@/lib/constants";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import type { NavLink } from "@/lib/types";
 
 const SECTION_IDS = ["home", "about", "skills", "projects", "contact"];
 
-export default function Navigation() {
+export interface NavigationProps {
+  navLinks: NavLink[];
+}
+
+export default function Navigation({ navLinks }: NavigationProps) {
   const { t, locale } = useTranslation();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
