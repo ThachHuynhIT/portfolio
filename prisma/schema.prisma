@@ -139,8 +139,8 @@ model Track {
   artist       String
   album        String?
   duration     Int             @default(0) // seconds
-  audioUrl     String          // Cloudinary URL or external URL
-  thumbnailUrl String?         // Cloudinary image URL
+  audioUrl     String // Cloudinary URL or external URL
+  thumbnailUrl String? // Cloudinary image URL
   genre        String?
   order        Int             @default(0)
   playCount    Int             @default(0)
@@ -176,3 +176,299 @@ model PlaylistTrack {
   @@map("playlist_tracks")
 }
 
+// ---------------------------------------------------------------------------
+// Portfolio CMS content models (this repo's own admin-editable content).
+// All models here are prefixed "Cms" / mapped to "cms_*" tables so they never
+// collide with the unrelated Skill/Project/BlogPost/etc. models above, which
+// belong to a different project sharing this same Postgres database.
+// ---------------------------------------------------------------------------
+
+model CmsSkill {
+  id        String   @id
+  name      String
+  icon      String
+  category  String
+  level     Int      @default(0)
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cms_skills")
+}
+
+model CmsProject {
+  id                String   @id
+  title             String
+  description       String
+  longDescription   String?
+  titleVi           String?
+  descriptionVi     String?
+  longDescriptionVi String?
+  image             String
+  tags              String[] @default([])
+  liveUrl           String?
+  githubUrl         String?
+  featured          Boolean  @default(false)
+  published         Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("cms_projects")
+}
+
+model CmsSocialLink {
+  id        String   @id
+  name      String
+  url       String
+  icon      String
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cms_social_links")
+}
+
+model CmsNavLink {
+  id        String       @id
+  label     String
+  labelVi   String?
+  href      String
+  order     Int          @default(0)
+  published Boolean      @default(true)
+  parentId  String?
+  parent    CmsNavLink?  @relation("NavChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children  CmsNavLink[] @relation("NavChildren")
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("cms_nav_links")
+}
+
+model CmsPhotoAlbum {
+  id            String     @id
+  title         String
+  titleVi       String?
+  slug          String     @unique
+  description   String?
+  descriptionVi String?
+  coverImage    String     @default("")
+  coverPhotoId  String?
+  order         Int        @default(0)
+  featured      Boolean    @default(false)
+  published     Boolean    @default(true)
+  photos        CmsPhoto[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@map("cms_photo_albums")
+}
+
+model CmsPhoto {
+  id            String         @id
+  title         String
+  titleVi       String?
+  description   String?
+  descriptionVi String?
+  location      String?
+  locationVi    String?
+  category      String
+  tags          String[]       @default([])
+  image         String
+  beforeImage   String?
+  mediaType     String         @default("image")
+  videoUrl      String?
+  aspectRatio   String         @default("landscape")
+  featured      Boolean        @default(false)
+  published     Boolean        @default(true)
+  date          String
+  camera        Json?
+  editing       Json?
+  order         Int            @default(0)
+  albumId       String?
+  album         CmsPhotoAlbum? @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@map("cms_photos")
+}
+
+model CmsCoupleInfo {
+  id          String @id @default("singleton")
+  person1     String
+  person2     String
+  anniversary String
+  footerQuote String
+
+  birthdays    CmsCoupleBirthday[]
+  specialDates CmsCoupleSpecialDate[]
+  memories     CmsCoupleMemory[]
+  photos       CmsCouplePhoto[]
+  bucketList   CmsCoupleBucketItem[]
+  loveLetters  CmsCoupleLoveLetter[]
+  favorites    CmsCoupleFavorite[]
+
+  updatedAt DateTime @updatedAt
+
+  @@map("cms_couple_info")
+}
+
+model CmsCoupleBirthday {
+  id           String        @id @default(cuid())
+  coupleInfo   CmsCoupleInfo @relation(fields: [coupleInfoId], references: [id], onDelete: Cascade)
+  coupleInfoId String        @default("singleton")
+  name         String
+  date         String
+  emoji        String
+  zodiac       String
+  published    Boolean       @default(true)
+  order        Int           @default(0)
+
+  @@map("cms_couple_birthdays")
+}
+
+model CmsCoupleSpecialDate {
+  id           String        @id @default(cuid())
+  coupleInfo   CmsCoupleInfo @relation(fields: [coupleInfoId], references: [id], onDelete: Cascade)
+  coupleInfoId String        @default("singleton")
+  name         String
+  date         String
+  emoji        String
+  published    Boolean       @default(true)
+  order        Int           @default(0)
+
+  @@map("cms_couple_special_dates")
+}
+
+model CmsCoupleMemory {
+  id           String        @id @default(cuid())
+  coupleInfo   CmsCoupleInfo @relation(fields: [coupleInfoId], references: [id], onDelete: Cascade)
+  coupleInfoId String        @default("singleton")
+  date         String
+  title        String
+  description  String
+  emoji        String?
+  image        String?
+  published    Boolean       @default(true)
+  order        Int           @default(0)
+
+  @@map("cms_couple_memories")
+}
+
+model CmsCouplePhoto {
+  id           String        @id @default(cuid())
+  coupleInfo   CmsCoupleInfo @relation(fields: [coupleInfoId], references: [id], onDelete: Cascade)
+  coupleInfoId String        @default("singleton")
+  title        String
+  description  String?
+  image        String
+  date         String
+  location     String?
+  category     String?
+  featured     Boolean       @default(false)
+  published    Boolean       @default(true)
+  order        Int           @default(0)
+
+  @@map("cms_couple_photos")
+}
+
+model CmsCoupleBucketItem {
+  id           String        @id @default(cuid())
+  coupleInfo   CmsCoupleInfo @relation(fields: [coupleInfoId], references: [id], onDelete: Cascade)
+  coupleInfoId String        @default("singleton")
+  text         String
+  emoji        String
+  done         Boolean       @default(false)
+  published    Boolean       @default(true)
+  order        Int           @default(0)
+
+  @@map("cms_couple_bucket_items")
+}
+
+model CmsCoupleLoveLetter {
+  id           String        @id @default(cuid())
+  coupleInfo   CmsCoupleInfo @relation(fields: [coupleInfoId], references: [id], onDelete: Cascade)
+  coupleInfoId String        @default("singleton")
+  from         String
+  content      String
+  date         String
+  published    Boolean       @default(true)
+  order        Int           @default(0)
+
+  @@map("cms_couple_love_letters")
+}
+
+model CmsCoupleFavorite {
+  id           String        @id @default(cuid())
+  coupleInfo   CmsCoupleInfo @relation(fields: [coupleInfoId], references: [id], onDelete: Cascade)
+  coupleInfoId String        @default("singleton")
+  category     String
+  title        String
+  description  String
+  emoji        String
+  published    Boolean       @default(true)
+  order        Int           @default(0)
+
+  @@map("cms_couple_favorites")
+}
+
+model CmsSiteConfig {
+  id               String   @id @default("singleton")
+  name             String
+  title            String
+  titleVi          String?
+  description      String
+  descriptionVi    String?
+  url              String
+  ogImage          String
+  authorName       String
+  authorTitle      String
+  authorTitleVi    String?
+  authorBio        String
+  authorBioVi      String?
+  authorAvatar     String
+  authorEmail      String
+  authorLocation   String
+  authorLocationVi String?
+  updatedAt        DateTime @updatedAt
+
+  @@map("cms_site_config")
+}
+
+model CmsMediaAsset {
+  id           String   @id
+  publicId     String   @unique
+  filename     String
+  url          String
+  secureUrl    String
+  category     String
+  subType      String?
+  format       String
+  bytes        Int
+  width        Int?
+  height       Int?
+  duration     Int?
+  resourceType String
+  tags         String[] @default([])
+  createdAt    DateTime @default(now())
+
+  @@map("cms_media_assets")
+}
+
+model CmsBlogPost {
+  id        String   @id
+  slug      String   @unique
+  title     String
+  titleVi   String?
+  excerpt   String   @default("")
+  excerptVi String?
+  contentVi String?
+  date      String
+  category  String
+  tags      String[] @default([])
+  readTime  String
+  content   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cms_blog_posts")
+}

@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { getAllPosts } from "@/lib/blog";
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
-
-const BLOG_DIR = path.join(process.cwd(), "content/blog");
+import { db } from "@/lib/db";
 
 /**
  * GET /api/admin/blog — List all blog posts (frontmatter only)
@@ -13,7 +10,7 @@ const BLOG_DIR = path.join(process.cwd(), "content/blog");
 export async function GET() {
   const authError = await requireAdminSession();
   if (authError) return authError;
-  const posts = getAllPosts().map(({ content: _content, ...meta }) => meta);
+  const posts = (await getAllPosts()).map(({ content: _content, ...meta }) => meta);
   return NextResponse.json(posts);
 }
 
@@ -50,15 +47,9 @@ export async function POST(request: Request) {
       .replace(/-+/g, "-")
       .replace(/^-|-$/g, "");
 
-    const filePath = path.join(BLOG_DIR, `${safeSlug}.mdx`);
-
-    if (fs.existsSync(filePath)) {
+    const existing = await db.cmsBlogPost.findUnique({ where: { slug: safeSlug } });
+    if (existing) {
       return NextResponse.json({ error: "A post with this slug already exists" }, { status: 409 });
-    }
-
-    // Ensure blog directory exists
-    if (!fs.existsSync(BLOG_DIR)) {
-      fs.mkdirSync(BLOG_DIR, { recursive: true });
     }
 
     const frontmatter: Record<string, unknown> = {
@@ -69,16 +60,33 @@ export async function POST(request: Request) {
       tags: tags || [],
       readTime: readTime || "5 min read",
     };
-
     if (title_vi?.trim()) frontmatter.title_vi = title_vi.trim();
     if (excerpt_vi?.trim()) frontmatter.excerpt_vi = excerpt_vi.trim();
     if (content_vi?.trim()) frontmatter.content_vi = content_vi.trim();
 
-    const fileContent = matter.stringify(content || "", frontmatter);
-    fs.writeFileSync(filePath, fileContent, "utf-8");
+    await db.cmsBlogPost.create({
+      data: {
+        id: safeSlug,
+        slug: safeSlug,
+        title,
+        titleVi: title_vi?.trim() || undefined,
+        excerpt: excerpt || "",
+        excerptVi: excerpt_vi?.trim() || undefined,
+        contentVi: content_vi?.trim() || undefined,
+        date: date || new Date().toISOString().split("T")[0],
+        category: category || "Uncategorized",
+        tags: tags || [],
+        readTime: readTime || "5 min read",
+        content: content || "",
+      },
+    });
 
+    revalidateTag("blog");
     return NextResponse.json({ slug: safeSlug, ...frontmatter }, { status: 201 });
-  } catch {
+  } catch (error: any) {
+    if (error?.code === "P2002") {
+      return NextResponse.json({ error: "A post with this slug already exists" }, { status: 409 });
+    }
     return NextResponse.json({ error: "Failed to create post" }, { status: 500 });
   }
 }

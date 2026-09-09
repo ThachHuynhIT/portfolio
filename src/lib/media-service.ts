@@ -1,9 +1,29 @@
 import path from "path";
 import { cloudinary } from "@/lib/cloudinary";
-import { readJsonFile, writeJsonFile, generateId } from "@/lib/data-manager";
+import { db } from "@/lib/db";
+import { generateId } from "@/lib/data-manager";
 import type { MediaAsset, MediaCategory } from "@/lib/types";
+import type { CmsMediaAsset } from "@/generated/prisma";
 
-const REGISTRY_FILE = "media-registry.json";
+function toMediaAsset(row: CmsMediaAsset): MediaAsset {
+  return {
+    id: row.id,
+    publicId: row.publicId,
+    filename: row.filename,
+    url: row.url,
+    secureUrl: row.secureUrl,
+    category: row.category as MediaCategory,
+    subType: row.subType ?? undefined,
+    format: row.format,
+    bytes: row.bytes,
+    width: row.width ?? undefined,
+    height: row.height ?? undefined,
+    duration: row.duration ?? undefined,
+    resourceType: row.resourceType as MediaAsset["resourceType"],
+    tags: row.tags,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
 
 /**
  * Clean & slugify string: remove Vietnamese accents, symbols, whitespace to dash
@@ -191,19 +211,20 @@ export async function uploadAndRegisterMedia(
     createdAt: uploadResult.created_at || new Date().toISOString(),
   };
 
-  saveMediaAsset(asset);
+  await saveMediaAsset(asset);
   return asset;
 }
 
 /**
  * Retrieve all media assets from the registry with optional filtering and sorting
  */
-export function getMediaAssets(filters?: {
+export async function getMediaAssets(filters?: {
   category?: string;
   resourceType?: string;
   search?: string;
-}): MediaAsset[] {
-  const assets = readJsonFile<MediaAsset[]>(REGISTRY_FILE, []);
+}): Promise<MediaAsset[]> {
+  const rows = await db.cmsMediaAsset.findMany();
+  const assets = rows.map(toMediaAsset);
 
   return assets
     .filter((item) => {
@@ -248,35 +269,58 @@ export function getMediaAssets(filters?: {
 /**
  * Save / update an asset in the registry
  */
-export function saveMediaAsset(asset: MediaAsset): void {
-  const assets = readJsonFile<MediaAsset[]>(REGISTRY_FILE, []);
-  const index = assets.findIndex((a) => a.publicId === asset.publicId);
-
-  if (index >= 0) {
-    assets[index] = { ...assets[index], ...asset };
-  } else {
-    assets.unshift(asset);
-  }
-
-  writeJsonFile(REGISTRY_FILE, assets);
+export async function saveMediaAsset(asset: MediaAsset): Promise<void> {
+  await db.cmsMediaAsset.upsert({
+    where: { publicId: asset.publicId },
+    create: {
+      id: asset.id,
+      publicId: asset.publicId,
+      filename: asset.filename,
+      url: asset.url,
+      secureUrl: asset.secureUrl,
+      category: asset.category,
+      subType: asset.subType,
+      format: asset.format,
+      bytes: asset.bytes,
+      width: asset.width,
+      height: asset.height,
+      duration: asset.duration,
+      resourceType: asset.resourceType,
+      tags: asset.tags,
+    },
+    update: {
+      filename: asset.filename,
+      url: asset.url,
+      secureUrl: asset.secureUrl,
+      category: asset.category,
+      subType: asset.subType,
+      format: asset.format,
+      bytes: asset.bytes,
+      width: asset.width,
+      height: asset.height,
+      duration: asset.duration,
+      resourceType: asset.resourceType,
+      tags: asset.tags,
+    },
+  });
 }
 
 /**
  * Delete a media asset from Cloudinary and remove from the registry
  */
 export async function deleteMediaAsset(publicId: string): Promise<boolean> {
-  const assets = readJsonFile<MediaAsset[]>(REGISTRY_FILE, []);
-  const asset = assets.find((a) => a.publicId === publicId);
+  const asset = await db.cmsMediaAsset.findUnique({ where: { publicId } });
 
   try {
     const resType = asset?.resourceType || "image";
-    await cloudinary.uploader.destroy(publicId, { resource_type: resType });
+    await cloudinary.uploader.destroy(publicId, { resource_type: resType as "image" | "video" | "raw" });
   } catch (err) {
     console.warn(`[MediaService] Cloudinary destroy failed for ${publicId}:`, err);
   }
 
-  const remaining = assets.filter((a) => a.publicId !== publicId);
-  writeJsonFile(REGISTRY_FILE, remaining);
+  if (asset) {
+    await db.cmsMediaAsset.delete({ where: { publicId } });
+  }
   return true;
 }
 
@@ -322,7 +366,9 @@ export async function syncAssetsFromCloudinary(): Promise<{
   added: number;
   total: number;
 }> {
-  const existingAssets = readJsonFile<MediaAsset[]>(REGISTRY_FILE, []);
+  const existingRows = await db.cmsMediaAsset.findMany();
+  const existingAssets: MediaAsset[] = existingRows.map(toMediaAsset);
+  const newAssets: MediaAsset[] = [];
   const existingPublicIds = new Set(existingAssets.map((a) => a.publicId));
 
   let addedCount = 0;
@@ -351,7 +397,7 @@ export async function syncAssetsFromCloudinary(): Promise<{
           const { category, subType } = inferCategoryFromPublicId(res.public_id);
           const filename = path.basename(res.public_id) + `.${res.format || "jpg"}`;
 
-          existingAssets.push({
+          newAssets.push({
             id: generateId("media"),
             publicId: res.public_id,
             filename,
@@ -385,7 +431,7 @@ export async function syncAssetsFromCloudinary(): Promise<{
           const { category, subType } = inferCategoryFromPublicId(res.public_id);
           const filename = path.basename(res.public_id) + `.${res.format || "mp4"}`;
 
-          existingAssets.push({
+          newAssets.push({
             id: generateId("media"),
             publicId: res.public_id,
             filename,
@@ -411,11 +457,27 @@ export async function syncAssetsFromCloudinary(): Promise<{
     console.error("[MediaService] Error scanning videos/audios from Cloudinary:", videoResult.reason);
   }
 
-  // Sort and save updated registry
-  existingAssets.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
-  writeJsonFile(REGISTRY_FILE, existingAssets);
+  if (newAssets.length > 0) {
+    await db.cmsMediaAsset.createMany({
+      data: newAssets.map((asset) => ({
+        id: asset.id,
+        publicId: asset.publicId,
+        filename: asset.filename,
+        url: asset.url,
+        secureUrl: asset.secureUrl,
+        category: asset.category,
+        subType: asset.subType,
+        format: asset.format,
+        bytes: asset.bytes,
+        width: asset.width,
+        height: asset.height,
+        duration: asset.duration,
+        resourceType: asset.resourceType,
+        tags: asset.tags,
+      })),
+      skipDuplicates: true,
+    });
+  }
 
-  return { added: addedCount, total: existingAssets.length };
+  return { added: addedCount, total: existingAssets.length + newAssets.length };
 }

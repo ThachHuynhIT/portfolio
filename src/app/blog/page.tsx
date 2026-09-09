@@ -6,9 +6,8 @@ export const metadata = {
   description: "Thoughts on web development, 3D graphics, and creative coding.",
 };
 
-export default function BlogPage() {
-  const posts = getAllPosts();
-  const categories = getAllCategories();
+export default async function BlogPage() {
+  const [posts, categories] = await Promise.all([getAllPosts(), getAllCategories()]);
 
   return (
     <div className="min-h-screen pt-32 pb-20">

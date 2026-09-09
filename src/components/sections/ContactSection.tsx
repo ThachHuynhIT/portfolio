@@ -7,9 +7,9 @@ import { z } from "zod";
 import { useInView } from "framer-motion";
 import dynamic from "next/dynamic";
 import { AnimatedSection, GlassCard, Button } from "@/components/ui";
-import { siteConfig } from "@/lib/constants";
 import { useTranslation } from "@/context/LanguageContext";
 import { usePerformanceTier } from "@/hooks/usePerformanceTier";
+import type { SiteConfig } from "@/lib/types";
 
 // Dynamic imports for 3D components
 const SceneContainer = dynamic(
@@ -29,7 +29,11 @@ interface ContactFormData {
   message: string;
 }
 
-export default function ContactSection() {
+export interface ContactSectionProps {
+  siteConfig: SiteConfig;
+}
+
+export default function ContactSection({ siteConfig }: ContactSectionProps) {
   const { t, locale } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
