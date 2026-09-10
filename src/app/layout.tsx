@@ -31,21 +31,26 @@ const spaceGrotesk = Space_Grotesk({
 export async function generateMetadata(): Promise<Metadata> {
   const siteConfig = await getPublishedSiteConfig();
 
+  // Only alternates/openGraph/twitter come from buildMetadata() — the root
+  // layout needs a title *template* (so descendant pages' bare `title`
+  // strings render as "Page | Site"), which buildMetadata's plain-string
+  // `title` input doesn't produce, so it's built directly below instead of
+  // spreading (and immediately overriding) the whole object.
+  const { alternates, openGraph, twitter } = buildMetadata({
+    title: siteConfig.title,
+    description: siteConfig.description,
+    path: "/",
+    image: siteConfig.ogImage,
+    siteName: siteConfig.name,
+  });
+
   return {
-    ...buildMetadata({
-      title: siteConfig.title,
-      description: siteConfig.description,
-      path: "/",
-      image: siteConfig.ogImage,
-      siteName: siteConfig.name,
-    }),
-    // Overrides buildMetadata's plain-string title with the site-wide
-    // template so descendant pages' `title` strings render as "Page | Site".
     metadataBase: new URL(siteConfig.url),
     title: {
       default: siteConfig.title,
       template: `%s | ${siteConfig.name}`,
     },
+    description: siteConfig.description,
     keywords: [
       "web developer",
       "frontend",
@@ -55,6 +60,9 @@ export async function generateMetadata(): Promise<Metadata> {
       "portfolio",
     ],
     authors: [{ name: siteConfig.author.name }],
+    alternates,
+    openGraph,
+    twitter,
   };
 }
 

@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import crypto from "crypto";
+import { signToken, verifyToken } from "./session-token";
 
 const SESSION_COOKIE = "admin_session";
 const SESSION_MAX_AGE = 60 * 60 * 24; // 24 hours, in seconds
@@ -45,23 +46,18 @@ export function verifyPassword(password: string): boolean {
   return crypto.timingSafeEqual(actual, expected);
 }
 
-function sign(payload: string): string {
-  return crypto
-    .createHmac("sha256", getSessionSecret())
-    .update(payload)
-    .digest("hex");
-}
-
 /**
  * Create a signed session token and set it as an HTTP-only cookie. The
  * cookie is `<expiresAt>.<hmac>` — expiresAt is a plain Unix timestamp,
  * hmac is HMAC-SHA256(AUTH_SECRET, expiresAt), so the token cannot be
- * forged or extended without knowing AUTH_SECRET.
+ * forged or extended without knowing AUTH_SECRET. Signing/verifying is
+ * shared with middleware.ts via session-token.ts (Web Crypto works in both
+ * this Node runtime and middleware's Edge runtime, so there's no need for
+ * two separate implementations).
  */
 export async function createSession(): Promise<void> {
   const expiresAt = Date.now() + SESSION_MAX_AGE * 1000;
-  const payload = String(expiresAt);
-  const token = `${payload}.${sign(payload)}`;
+  const token = await signToken(String(expiresAt), getSessionSecret());
 
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
@@ -82,18 +78,8 @@ export async function verifySession(): Promise<boolean> {
   const token = store.get(SESSION_COOKIE)?.value;
   if (!token) return false;
 
-  const [payload, signature] = token.split(".");
-  if (!payload || !signature) return false;
-
-  const expectedSignature = sign(payload);
-  const signatureBuffer = Buffer.from(signature, "hex");
-  const expectedBuffer = Buffer.from(expectedSignature, "hex");
-  if (
-    signatureBuffer.length !== expectedBuffer.length ||
-    !crypto.timingSafeEqual(signatureBuffer, expectedBuffer)
-  ) {
-    return false;
-  }
+  const payload = await verifyToken(token, getSessionSecret());
+  if (!payload) return false;
 
   const expiresAt = Number(payload);
   if (!Number.isFinite(expiresAt) || Date.now() > expiresAt) {

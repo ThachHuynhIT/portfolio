@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import type { SiteConfig } from "@/lib/types";
@@ -56,9 +57,16 @@ export async function getSiteConfig(): Promise<SiteConfig> {
   return toSiteConfig(row);
 }
 
-export const getPublishedSiteConfig = unstable_cache(getSiteConfig, ["published-site-config"], {
-  tags: ["site-config"],
-});
+// unstable_cache persists the result across requests (Next's Data Cache);
+// wrapping it in React's cache() additionally dedupes concurrent calls
+// *within* the same request/render — root layout's generateMetadata() and
+// its component body both call this, and without the outer cache() a
+// cache-cold request would run getSiteConfig()'s upsert twice.
+export const getPublishedSiteConfig = cache(
+  unstable_cache(getSiteConfig, ["published-site-config"], {
+    tags: ["site-config"],
+  })
+);
 
 /** Full blind overwrite, matching the original PUT's no-merge semantics. */
 export async function replaceSiteConfig(config: SiteConfig): Promise<SiteConfig> {

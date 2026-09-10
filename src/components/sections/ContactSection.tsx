@@ -9,6 +9,7 @@ import dynamic from "next/dynamic";
 import { AnimatedSection, GlassCard, Button } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
 import { usePerformanceTier } from "@/hooks/usePerformanceTier";
+import { cn } from "@/lib/utils";
 import type { SiteConfig } from "@/lib/types";
 
 // Dynamic imports for 3D components
@@ -68,14 +69,16 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
     resolver: zodResolver(contactSchema),
   });
 
-  const [submittedData, setSubmittedData] = useState<ContactFormData | null>(
-    null
-  );
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // One outcome at a time, rather than three separately-updated booleans/
+  // strings that could otherwise drift (e.g. a stale errorMessage/
+  // submittedData surviving into a later successful submit).
+  type FormState =
+    | { status: "idle" }
+    | { status: "success" }
+    | { status: "error"; message: string; data: ContactFormData };
+  const [formState, setFormState] = useState<FormState>({ status: "idle" });
 
   const onSubmit = async (data: ContactFormData) => {
-    setErrorMessage(null);
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
@@ -90,32 +93,32 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
 
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        setStatus("error");
-        setSubmittedData(data);
-        setErrorMessage(
-          response.status === 429
-            ? t("contact.errorRateLimited")
-            : body.error || t("contact.errorGeneric")
-        );
+        setFormState({
+          status: "error",
+          data,
+          message:
+            response.status === 429
+              ? t("contact.errorRateLimited")
+              : body.error || t("contact.errorGeneric"),
+        });
         return;
       }
 
-      setStatus("success");
+      setFormState({ status: "success" });
       reset();
     } catch {
-      setStatus("error");
-      setSubmittedData(data);
-      setErrorMessage(t("contact.errorGeneric"));
+      setFormState({ status: "error", data, message: t("contact.errorGeneric") });
     }
   };
 
-  const mailtoHref = submittedData
-    ? `mailto:${siteConfig.author.email}?subject=${encodeURIComponent(
-      submittedData.subject
-    )}&body=${encodeURIComponent(
-      `${submittedData.message}\n\n— ${submittedData.name} (${submittedData.email})`
-    )}`
-    : undefined;
+  const mailtoHref =
+    formState.status === "error"
+      ? `mailto:${siteConfig.author.email}?subject=${encodeURIComponent(
+        formState.data.subject
+      )}&body=${encodeURIComponent(
+        `${formState.data.message}\n\n— ${formState.data.name} (${formState.data.email})`
+      )}`
+      : undefined;
 
   return (
     <section
@@ -160,42 +163,46 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
           {/* Contact Form */}
           <AnimatedSection>
             <GlassCard className="p-8">
-              {status === "success" && (
+              {formState.status !== "idle" && (
                 <div
                   role="status"
                   aria-live="polite"
-                  className="mb-6 p-4 rounded-xl border border-green-500/30 bg-green-500/10 text-sm text-white/80 light:text-neutral-700"
+                  className={cn(
+                    "mb-6 p-4 rounded-xl border text-sm text-white/80 light:text-neutral-700",
+                    formState.status === "success"
+                      ? "border-green-500/30 bg-green-500/10"
+                      : "border-red-500/30 bg-red-500/10"
+                  )}
                 >
-                  <p className="font-medium text-white light:text-neutral-900">
-                    {t("contact.successTitle")}
-                  </p>
-                  <p className="mt-1">{t("contact.successMessage")}</p>
-                </div>
-              )}
-              {status === "error" && (
-                <div
-                  role="status"
-                  aria-live="polite"
-                  className="mb-6 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-sm text-white/80 light:text-neutral-700"
-                >
-                  <p>{errorMessage ?? t("contact.errorGeneric")}</p>
-                  <p className="mt-2">
-                    {t("contact.unconnectedNotice")} {t("contact.mailtoPrefix")}
-                    <a
-                      href={mailtoHref}
-                      className="text-cyan-400 underline hover:text-cyan-300"
-                    >
-                      {t("contact.mailtoLinkText")}
-                    </a>
-                    {t("contact.mailtoSuffix")}
-                    <a
-                      href={`mailto:${siteConfig.author.email}`}
-                      className="text-cyan-400 underline hover:text-cyan-300"
-                    >
-                      {siteConfig.author.email}
-                    </a>
-                    .
-                  </p>
+                  {formState.status === "success" ? (
+                    <>
+                      <p className="font-medium text-white light:text-neutral-900">
+                        {t("contact.successTitle")}
+                      </p>
+                      <p className="mt-1">{t("contact.successMessage")}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>{formState.message}</p>
+                      <p className="mt-2">
+                        {t("contact.unconnectedNotice")} {t("contact.mailtoPrefix")}
+                        <a
+                          href={mailtoHref}
+                          className="text-cyan-400 underline hover:text-cyan-300"
+                        >
+                          {t("contact.mailtoLinkText")}
+                        </a>
+                        {t("contact.mailtoSuffix")}
+                        <a
+                          href={`mailto:${siteConfig.author.email}`}
+                          className="text-cyan-400 underline hover:text-cyan-300"
+                        >
+                          {siteConfig.author.email}
+                        </a>
+                        .
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
