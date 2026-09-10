@@ -3,13 +3,19 @@ import type { NextRequest } from "next/server";
 
 const SESSION_COOKIE = "admin_session";
 
-function hexToBytes(hex: string): Uint8Array | null {
+// Returns a plain ArrayBuffer (rather than a Uint8Array) so the result is
+// always assignable to crypto.subtle.verify's BufferSource parameter —
+// Uint8Array's generic buffer-type parameter (added in newer TypeScript/lib
+// versions) otherwise defaults to the wider ArrayBufferLike, which newer
+// BufferSource definitions reject.
+function hexToBytes(hex: string): ArrayBuffer | null {
   if (hex.length % 2 !== 0 || !/^[0-9a-f]+$/i.test(hex)) return null;
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < bytes.length; i++) {
-    bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+  const buffer = new ArrayBuffer(hex.length / 2);
+  const view = new Uint8Array(buffer);
+  for (let i = 0; i < view.length; i++) {
+    view[i] = parseInt(hex.substr(i * 2, 2), 16);
   }
-  return bytes;
+  return buffer;
 }
 
 /**
