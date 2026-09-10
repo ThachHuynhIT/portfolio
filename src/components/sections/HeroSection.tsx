@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui";
@@ -8,14 +8,12 @@ import { useTranslation } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
 import type { SiteConfig } from "@/lib/types";
 
-// Dynamic imports for 3D components to avoid SSR issues with Three.js
-const SceneContainer = dynamic(
-  () => import("@/components/3d/SceneContainer"),
-  { ssr: false }
-);
-
-const Hero3DScene = dynamic(
-  () => import("@/components/3d/Hero3DScene"),
+// Same raymarched black hole engine as the 404 page (src/components/3d/blackhole),
+// used here in non-interactive/decorative mode — the sole 3D visual in the
+// Hero. Mounts its own canvas + WebGLRenderer (not an R3F scene), so it
+// doesn't go through SceneContainer.
+const BlackHoleCanvas = dynamic(
+  () => import("@/components/3d/blackhole/BlackHoleCanvas"),
   { ssr: false }
 );
 
@@ -27,36 +25,11 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
   const { t, locale } = useTranslation();
   const { resolvedTheme } = useTheme();
 
-  // Mutable ref instead of React state: Hero3DScene reads x/y inside an
-  // r3f useFrame loop every animation frame, so mutating this object in
-  // place avoids re-rendering the whole Hero tree on every mousemove.
-  const mousePositionRef = useRef({ x: 0, y: 0 });
-  const rafPendingRef = useRef(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLElement>) => {
-      const { clientX, clientY } = e;
-
-      // Throttle to one update per animation frame — the r3f scene already
-      // smooths toward this value with a lerp, so sub-frame precision from
-      // native mousemove event rates (60-120+Hz) buys nothing visually.
-      if (rafPendingRef.current) return;
-      rafPendingRef.current = true;
-
-      requestAnimationFrame(() => {
-        const { innerWidth, innerHeight } = window;
-        mousePositionRef.current.x = (clientX / innerWidth - 0.5) * 2;
-        mousePositionRef.current.y = (clientY / innerHeight - 0.5) * 2;
-        rafPendingRef.current = false;
-      });
-    },
-    []
-  );
 
   const handleViewWork = useCallback(() => {
     document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
@@ -73,13 +46,46 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
     <section
       id="home"
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background"
-      onMouseMove={handleMouseMove}
     >
-      {/* 3D Background - Original interactive centerpiece */}
+      {/* Black hole — sole 3D visual in the Hero. Fixed (not absolute) so it
+          stays pinned in the viewport instead of scrolling away with the
+          Hero's own box; later sections' opaque backgrounds naturally cover
+          it once scrolled past. Faded at the edges so it reads as part of
+          the background rather than a hard-edged canvas. */}
       {isMounted && (
-        <SceneContainer highQuality>
-          <Hero3DScene mousePosition={mousePositionRef.current} theme={resolvedTheme} />
-        </SceneContainer>
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            maskImage: "radial-gradient(ellipse 65% 65% at 50% 45%, black 45%, transparent 85%)",
+            WebkitMaskImage: "radial-gradient(ellipse 65% 65% at 50% 45%, black 45%, transparent 85%)",
+          }}
+        >
+          <BlackHoleCanvas
+            className="absolute inset-0"
+            interactive={false}
+            scrollEffect
+            brightness={resolvedTheme === "light" ? 0.6 : 1}
+            particleBrightness={resolvedTheme === "light" ? 0.45 : 0.75}
+          />
+        </div>
+      )}
+
+      {/* Readability scrim — the black hole is a page-wide persistent
+          background now, not just a Hero accent, so text everywhere needs a
+          contrast floor independent of what the render happens to look
+          like underneath. Unmasked (unlike the canvas above) so it covers
+          the full viewport, not just the center. */}
+      {isMounted && (
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            // Light theme needs a much heavier scrim: most cards site-wide use
+            // near-transparent bg-neutral-900/[0.04] + mid-gray text, designed
+            // against a plain page background — against the render's varying
+            // brightness that combo loses almost all contrast otherwise.
+            background: resolvedTheme === "light" ? "rgba(255,255,255,0.82)" : "rgba(5,5,5,0.45)",
+          }}
+        />
       )}
 
       {/* Content Overlay */}
@@ -151,10 +157,6 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
           </motion.div>
         </motion.div>
       </div>
-
-      {/* Gradient Overlays */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/40 light:via-white/30 to-background pointer-events-none" />
-      <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-radial from-purple-500/10 via-transparent to-transparent pointer-events-none" />
     </section>
   );
 }
