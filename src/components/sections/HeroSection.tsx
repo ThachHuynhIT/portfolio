@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui";
@@ -8,14 +8,12 @@ import { useTranslation } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
 import type { SiteConfig } from "@/lib/types";
 
-// Dynamic imports for 3D components to avoid SSR issues with Three.js
-const SceneContainer = dynamic(
-  () => import("@/components/3d/SceneContainer"),
-  { ssr: false }
-);
-
-const Hero3DScene = dynamic(
-  () => import("@/components/3d/Hero3DScene"),
+// Same raymarched black hole engine as the 404 page (src/components/3d/blackhole),
+// used here in non-interactive/decorative mode — the sole 3D visual in the
+// Hero. Mounts its own canvas + WebGLRenderer (not an R3F scene), so it
+// doesn't go through SceneContainer.
+const BlackHoleCanvas = dynamic(
+  () => import("@/components/3d/blackhole/BlackHoleCanvas"),
   { ssr: false }
 );
 
@@ -27,36 +25,11 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
   const { t, locale } = useTranslation();
   const { resolvedTheme } = useTheme();
 
-  // Mutable ref instead of React state: Hero3DScene reads x/y inside an
-  // r3f useFrame loop every animation frame, so mutating this object in
-  // place avoids re-rendering the whole Hero tree on every mousemove.
-  const mousePositionRef = useRef({ x: 0, y: 0 });
-  const rafPendingRef = useRef(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLElement>) => {
-      const { clientX, clientY } = e;
-
-      // Throttle to one update per animation frame — the r3f scene already
-      // smooths toward this value with a lerp, so sub-frame precision from
-      // native mousemove event rates (60-120+Hz) buys nothing visually.
-      if (rafPendingRef.current) return;
-      rafPendingRef.current = true;
-
-      requestAnimationFrame(() => {
-        const { innerWidth, innerHeight } = window;
-        mousePositionRef.current.x = (clientX / innerWidth - 0.5) * 2;
-        mousePositionRef.current.y = (clientY / innerHeight - 0.5) * 2;
-        rafPendingRef.current = false;
-      });
-    },
-    []
-  );
 
   const handleViewWork = useCallback(() => {
     document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
@@ -73,13 +46,24 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
     <section
       id="home"
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background"
-      onMouseMove={handleMouseMove}
     >
-      {/* 3D Background - Original interactive centerpiece */}
+      {/* Black hole — sole 3D visual in the Hero, faded at the edges so it
+          reads as part of the background rather than a hard-edged canvas */}
       {isMounted && (
-        <SceneContainer highQuality>
-          <Hero3DScene mousePosition={mousePositionRef.current} theme={resolvedTheme} />
-        </SceneContainer>
+        <div
+          className="absolute inset-0"
+          style={{
+            maskImage: "radial-gradient(ellipse 65% 65% at 50% 45%, black 45%, transparent 85%)",
+            WebkitMaskImage: "radial-gradient(ellipse 65% 65% at 50% 45%, black 45%, transparent 85%)",
+          }}
+        >
+          <BlackHoleCanvas
+            className="absolute inset-0"
+            interactive={false}
+            tint="#c4b5fd"
+            brightness={resolvedTheme === "light" ? 0.6 : 1}
+          />
+        </div>
       )}
 
       {/* Content Overlay */}
