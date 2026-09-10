@@ -14,10 +14,10 @@ export interface BlackHoleCanvasProps {
   /** Tints the final render color (hex). */
   tint?: string;
   /** Ties the camera to page scroll instead of drag/wheel: eases from the
-   * default equatorial view toward near-overhead + zoomed out over one
-   * viewport-height of scrolling (window.scrollY, not this element's own
-   * position — works whether the element is fixed or scrolls with the
-   * page). Off by default. */
+   * default equatorial view toward near-overhead + zoomed out across the
+   * full scrollable page (0 at the top, 1 at the very bottom — not this
+   * element's own position, so it works whether the element is fixed or
+   * scrolls with the page). Off by default. */
   scrollEffect?: boolean;
   onStats?: (s: EngineStats) => void;
   onReady?: () => void;
@@ -74,21 +74,21 @@ export default function BlackHoleCanvas({
     // Scroll-driven camera: rAF-throttled, mutates the engine + DOM directly
     // instead of going through React state (same rationale as the
     // mousePositionRef pattern elsewhere — this fires on every scroll tick).
-    // Camera progress completes (and holds) after one viewport-height of
-    // scroll, but visibility is tied to distance from the BOTTOM of the
-    // document instead — stays fully visible as a page-wide background all
-    // the way down, only fading out over the last viewport-height before
-    // the footer (assumed to be the last block on the page).
+    // Camera progress spans the ENTIRE scrollable page (completes exactly at
+    // the bottom), so the tilt/zoom plays out gradually all the way to the
+    // footer instead of finishing after one screen of scrolling. Visibility
+    // fades separately, only over the last viewport-height before the
+    // footer (assumed to be the last block on the page).
     let rafPending = false;
     let onScroll: (() => void) | null = null;
     if (scrollEffect && engine) {
       const updateProgress = () => {
         rafPending = false;
         const viewportH = Math.max(window.innerHeight, 1);
-        const cameraProgress = window.scrollY / viewportH;
+        const maxScroll = Math.max(document.documentElement.scrollHeight - viewportH, 1);
+        const cameraProgress = window.scrollY / maxScroll;
         engine?.setScrollProgress(cameraProgress);
 
-        const maxScroll = Math.max(document.documentElement.scrollHeight - viewportH, 1);
         const distanceFromBottom = maxScroll - window.scrollY;
         const fadeOpacity = Math.max(0, Math.min(1, distanceFromBottom / viewportH));
         mount.style.opacity = String(fadeOpacity);

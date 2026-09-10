@@ -64,7 +64,6 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
             className="absolute inset-0"
             interactive={false}
             scrollEffect
-            tint="#c4b5fd"
             brightness={resolvedTheme === "light" ? 0.6 : 1}
             particleBrightness={resolvedTheme === "light" ? 0.45 : 0.75}
           />
@@ -80,7 +79,11 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
         <div
           className="fixed inset-0 pointer-events-none"
           style={{
-            background: resolvedTheme === "light" ? "rgba(255,255,255,0.55)" : "rgba(5,5,5,0.45)",
+            // Light theme needs a much heavier scrim: most cards site-wide use
+            // near-transparent bg-neutral-900/[0.04] + mid-gray text, designed
+            // against a plain page background — against the render's varying
+            // brightness that combo loses almost all contrast otherwise.
+            background: resolvedTheme === "light" ? "rgba(255,255,255,0.82)" : "rgba(5,5,5,0.45)",
           }}
         />
       )}
