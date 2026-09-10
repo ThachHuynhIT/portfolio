@@ -36,12 +36,24 @@ export interface BlackHoleEngineOptions {
   /** Multiplies the final render color — dims the render for a background
    * accent role. Default 1 (matches upstream brightness). */
   brightness?: number;
+  /** Multiplies the particle sprites' color independently of `brightness` —
+   * lets the accretion particles sit a bit dimmer than the disk/lensing
+   * render. Default: same as `brightness`. */
+  particleBrightness?: number;
   /** Tints the final render color (hex). Default "#ffffff" (no tint). */
   tint?: string;
 }
 
 const SIM_SPEED = 6; // simulation seconds per real second (matches shader disk omega)
 const FOV = 50;
+
+// Default (scroll progress 0) and end (scroll progress 1) camera pose for
+// setScrollProgress() — eases from the upstream equatorial framing to a
+// near-overhead view while zooming out, matching the initial cur/tgt below.
+const PHI_HORIZONTAL = 1.36;
+const PHI_TOP = 0.32; // not 0: a perfectly overhead view degenerates camera.lookAt's up vector
+const RADIUS_NEAR = 13.5;
+const RADIUS_FAR = 24;
 
 function clamp(v: number, a: number, b: number) {
   return Math.min(b, Math.max(a, v));
@@ -90,8 +102,8 @@ export class BlackHoleEngine {
   private resizeObserver: ResizeObserver | null = null;
 
   // camera state (spherical around origin)
-  private cur = { theta: 0.7, phi: 1.36, radius: 13.5 };
-  private tgt = { theta: 0.7, phi: 1.36, radius: 13.5 };
+  private cur = { theta: 0.7, phi: PHI_HORIZONTAL, radius: RADIUS_NEAR };
+  private tgt = { theta: 0.7, phi: PHI_HORIZONTAL, radius: RADIUS_NEAR };
   private spinVel = 0;
   private dragging = false;
   private lastX = 0;
@@ -128,6 +140,7 @@ export class BlackHoleEngine {
 
     const tint = new THREE.Color(opts.tint ?? "#ffffff");
     const brightness = opts.brightness ?? 1;
+    const particleBrightness = opts.particleBrightness ?? brightness;
 
     // --- raymarch scene: fullscreen quad + particles ---
     this.raymarchMat = new THREE.ShaderMaterial({
@@ -151,7 +164,7 @@ export class BlackHoleEngine {
     this.quad.renderOrder = 0;
     this.scene.add(this.quad);
 
-    this.particles = new ParticleSystem(this.count, tint, brightness);
+    this.particles = new ParticleSystem(this.count, tint, particleBrightness);
     this.scene.add(this.particles.points);
 
     // --- low-res raymarch target ---
@@ -297,6 +310,19 @@ export class BlackHoleEngine {
     this.opts.onInteract?.();
   };
 
+  /**
+   * Drives the camera from page scroll instead of drag/wheel input: eases
+   * from the default equatorial framing (t=0) toward a near-overhead view
+   * while zooming out (t=1), reusing the existing tgt/cur damping in loop()
+   * for the actual easing — so callers can push this every scroll frame
+   * without needing their own smoothing. Independent of `interactive`.
+   */
+  setScrollProgress(t: number) {
+    const p = clamp(t, 0, 1);
+    this.tgt.phi = PHI_HORIZONTAL + (PHI_TOP - PHI_HORIZONTAL) * p;
+    this.tgt.radius = RADIUS_NEAR + (RADIUS_FAR - RADIUS_NEAR) * p;
+  }
+
   // --- frame loop ---
 
   private loop = () => {
@@ -352,7 +378,7 @@ export class BlackHoleEngine {
 
     this.camera.position.setFromSphericalCoords(
       this.cur.radius,
-      clamp(this.cur.phi + this.pointerSmooth.y * 0.05, 0.48, 1.53),
+      clamp(this.cur.phi + this.pointerSmooth.y * 0.05, 0.2, 1.53),
       this.cur.theta + this.pointerSmooth.x * 0.07,
     );
     this.camera.up.set(0, 1, 0);

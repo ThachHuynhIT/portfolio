@@ -47,11 +47,14 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
       id="home"
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background"
     >
-      {/* Black hole — sole 3D visual in the Hero, faded at the edges so it
-          reads as part of the background rather than a hard-edged canvas */}
+      {/* Black hole — sole 3D visual in the Hero. Fixed (not absolute) so it
+          stays pinned in the viewport instead of scrolling away with the
+          Hero's own box; later sections' opaque backgrounds naturally cover
+          it once scrolled past. Faded at the edges so it reads as part of
+          the background rather than a hard-edged canvas. */}
       {isMounted && (
         <div
-          className="absolute inset-0"
+          className="fixed inset-0 pointer-events-none"
           style={{
             maskImage: "radial-gradient(ellipse 65% 65% at 50% 45%, black 45%, transparent 85%)",
             WebkitMaskImage: "radial-gradient(ellipse 65% 65% at 50% 45%, black 45%, transparent 85%)",
@@ -60,10 +63,26 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
           <BlackHoleCanvas
             className="absolute inset-0"
             interactive={false}
+            scrollEffect
             tint="#c4b5fd"
             brightness={resolvedTheme === "light" ? 0.6 : 1}
+            particleBrightness={resolvedTheme === "light" ? 0.45 : 0.75}
           />
         </div>
+      )}
+
+      {/* Readability scrim — the black hole is a page-wide persistent
+          background now, not just a Hero accent, so text everywhere needs a
+          contrast floor independent of what the render happens to look
+          like underneath. Unmasked (unlike the canvas above) so it covers
+          the full viewport, not just the center. */}
+      {isMounted && (
+        <div
+          className="fixed inset-0 pointer-events-none"
+          style={{
+            background: resolvedTheme === "light" ? "rgba(255,255,255,0.55)" : "rgba(5,5,5,0.45)",
+          }}
+        />
       )}
 
       {/* Content Overlay */}
@@ -135,10 +154,6 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
           </motion.div>
         </motion.div>
       </div>
-
-      {/* Gradient Overlays */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/40 light:via-white/30 to-background pointer-events-none" />
-      <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-radial from-purple-500/10 via-transparent to-transparent pointer-events-none" />
     </section>
   );
 }
