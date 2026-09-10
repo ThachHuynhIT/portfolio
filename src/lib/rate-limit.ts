@@ -51,10 +51,15 @@ export function createRateLimiter({
   };
 }
 
-// Vercel and most reverse proxies set x-forwarded-for; falls back to a
-// shared bucket in environments without it (e.g. local dev) rather than
-// throwing.
+// Vercel (and most reverse proxies) append the address they observed the
+// connection from as the LAST entry of x-forwarded-for; every earlier entry
+// is whatever the client itself claimed and is trivially spoofable by
+// sending a fake header. Taking the first entry — as an earlier version of
+// this function did — let an attacker rotate a fake IP on every request and
+// bypass rate limiting entirely. Falls back to a shared bucket in
+// environments without the header (e.g. local dev) rather than throwing.
 export function getClientIp(headerList: Headers): string {
   const forwardedFor = headerList.get("x-forwarded-for");
-  return forwardedFor?.split(",")[0]?.trim() || "unknown";
+  const ips = forwardedFor?.split(",").map((ip) => ip.trim()).filter(Boolean);
+  return ips?.[ips.length - 1] || "unknown";
 }

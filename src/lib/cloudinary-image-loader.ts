@@ -1,5 +1,22 @@
 import type { ImageLoaderProps } from "next/image";
 
+const CLOUDINARY_UPLOAD_MARKER = "/upload/";
+
+/**
+ * Insert a Cloudinary transformation string (e.g. "f_auto,w_400") right
+ * after the "/upload/" segment of a Cloudinary delivery URL. Shared by this
+ * loader (per-request width/quality) and src/lib/seo.ts's toOgImage (a fixed
+ * OG-image size) so the URL-splicing logic only lives in one place. Returns
+ * the URL unchanged if it isn't a recognizable Cloudinary upload URL.
+ */
+export function insertCloudinaryTransform(url: string, transformation: string): string {
+  const markerIndex = url.indexOf(CLOUDINARY_UPLOAD_MARKER);
+  if (markerIndex === -1) return url;
+
+  const insertAt = markerIndex + CLOUDINARY_UPLOAD_MARKER.length;
+  return `${url.slice(0, insertAt)}${transformation}/${url.slice(insertAt)}`;
+}
+
 /**
  * Custom next/image loader that rewrites Cloudinary URLs to request an
  * already-resized/optimized variant directly from Cloudinary's CDN
@@ -17,14 +34,8 @@ import type { ImageLoaderProps } from "next/image";
  */
 export default function cloudinaryImageLoader({ src, width, quality }: ImageLoaderProps): string {
   if (src.includes("res.cloudinary.com")) {
-    const uploadMarker = "/upload/";
-    const markerIndex = src.indexOf(uploadMarker);
-    if (markerIndex === -1) return src;
-
     const transformations = ["f_auto", "c_limit", `w_${width}`, `q_${quality ?? "auto"}`].join(",");
-    const before = src.slice(0, markerIndex + uploadMarker.length);
-    const after = src.slice(markerIndex + uploadMarker.length);
-    return `${before}${transformations}/${after}`;
+    return insertCloudinaryTransform(src, transformations);
   }
 
   if (src.includes("images.unsplash.com")) {

@@ -1,27 +1,24 @@
 import type { Metadata } from "next";
+import { insertCloudinaryTransform } from "./cloudinary-image-loader";
 
-const CLOUDINARY_UPLOAD_MARKER = "/image/upload/";
 const OG_IMAGE_TRANSFORM = "w_1200,h_630,c_fill,g_auto";
 
 // Cloudinary URLs support on-the-fly transforms via a URL segment, so
 // resizing to the 1200x630 social platforms expect for OG images doesn't
-// need a new upload/transform pipeline — just this URL rewrite. A
-// non-Cloudinary URL is left untouched (dimensions unknown).
+// need a new upload/transform pipeline — just this URL rewrite (shared with
+// cloudinary-image-loader.ts, which does the equivalent per-request resize
+// for next/image). A non-Cloudinary URL is left untouched (dimensions
+// unknown).
 export function toOgImage(url: string): {
   url: string;
   width?: number;
   height?: number;
 } {
-  const markerIndex = url.indexOf(CLOUDINARY_UPLOAD_MARKER);
-  if (markerIndex === -1) {
+  const resized = insertCloudinaryTransform(url, OG_IMAGE_TRANSFORM);
+  if (resized === url) {
     return { url };
   }
-  const insertAt = markerIndex + CLOUDINARY_UPLOAD_MARKER.length;
-  return {
-    url: `${url.slice(0, insertAt)}${OG_IMAGE_TRANSFORM}/${url.slice(insertAt)}`,
-    width: 1200,
-    height: 630,
-  };
+  return { url: resized, width: 1200, height: 630 };
 }
 
 type BuildMetadataInput = {
