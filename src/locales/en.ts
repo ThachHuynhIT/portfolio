@@ -108,8 +108,12 @@ export const en = {
     messagePlaceholder: "Tell me about your project...",
     sendButton: "Send Message",
     sendingButton: "Sending...",
+    successTitle: "Message sent!",
+    successMessage: "Thanks for reaching out — I'll get back to you soon.",
+    errorGeneric: "Something went wrong sending your message.",
+    errorRateLimited: "Too many messages sent. Please try again later.",
     unconnectedNotice:
-      "This form isn't connected to a live inbox yet, so nothing was sent automatically.",
+      "Sending failed, so nothing reached my inbox automatically.",
     mailtoPrefix: "Please ",
     mailtoLinkText: "click here to send it via your email client",
     mailtoSuffix: " instead, or reach me directly at ",

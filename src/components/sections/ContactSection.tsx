@@ -37,6 +37,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
   const { t, locale } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  const honeypotRef = useRef<HTMLInputElement>(null);
   // Only mount the WebGL canvas once the section is about to scroll into
   // view — avoids a 3rd concurrent Canvas running from page load while the
   // visitor is still looking at the Hero section above.
@@ -70,10 +71,42 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
   const [submittedData, setSubmittedData] = useState<ContactFormData | null>(
     null
   );
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const onSubmit = async (data: ContactFormData) => {
-    setSubmittedData(data);
-    reset();
+    setErrorMessage(null);
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // The honeypot field lives outside react-hook-form (it must stay
+        // empty for real users) — read it straight from the form element.
+        body: JSON.stringify({
+          ...data,
+          website: honeypotRef.current?.value,
+        }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        setStatus("error");
+        setSubmittedData(data);
+        setErrorMessage(
+          response.status === 429
+            ? t("contact.errorRateLimited")
+            : body.error || t("contact.errorGeneric")
+        );
+        return;
+      }
+
+      setStatus("success");
+      reset();
+    } catch {
+      setStatus("error");
+      setSubmittedData(data);
+      setErrorMessage(t("contact.errorGeneric"));
+    }
   };
 
   const mailtoHref = submittedData
@@ -127,17 +160,27 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
           {/* Contact Form */}
           <AnimatedSection>
             <GlassCard className="p-8">
-              {submittedData && (
+              {status === "success" && (
                 <div
                   role="status"
                   aria-live="polite"
-                  className="mb-6 p-4 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-sm text-white/80 light:text-neutral-700"
+                  className="mb-6 p-4 rounded-xl border border-green-500/30 bg-green-500/10 text-sm text-white/80 light:text-neutral-700"
                 >
-                  <p>
-                    {t("contact.unconnectedNotice")}
+                  <p className="font-medium text-white light:text-neutral-900">
+                    {t("contact.successTitle")}
                   </p>
+                  <p className="mt-1">{t("contact.successMessage")}</p>
+                </div>
+              )}
+              {status === "error" && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="mb-6 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-sm text-white/80 light:text-neutral-700"
+                >
+                  <p>{errorMessage ?? t("contact.errorGeneric")}</p>
                   <p className="mt-2">
-                    {t("contact.mailtoPrefix")}
+                    {t("contact.unconnectedNotice")} {t("contact.mailtoPrefix")}
                     <a
                       href={mailtoHref}
                       className="text-cyan-400 underline hover:text-cyan-300"
@@ -156,6 +199,17 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                 </div>
               )}
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                {/* Honeypot: hidden from sighted/keyboard users, bots that
+                    fill every field they find will trip it. */}
+                <input
+                  ref={honeypotRef}
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  className="absolute -left-[9999px] w-px h-px opacity-0"
+                />
                 {/* Name Field */}
                 <div>
                   <label
