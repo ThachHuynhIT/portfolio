@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getPublishedPhotos, getPublishedAlbums } from "@/lib/content/photography";
 import type { PhotoAlbum } from "@/lib/types";
 import AlbumDetailView from "@/components/photography/AlbumDetailView";
+import { buildMetadata } from "@/lib/seo";
 
 interface AlbumPageProps {
   params: {
@@ -24,16 +25,12 @@ export async function generateMetadata({ params }: AlbumPageProps): Promise<Meta
   const description =
     album.description_vi || album.description || `Curated photography collection: ${album.title}`;
 
-  return {
+  return buildMetadata({
     title,
     description,
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      images: album.coverImage ? [album.coverImage] : [],
-    },
-  };
+    path: `/photography/album/${album.slug}`,
+    image: album.coverImage || undefined,
+  });
 }
 
 export default async function AlbumPage({ params }: AlbumPageProps) {

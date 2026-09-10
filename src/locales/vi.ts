@@ -110,8 +110,12 @@ export const vi: TranslationDict = {
     messagePlaceholder: "Hãy chia sẻ về dự án hoặc mong muốn của bạn...",
     sendButton: "Gửi tin nhắn",
     sendingButton: "Đang gửi...",
+    successTitle: "Đã gửi tin nhắn!",
+    successMessage: "Cảm ơn bạn đã liên hệ — tôi sẽ phản hồi sớm nhất có thể.",
+    errorGeneric: "Đã có lỗi xảy ra khi gửi tin nhắn của bạn.",
+    errorRateLimited: "Bạn đã gửi quá nhiều tin nhắn. Vui lòng thử lại sau.",
     unconnectedNotice:
-      "Biểu mẫu này chưa kết nối trực tiếp đến hòm thư tự động, vì vậy dữ liệu chưa được gửi đi tức thì.",
+      "Gửi tin nhắn thất bại, vì vậy tin nhắn chưa đến được hòm thư của tôi.",
     mailtoPrefix: "Vui lòng ",
     mailtoLinkText: "nhấp vào đây để gửi trực tiếp qua ứng dụng email của bạn",
     mailtoSuffix: " hoặc gửi trực tiếp đến địa chỉ ",

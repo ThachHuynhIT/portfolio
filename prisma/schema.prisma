@@ -472,3 +472,15 @@ model CmsBlogPost {
 
   @@map("cms_blog_posts")
 }
+
+model CmsContactMessage {
+  id        String   @id
+  name      String
+  email     String
+  subject   String?
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("cms_contact_messages")
+}

@@ -6,6 +6,7 @@ import rehypeSlug from "rehype-slug";
 import { getPostBySlug, getAllPosts } from "@/lib/blog";
 import BlogPostView from "@/components/blog/BlogPostView";
 import { cn } from "@/lib/utils";
+import { buildMetadata } from "@/lib/seo";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -29,12 +30,17 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${post.title} | Thach Huynh`,
-    description: post.excerpt,
+    ...buildMetadata({
+      title: post.title,
+      description: post.excerpt,
+      path: `/blog/${post.slug}`,
+      type: "article",
+    }),
     openGraph: {
       title: post.title,
       description: post.excerpt,
       type: "article",
+      url: `/blog/${post.slug}`,
       publishedTime: post.date,
       tags: post.tags,
     },

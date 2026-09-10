@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { getPublishedNavLinks } from "@/lib/content/nav-links";
 import { getPublishedSocialLinks } from "@/lib/content/social-links";
 import { getPublishedSiteConfig } from "@/lib/content/site-config";
+import { buildMetadata } from "@/lib/seo";
 
 // Floating overlay with no SSR value — mounted on every route, so keep it
 // out of the initial/shared bundle.
@@ -27,34 +28,35 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Thach Huynh | Creative Web Developer",
-  description:
-    "A passionate web developer crafting immersive digital experiences with cutting-edge technologies.",
-  keywords: [
-    "web developer",
-    "frontend",
-    "react",
-    "next.js",
-    "three.js",
-    "portfolio",
-  ],
-  authors: [{ name: "Thach Huynh" }],
-  openGraph: {
-    title: "Thach Huynh | Creative Web Developer",
-    description:
-      "A passionate web developer crafting immersive digital experiences with cutting-edge technologies.",
-    type: "website",
-    locale: "en_US",
-    url: "https://portfolio-thach.vercel.app",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Thach Huynh | Creative Web Developer",
-    description:
-      "A passionate web developer crafting immersive digital experiences with cutting-edge technologies.",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const siteConfig = await getPublishedSiteConfig();
+
+  return {
+    ...buildMetadata({
+      title: siteConfig.title,
+      description: siteConfig.description,
+      path: "/",
+      image: siteConfig.ogImage,
+      siteName: siteConfig.name,
+    }),
+    // Overrides buildMetadata's plain-string title with the site-wide
+    // template so descendant pages' `title` strings render as "Page | Site".
+    metadataBase: new URL(siteConfig.url),
+    title: {
+      default: siteConfig.title,
+      template: `%s | ${siteConfig.name}`,
+    },
+    keywords: [
+      "web developer",
+      "frontend",
+      "react",
+      "next.js",
+      "three.js",
+      "portfolio",
+    ],
+    authors: [{ name: siteConfig.author.name }],
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",

@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { verifyPassword, createSession, destroySession, verifySession } from "@/lib/admin-auth";
+import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
+
+const loginRateLimiter = createRateLimiter({ max: 5, windowMs: 15 * 60 * 1000 });
 
 /**
  * GET /api/admin/auth — Check current session status
@@ -24,6 +27,14 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request.headers);
+    if (loginRateLimiter.isRateLimited(ip)) {
+      return NextResponse.json(
+        { error: "Too many login attempts. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { password } = body;
 
@@ -35,11 +46,14 @@ export async function POST(request: Request) {
     }
 
     if (!verifyPassword(password)) {
+      loginRateLimiter.recordAttempt(ip);
       return NextResponse.json(
         { error: "Invalid password" },
         { status: 401 }
       );
     }
+
+    loginRateLimiter.clearAttempts(ip);
 
     await createSession();
     return NextResponse.json({ success: true });

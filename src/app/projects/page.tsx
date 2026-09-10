@@ -1,18 +1,13 @@
-import { Metadata } from "next";
 import { getPublishedProjects } from "@/lib/content/projects";
 import ProjectsGallery from "@/components/projects/ProjectsGallery";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "All Projects | Thach Huynh",
+export const metadata = buildMetadata({
+  title: "All Projects",
   description:
     "Explore the complete portfolio of web applications, 3D interactive experiences, and creative coding experiments built by Thach Huynh.",
-  openGraph: {
-    title: "All Projects | Thach Huynh",
-    description:
-      "Explore the complete portfolio of web applications, 3D interactive experiences, and creative coding experiments.",
-    type: "website",
-  },
-};
+  path: "/projects",
+});
 
 export const revalidate = 60; // ISR
 

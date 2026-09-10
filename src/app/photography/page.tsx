@@ -1,18 +1,13 @@
-import { Metadata } from "next";
 import { getPublishedPhotos, getPublishedAlbums } from "@/lib/content/photography";
 import PhotographyGallery from "@/components/photography/PhotographyGallery";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Photography & Media Gallery | Visual Showcase",
+export const metadata = buildMetadata({
+  title: "Photography & Media Gallery",
   description:
     "Explore curated photography, cinematic color grading, and creative post-processing artworks across diverse visual perspectives.",
-  openGraph: {
-    title: "Photography & Media Gallery | Visual Showcase",
-    description:
-      "Explore curated photography, cinematic color grading, and creative post-processing artworks.",
-    type: "website",
-  },
-};
+  path: "/photography",
+});
 
 export const dynamic = "force-dynamic";
 
