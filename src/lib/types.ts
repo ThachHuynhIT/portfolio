@@ -100,6 +100,7 @@ export interface SiteConfig {
   description_vi?: string;
   url: string;
   ogImage: string;
+  resumeUrl: string | null;
   author: SiteAuthor;
 }
 
