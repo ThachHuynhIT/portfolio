@@ -243,7 +243,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
           {/* Desktop Navigation */}
           <ul
             ref={desktopNavRef}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] light:bg-neutral-900/[0.03] border border-white/[0.08] light:border-neutral-900/[0.08] backdrop-blur-md"
+            className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] light:bg-neutral-900/[0.03] border border-white/[0.08] light:border-neutral-900/[0.08] backdrop-blur-md"
           >
             {navLinks.map((link) => {
               const active = isNavItemActive(link);
@@ -368,7 +368,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
           </ul>
 
           {/* Desktop Right: Theme Toggle, Language Switcher & Contact Button */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden xl:flex items-center gap-3">
             <ThemeToggle size="sm" />
             <LanguageSwitcher variant="pill" size="sm" />
             <Link
@@ -392,7 +392,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
           </div>
 
           {/* Mobile Right Controls: Theme Toggle, Language Switcher & Hamburger */}
-          <div className="flex md:hidden items-center gap-2">
+          <div className="flex xl:hidden items-center gap-2">
             <ThemeToggle size="sm" />
             <LanguageSwitcher variant="pill" size="sm" />
             <button
@@ -435,7 +435,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="md:hidden mt-3 rounded-2xl bg-black/95 light:bg-white/95 border border-white/10 light:border-neutral-900/10 backdrop-blur-2xl p-4 shadow-2xl shadow-black/80 light:shadow-neutral-400/30 overflow-hidden"
+              className="xl:hidden mt-3 rounded-2xl bg-black/95 light:bg-white/95 border border-white/10 light:border-neutral-900/10 backdrop-blur-2xl p-4 shadow-2xl shadow-black/80 light:shadow-neutral-400/30 overflow-hidden"
             >
               <ul className="flex flex-col gap-1.5">
                 {navLinks.map((link, index) => {
