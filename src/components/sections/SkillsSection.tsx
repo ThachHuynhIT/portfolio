@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedSection, Icon } from "@/components/ui";
+import { isKnownIconName } from "@/components/ui/Icon";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
 import { resolveSectionText } from "@/lib/content-overrides";
@@ -209,6 +210,8 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                                 alt={skill.name}
                                 className="w-5 h-5 object-contain"
                               />
+                            ) : isKnownIconName(skill.icon) ? (
+                              <Icon name={skill.icon} size={18} />
                             ) : skill.icon ? (
                               <span className="text-base leading-none">{skill.icon}</span>
                             ) : (

@@ -7,6 +7,7 @@ import AdminModal from "@/components/admin/AdminModal";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
+import IconPickerModal from "@/components/admin/IconPickerModal";
 import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/TranslationContext";
@@ -31,7 +32,6 @@ type TabId =
   | "info";
 
 const POPULAR_PHOTO_CATEGORIES = ["Du lịch", "Hẹn hò", "Kỷ niệm", "Đời thường", "Ăn uống", "Đặc biệt"];
-const SUGGESTED_EMOJIS = ["💕", "✨", "☕", "🎂", "🌹", "🎉", "🥂", "💍", "✈️", "🏖️", "🌙", "🎁", "👩‍🍳", "📸", "🐱", "🎵", "🎬", "🍲", "💝", "🌟"];
 
 export default function CoupleAdminPage() {
   const router = useRouter();
@@ -136,6 +136,11 @@ export default function CoupleAdminPage() {
     emoji: "💝",
     published: true,
   });
+
+  // Shared emoji picker — which form's `emoji` field it's currently editing
+  const [emojiPickerTarget, setEmojiPickerTarget] = useState<
+    "memory" | "birthday" | "date" | "bucket" | "favorite" | null
+  >(null);
 
   // Couple Info form
   const [infoForm, setInfoForm] = useState({
@@ -1570,7 +1575,7 @@ export default function CoupleAdminPage() {
             />
           </FormField>
           <FormField label="Emoji" id="memEmoji">
-            <div className="space-y-1">
+            <div className="flex items-center gap-2">
               <input
                 type="text"
                 id="memEmoji"
@@ -1578,18 +1583,14 @@ export default function CoupleAdminPage() {
                 onChange={(e) => setMemoryForm({ ...memoryForm, emoji: e.target.value })}
                 className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
               />
-              <div className="flex gap-1 overflow-x-auto py-1">
-                {SUGGESTED_EMOJIS.slice(0, 7).map((em) => (
-                  <button
-                    key={em}
-                    type="button"
-                    onClick={() => setMemoryForm({ ...memoryForm, emoji: em })}
-                    className="px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/10 text-xs"
-                  >
-                    {em}
-                  </button>
-                ))}
-              </div>
+              <button
+                type="button"
+                onClick={() => setEmojiPickerTarget("memory")}
+                className="shrink-0 w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-base transition-all"
+                title="Chọn emoji"
+              >
+                {memoryForm.emoji || <Icon name="sparkles" size={14} />}
+              </button>
             </div>
           </FormField>
         </div>
@@ -1659,13 +1660,23 @@ export default function CoupleAdminPage() {
             />
           </FormField>
           <FormField label="Emoji" id="bdayEmoji">
-            <input
-              type="text"
-              id="bdayEmoji"
-              value={birthdayForm.emoji}
-              onChange={(e) => setBirthdayForm({ ...birthdayForm, emoji: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                id="bdayEmoji"
+                value={birthdayForm.emoji}
+                onChange={(e) => setBirthdayForm({ ...birthdayForm, emoji: e.target.value })}
+                className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              />
+              <button
+                type="button"
+                onClick={() => setEmojiPickerTarget("birthday")}
+                className="shrink-0 w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-base transition-all"
+                title="Chọn emoji"
+              >
+                {birthdayForm.emoji || <Icon name="sparkles" size={14} />}
+              </button>
+            </div>
           </FormField>
         </div>
         <div className="flex items-center gap-2">
@@ -1715,13 +1726,23 @@ export default function CoupleAdminPage() {
             />
           </FormField>
           <FormField label="Emoji" id="dateEmoji">
-            <input
-              type="text"
-              id="dateEmoji"
-              value={dateForm.emoji}
-              onChange={(e) => setDateForm({ ...dateForm, emoji: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                id="dateEmoji"
+                value={dateForm.emoji}
+                onChange={(e) => setDateForm({ ...dateForm, emoji: e.target.value })}
+                className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              />
+              <button
+                type="button"
+                onClick={() => setEmojiPickerTarget("date")}
+                className="shrink-0 w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-base transition-all"
+                title="Chọn emoji"
+              >
+                {dateForm.emoji || <Icon name="sparkles" size={14} />}
+              </button>
+            </div>
           </FormField>
         </div>
         <div className="flex items-center gap-2">
@@ -1759,7 +1780,7 @@ export default function CoupleAdminPage() {
           />
         </FormField>
         <FormField label="Emoji" id="bucketEmoji">
-          <div className="space-y-1">
+          <div className="flex items-center gap-2">
             <input
               type="text"
               id="bucketEmoji"
@@ -1767,18 +1788,14 @@ export default function CoupleAdminPage() {
               onChange={(e) => setBucketForm({ ...bucketForm, emoji: e.target.value })}
               className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
             />
-            <div className="flex gap-1 overflow-x-auto py-1">
-              {SUGGESTED_EMOJIS.slice(0, 10).map((em) => (
-                <button
-                  key={em}
-                  type="button"
-                  onClick={() => setBucketForm({ ...bucketForm, emoji: em })}
-                  className="px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/10 text-xs"
-                >
-                  {em}
-                </button>
-              ))}
-            </div>
+            <button
+              type="button"
+              onClick={() => setEmojiPickerTarget("bucket")}
+              className="shrink-0 w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-base transition-all"
+              title="Chọn emoji"
+            >
+              {bucketForm.emoji || <Icon name="sparkles" size={14} />}
+            </button>
           </div>
         </FormField>
         <div className="flex flex-wrap items-center gap-6">
@@ -1882,13 +1899,23 @@ export default function CoupleAdminPage() {
             />
           </FormField>
           <FormField label="Emoji" id="favEmoji">
-            <input
-              type="text"
-              id="favEmoji"
-              value={favoriteForm.emoji}
-              onChange={(e) => setFavoriteForm({ ...favoriteForm, emoji: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                id="favEmoji"
+                value={favoriteForm.emoji}
+                onChange={(e) => setFavoriteForm({ ...favoriteForm, emoji: e.target.value })}
+                className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              />
+              <button
+                type="button"
+                onClick={() => setEmojiPickerTarget("favorite")}
+                className="shrink-0 w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-base transition-all"
+                title="Chọn emoji"
+              >
+                {favoriteForm.emoji || <Icon name="sparkles" size={14} />}
+              </button>
+            </div>
           </FormField>
         </div>
         <FormField label={t.admin.photography.fieldTitle} id="favTitle" required>
@@ -1923,6 +1950,34 @@ export default function CoupleAdminPage() {
           </label>
         </div>
       </AdminModal>
+
+      {/* ═════════════════ SHARED EMOJI PICKER (memory/birthday/date/bucket/favorite) ═════════════════ */}
+      <IconPickerModal
+        isOpen={emojiPickerTarget !== null}
+        onClose={() => setEmojiPickerTarget(null)}
+        value={
+          emojiPickerTarget === "memory"
+            ? memoryForm.emoji
+            : emojiPickerTarget === "birthday"
+              ? birthdayForm.emoji
+              : emojiPickerTarget === "date"
+                ? dateForm.emoji
+                : emojiPickerTarget === "bucket"
+                  ? bucketForm.emoji
+                  : emojiPickerTarget === "favorite"
+                    ? favoriteForm.emoji
+                    : undefined
+        }
+        onSelect={(emoji) => {
+          if (emojiPickerTarget === "memory") setMemoryForm({ ...memoryForm, emoji });
+          else if (emojiPickerTarget === "birthday") setBirthdayForm({ ...birthdayForm, emoji });
+          else if (emojiPickerTarget === "date") setDateForm({ ...dateForm, emoji });
+          else if (emojiPickerTarget === "bucket") setBucketForm({ ...bucketForm, emoji });
+          else if (emojiPickerTarget === "favorite") setFavoriteForm({ ...favoriteForm, emoji });
+        }}
+        categories={["emoji"]}
+        title="Chọn Emoji"
+      />
 
       {/* ═════════════════ CONFIRM DELETE DIALOG ═════════════════ */}
       <ConfirmDialog
