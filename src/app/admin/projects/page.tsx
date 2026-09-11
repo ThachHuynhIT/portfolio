@@ -9,6 +9,7 @@ import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
 import LanguageTabSelector from "@/components/admin/LanguageTabSelector";
 import FlagIcon from "@/components/ui/FlagIcon";
+import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
 import type { Project } from "@/lib/types";
@@ -283,7 +284,9 @@ export default function ProjectsAdminPage() {
                     title={project.title_vi ? "Đã có bản dịch Tiếng Việt" : "Chưa có bản dịch Tiếng Việt"}
                   >
                     <FlagIcon locale="vi" width={14} height={9} />
-                    <span className="font-mono text-[10px]">{project.title_vi ? "VI ✓" : "VI"}</span>
+                    <span className="font-mono text-[10px] inline-flex items-center gap-0.5">
+                      VI {project.title_vi && <Icon name="check" size={9} />}
+                    </span>
                   </span>
 
                   <button
@@ -330,8 +333,16 @@ export default function ProjectsAdminPage() {
 
             <div className="flex items-center justify-between pt-4 border-t border-gray-800">
               <div className="flex gap-3 text-xs text-gray-500">
-                {project.liveUrl && <span>Demo ✅</span>}
-                {project.githubUrl && <span>GitHub ✅</span>}
+                {project.liveUrl && (
+                  <span className="inline-flex items-center gap-1">
+                    Demo <Icon name="checkCircle" size={11} className="text-emerald-400" />
+                  </span>
+                )}
+                {project.githubUrl && (
+                  <span className="inline-flex items-center gap-1">
+                    GitHub <Icon name="checkCircle" size={11} className="text-emerald-400" />
+                  </span>
+                )}
               </div>
 
               <div className="flex gap-2">

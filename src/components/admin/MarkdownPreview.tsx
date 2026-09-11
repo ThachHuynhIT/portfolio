@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
+import Icon from "@/components/ui/Icon";
 
 const mdxComponents = {
   h1: (props: React.HTMLProps<HTMLHeadingElement>) => (
@@ -137,7 +138,7 @@ export default function MarkdownPreview({ content }: MarkdownPreviewProps) {
   if (!content.trim()) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-gray-500">
-        <span className="text-3xl mb-2">📝</span>
+        <Icon name="fileText" size={28} className="mb-2" />
         <p className="italic text-sm">Preview will appear here when you write content...</p>
       </div>
     );
@@ -157,7 +158,7 @@ export default function MarkdownPreview({ content }: MarkdownPreviewProps) {
       {compileError && (
         <div className="p-4 mb-6 bg-red-950/40 border border-red-500/40 rounded-xl text-red-300 text-xs">
           <div className="flex items-center gap-2 font-bold mb-1">
-            <span>⚠️</span>
+            <Icon name="alertTriangle" size={14} />
             <span>MDX Syntax Error:</span>
           </div>
           <p className="font-mono whitespace-pre-wrap">{compileError}</p>

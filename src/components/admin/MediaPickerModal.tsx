@@ -221,7 +221,7 @@ export default function MediaPickerModal({
             </div>
           ) : assets.length === 0 ? (
             <div className="flex flex-col items-center justify-center min-h-[260px] text-center p-6 border border-dashed border-white/10 rounded-2xl">
-              <p className="text-2xl mb-1">🖼️</p>
+              <div className="flex justify-center mb-1 text-slate-500"><Icon name="image" size={24} /></div>
               <p className="text-sm font-medium text-slate-300">{t("admin.common.noResults", "No images found")}</p>
             </div>
           ) : (
@@ -253,8 +253,8 @@ export default function MediaPickerModal({
 
                     {/* Selection overlay */}
                     <div className="absolute inset-0 bg-violet-600/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <span className="px-2.5 py-1 rounded-lg bg-violet-600 text-white text-[11px] font-semibold shadow-lg">
-                        {t("admin.common.confirm", "Select this image ✓")}
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-violet-600 text-white text-[11px] font-semibold shadow-lg">
+                        {t("admin.common.confirm", "Select this image")} <Icon name="check" size={11} />
                       </span>
                     </div>
                   </div>

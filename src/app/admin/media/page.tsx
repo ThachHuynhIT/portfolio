@@ -268,7 +268,7 @@ export default function MediaAdminPage() {
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-900 border border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white transition-all shadow-sm disabled:opacity-50"
               title={t.admin.media.syncCloudinary}
             >
-              <span className={isSyncing ? "animate-spin" : ""}>🔄</span>
+              <span className={isSyncing ? "animate-spin" : ""}><Icon name="refresh" size={14} /></span>
               <span>{isSyncing ? t.admin.media.syncing : t.admin.media.syncCloudinary}</span>
             </button>
 
@@ -358,9 +358,9 @@ export default function MediaAdminPage() {
                   setSearchQuery("");
                   fetchMedia();
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
               >
-                ✕
+                <Icon name="close" size={12} />
               </button>
             )}
           </form>
@@ -371,21 +371,22 @@ export default function MediaAdminPage() {
             <div className="flex items-center bg-slate-950/80 border border-white/10 rounded-xl p-0.5">
               {(
                 [
-                  { id: "all", label: t.admin.media.filterAllTypes },
-                  { id: "image", label: `🖼️ ${t.admin.media.typeImages}` },
-                  { id: "audio", label: `🎧 ${t.admin.media.typeAudio}` },
-                  { id: "video", label: `🎬 ${t.admin.media.typeVideo}` },
+                  { id: "all", icon: null, label: t.admin.media.filterAllTypes },
+                  { id: "image", icon: "image", label: t.admin.media.typeImages },
+                  { id: "audio", icon: "headphones", label: t.admin.media.typeAudio },
+                  { id: "video", icon: "video", label: t.admin.media.typeVideo },
                 ] as const
               ).map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setTypeFilter(tab.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     typeFilter === tab.id
                       ? "bg-violet-600 text-white shadow-sm"
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
+                  {tab.icon && <Icon name={tab.icon} size={13} />}
                   {tab.label}
                 </button>
               ))}
@@ -459,8 +460,8 @@ export default function MediaAdminPage() {
         </div>
       ) : assets.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[350px] bg-slate-900/20 rounded-2xl border border-dashed border-white/10 p-8 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-slate-500 mb-3 text-2xl">
-            📁
+          <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-slate-500 mb-3">
+            <Icon name="folder" size={24} />
           </div>
           <h3 className="text-base font-semibold text-white">{t.admin.media.noAssets}</h3>
           <p className="text-slate-500 text-xs mt-1 max-w-sm">
@@ -504,8 +505,8 @@ export default function MediaAdminPage() {
                 >
                   {isAudio ? (
                     <div className="flex flex-col items-center justify-center gap-2 p-4 text-purple-400">
-                      <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                        🎵
+                      <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Icon name="music" size={20} />
                       </div>
                       <span className="text-[11px] font-mono text-slate-400">
                         {formatDuration(asset.duration) || "AUDIO"}
@@ -574,7 +575,7 @@ export default function MediaAdminPage() {
                       title={t.admin.media.copyLink}
                       className="p-2 rounded-xl bg-white/15 hover:bg-violet-600 text-white transition-all transform hover:scale-110"
                     >
-                      {isCopied ? "✓" : "🔗"}
+                      <Icon name={isCopied ? "check" : "copy"} size={16} />
                     </button>
                     <button
                       onClick={(e) => {
@@ -584,7 +585,7 @@ export default function MediaAdminPage() {
                       title={t.admin.media.viewDetails}
                       className="p-2 rounded-xl bg-white/15 hover:bg-violet-600 text-white transition-all transform hover:scale-110"
                     >
-                      👁️
+                      <Icon name="eye" size={16} />
                     </button>
                     <button
                       onClick={(e) => {
@@ -594,7 +595,7 @@ export default function MediaAdminPage() {
                       title={t.admin.media.deleteFile}
                       className="p-2 rounded-xl bg-red-500/20 hover:bg-red-600 text-red-300 hover:text-white transition-all transform hover:scale-110"
                     >
-                      🗑️
+                      <Icon name="trash" size={16} />
                     </button>
                   </div>
                 </div>
@@ -661,9 +662,9 @@ export default function MediaAdminPage() {
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg bg-slate-950 border border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center">
                             {isAudio ? (
-                              <span className="text-purple-400 text-sm">🎵</span>
+                              <Icon name="music" size={16} className="text-purple-400" />
                             ) : isVideo ? (
-                              <span className="text-white text-xs">🎬</span>
+                              <Icon name="video" size={16} className="text-white" />
                             ) : (
                               <img
                                 src={asset.secureUrl}
@@ -710,24 +711,25 @@ export default function MediaAdminPage() {
                         >
                           <button
                             onClick={() => handleCopyLink(asset.secureUrl, asset.id)}
-                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all text-xs"
+                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all text-xs inline-flex items-center gap-1"
                             title={t.admin.media.copyUrl}
                           >
-                            {isCopied ? (locale === "vi" ? "✓ Đã chép" : "✓ Copied") : t.admin.media.copyUrl}
+                            {isCopied && <Icon name="check" size={12} />}
+                            {isCopied ? (locale === "vi" ? "Đã chép" : "Copied") : t.admin.media.copyUrl}
                           </button>
                           <button
                             onClick={() => setSelectedAsset(asset)}
                             className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all"
                             title={t.admin.media.viewDetails}
                           >
-                            👁️
+                            <Icon name="eye" size={14} />
                           </button>
                           <button
                             onClick={() => setDeleteTarget(asset)}
                             className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all"
                             title={t.admin.media.deleteFile}
                           >
-                            🗑️
+                            <Icon name="trash" size={14} />
                           </button>
                         </div>
                       </td>
@@ -753,8 +755,8 @@ export default function MediaAdminPage() {
             <div className="md:w-3/5 bg-slate-950 p-6 flex flex-col items-center justify-center relative min-h-[300px] border-b md:border-b-0 md:border-r border-white/5">
               {isAudioItem(selectedAsset) ? (
                 <div className="w-full flex flex-col items-center gap-5">
-                  <div className="w-24 h-24 rounded-3xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-5xl">
-                    🎵
+                  <div className="w-24 h-24 rounded-3xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                    <Icon name="music" size={40} />
                   </div>
                   <div className="text-center">
                     <p className="text-white font-semibold">{selectedAsset.filename}</p>
@@ -887,7 +889,7 @@ export default function MediaAdminPage() {
                   }
                   className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-semibold transition-all shadow-md shadow-violet-600/20"
                 >
-                  <span>🔗</span>
+                  <Icon name="copy" size={14} />
                   <span>{t.admin.media.copyDirectUrl}</span>
                 </button>
 
@@ -1065,7 +1067,7 @@ export default function MediaAdminPage() {
               </div>
             ) : uploadFile ? (
               <div className="space-y-2">
-                <div className="text-3xl">📁</div>
+                <div className="flex justify-center"><Icon name="folder" size={28} /></div>
                 <p className="text-xs font-medium text-white">
                   {uploadFile.name}
                 </p>
@@ -1085,8 +1087,8 @@ export default function MediaAdminPage() {
               </div>
             ) : (
               <div className="py-4">
-                <div className="w-10 h-10 rounded-2xl bg-violet-500/10 border border-violet-500/20 text-violet-400 flex items-center justify-center mx-auto mb-2 text-xl">
-                  ☁️
+                <div className="w-10 h-10 rounded-2xl bg-violet-500/10 border border-violet-500/20 text-violet-400 flex items-center justify-center mx-auto mb-2">
+                  <Icon name="uploadCloud" size={20} />
                 </div>
                 <p className="text-xs font-medium text-slate-300">
                   {t.admin.media.uploadDropzonePrompt}

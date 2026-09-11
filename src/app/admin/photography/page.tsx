@@ -952,8 +952,8 @@ export default function PhotographyAdminPage() {
                           {photo.category}
                         </span>
                         {assignedAlbum && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-600/90 text-white backdrop-blur-md shadow-sm border border-violet-400/30">
-                            📁 {assignedAlbum.title_vi || assignedAlbum.title}
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-600/90 text-white backdrop-blur-md shadow-sm border border-violet-400/30">
+                            <Icon name="folder" size={10} /> {assignedAlbum.title_vi || assignedAlbum.title}
                           </span>
                         )}
                         {isVideo && (
@@ -1108,7 +1108,7 @@ export default function PhotographyAdminPage() {
                       {/* Photo Count Badge */}
                       <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 z-10">
                         <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-black/75 text-cyan-300 backdrop-blur-md border border-white/10 shadow-sm flex items-center gap-1.5">
-                          <span>🖼️</span>
+                          <Icon name="image" size={12} />
                           <span>{photoCount} {t.admin.photography.photosCount || "ảnh"}</span>
                         </span>
                       </div>
@@ -1127,7 +1127,8 @@ export default function PhotographyAdminPage() {
                               : "bg-black/70 text-slate-400 border-slate-700 hover:text-amber-300"
                           }`}
                         >
-                          <span>{album.featured ? (t.admin.photography.markFeatured || "⭐ Nổi bật") : (t.admin.photography.setFeatured || "☆ Đặt nổi bật")}</span>
+                          <Icon name="star" size={11} />
+                          <span>{album.featured ? (t.admin.photography.markFeatured || "Nổi bật") : (t.admin.photography.setFeatured || "Đặt nổi bật")}</span>
                         </button>
                         <button
                           type="button"
@@ -1182,7 +1183,7 @@ export default function PhotographyAdminPage() {
                           className="inline-flex items-center gap-1 text-[11px] text-cyan-400 hover:text-cyan-300 transition-colors"
                         >
                           <span>{t.admin.photography.viewPublic || "Xem công khai"}</span>
-                          <span>↗</span>
+                          <Icon name="externalLink" size={11} />
                         </Link>
 
                         <div className="flex items-center gap-1.5">
@@ -1377,7 +1378,7 @@ export default function PhotographyAdminPage() {
                   onClick={() => setIsMainPickerOpen(true)}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition-all border border-white/10"
                 >
-                  <span>📁</span>
+                  <Icon name="folder" size={14} />
                   <span>{t.admin.photography.chooseFromCloud}</span>
                 </button>
 
@@ -1460,7 +1461,7 @@ export default function PhotographyAdminPage() {
                     onClick={() => setIsBeforePickerOpen(true)}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition-all border border-white/10"
                   >
-                    <span>📁</span>
+                    <Icon name="folder" size={14} />
                     <span>{t.admin.photography.chooseFromCloud}</span>
                   </button>
 
@@ -1601,7 +1602,7 @@ export default function PhotographyAdminPage() {
                   <option value="">{t.admin.photography.fieldAlbumNone || "-- Không gán vào Album nào --"}</option>
                   {albums.map((album) => (
                     <option key={album.id} value={album.id}>
-                      📁 {album.title_vi || album.title}
+                      {album.title_vi || album.title}
                     </option>
                   ))}
                 </select>
@@ -1937,7 +1938,7 @@ export default function PhotographyAdminPage() {
                   onChange={(e) => setFormAlbumFeatured(e.target.checked)}
                   className="w-4 h-4 rounded bg-slate-800 border-white/20 text-amber-500 focus:ring-amber-500/20"
                 />
-                <span>{t.admin.photography.featuredAlbum || "⭐ Album nổi bật"}</span>
+                <span className="inline-flex items-center gap-1"><Icon name="star" size={12} /> {t.admin.photography.featuredAlbum || "Album nổi bật"}</span>
               </label>
             </div>
           </div>
@@ -1951,7 +1952,7 @@ export default function PhotographyAdminPage() {
                   <span>{t.admin.photography.chooseCoverTitle || "Ảnh Trong Album & Chọn Ảnh Bìa Đại Diện"}</span>
                 </h4>
                 <p className="text-[11px] text-slate-400 mt-0.5">
-                  {t.admin.photography.chooseCoverDesc || "Chọn các ảnh thuộc album. Nhấp vào nút '⭐ Đặt làm ảnh bìa' trên bất kỳ ảnh nào để chọn làm ảnh đại diện chính."}
+                  {t.admin.photography.chooseCoverDesc || "Chọn các ảnh thuộc album. Nhấp vào nút 'Đặt làm ảnh bìa' trên bất kỳ ảnh nào để chọn làm ảnh đại diện chính."}
                 </p>
               </div>
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
@@ -1972,8 +1973,8 @@ export default function PhotographyAdminPage() {
                     />
                   </div>
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300 block">
-                      ⭐ {t.admin.photography.coverBadge || "Ảnh Bìa Đại Diện Của Album"}
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1">
+                      <Icon name="star" size={10} /> {t.admin.photography.coverBadge || "Ảnh Bìa Đại Diện Của Album"}
                     </span>
                     <span className="text-xs text-white font-medium line-clamp-1">
                       {photos.find((p) => p.id === formAlbumCoverPhotoId || p.image === formAlbumCoverImage)?.title || "Ảnh bìa đã chọn"}
@@ -2021,8 +2022,8 @@ export default function PhotographyAdminPage() {
                           {/* Cover badge */}
                           {isCover && (
                             <div className="absolute top-1.5 left-1.5 z-10">
-                              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500 text-black shadow">
-                                ⭐ Ảnh bìa
+                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500 text-black shadow">
+                                <Icon name="star" size={9} /> Ảnh bìa
                               </span>
                             </div>
                           )}
@@ -2138,7 +2139,7 @@ export default function PhotographyAdminPage() {
                                 : "bg-black/60 text-white border border-white/30"
                             }`}
                           >
-                            {isSelected ? "✓" : "+"}
+                            <Icon name={isSelected ? "check" : "plus"} size={9} />
                           </span>
                         </div>
                         <div className="absolute bottom-1 left-1 right-1">
