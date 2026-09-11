@@ -9,6 +9,7 @@ import MarkdownPreview from "@/components/admin/MarkdownPreview";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import LanguageTabSelector from "@/components/admin/LanguageTabSelector";
 import FlagIcon from "@/components/ui/FlagIcon";
+import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/TranslationContext";
 
@@ -321,7 +322,7 @@ export default function EditBlogPostPage() {
                 onClick={() => setIsImagePickerOpen(true)}
                 className="flex items-center gap-1.5 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-purple-300 hover:text-white rounded-lg text-xs font-medium border border-gray-700 transition-all shadow-sm"
               >
-                <span>🖼️</span>
+                <Icon name="image" size={13} />
                 <span>{t.admin.blog.insertImage}</span>
               </button>
               {contentLang === "vi" && !content_vi && content && (
@@ -330,7 +331,7 @@ export default function EditBlogPostPage() {
                   onClick={copyEnglishToVietnamese}
                   className="flex items-center gap-1.5 px-3 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 rounded-lg text-xs font-medium border border-purple-500/30 transition-all"
                 >
-                  <span>📋</span>
+                  <Icon name="copy" size={13} />
                   <span>{t.admin.blog.copyEnToVi}</span>
                 </button>
               )}
@@ -345,7 +346,7 @@ export default function EditBlogPostPage() {
                     : "bg-gray-800 text-gray-400 hover:text-white"
                 }`}
               >
-                ✏️ {t.admin.blog.tabEdit}
+                <Icon name="edit" size={12} className="inline mr-1" /> {t.admin.blog.tabEdit}
               </button>
               <button
                 type="button"
@@ -356,7 +357,7 @@ export default function EditBlogPostPage() {
                     : "bg-gray-800 text-gray-400 hover:text-white"
                 }`}
               >
-                👁️ {t.admin.blog.tabPreview}
+                <Icon name="eye" size={12} className="inline mr-1" /> {t.admin.blog.tabPreview}
               </button>
             </div>
           </div>

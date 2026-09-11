@@ -6,6 +6,7 @@ import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/TranslationContext";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import AdminFormFooter from "@/components/admin/AdminFormFooter";
+import Icon from "@/components/ui/Icon";
 
 type SourceMode = "upload" | "url" | "library";
 
@@ -227,7 +228,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               {t.admin.music.description}
             </p>
           </div>
-          <span className="text-2xl">🎵</span>
+          <Icon name="music" size={20} />
         </div>
 
         {/* ── Title & Artist ── */}
@@ -375,7 +376,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 }`}
                 onClick={() => setAudioMode("upload")}
               >
-                ☁️ {t.admin.music.uploadAudio}
+                <Icon name="uploadCloud" size={12} className="inline mr-1" /> {t.admin.music.uploadAudio}
               </button>
               <button
                 type="button"
@@ -384,7 +385,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 }`}
                 onClick={() => setAudioMode("url")}
               >
-                🔗 {t.admin.music.directUrl}
+                <Icon name="links" size={12} className="inline mr-1" /> {t.admin.music.directUrl}
               </button>
             </div>
           </div>
@@ -413,7 +414,8 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               />
               {audioFile ? (
                 <div className="flex items-center justify-center gap-2 text-purple-300 font-semibold text-sm">
-                  <span>✅ Selected:</span>
+                  <Icon name="checkCircle" size={14} />
+                  <span>Selected:</span>
                   <span className="underline">{audioFile.name}</span>
                   <span className="text-xs text-gray-400 font-mono">
                     ({(audioFile.size / 1024 / 1024).toFixed(1)} MB)
@@ -421,7 +423,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 </div>
               ) : (
                 <div className="space-y-1">
-                  <span className="text-3xl block mb-1">🎧</span>
+                  <div className="flex justify-center mb-1"><Icon name="headphones" size={28} /></div>
                   <p className="text-sm font-semibold text-gray-200">
                     {t.admin.music.selectAudioPrompt}
                   </p>
@@ -448,7 +450,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 }`}
                 onClick={() => setThumbMode("upload")}
               >
-                ☁️ {t.admin.music.uploadImage}
+                <Icon name="uploadCloud" size={12} className="inline mr-1" /> {t.admin.music.uploadImage}
               </button>
               <button
                 type="button"
@@ -460,7 +462,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                   setIsThumbPickerOpen(true);
                 }}
               >
-                📁 {t.admin.music.cloudLibrary}
+                <Icon name="folder" size={12} className="inline mr-1" /> {t.admin.music.cloudLibrary}
               </button>
               <button
                 type="button"
@@ -469,7 +471,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 }`}
                 onClick={() => setThumbMode("url")}
               >
-                🔗 {t.admin.music.imageUrl}
+                <Icon name="links" size={12} className="inline mr-1" /> {t.admin.music.imageUrl}
               </button>
             </div>
           </div>
@@ -491,7 +493,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 onClick={() => setIsThumbPickerOpen(true)}
                 className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gray-800/60 hover:bg-gray-800 border border-dashed border-gray-700 hover:border-purple-500 text-purple-300 rounded-xl text-xs font-semibold transition-all"
               >
-                <span>📁</span>
+                <Icon name="folder" size={13} />
                 <span>{t.admin.music.openCloudCover}</span>
               </button>
             </div>
@@ -509,12 +511,13 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               />
               {thumbFile ? (
                 <div className="flex items-center justify-center gap-2 text-purple-300 font-semibold text-sm">
-                  <span>🖼️ Artwork:</span>
+                  <Icon name="image" size={14} />
+                  <span>Artwork:</span>
                   <span className="underline">{thumbFile.name}</span>
                 </div>
               ) : (
                 <div className="space-y-1">
-                  <span className="text-2xl block mb-1">🖼️</span>
+                  <div className="flex justify-center mb-1"><Icon name="image" size={20} /></div>
                   <p className="text-xs font-semibold text-gray-200">
                     {t.admin.music.selectCoverPrompt}
                   </p>
@@ -553,10 +556,10 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                   setThumbFile(null);
                   setThumbPreviewUrl(null);
                 }}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-white/5 transition-all text-xs"
+                className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-white/5 transition-all"
                 title={t.admin.common.remove}
               >
-                ✕
+                <Icon name="close" size={13} />
               </button>
             </div>
           )}
@@ -579,13 +582,13 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
 
         {/* ── Status Messages ── */}
         {error && (
-          <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-500/30 text-red-300 text-xs font-semibold">
-            ⚠️ {error}
+          <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-500/30 text-red-300 text-xs font-semibold flex items-center gap-2">
+            <Icon name="alertTriangle" size={14} /> {error}
           </div>
         )}
         {success && (
-          <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
-            ✅ {mode === "edit" ? t.admin.music.toastUpdated : t.admin.music.toastCreated}
+          <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
+            <Icon name="checkCircle" size={14} /> {mode === "edit" ? t.admin.music.toastUpdated : t.admin.music.toastCreated}
           </div>
         )}
 
@@ -632,8 +635,8 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-5xl bg-gradient-to-br from-purple-900/40 to-cyan-900/40 text-white/50">
-                <span>🎵</span>
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-900/40 to-cyan-900/40 text-white/50">
+                <Icon name="music" size={40} />
                 <span className="text-[10px] font-semibold text-gray-400 mt-2 uppercase tracking-widest">
                   {t.admin.music.coverArtwork}
                 </span>
@@ -656,8 +659,8 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
           </p>
 
           {formData.album && (
-            <span className="text-xs text-purple-300/80 bg-purple-500/10 px-3 py-0.5 rounded-full border border-purple-500/20 mb-4">
-              💿 {formData.album}
+            <span className="text-xs text-purple-300/80 bg-purple-500/10 px-3 py-0.5 rounded-full border border-purple-500/20 mb-4 inline-flex items-center gap-1">
+              <Icon name="disc" size={11} /> {formData.album}
             </span>
           )}
 

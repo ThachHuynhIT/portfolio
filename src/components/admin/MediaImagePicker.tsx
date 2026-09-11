@@ -103,7 +103,7 @@ export default function MediaImagePicker({
                 : "text-slate-400 hover:text-white"
             }`}
           >
-            <span>📁</span>
+            <Icon name="folder" size={13} />
             <span>{t("admin.sidebar.media", "Cloud Library")}</span>
           </button>
 
@@ -120,7 +120,7 @@ export default function MediaImagePicker({
                 : "text-slate-400 hover:text-white"
             }`}
           >
-            <span>☁️</span>
+            <Icon name="uploadCloud" size={13} />
             <span>{t("admin.common.upload", "Upload New")}</span>
           </button>
 
@@ -137,7 +137,7 @@ export default function MediaImagePicker({
                 : "text-slate-400 hover:text-white"
             }`}
           >
-            <span>🔗</span>
+            <Icon name="links" size={13} />
             <span>{t("admin.common.url", "Image URL")}</span>
           </button>
         </div>
@@ -175,8 +175,8 @@ export default function MediaImagePicker({
             </div>
           ) : (
             <>
-              <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400 text-base">
-                ☁️
+              <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400">
+                <Icon name="uploadCloud" size={16} />
               </div>
               <p className="text-xs font-medium text-slate-300">
                 {t("admin.common.dragDrop", "Click to select or drag and drop image here")}
@@ -199,7 +199,7 @@ export default function MediaImagePicker({
             }}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-950/80 hover:bg-slate-900 border border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white rounded-xl text-xs font-medium transition-all group"
           >
-            <span className="text-sm">📁</span>
+            <Icon name="folder" size={14} />
             <span>{t("admin.media.searchPlaceholder", "Open Cloud Library to choose image…")}</span>
           </button>
         </div>
@@ -222,8 +222,8 @@ export default function MediaImagePicker({
                 (e.target as HTMLElement).style.display = "none";
               }}
             />
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-white text-xs">
-              🔍
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-white">
+              <Icon name="search" size={14} />
             </div>
           </div>
 
@@ -254,7 +254,7 @@ export default function MediaImagePicker({
                 className="text-[11px] text-slate-400 hover:text-white hover:underline transition-colors flex items-center gap-1"
               >
                 <span>{t("admin.common.view", "View original")}</span>
-                <span className="text-[10px]">🔍</span>
+                <Icon name="search" size={10} />
               </button>
             </div>
           </div>
@@ -320,7 +320,7 @@ export default function MediaImagePicker({
                   className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all text-sm flex items-center justify-center shadow"
                   title="Close (Esc)"
                 >
-                  ✕
+                  <Icon name="close" size={14} />
                 </button>
               </div>
             </div>

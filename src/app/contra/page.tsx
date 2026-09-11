@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
+import Icon from "@/components/ui/Icon";
 
 const ContraGame = dynamic(() => import("@/components/game/ContraGame"), {
   ssr: false,
@@ -39,9 +40,9 @@ export default function ContraPage() {
       <div className="fixed top-4 left-4 right-4 z-50 flex items-center justify-between pointer-events-none">
         <Link
           href="/"
-          className="pointer-events-auto px-4 py-2 bg-gray-800/80 backdrop-blur text-gray-300 rounded-lg text-sm font-mono hover:bg-gray-700 transition-colors border border-gray-700"
+          className="pointer-events-auto inline-flex items-center gap-1.5 px-4 py-2 bg-gray-800/80 backdrop-blur text-gray-300 rounded-lg text-sm font-mono hover:bg-gray-700 transition-colors border border-gray-700"
         >
-          ← {t("common.backToPortfolio")}
+          <Icon name="arrowLeft" size={14} /> {t("common.backToPortfolio")}
         </Link>
         <div className="pointer-events-auto">
           <LanguageSwitcher variant="pill" size="sm" />

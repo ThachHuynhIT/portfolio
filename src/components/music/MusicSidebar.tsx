@@ -7,10 +7,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useMusic, TabView } from "@/context/MusicContext";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
-import ThemeToggle from "@/components/ui/ThemeToggle";
+import Icon from "@/components/ui/Icon";
 
 export default function MusicSidebar() {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const {
     tracks,
     genres,
@@ -29,8 +29,6 @@ export default function MusicSidebar() {
     setIsMobileSidebarOpen,
     isPlaying,
     audioMetrics,
-    room,
-    setIsRoomModalOpen,
   } = useMusic();
 
   const pathname = usePathname();
@@ -62,7 +60,7 @@ export default function MusicSidebar() {
             title={t("music.returnHome")}
           >
             <div className="music-sidebar-logo-icon">
-              <span>🎧</span>
+              <Icon name="headphones" size={16} />
               {isPlaying && (
                 <span
                   className="music-logo-pulse"
@@ -80,39 +78,17 @@ export default function MusicSidebar() {
           </Link>
 
           <div className="flex items-center gap-1.5">
-            <ThemeToggle size="sm" />
             <LanguageSwitcher variant="pill" size="sm" />
             {/* Close button for mobile drawer */}
             <button
               onClick={() => setIsMobileSidebarOpen(false)}
-              className="md:hidden p-2 text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 rounded-lg bg-white/5 light:bg-neutral-900/[0.04]"
+              className="md:hidden p-2 text-white/60 hover:text-white rounded-lg bg-white/5"
               aria-label="Close sidebar"
             >
-              ✕
+              <Icon name="close" size={14} />
             </button>
           </div>
         </div>
-
-        {/* Listen Together Room Trigger Button */}
-        <button
-          onClick={() => {
-            setIsRoomModalOpen(true);
-            setIsMobileSidebarOpen(false);
-          }}
-          className={`w-full mt-3 py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${
-            room
-              ? "bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-md shadow-purple-500/20"
-              : "bg-gradient-to-r from-purple-600/30 via-indigo-600/30 to-cyan-500/30 hover:from-purple-600/50 hover:to-cyan-500/50 text-white border-white/10"
-          }`}
-          title={t("music.roomTooltip")}
-        >
-          <span>🎧</span>
-          <span>
-            {room
-              ? `Room #${room.code} (${room.members.length})`
-              : t("music.roomButton")}
-          </span>
-        </button>
 
         {/* Back to Portfolio Button */}
         <Link
@@ -120,22 +96,22 @@ export default function MusicSidebar() {
           className="music-back-portfolio-btn"
           title={t("music.returnHome")}
         >
-          <span className="text-xs">←</span>
+          <Icon name="arrowLeft" size={12} />
           <span>{t("common.backToPortfolio")}</span>
         </Link>
       </div>
 
-      {/* ── 2. Navigation Hub Tabs ── */}
+      {/* ── 2. Navigation Hub Tabs, grouped by purpose ── */}
       <div className="music-sidebar-section">
         <span className="music-sidebar-heading">
-          {t("music.studioNav")}
+          {t("music.navGroups.library", "Library")}
         </span>
         <nav className="music-sidebar-nav">
           <button
             onClick={() => handleTabClick("player")}
             className={`music-nav-item ${activeTab === "player" ? "music-nav-item--active" : ""}`}
           >
-            <span className="music-nav-icon">🎛️</span>
+            <span className="music-nav-icon"><Icon name="slider" size={16} /></span>
             <span className="flex-1 text-left font-medium">
               {t("music.tabs.player")}
             </span>
@@ -145,21 +121,10 @@ export default function MusicSidebar() {
           </button>
 
           <button
-            onClick={() => handleTabClick("charts")}
-            className={`music-nav-item ${activeTab === "charts" ? "music-nav-item--active" : ""}`}
-          >
-            <span className="music-nav-icon">🏆</span>
-            <span className="flex-1 text-left font-medium">
-              {t("music.tabs.charts")}
-            </span>
-            <span className="music-nav-badge text-emerald-400 font-bold bg-emerald-500/15 border border-emerald-500/30">Top</span>
-          </button>
-
-          <button
             onClick={() => handleTabClick("queue")}
             className={`music-nav-item ${activeTab === "queue" ? "music-nav-item--active" : ""}`}
           >
-            <span className="music-nav-icon">📑</span>
+            <span className="music-nav-icon"><Icon name="listMusic" size={16} /></span>
             <span className="flex-1 text-left font-medium">
               {t("music.tabs.queue")}
             </span>
@@ -175,12 +140,30 @@ export default function MusicSidebar() {
               {t("music.tabs.info")}
             </span>
           </button>
+        </nav>
+      </div>
+
+      <div className="music-sidebar-section">
+        <span className="music-sidebar-heading">
+          {t("music.navGroups.discover", "Discover")}
+        </span>
+        <nav className="music-sidebar-nav">
+          <button
+            onClick={() => handleTabClick("charts")}
+            className={`music-nav-item ${activeTab === "charts" ? "music-nav-item--active" : ""}`}
+          >
+            <span className="music-nav-icon"><Icon name="trophy" size={16} /></span>
+            <span className="flex-1 text-left font-medium">
+              {t("music.tabs.charts")}
+            </span>
+            <span className="music-nav-badge text-emerald-400 font-bold bg-emerald-500/15 border border-emerald-500/30">Top</span>
+          </button>
 
           <button
             onClick={handleLikedClick}
             className={`music-nav-item ${activeTab === "favorites" ? "music-nav-item--active music-nav-item--liked" : ""}`}
           >
-            <span className="music-nav-icon">❤️</span>
+            <span className="music-nav-icon"><Icon name="heart" size={16} /></span>
             <span className="flex-1 text-left font-medium">
               {t("music.tabs.favorites")}
             </span>
@@ -218,13 +201,13 @@ export default function MusicSidebar() {
               <button
                 key={g}
                 onClick={() => handleGenreClick(g)}
-                className={`music-genre-item ${isSelected ? "music-genre-item--active" : ""}`}
+                className={`music-genre-chip ${isSelected ? "music-genre-chip--active" : ""}`}
               >
                 <span className="music-genre-bullet" />
-                <span className="flex-1 text-left truncate">
+                <span className="truncate">
                   {g === "All" ? t("music.all") : g}
                 </span>
-                <span className="text-[11px] text-white/40 light:text-neutral-500">{count}</span>
+                <span className="music-genre-chip-count">{count}</span>
               </button>
             );
           })}
@@ -240,8 +223,8 @@ export default function MusicSidebar() {
             {isPlaying && <span className="music-status-dot-ping" />}
           </div>
           <div className="text-[11px] leading-tight">
-            <div className="text-white/80 light:text-neutral-800 font-medium">Web Audio Engine</div>
-            <div className="text-white/40 light:text-neutral-500">24-bit Lossless Stream</div>
+            <div className="text-white/80 font-medium">Web Audio Engine</div>
+            <div className="text-white/40">24-bit Lossless Stream</div>
           </div>
         </div>
       </div>

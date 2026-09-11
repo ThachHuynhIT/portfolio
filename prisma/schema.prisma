@@ -429,6 +429,8 @@ model CmsSiteConfig {
   authorEmail      String
   authorLocation   String
   authorLocationVi String?
+  resumeUrl        String?
+  sectionsContent  Json?
   updatedAt        DateTime @updatedAt
 
   @@map("cms_site_config")
@@ -471,4 +473,16 @@ model CmsBlogPost {
   updatedAt DateTime @updatedAt
 
   @@map("cms_blog_posts")
+}
+
+model CmsContactMessage {
+  id        String   @id
+  name      String
+  email     String
+  subject   String?
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("cms_contact_messages")
 }

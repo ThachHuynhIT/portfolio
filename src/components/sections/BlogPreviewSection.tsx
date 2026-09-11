@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { AnimatedSection, GlassCard } from "@/components/ui";
+import { AnimatedSection, GlassCard, Icon } from "@/components/ui";
 import { staggerContainer, fadeInUp } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
 import type { BlogPost } from "@/lib/types";
@@ -88,7 +88,7 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
                           )}
                         </time>
                         <span className="text-purple-400 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 font-semibold text-xs">
-                          {t("blogPreview.readMore")} →
+                          {t("blogPreview.readMore")} <Icon name="arrowRight" size={12} />
                         </span>
                       </div>
 
@@ -118,7 +118,7 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
           >
             <span>{t("blogPreview.viewAll")}</span>
             <span className="transition-transform duration-200 group-hover:translate-x-1">
-              →
+              <Icon name="arrowRight" size={16} />
             </span>
           </Link>
         </div>

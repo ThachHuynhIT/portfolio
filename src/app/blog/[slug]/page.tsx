@@ -6,6 +6,7 @@ import rehypeSlug from "rehype-slug";
 import { getPostBySlug, getAllPosts } from "@/lib/blog";
 import BlogPostView from "@/components/blog/BlogPostView";
 import { cn } from "@/lib/utils";
+import { buildMetadata } from "@/lib/seo";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -28,16 +29,25 @@ export async function generateMetadata({
     return { title: "Post Not Found" };
   }
 
-  return {
-    title: `${post.title} | Thach Huynh`,
+  const metadata = buildMetadata({
+    title: post.title,
     description: post.excerpt,
+    path: `/blog/${post.slug}`,
+    type: "article",
+  });
+
+  return {
+    ...metadata,
+    // Merge rather than replace — buildMetadata's openGraph carries fields
+    // (siteName, images) that a future post with a cover image would need;
+    // overwriting the whole object here would silently drop them. Cast
+    // needed because Next's OpenGraph type is a discriminated union keyed
+    // on `type`, which TypeScript can't re-narrow through a spread.
     openGraph: {
-      title: post.title,
-      description: post.excerpt,
-      type: "article",
+      ...metadata.openGraph,
       publishedTime: post.date,
       tags: post.tags,
-    },
+    } as Metadata["openGraph"],
   };
 }
 

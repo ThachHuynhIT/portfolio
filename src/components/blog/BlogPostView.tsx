@@ -5,6 +5,7 @@ import Link from "next/link";
 import { GlassCard } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
 import FlagIcon from "@/components/ui/FlagIcon";
+import Icon from "@/components/ui/Icon";
 import type { BlogPost } from "@/lib/types";
 
 interface BlogPostViewProps {
@@ -117,8 +118,8 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
         <div className="mt-12">
           <GlassCard className="p-6">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center text-2xl">
-                👨‍💻
+              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center text-white">
+                <Icon name="user" size={28} />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-white light:text-neutral-900">Thach Huynh</h3>

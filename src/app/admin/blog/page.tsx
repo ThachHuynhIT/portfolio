@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import FlagIcon from "@/components/ui/FlagIcon";
+import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/TranslationContext";
 import type { BlogPost } from "@/lib/types";
@@ -128,7 +129,7 @@ export default function BlogAdminPage() {
                   </div>
                   {post.title_vi && (
                     <div className="text-xs text-slate-400 italic mb-1 flex items-center gap-1">
-                      <span>↳</span>
+                      <Icon name="cornerDownRight" size={12} />
                       <span>{post.title_vi}</span>
                     </div>
                   )}

@@ -57,7 +57,7 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
             href="/photography"
             className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-cyan-300 transition-colors group px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10 hover:border-cyan-500/30 light:text-neutral-500 light:bg-neutral-900/[0.03] light:border-neutral-900/10"
           >
-            <span className="group-hover:-translate-x-0.5 transition-transform">←</span>
+            <span className="group-hover:-translate-x-0.5 transition-transform"><Icon name="arrowLeft" size={14} /></span>
             <span>{t("photography.backToGallery") || "Quay lại Thư viện ảnh"}</span>
           </Link>
 
@@ -89,12 +89,12 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
           <div className="relative z-10 p-8 sm:p-14 max-w-4xl">
             <div className="flex items-center gap-2 mb-4">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 backdrop-blur-md shadow-sm">
-                <span>📁</span>
+                <Icon name="folder" size={12} />
                 <span>{t("photography.albumCollectionBadge") || "Album Collection"}</span>
               </span>
               {album.featured && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                  <span>⭐ {t("photography.featuredBadge") || "Nổi bật"}</span>
+                  <Icon name="star" size={12} /> {t("photography.featuredBadge") || "Nổi bật"}
                 </span>
               )}
             </div>
@@ -111,11 +111,11 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
 
             <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-slate-400">
               <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-black/60 border border-white/10">
-                <span className="text-cyan-400">🖼️</span>
+                <Icon name="image" size={12} className="text-cyan-400" />
                 <span><strong>{photos.length}</strong> {t("photography.photosInAlbum") || "tác phẩm"}</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-black/60 border border-white/10">
-                <span>📅</span>
+                <Icon name="calendar" size={12} />
                 <span>{new Date(album.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
@@ -235,13 +235,13 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
           <section className="pt-12 border-t border-white/10 space-y-6 light:border-neutral-900/10">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold text-white flex items-center gap-2 light:text-neutral-900">
-                <span>📁 {t("photography.otherAlbumsTitle") || "Các Bộ Sưu Tập Khác"}</span>
+                <Icon name="folder" size={18} /> {t("photography.otherAlbumsTitle") || "Các Bộ Sưu Tập Khác"}
               </h3>
               <Link
                 href="/photography"
-                className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
+                className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors inline-flex items-center gap-1"
               >
-                {t("photography.viewAllAlbums") || "Xem tất cả"} →
+                {t("photography.viewAllAlbums") || "Xem tất cả"} <Icon name="arrowRight" size={12} />
               </Link>
             </div>
 

@@ -6,11 +6,40 @@ import AdminHeader from "@/components/admin/AdminHeader";
 import AdminFormFooter from "@/components/admin/AdminFormFooter";
 import FormField from "@/components/admin/FormField";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
+import ResumeFilePicker from "@/components/admin/ResumeFilePicker";
 import LanguageTabSelector from "@/components/admin/LanguageTabSelector";
+import SectionFieldsEditor from "@/components/admin/SectionFieldsEditor";
 import FlagIcon from "@/components/ui/FlagIcon";
+import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
+import {
+  getAboutDefaults,
+  getContactDefaults,
+  getHeroDefaults,
+  getProjectsDefaults,
+  getSkillsDefaults,
+} from "@/lib/section-defaults";
+import {
+  ABOUT_FIELDS,
+  CONTACT_FIELDS,
+  HERO_FIELDS,
+  PROJECTS_FIELDS,
+  SKILLS_FIELDS,
+} from "@/lib/section-field-specs";
 import type { SiteConfig } from "@/lib/types";
+
+type TabId = "general" | "author" | "hero" | "about" | "skills" | "projects" | "contact";
+
+const TABS: { id: TabId; icon: string; label: string }[] = [
+  { id: "general", icon: "settings", label: "General" },
+  { id: "author", icon: "user", label: "Author" },
+  { id: "hero", icon: "rocket", label: "Hero" },
+  { id: "about", icon: "fileText", label: "About" },
+  { id: "skills", icon: "skills", label: "Skills" },
+  { id: "projects", icon: "projects", label: "Projects" },
+  { id: "contact", icon: "mail", label: "Contact" },
+];
 
 export default function SiteConfigAdminPage() {
   const router = useRouter();
@@ -20,6 +49,7 @@ export default function SiteConfigAdminPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeLang, setActiveLang] = useState<"en" | "vi">("en");
+  const [activeTab, setActiveTab] = useState<TabId>("general");
 
   useEffect(() => {
     async function loadConfig() {
@@ -85,7 +115,30 @@ export default function SiteConfigAdminPage() {
         closeHref="/admin"
       />
 
-      {/* Multilingual Switcher Header */}
+      {/* Section Tabs */}
+      <div className="flex border-b border-white/10 gap-1 overflow-x-auto pb-0.5 no-scrollbar mb-6">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={`pb-3 px-3.5 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === tab.id
+                ? "text-purple-400 border-b-2 border-purple-400"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <span className="flex items-center gap-1.5">
+              <Icon name={tab.icon} size={14} />
+              {tab.label}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Multilingual Switcher Header — applies to every tab now, since each
+          section-copy tab shows one language's fields at a time, same as
+          General/Author. */}
       <LanguageTabSelector
         activeLang={activeLang}
         onChange={setActiveLang}
@@ -108,6 +161,7 @@ export default function SiteConfigAdminPage() {
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* General Site Info */}
+        {activeTab === "general" && (
         <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
           <div className="flex items-center justify-between pb-3 border-b border-gray-800">
             <h2 className="text-lg font-bold text-white">{t("admin.siteConfig.tabBasic", "General Information")}</h2>
@@ -208,8 +262,10 @@ export default function SiteConfigAdminPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Author Details */}
+        {activeTab === "author" && (
         <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
           <div className="flex items-center justify-between pb-3 border-b border-gray-800">
             <h2 className="text-lg font-bold text-white">{t("admin.siteConfig.tabContact", "Author Profile")}</h2>
@@ -363,6 +419,16 @@ export default function SiteConfigAdminPage() {
             />
           </div>
 
+          <div className="space-y-4">
+            <ResumeFilePicker
+              label="Resume / CV (PDF)"
+              value={config.resumeUrl}
+              onChange={(url) => setConfig({ ...config, resumeUrl: url })}
+              id="author-resume"
+              helperText="Shown as the 'View CV' button on the homepage, previewed in-page as a PDF (English only, no download forced)."
+            />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField label={t("admin.siteConfig.fieldEmail", "Email Address")} id="author-email">
               <input
@@ -380,6 +446,86 @@ export default function SiteConfigAdminPage() {
             </FormField>
           </div>
         </div>
+        )}
+
+        {/* Hero Section Copy */}
+        {activeTab === "hero" && (
+          <SectionFieldsEditor
+            title="Hero Section Copy"
+            helperText="Overrides the homepage Hero badge, greeting, bio, and buttons. Leave a field blank to use the site's default text for the language you're currently editing. Note: setting the Vietnamese Bio here takes priority over the Author tab's Vietnamese bio."
+            value={config.sectionsContent?.hero}
+            defaultValue={getHeroDefaults()}
+            fields={HERO_FIELDS}
+            activeLang={activeLang}
+            onChange={(hero) =>
+              setConfig({ ...config, sectionsContent: { ...config.sectionsContent, hero } })
+            }
+          />
+        )}
+
+        {/* About Section Copy */}
+        {activeTab === "about" && (
+          <SectionFieldsEditor
+            title="About Section Copy"
+            helperText="Overrides the About badge/heading/role/bio paragraphs and the 4 stat cards shown (e.g. '3+ Years Experience')."
+            value={config.sectionsContent?.about}
+            defaultValue={getAboutDefaults()}
+            fields={ABOUT_FIELDS}
+            activeLang={activeLang}
+            onChange={(about) =>
+              setConfig({ ...config, sectionsContent: { ...config.sectionsContent, about } })
+            }
+          />
+        )}
+
+        {/* Skills Section Copy */}
+        {activeTab === "skills" && (
+          <SectionFieldsEditor
+            title="Skills Section Copy"
+            helperText="Overrides the Skills section heading/subtitle and category labels only. The skill list itself is managed on the Skills page."
+            manageHref="/admin/skills"
+            manageLabel="Manage Skills List"
+            value={config.sectionsContent?.skills}
+            defaultValue={getSkillsDefaults()}
+            fields={SKILLS_FIELDS}
+            activeLang={activeLang}
+            onChange={(skills) =>
+              setConfig({ ...config, sectionsContent: { ...config.sectionsContent, skills } })
+            }
+          />
+        )}
+
+        {/* Projects Section Copy */}
+        {activeTab === "projects" && (
+          <SectionFieldsEditor
+            title="Projects Section Copy"
+            helperText="Overrides the Projects section heading/subtitle/button labels only. The project list itself is managed on the Projects page."
+            manageHref="/admin/projects"
+            manageLabel="Manage Projects List"
+            value={config.sectionsContent?.projects}
+            defaultValue={getProjectsDefaults()}
+            fields={PROJECTS_FIELDS}
+            activeLang={activeLang}
+            onChange={(projects) =>
+              setConfig({ ...config, sectionsContent: { ...config.sectionsContent, projects } })
+            }
+          />
+        )}
+
+        {/* Contact Section Copy */}
+        {activeTab === "contact" && (
+          <SectionFieldsEditor
+            title="Contact Section Copy"
+            helperText="Overrides Contact heading/form labels/placeholders/validation messages/buttons/banners/availability card."
+            value={config.sectionsContent?.contact}
+            defaultValue={getContactDefaults()}
+            fields={CONTACT_FIELDS}
+            activeLang={activeLang}
+            onChange={(contact) =>
+              setConfig({ ...config, sectionsContent: { ...config.sectionsContent, contact } })
+            }
+          />
+        )}
 
         <AdminFormFooter
           closeHref="/admin"

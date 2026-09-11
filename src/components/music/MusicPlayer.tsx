@@ -3,24 +3,20 @@
 import React, { useEffect, useRef, useState, useMemo, Suspense } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMusic, Track, EqPreset } from "@/context/MusicContext";
 import MusicSidebar from "./MusicSidebar";
-import MusicRoomBar from "./MusicRoomBar";
-import LiveReactionOverlay from "./LiveReactionOverlay";
 
 // Split out of the initial /music bundle — only needed once the user
-// switches into lyrics/zen mode or opens the room modal.
+// switches into lyrics mode.
 const LyricsView = dynamic(() => import("./LyricsView"), { ssr: false });
-const ZenModeView = dynamic(() => import("./ZenModeView"), { ssr: false });
-const MusicRoomModal = dynamic(() => import("./MusicRoomModal"), { ssr: false });
 import {
   SpectrumBarsVisualizer,
   WaveVisualizer,
   PulsarVisualizer,
 } from "./Visualizers";
 import { useTranslation } from "@/context/LanguageContext";
+import Icon from "@/components/ui/Icon";
 import "@/app/music/music.css";
 
 interface MusicPlayerProps {
@@ -36,7 +32,6 @@ function formatTime(seconds: number): string {
 
 function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
   const { t, locale } = useTranslation();
-  const searchParams = useSearchParams();
   const {
     tracks,
     setTracks,
@@ -55,8 +50,6 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
     isLoading,
     visualizerStyle,
     setVisualizerStyle,
-    isZenMode,
-    setIsZenMode,
     activeTab,
     setActiveTab,
     isPlayerCollapsed,
@@ -90,9 +83,6 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
     cycleRepeat,
     cycleSpeed,
     audioMetrics,
-    room,
-    setIsRoomModalOpen,
-    setPrefilledRoomCode,
     deckMode,
     setDeckMode,
   } = useMusic();
@@ -190,15 +180,6 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
     }
   };
 
-  // Check URL query param ?room=CODE on load
-  useEffect(() => {
-    const roomParam = searchParams.get("room");
-    if (roomParam && roomParam.length === 5 && !room) {
-      setPrefilledRoomCode(roomParam.toUpperCase());
-      setIsRoomModalOpen(true);
-    }
-  }, [searchParams, room, setPrefilledRoomCode, setIsRoomModalOpen]);
-
   // Sync initial tracks from server page if available
   useEffect(() => {
     if (initialTracks && initialTracks.length > 0) {
@@ -261,12 +242,6 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
       } else if (e.code === "KeyL" && currentTrack) {
         e.preventDefault();
         toggleLike(currentTrack.id);
-      } else if (e.code === "KeyZ") {
-        e.preventDefault();
-        setIsZenMode((z) => !z);
-      } else if (e.code === "Escape") {
-        // Escape always exits Zen Mode if active
-        setIsZenMode(false);
       } else if (e.code === "KeyC") {
         e.preventDefault();
         togglePlayerCollapsed();
@@ -284,7 +259,6 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
     currentTime,
     currentTrack,
     toggleLike,
-    setIsZenMode,
     togglePlayerCollapsed,
     seekTo,
     setVolume,
@@ -298,10 +272,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
           <MusicSidebar />
           <div className="music-stage-wrapper">
             <main className="music-main-stage flex items-center justify-center min-h-[70vh]">
-              <div className="music-empty-card text-center p-8 rounded-3xl bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 max-w-md">
-                <div className="text-5xl mb-4">🎧</div>
-                <h2 className="text-xl font-bold text-white light:text-neutral-900 mb-2">No Tracks Found</h2>
-                <p className="text-white/50 light:text-neutral-500 text-sm mb-6">
+              <div className="music-empty-card text-center p-8 rounded-3xl bg-white/5 border border-white/10 max-w-md">
+                <div className="flex justify-center mb-4 text-white/60"><Icon name="headphones" size={44} /></div>
+                <h2 className="text-xl font-bold text-white mb-2">No Tracks Found</h2>
+                <p className="text-white/50 text-sm mb-6">
                   The sound library is currently empty. Add tracks from the Admin Manager.
                 </p>
               </div>
@@ -320,7 +294,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
   const rightVuDeg = -40 + Math.min(85, (audioMetrics.mid * 65 + audioMetrics.treble * 25));
 
   return (
-    <div className={`music-studio-app ${isZenMode ? "music-studio-app--zen" : ""}`}>
+    <div className="music-studio-app">
       {/* Dynamic Ambient Background Glow */}
       <div
         className="music-ambient-glow"
@@ -331,23 +305,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
         aria-hidden="true"
       />
 
-      {/* Floating Room Status & Controls (when in room) */}
-      <MusicRoomBar />
-
-      {/* Live Floating Reaction Emojis Overlay */}
-      <LiveReactionOverlay />
-
-      {/* Room Modal (Create/Join 5-char room) */}
-      <MusicRoomModal />
-
-      {/* ── FULLSCREEN ZEN MODE OVERHAUL ── */}
-      {isZenMode ? (
-        <ZenModeView />
-      ) : (
-        /* ── REGULAR STUDIO APP LAYOUT ── */
-        <div className="music-studio-layout">
-          {/* Dedicated Sidebar */}
-          <MusicSidebar />
+      <div className="music-studio-layout">
+        {/* Dedicated Sidebar */}
+        <MusicSidebar />
 
           {/* Right Stage Wrapper: Sticky Top Bar + Main Stage Content + Right-Aligned Player Bar */}
           <div className="music-stage-wrapper">
@@ -360,14 +320,14 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   className="music-mobile-menu-btn"
                   aria-label={t("music.studioNav", "Open Music Navigation")}
                 >
-                  <span>☰</span>
+                  <Icon name="menu" size={16} />
                   <span className="text-xs font-semibold">{t("common.menu", "Menu")}</span>
                 </button>
               </div>
 
               {/* Search Bar with Floating Dropdown */}
               <div className="music-top-search" ref={searchContainerRef}>
-                <span className="music-search-icon">🔍</span>
+                <span className="music-search-icon"><Icon name="search" size={15} /></span>
                 <input
                   type="text"
                   placeholder={t("music.search.placeholder", "Search tracks, artists, albums, lyrics...")}
@@ -392,7 +352,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     className="music-search-clear-btn"
                     title={t("music.clearFilter", "Clear")}
                   >
-                    ✕
+                    <Icon name="close" size={13} />
                   </button>
                 )}
 
@@ -407,27 +367,27 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       className="music-search-dropdown"
                     >
                       <div className="music-search-dropdown-header">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-white/50 light:text-neutral-500">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-white/50">
                           {searchQuery.trim()
                             ? `${t("music.search.results", "Search Results")} (${searchResults.length})`
                             : t("music.search.trending", "Trending Suggestions")}
                         </span>
                         <button
                           onClick={() => setIsSearchFocused(false)}
-                          className="text-[10px] text-white/40 light:text-neutral-500 hover:text-white light:hover:text-neutral-900"
+                          className="text-[10px] text-white/40 hover:text-white inline-flex items-center gap-1"
                         >
-                          {t("music.search.close", "Close ✕")}
+                          {t("music.search.close", "Close")} <Icon name="close" size={10} />
                         </button>
                       </div>
 
                       <div className="music-search-dropdown-list">
                         {searchResults.length === 0 ? (
                           <div className="music-search-empty">
-                            <span className="text-xl">🔍</span>
-                            <div className="text-xs text-white/70 light:text-neutral-600">
+                            <Icon name="search" size={18} />
+                            <div className="text-xs text-white/70">
                               {t("music.search.emptyTitle", "No tracks found for")} &quot;{searchQuery}&quot;
                             </div>
-                            <div className="text-[11px] text-white/40 light:text-neutral-500">
+                            <div className="text-[11px] text-white/40">
                               {t("music.search.emptyDesc", "Try searching by artist, track title, or genre")}
                             </div>
                           </div>
@@ -458,8 +418,8 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                       className="object-cover"
                                     />
                                   ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-xs">
-                                      🎵
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <Icon name="music" size={12} />
                                     </div>
                                   )}
                                   <div
@@ -470,7 +430,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                     {isThisPlaying ? (
                                       <span className="w-2.5 h-2.5 bg-[#1db954] rounded-full animate-ping" />
                                     ) : (
-                                      <span className="text-xs text-white light:text-neutral-900">▶</span>
+                                      <Icon name="play" size={12} className="text-white" />
                                     )}
                                   </div>
                                 </div>
@@ -479,12 +439,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                 <div className="flex-1 min-w-0">
                                   <div
                                     className={`text-xs font-semibold truncate ${
-                                      isCurrent ? "text-[#1db954]" : "text-white light:text-neutral-900 group-hover:text-white light:hover:text-neutral-900 light:group-hover:text-neutral-900"
+                                      isCurrent ? "text-[#1db954]" : "text-white group-hover:text-white"
                                     }`}
                                   >
                                     {track.title}
                                   </div>
-                                  <div className="text-[11px] text-white/50 light:text-neutral-500 truncate flex items-center gap-1.5">
+                                  <div className="text-[11px] text-white/50 truncate flex items-center gap-1.5">
                                     <span>{track.artist}</span>
                                     {track.genre && (
                                       <>
@@ -505,13 +465,13 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                     className={`text-xs transition-transform active:scale-125 ${
                                       isLiked
                                         ? "text-rose-400"
-                                        : "text-white/20 light:text-neutral-400 hover:text-white/70 light:hover:text-neutral-600"
+                                        : "text-white/20 hover:text-white/70"
                                     }`}
                                     title={isLiked ? t("music.favorites.removeTooltip", "Unlike") : t("music.playerBar.likeTrack", "Like")}
                                   >
-                                    {isLiked ? "❤️" : "🤍"}
+                                    <Icon name="heart" size={13} filled={isLiked} />
                                   </button>
-                                  <span className="text-[11px] font-mono text-white/40 light:text-neutral-500 tabular-nums">
+                                  <span className="text-[11px] font-mono text-white/40 tabular-nums">
                                     {formatTime(track.duration)}
                                   </span>
                                 </div>
@@ -525,53 +485,57 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 </AnimatePresence>
               </div>
 
-              {/* Quick Spotify View Navigation Pills */}
-              <div className="flex items-center gap-1.5 p-1 bg-white/[0.04] light:bg-neutral-900/[0.04] rounded-xl border border-white/10 light:border-neutral-900/10 shrink-0">
+              {/* Now Playing glance — fills the header's freed-up space with
+                  something useful instead of empty air, hidden below xl since
+                  the header gets tight there. */}
+              <div className="music-header-now-playing hidden xl:flex" title={t("music.header.nowPlaying", "Now Playing")}>
+                <div className={`music-header-now-thumb ${isPlaying ? "music-header-now-thumb--spinning" : ""}`}>
+                  {currentTrack.thumbnailUrl ? (
+                    <Image src={currentTrack.thumbnailUrl} alt="" fill sizes="30px" />
+                  ) : (
+                    <Icon name="music" size={14} />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <div className="music-header-now-title truncate">{currentTrack.title}</div>
+                  <div className="music-header-now-artist truncate">{currentTrack.artist}</div>
+                </div>
+                {isPlaying && <span className="music-header-now-live" />}
+              </div>
+
+              {/* Quick Nav Pills */}
+              <div className="music-quick-pills shrink-0">
                 <button
                   onClick={() => {
                     setActiveTab("player");
                     setShowOnlyLiked(false);
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                    activeTab === "player"
-                      ? "bg-white text-black shadow-md font-bold"
-                      : "text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900"
-                  }`}
+                  className={`music-quick-pill ${activeTab === "player" ? "music-quick-pill--active" : ""}`}
                 >
-                  <span>🎛️</span>
-                  <span>{t("music.quickPills.player", "Player")}</span>
+                  <Icon name="slider" size={14} />
+                  <span className="hidden sm:inline">{t("music.quickPills.player", "Player")}</span>
                 </button>
                 <button
                   onClick={() => {
                     setActiveTab("charts");
                     setShowOnlyLiked(false);
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                    activeTab === "charts"
-                      ? "bg-[#1db954] text-black shadow-md font-bold"
-                      : "text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900"
-                  }`}
+                  className={`music-quick-pill ${activeTab === "charts" ? "music-quick-pill--active" : ""}`}
                 >
-                  <span>🏆</span>
-                  <span>{t("music.quickPills.charts", "Top Charts")}</span>
+                  <Icon name="trophy" size={14} />
+                  <span className="hidden sm:inline">{t("music.quickPills.charts", "Top Charts")}</span>
                 </button>
                 <button
                   onClick={() => {
                     setActiveTab("favorites");
                     setShowOnlyLiked(true);
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                    activeTab === "favorites"
-                      ? "bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-md font-bold"
-                      : "text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900"
-                  }`}
+                  className={`music-quick-pill ${activeTab === "favorites" ? "music-quick-pill--active music-quick-pill--liked" : ""}`}
                 >
-                  <span>❤️</span>
-                  <span>{t("music.quickPills.favorites", "Favorites")}</span>
+                  <Icon name="heart" size={14} />
+                  <span className="hidden sm:inline">{t("music.quickPills.favorites", "Favorites")}</span>
                   {likedTrackIds.size > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20 text-white font-mono font-bold">
-                      {likedTrackIds.size}
-                    </span>
+                    <span className="music-quick-pill-badge">{likedTrackIds.size}</span>
                   )}
                 </button>
                 <button
@@ -579,70 +543,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     setActiveTab("queue");
                     setShowOnlyLiked(false);
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                    activeTab === "queue"
-                      ? "bg-white text-black shadow-md font-bold"
-                      : "text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900"
-                  }`}
+                  className={`music-quick-pill ${activeTab === "queue" ? "music-quick-pill--active" : ""}`}
                 >
-                  <span>📑</span>
-                  <span>{t("music.quickPills.queue", "Queue")}</span>
-                </button>
-              </div>
-
-              {/* Global Lounge Tools (Listen Together, Sleep Timer, Zen Mode) */}
-              <div className="flex items-center gap-2 overflow-x-auto py-1">
-                {/* Listen Together Quick Button */}
-                <button
-                  onClick={() => setIsRoomModalOpen(true)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 border transition-all ${
-                    room
-                      ? "bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-500/20"
-                      : "bg-white/5 light:bg-neutral-900/[0.04] hover:bg-white/10 light:hover:bg-neutral-900/[0.06] text-white/90 light:text-neutral-800 border-white/10 light:border-neutral-900/10"
-                  }`}
-                  title={t("music.roomTooltip", "Listen together via 5-character room code")}
-                >
-                  <span>🎧</span>
-                  <span className="hidden sm:inline">{room ? `#${room.code}` : t("music.roomButton", "Listen Together")}</span>
-                </button>
-
-                {/* Sleep Timer Selector */}
-                <select
-                  value={sleepTimer.minutes === null ? "off" : sleepTimer.minutes === 0 ? "end" : String(sleepTimer.minutes)}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (v === "off") setSleepTimerMinutes(null);
-                    else if (v === "end") setSleepTimerMinutes(0);
-                    else setSleepTimerMinutes(Number(v));
-                  }}
-                  className={`music-sort-select ${sleepTimer.minutes !== null ? "!border-cyan-400 !text-cyan-300" : ""}`}
-                  title={t("music.sleepTimer.title", "Sleep Timer")}
-                  aria-label={t("music.sleepTimer.title", "Sleep Timer")}
-                >
-                  <option value="off">{t("music.sleepTimer.off", "⏱️ Timer: Off")}</option>
-                  <option value="15">{t("music.sleepTimer.m15", "⏱️ Timer: 15 mins")}</option>
-                  <option value="30">{t("music.sleepTimer.m30", "⏱️ Timer: 30 mins")}</option>
-                  <option value="45">{t("music.sleepTimer.m45", "⏱️ Timer: 45 mins")}</option>
-                  <option value="60">{t("music.sleepTimer.m60", "⏱️ Timer: 60 mins")}</option>
-                  <option value="end">{t("music.sleepTimer.endTrack", "⏱️ Timer: End of Track")}</option>
-                </select>
-
-                {/* Sleep Timer Countdown Badge */}
-                {sleepTimer.remainingSeconds !== null && (
-                  <span className="text-[11px] font-mono font-bold text-cyan-300 bg-cyan-500/10 px-2.5 py-1 rounded-full border border-cyan-500/30 animate-pulse">
-                    ⏱️ {Math.floor(sleepTimer.remainingSeconds / 60)}:
-                    {(sleepTimer.remainingSeconds % 60).toString().padStart(2, "0")}
-                  </span>
-                )}
-
-                {/* Zen Mode Button */}
-                <button
-                  onClick={() => setIsZenMode(true)}
-                  className="music-zen-btn"
-                  title={t("music.zen.zenModeTooltip", "Fullscreen Zen Mode (Hotkey: Z)")}
-                >
-                  <span>📺</span>
-                  <span className="hidden sm:inline">Zen Mode</span>
+                  <Icon name="listMusic" size={14} />
+                  <span className="hidden sm:inline">{t("music.quickPills.queue", "Queue")}</span>
                 </button>
               </div>
             </header>
@@ -653,18 +557,18 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
             {activeTab === "player" && (
               <section className="music-deck-section">
                 {/* ── TRACK CONTROLS TOOLBAR (Chỉ ảnh hưởng bài hát hiện tại) ── */}
-                <div className="w-full flex flex-wrap items-center justify-between gap-3 p-2.5 sm:p-3 rounded-2xl bg-white/[0.03] light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 backdrop-blur-md">
+                <div className="w-full flex flex-wrap items-center justify-between gap-3 p-2.5 sm:p-3 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-md">
                   {/* Deck Mode Toggle: Đĩa Than vs Lời Bài Hát (Karaoke) */}
-                  <div className="flex items-center gap-1.5 p-1 bg-black/40 light:bg-white/70 rounded-xl border border-white/10 light:border-neutral-900/10">
+                  <div className="flex items-center gap-1.5 p-1 bg-black/40 rounded-xl border border-white/10">
                     <button
                       onClick={() => setDeckMode("vinyl")}
                       className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                         deckMode === "vinyl"
                           ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/30"
-                          : "text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900"
+                          : "text-white/60 hover:text-white"
                       }`}
                     >
-                      <span>💿</span>
+                      <Icon name="disc" size={14} />
                       <span>{t("music.deck.vinyl", "Vinyl & Studio")}</span>
                     </button>
                     <button
@@ -672,30 +576,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                         deckMode === "lyrics"
                           ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30"
-                          : "text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900"
+                          : "text-white/60 hover:text-white"
                       }`}
                     >
-                      <span>🎤</span>
+                      <Icon name="mic" size={14} />
                       <span>{t("music.deck.lyrics", "Live Lyrics (Karaoke)")}</span>
                     </button>
-                  </div>
-
-                  {/* Single-Track Audio Equalizer Preset */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-white/50 light:text-neutral-500 font-medium hidden sm:inline">{t("music.deck.eqLabel", "Equalizer Preset:")}</span>
-                    <select
-                      value={eqPreset}
-                      onChange={(e) => setEqPreset(e.target.value as EqPreset)}
-                      className="music-sort-select !bg-black/40 light:bg-white/70 !border-white/15 light:border-neutral-900/15"
-                      title={t("music.deck.eqLabel", "Graphic Equalizer Preset (Current track only)")}
-                      aria-label="Equalizer Preset"
-                    >
-                      <option value="flat">{t("music.eq.flat", "🎚️ EQ: Flat / Studio")}</option>
-                      <option value="bass_boost">{t("music.eq.bass_boost", "🔊 EQ: Bass Boost")}</option>
-                      <option value="vocal">{t("music.eq.vocal", "🎤 EQ: Vocal & Acoustic")}</option>
-                      <option value="electronic">{t("music.eq.electronic", "🌌 EQ: Synth & EDM")}</option>
-                      <option value="chill">{t("music.eq.chill", "☕ EQ: Chill Lofi")}</option>
-                    </select>
                   </div>
                 </div>
 
@@ -703,9 +589,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   /* ── IN-DECK KARAOKE LIVE SYNCED LYRICS ── */
                   <div className="w-full max-w-3xl mx-auto flex flex-col gap-4">
                     {/* Compact Playing Track Bar at the top of Lyrics */}
-                    <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.04] light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 backdrop-blur-md">
+                    <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
                       <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-white/10 light:bg-neutral-900/[0.06] border border-white/10 light:border-neutral-900/10 relative group">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-white/10 border border-white/10 relative group">
                           {currentTrack.thumbnailUrl ? (
                             <Image
                               src={currentTrack.thumbnailUrl}
@@ -715,7 +601,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               className="object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-lg">🎵</div>
+                            <div className="w-full h-full flex items-center justify-center"><Icon name="music" size={16} /></div>
                           )}
                           {isPlaying && (
                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -726,18 +612,18 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <h2 className="text-base font-bold text-white light:text-neutral-900 truncate">
+                            <h2 className="text-base font-bold text-white truncate">
                               {currentTrack.title}
                             </h2>
                             <button
                               onClick={() => toggleLike(currentTrack.id)}
-                              className={`text-sm ${isCurrentLiked ? "text-red-500" : "text-white/40 light:text-neutral-500 hover:text-white light:hover:text-neutral-900"} cursor-pointer`}
+                              className={`text-sm ${isCurrentLiked ? "text-red-500" : "text-white/40 hover:text-white"} cursor-pointer`}
                               title={isCurrentLiked ? t("music.favorites.removeTooltip", "Unlike") : t("music.playerBar.likeTrack", "Like")}
                             >
-                              {isCurrentLiked ? "❤️" : "🤍"}
+                              <Icon name="heart" size={14} filled={isCurrentLiked} />
                             </button>
                           </div>
-                          <p className="text-xs text-white/60 light:text-neutral-600 truncate">
+                          <p className="text-xs text-white/60 truncate">
                             {currentTrack.artist} {currentTrack.album ? `• ${currentTrack.album}` : ""}
                           </p>
                         </div>
@@ -745,7 +631,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                       <div className="flex items-center gap-2 flex-shrink-0">
                         {/* Audio pulse bars visual feedback */}
-                        <div className="hidden sm:flex items-center gap-1 h-6 px-2.5 py-1 rounded-lg bg-black/40 light:bg-white/70 border border-white/10 light:border-neutral-900/10">
+                        <div className="hidden sm:flex items-center gap-1 h-6 px-2.5 py-1 rounded-lg bg-black/40 border border-white/10">
                           <span
                             className="w-1 bg-cyan-400 rounded-full transition-all duration-75"
                             style={{ height: isPlaying ? `${Math.max(4, audioMetrics.bass * 20)}px` : "4px" }}
@@ -762,10 +648,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                         <button
                           onClick={() => setDeckMode("vinyl")}
-                          className="px-3 py-1.5 rounded-xl bg-white/10 light:bg-neutral-900/[0.06] hover:bg-white/15 light:hover:bg-neutral-900/10 text-xs font-semibold text-white/80 light:text-neutral-800 hover:text-white light:hover:text-neutral-900 border border-white/10 light:border-neutral-900/10 transition-all flex items-center gap-1.5 cursor-pointer"
+                          className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-white/80 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 cursor-pointer"
                           title={t("music.deck.backToVinyl", "Back to Vinyl")}
                         >
-                          <span>💿</span>
+                          <Icon name="disc" size={14} />
                           <span className="hidden sm:inline">{t("music.deck.backToVinyl", "Back to Vinyl")}</span>
                         </button>
                       </div>
@@ -823,7 +709,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           />
                         ) : (
                           <div className="music-cover-default">
-                            <span className="text-6xl">🎵</span>
+                            <Icon name="music" size={56} />
                           </div>
                         )}
 
@@ -858,7 +744,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           className={`music-main-heart-btn ${isCurrentLiked ? "music-main-heart-btn--liked" : ""}`}
                           title={isCurrentLiked ? t("music.playerBar.unlikeTrack", "Liked!") : t("music.playerBar.likeTrack", "Add to Liked Songs (L)")}
                         >
-                          {isCurrentLiked ? "❤️" : "🤍"}
+                          <Icon name="heart" size={16} filled={isCurrentLiked} />
                         </button>
                       </div>
 
@@ -866,19 +752,21 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                       <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
                         {currentTrack.album && (
-                          <span className="music-pill-meta">💿 {currentTrack.album}</span>
+                          <span className="music-pill-meta inline-flex items-center gap-1">
+                            <Icon name="disc" size={12} /> {currentTrack.album}
+                          </span>
                         )}
-                        <span className="music-pill-meta">
-                          🔥 {currentTrack.playCount.toLocaleString()} {t("music.deck.plays", "plays")}
+                        <span className="music-pill-meta inline-flex items-center gap-1">
+                          <Icon name="flame" size={12} /> {currentTrack.playCount.toLocaleString()} {t("music.deck.plays", "plays")}
                         </span>
-                        <span className="music-pill-meta">
-                          ⏱️ {formatTime(currentTrack.duration)}
+                        <span className="music-pill-meta inline-flex items-center gap-1">
+                          <Icon name="clock" size={12} /> {formatTime(currentTrack.duration)}
                         </span>
                         <button
                           onClick={() => setDeckMode("lyrics")}
-                          className="music-pill-meta hover:bg-white/10 light:hover:bg-neutral-900/[0.06] text-cyan-300 border-cyan-500/30 cursor-pointer"
+                          className="music-pill-meta hover:bg-white/10 text-cyan-300 border-cyan-500/30 cursor-pointer inline-flex items-center gap-1"
                         >
-                          🎤 {t("music.deck.viewLyrics", "View Lyrics")}
+                          <Icon name="mic" size={12} /> {t("music.deck.viewLyrics", "View Lyrics")}
                         </button>
                       </div>
                     </div>
@@ -886,18 +774,18 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     {/* Real-Time Web Audio Visualizer */}
                     <div className="flex items-center justify-between px-2 mb-2 w-full max-w-3xl">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-white/70 light:text-neutral-600">
+                        <span className="text-xs font-bold uppercase tracking-wider text-white/70">
                           {t("music.deck.visualizerTitle", "Audio Visualizer")}
                         </span>
                         {isPlaying && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
                       </div>
-                      <div className="flex items-center gap-1 bg-white/[0.04] light:bg-neutral-900/[0.04] p-1 rounded-xl border border-white/10 light:border-neutral-900/10 text-xs">
+                      <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/10 text-xs">
                         <button
                           onClick={() => setVisualizerStyle("bars")}
                           className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                             visualizerStyle === "bars"
                               ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-bold shadow"
-                              : "text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900"
+                              : "text-white/60 hover:text-white"
                           }`}
                         >
                           {t("music.deck.bars", "Bars")}
@@ -907,7 +795,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                             visualizerStyle === "wave"
                               ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-bold shadow"
-                              : "text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900"
+                              : "text-white/60 hover:text-white"
                           }`}
                         >
                           {t("music.deck.wave", "Wave")}
@@ -917,7 +805,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                             visualizerStyle === "pulsar"
                               ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-bold shadow"
-                              : "text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900"
+                              : "text-white/60 hover:text-white"
                           }`}
                         >
                           {t("music.deck.pulsar", "Pulsar")}
@@ -935,12 +823,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                 {/* Quick Track Grid / Playlist Preview */}
                 <div className="music-quick-library w-full">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-white/10 light:border-neutral-900/10">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-white/10">
                     <div className="flex items-center gap-3 flex-wrap">
-                      <h3 className="text-sm font-bold text-white/90 light:text-neutral-800 uppercase tracking-wider flex items-center gap-2">
-                        <span>🎵</span>
+                      <h3 className="text-sm font-bold text-white/90 uppercase tracking-wider flex items-center gap-2">
+                        <Icon name="music" size={14} />
                         <span>{t("music.collection.title", "Soundtrack Collection")}</span>
-                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-white/10 light:bg-neutral-900/[0.06] text-white/60 light:text-neutral-600 font-mono font-normal">
+                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-white/60 font-mono font-normal">
                           {filteredTracks.length} {t("music.collection.tracksCount", "tracks")}
                         </span>
                       </h3>
@@ -949,14 +837,14 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       {selectedGenre !== "All" && (
                         <div className="music-active-chip">
                           <span>{t("music.collection.moodFilter", "Mood")}: {selectedGenre}</span>
-                          <button onClick={() => setSelectedGenre("All")} title={t("music.clearFilter", "Clear")}>✕</button>
+                          <button onClick={() => setSelectedGenre("All")} title={t("music.clearFilter", "Clear")}><Icon name="close" size={11} /></button>
                         </div>
                       )}
 
                       {showOnlyLiked && (
                         <div className="music-active-chip music-active-chip--liked">
-                          <span>❤️ {t("music.collection.likedFilter", "Liked")}</span>
-                          <button onClick={() => setShowOnlyLiked(false)} title={t("music.clearFilter", "Clear")}>✕</button>
+                          <span className="inline-flex items-center gap-1"><Icon name="heart" size={11} /> {t("music.collection.likedFilter", "Liked")}</span>
+                          <button onClick={() => setShowOnlyLiked(false)} title={t("music.clearFilter", "Clear")}><Icon name="close" size={11} /></button>
                         </div>
                       )}
                     </div>
@@ -968,29 +856,29 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 cursor-pointer ${
                           showOnlyLiked
                             ? "bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-500/20"
-                            : "bg-white/5 light:bg-neutral-900/[0.04] text-white/70 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 border-white/10 light:border-neutral-900/10"
+                            : "bg-white/5 text-white/70 hover:text-white border-white/10"
                         }`}
                         title={t("music.collection.likedFilter", "Only show liked tracks in list")}
                       >
-                        <span>{showOnlyLiked ? "❤️" : "🤍"}</span>
+                        <Icon name="heart" size={13} filled={showOnlyLiked} />
                         <span>{t("music.collection.likedBtn", "Liked")}</span>
                       </button>
 
                       {/* Sort dropdown */}
-                      <div className="flex items-center gap-1.5 bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 rounded-xl px-2.5 py-1">
-                        <span className="text-xs text-white/40 light:text-neutral-500">⇅</span>
+                      <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1">
+                        <span className="text-xs text-white/40">⇅</span>
                         <select
                           value={sortBy}
                           onChange={(e) =>
                             setSortBy(e.target.value as "default" | "title" | "plays" | "duration")
                           }
-                          className="bg-transparent text-xs text-white/90 light:text-neutral-800 focus:outline-none cursor-pointer pr-1 py-0.5"
+                          className="bg-transparent text-xs text-white/90 focus:outline-none cursor-pointer pr-1 py-0.5"
                           aria-label={t("music.collection.sort.label", "Sort:")}
                         >
-                          <option value="default" className="bg-[#121212] text-white light:bg-white light:text-neutral-900">{t("music.collection.sort.default", "Sort: Default")}</option>
-                          <option value="plays" className="bg-[#121212] text-white light:bg-white light:text-neutral-900">{t("music.collection.sort.plays", "Sort: Most Played")}</option>
-                          <option value="title" className="bg-[#121212] text-white light:bg-white light:text-neutral-900">{t("music.collection.sort.title", "Sort: Track Title")}</option>
-                          <option value="duration" className="bg-[#121212] text-white light:bg-white light:text-neutral-900">{t("music.collection.sort.duration", "Sort: Duration")}</option>
+                          <option value="default" className="bg-[#121212] text-white">{t("music.collection.sort.default", "Sort: Default")}</option>
+                          <option value="plays" className="bg-[#121212] text-white">{t("music.collection.sort.plays", "Sort: Most Played")}</option>
+                          <option value="title" className="bg-[#121212] text-white">{t("music.collection.sort.title", "Sort: Track Title")}</option>
+                          <option value="duration" className="bg-[#121212] text-white">{t("music.collection.sort.duration", "Sort: Duration")}</option>
                         </select>
                       </div>
                     </div>
@@ -1017,10 +905,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                 sizes="(max-width: 640px) 45vw, 180px"
                               />
                             ) : (
-                              <div className="music-grid-default-art">🎵</div>
+                              <div className="music-grid-default-art"><Icon name="music" size={20} /></div>
                             )}
                             <div className="music-grid-play-overlay">
-                              {isSelected && isPlaying ? "⏸" : "▶"}
+                              <Icon name={isSelected && isPlaying ? "pause" : "play"} size={16} />
                             </div>
                           </div>
 
@@ -1037,11 +925,11 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                 e.stopPropagation();
                                 toggleLike(t.id);
                               }}
-                              className={`text-xs ${isLiked ? "text-red-400" : "text-white/30 light:text-neutral-400 hover:text-white light:hover:text-neutral-900"}`}
+                              className={`text-xs ${isLiked ? "text-red-400" : "text-white/30 hover:text-white"}`}
                             >
-                              {isLiked ? "❤️" : "🤍"}
+                              <Icon name="heart" size={13} filled={isLiked} />
                             </button>
-                            <span className="text-[11px] text-white/40 light:text-neutral-500 tabular-nums">
+                            <span className="text-[11px] text-white/40 tabular-nums">
                               {formatTime(t.duration)}
                             </span>
                           </div>
@@ -1063,7 +951,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     {/* Big Chart Cover Artwork / Badge */}
                     <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl shadow-2xl flex-shrink-0 bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-950 flex flex-col items-center justify-center text-white border border-emerald-400/30 relative overflow-hidden group">
                       <div className="absolute inset-0 bg-black/20" />
-                      <span className="text-5xl sm:text-6xl mb-1 relative z-10">🏆</span>
+                      <span className="mb-1 relative z-10"><Icon name="trophy" size={48} /></span>
                       <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-emerald-300 relative z-10">
                         TOP CHARTS
                       </span>
@@ -1076,18 +964,18 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-400 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
                           {t("music.charts.badge", "TRENDING LEADERBOARD")}
                         </span>
-                        <span className="text-[11px] text-white/40 light:text-neutral-500 font-mono">{t("music.charts.edition", "SPOTIFY EDITION")}</span>
+                        <span className="text-[11px] text-white/40 font-mono">{t("music.charts.edition", "SPOTIFY EDITION")}</span>
                       </div>
 
-                      <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-white light:text-neutral-900 tracking-tight mb-3">
+                      <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight mb-3">
                         {t("music.charts.title", "Most Played Soundtracks")}
                       </h1>
 
-                      <p className="text-sm text-white/70 light:text-neutral-600 max-w-2xl mb-4 font-light leading-relaxed">
+                      <p className="text-sm text-white/70 max-w-2xl mb-4 font-light leading-relaxed">
                         {t("music.charts.desc", "A curated collection of the most enjoyed chillout, lofi, and synthwave melodies on Vibe Lounge. Ranked by actual play counts.")}
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-white/80 light:text-neutral-800 font-medium">
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-white/80 font-medium">
                         <div className="flex items-center gap-1.5">
                           <span className="w-5 h-5 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-400 flex items-center justify-center text-[10px] font-bold text-white">
                             TH
@@ -1106,29 +994,30 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                   {/* Top 3 Quick Podium Badges */}
                   {chartTracks.length >= 3 && (
-                    <div className="px-6 sm:px-8 pb-4 grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-white/10 light:border-neutral-900/10 pt-4 relative z-10">
+                    <div className="px-6 sm:px-8 pb-4 grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-white/10 pt-4 relative z-10">
                       {chartTracks.slice(0, 3).map((topT, idx) => {
                         const medals = [
-                          t("music.charts.top1", "🥇 Top 1 Trending"),
-                          t("music.charts.top2", "🥈 Top 2 Favorite"),
-                          t("music.charts.top3", "🥉 Top 3 Featured"),
+                          t("music.charts.top1", "Top 1 Trending"),
+                          t("music.charts.top2", "Top 2 Favorite"),
+                          t("music.charts.top3", "Top 3 Featured"),
                         ];
+                        const medalColors = ["text-amber-300", "text-slate-300", "text-orange-400"];
                         const isThisPlaying = isPlaying && currentTrack?.id === topT.id;
                         return (
                           <div
                             key={topT.id}
                             onClick={() => playTrackById(topT.id)}
-                            className={`flex items-center gap-3 p-2.5 rounded-xl bg-black/40 light:bg-white/70 border transition-all cursor-pointer ${
+                            className={`flex items-center gap-3 p-2.5 rounded-xl bg-black/40 border transition-all cursor-pointer ${
                               isThisPlaying
                                 ? "border-emerald-500/60 bg-emerald-500/10 shadow-lg shadow-emerald-500/10"
-                                : "border-white/10 light:border-neutral-900/10 hover:border-white/20 light:hover:border-neutral-900/15 hover:bg-white/5 light:hover:bg-neutral-900/[0.04]"
+                                : "border-white/10 hover:border-white/20 hover:bg-white/5"
                             }`}
                           >
-                            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 relative bg-white/10 light:bg-neutral-900/[0.06]">
+                            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 relative bg-white/10">
                               {topT.thumbnailUrl ? (
                                 <Image src={topT.thumbnailUrl} alt={topT.title} fill sizes="40px" className="object-cover" />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-xs">🎵</div>
+                                <div className="w-full h-full flex items-center justify-center"><Icon name="music" size={14} /></div>
                               )}
                               {isThisPlaying && (
                                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -1137,15 +1026,17 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <span className="text-[10px] font-bold text-amber-300 block">{medals[idx]}</span>
-                              <div className="text-xs font-bold text-white light:text-neutral-900 truncate">{topT.title}</div>
-                              <span className="text-[11px] text-white/50 light:text-neutral-500 truncate block">{topT.artist}</span>
+                              <span className={`text-[10px] font-bold ${medalColors[idx]} flex items-center gap-1`}>
+                                <Icon name="medal" size={11} /> {medals[idx]}
+                              </span>
+                              <div className="text-xs font-bold text-white truncate">{topT.title}</div>
+                              <span className="text-[11px] text-white/50 truncate block">{topT.artist}</span>
                             </div>
                             <div className="text-right">
                               <span className="text-[10px] text-emerald-400 font-mono font-bold block">
                                 {(topT.playCount ?? 0).toLocaleString()}
                               </span>
-                              <span className="text-[9px] text-white/40 light:text-neutral-500 block">{t("music.charts.plays", "plays")}</span>
+                              <span className="text-[9px] text-white/40 block">{t("music.charts.plays", "plays")}</span>
                             </div>
                           </div>
                         );
@@ -1174,51 +1065,51 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       className={`p-3 rounded-full border transition-all ${
                         isShuffle
                           ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
-                          : "bg-white/5 light:bg-neutral-900/[0.04] hover:bg-white/10 light:hover:bg-neutral-900/[0.06] text-white/70 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 border-white/10 light:border-neutral-900/10"
+                          : "bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border-white/10"
                       }`}
                       title={t("music.charts.shuffle", "Shuffle play charts")}
                     >
                       <ShuffleIcon />
                     </button>
 
-                    <div className="h-6 w-px bg-white/10 light:bg-neutral-900/[0.06]" />
+                    <div className="h-6 w-px bg-white/10" />
 
-                    <span className="text-xs text-white/60 light:text-neutral-600">
+                    <span className="text-xs text-white/60">
                       {t("music.charts.showing", "Showing")} <strong>{chartTracks.length}</strong> {t("music.charts.tracks", "tracks")}
                     </span>
                   </div>
 
                   {/* Chart Sorting Tabs */}
-                  <div className="flex items-center gap-1.5 p-1 bg-white/[0.04] light:bg-neutral-900/[0.04] rounded-xl border border-white/10 light:border-neutral-900/10 self-start sm:self-auto">
+                  <div className="flex items-center gap-1.5 p-1 bg-white/[0.04] rounded-xl border border-white/10 self-start sm:self-auto">
                     <button
                       onClick={() => setChartFilter("plays")}
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                         chartFilter === "plays"
                           ? "bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40"
-                          : "text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900"
+                          : "text-white/60 hover:text-white"
                       }`}
                     >
-                      {t("music.charts.topPlays", "🔥 Top Played")}
+                      <Icon name="flame" size={12} className="inline mr-1" /> {t("music.charts.topPlays", "Top Played")}
                     </button>
                     <button
                       onClick={() => setChartFilter("liked")}
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                         chartFilter === "liked"
                           ? "bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40"
-                          : "text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900"
+                          : "text-white/60 hover:text-white"
                       }`}
                     >
-                      {t("music.charts.topLiked", "❤️ Most Liked")}
+                      <Icon name="heart" size={12} className="inline mr-1" /> {t("music.charts.topLiked", "Most Liked")}
                     </button>
                     <button
                       onClick={() => setChartFilter("recent")}
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                         chartFilter === "recent"
                           ? "bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40"
-                          : "text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900"
+                          : "text-white/60 hover:text-white"
                       }`}
                     >
-                      {t("music.charts.topRecent", "✨ Recently Added")}
+                      <Icon name="sparkles" size={12} className="inline mr-1" /> {t("music.charts.topRecent", "Recently Added")}
                     </button>
                   </div>
                 </div>
@@ -1287,34 +1178,34 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                   <span style={{ backgroundColor: "#1db954" }} />
                                 </div>
                               ) : rank === 1 ? (
-                                <span className="text-base" title="Top 1">🥇</span>
+                                <Icon name="medal" size={16} className="text-amber-300" />
                               ) : rank === 2 ? (
-                                <span className="text-base" title="Top 2">🥈</span>
+                                <Icon name="medal" size={16} className="text-slate-300" />
                               ) : rank === 3 ? (
-                                <span className="text-base" title="Top 3">🥉</span>
+                                <Icon name="medal" size={16} className="text-orange-400" />
                               ) : (
-                                <span className="text-xs font-mono text-white/50 light:text-neutral-500">{rank}</span>
+                                <span className="text-xs font-mono text-white/50">{rank}</span>
                               )}
                             </div>
 
                             {/* Title & Artist & Thumbnail Col */}
                             <div className="flex-1 min-w-0 flex items-center gap-3 pr-2">
-                              <div className="w-11 h-11 rounded-lg overflow-hidden bg-white/10 light:bg-neutral-900/[0.06] flex-shrink-0 shadow relative">
+                              <div className="w-11 h-11 rounded-lg overflow-hidden bg-white/10 flex-shrink-0 shadow relative">
                                 {track.thumbnailUrl ? (
                                   <Image src={track.thumbnailUrl} alt={track.title} fill sizes="44px" className="object-cover" />
                                 ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-sm">🎵</div>
+                                  <div className="w-full h-full flex items-center justify-center"><Icon name="music" size={16} /></div>
                                 )}
                               </div>
                               <div className="min-w-0">
                                 <div className={`text-sm font-semibold truncate transition-colors ${
-                                  isCurrent ? "text-[#1db954] font-bold" : "text-white light:text-neutral-900 group-hover:text-white light:hover:text-neutral-900 light:group-hover:text-neutral-900"
+                                  isCurrent ? "text-[#1db954] font-bold" : "text-white group-hover:text-white"
                                 }`}>
                                   {track.title}
                                 </div>
-                                <div className="text-xs text-white/50 light:text-neutral-500 truncate flex items-center gap-2">
+                                <div className="text-xs text-white/50 truncate flex items-center gap-2">
                                   <span>{track.artist}</span>
-                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-white/10 light:bg-neutral-900/[0.06] text-white/70 light:text-neutral-600 font-mono uppercase">
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-white/10 text-white/70 font-mono uppercase">
                                     Lossless
                                   </span>
                                 </div>
@@ -1322,16 +1213,16 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                             </div>
 
                             {/* Album / Genre Col */}
-                            <div className="hidden md:block w-48 text-xs text-white/60 light:text-neutral-600 truncate pr-4">
+                            <div className="hidden md:block w-48 text-xs text-white/60 truncate pr-4">
                               {track.album || track.genre || t("music.infoView.singleRelease", "Single Release")}
                             </div>
 
                             {/* Plays count & popularity bar Col */}
                             <div className="hidden sm:flex flex-col items-end justify-center w-36 pr-4">
-                              <span className="text-xs font-mono font-medium text-white/80 light:text-neutral-800 tabular-nums">
+                              <span className="text-xs font-mono font-medium text-white/80 tabular-nums">
                                 {(track.playCount ?? 0).toLocaleString()} {t("music.charts.plays", "plays")}
                               </span>
-                              <div className="w-20 h-1 rounded-full bg-white/10 light:bg-neutral-900/[0.06] mt-1 overflow-hidden">
+                              <div className="w-20 h-1 rounded-full bg-white/10 mt-1 overflow-hidden">
                                 <div
                                   className="h-full bg-gradient-to-r from-emerald-500 to-[#1db954] rounded-full"
                                   style={{ width: `${Math.max(5, playPercent)}%` }}
@@ -1347,13 +1238,13 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                   toggleLike(track.id);
                                 }}
                                 className={`text-sm transition-transform active:scale-125 ${
-                                  isLiked ? "text-emerald-400" : "text-white/20 light:text-neutral-400 hover:text-white/80 light:hover:text-neutral-800"
+                                  isLiked ? "text-emerald-400" : "text-white/20 hover:text-white/80"
                                 }`}
                                 title={isLiked ? t("music.favorites.removeTooltip", "Unlike") : t("music.playerBar.likeTrack", "Like")}
                               >
-                                {isLiked ? "❤️" : "🤍"}
+                                <Icon name="heart" size={14} filled={isLiked} />
                               </button>
-                              <span className="text-xs font-mono text-white/50 light:text-neutral-500 tabular-nums">
+                              <span className="text-xs font-mono text-white/50 tabular-nums">
                                 {formatTime(track.duration)}
                               </span>
                             </div>
@@ -1382,8 +1273,8 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     {/* Big Heart Cover Artwork */}
                     <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl shadow-2xl flex-shrink-0 bg-gradient-to-br from-rose-600 via-pink-600 to-purple-900 flex flex-col items-center justify-center text-white border border-rose-400/40 relative overflow-hidden group shadow-rose-900/40">
                       <div className="absolute inset-0 bg-black/15" />
-                      <span className="text-5xl sm:text-6xl mb-1 relative z-10 drop-shadow-md">
-                        ❤️
+                      <span className="mb-1 relative z-10 drop-shadow-md">
+                        <Icon name="heart" size={48} filled />
                       </span>
                       <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-rose-200 relative z-10">
                         FAVORITES
@@ -1397,21 +1288,21 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         <span className="text-[11px] font-extrabold uppercase tracking-widest text-rose-400 px-2.5 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30">
                           {t("music.favorites.badge", "FAVORITE COLLECTION")}
                         </span>
-                        <span className="text-[11px] text-white/40 light:text-neutral-500 font-mono">{t("music.favorites.edition", "SPOTIFY EDITION")}</span>
+                        <span className="text-[11px] text-white/40 font-mono">{t("music.favorites.edition", "SPOTIFY EDITION")}</span>
                       </div>
 
-                      <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-white light:text-neutral-900 tracking-tight mb-3">
+                      <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight mb-3">
                         {t("music.favorites.title", "Favorite Tracks")}
                       </h1>
 
-                      <p className="text-sm text-white/70 light:text-neutral-600 max-w-2xl mb-4 font-light leading-relaxed">
+                      <p className="text-sm text-white/70 max-w-2xl mb-4 font-light leading-relaxed">
                         {t("music.favorites.desc", "All your saved and loved melodies on Vibe Lounge. Automatically synced and stored in your browser.")}
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-white/80 light:text-neutral-800 font-medium">
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-white/80 font-medium">
                         <div className="flex items-center gap-1.5">
-                          <span className="w-5 h-5 rounded-full bg-gradient-to-tr from-rose-500 to-pink-500 flex items-center justify-center text-[10px] font-bold text-white">
-                            ❤️
+                          <span className="w-5 h-5 rounded-full bg-gradient-to-tr from-rose-500 to-pink-500 flex items-center justify-center text-white">
+                            <Icon name="heart" size={10} filled />
                           </span>
                           <span>
                             <strong>{likedTracks.length}</strong> {t("music.favorites.savedCount", "saved tracks")}
@@ -1440,7 +1331,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${
                         likedTracks.length > 0
                           ? "bg-gradient-to-tr from-rose-500 to-pink-500 text-white hover:scale-105 active:scale-95 shadow-rose-500/30 cursor-pointer"
-                          : "bg-white/10 light:bg-neutral-900/[0.06] text-white/30 light:text-neutral-400 cursor-not-allowed"
+                          : "bg-white/10 text-white/30 cursor-not-allowed"
                       }`}
                       title={likedTracks.length > 0 ? t("music.favorites.title", "Play all favorites") : t("music.favorites.emptyTitle", "No tracks")}
                     >
@@ -1463,30 +1354,30 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           const rand = Math.floor(Math.random() * likedTracks.length);
                           playTrackById(likedTracks[rand].id);
                         }}
-                        className="p-3 rounded-full bg-white/5 light:bg-neutral-900/[0.04] hover:bg-white/10 light:hover:bg-neutral-900/[0.06] text-white/70 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 border border-white/10 light:border-neutral-900/10 transition-all text-sm"
+                        className="p-3 rounded-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-all"
                         title={t("music.charts.shuffle", "Shuffle play favorites")}
                       >
-                        🔀
+                        <Icon name="shuffle" size={16} />
                       </button>
                     )}
                   </div>
 
-                  <div className="text-xs text-white/40 light:text-neutral-500">
-                    {t("music.favorites.removeTooltip", "Click ❤️ to remove from favorites")}
+                  <div className="text-xs text-white/40 inline-flex items-center gap-1">
+                    {t("music.favorites.removeTooltip", "Click")} <Icon name="heart" size={11} filled /> {t("music.favorites.removeTooltipSuffix", "to remove from favorites")}
                   </div>
                 </div>
 
                 {/* 3. Table of Liked Tracks */}
                 <div className="px-4 sm:px-8 pb-12">
                   {likedTracks.length === 0 ? (
-                    <div className="p-12 text-center rounded-2xl bg-white/[0.02] light:bg-neutral-900/[0.04] border border-dashed border-white/10 light:border-neutral-900/10 flex flex-col items-center justify-center max-w-md mx-auto my-8">
-                      <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-3xl mb-4">
-                        💔
+                    <div className="p-12 text-center rounded-2xl bg-white/[0.02] border border-dashed border-white/10 flex flex-col items-center justify-center max-w-md mx-auto my-8">
+                      <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-4 text-rose-400">
+                        <Icon name="heartCrack" size={28} />
                       </div>
-                      <h3 className="text-base font-bold text-white light:text-neutral-900 mb-2">
+                      <h3 className="text-base font-bold text-white mb-2">
                         {t("music.favorites.emptyTitle", "No favorite tracks yet")}
                       </h3>
-                      <p className="text-xs text-white/50 light:text-neutral-500 mb-6 leading-relaxed">
+                      <p className="text-xs text-white/50 mb-6 leading-relaxed">
                         {t("music.favorites.emptyDesc", "Click the heart icon on any track to save it here for quick access.")}
                       </p>
                       <button
@@ -1496,14 +1387,14 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         }}
                         className="px-5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2 cursor-pointer"
                       >
-                        <span>🏆</span>
+                        <Icon name="trophy" size={13} />
                         <span>{t("music.favorites.exploreBtn", "Explore Soundtracks")}</span>
                       </button>
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-white/10 light:border-neutral-900/10 bg-black/30 light:bg-white/70 backdrop-blur-md overflow-hidden shadow-2xl">
+                    <div className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur-md overflow-hidden shadow-2xl">
                       {/* Table Header */}
-                      <div className="flex items-center px-4 py-3 text-[11px] font-bold text-white/40 light:text-neutral-500 uppercase tracking-wider border-b border-white/10 light:border-neutral-900/10">
+                      <div className="flex items-center px-4 py-3 text-[11px] font-bold text-white/40 uppercase tracking-wider border-b border-white/10">
                         <div className="w-10 text-center">{t("music.charts.table.rank", "#")}</div>
                         <div className="flex-1 min-w-0 pr-2">{t("music.charts.table.title", "TITLE & ARTIST")}</div>
                         <div className="hidden md:block w-48 pr-4">{t("music.charts.table.albumGenre", "ALBUM / GENRE")}</div>
@@ -1522,7 +1413,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               key={track.id}
                               onClick={() => playTrackById(track.id)}
                               className={`flex items-center px-4 py-3 cursor-pointer group transition-colors ${
-                                isCurrent ? "bg-rose-500/10" : "hover:bg-white/5 light:hover:bg-neutral-900/[0.04]"
+                                isCurrent ? "bg-rose-500/10" : "hover:bg-white/5"
                               }`}
                             >
                               {/* # Col */}
@@ -1534,18 +1425,18 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                     <span style={{ backgroundColor: "#f43f5e" }} />
                                   </div>
                                 ) : (
-                                  <span className="text-xs font-mono text-white/40 light:text-neutral-500 group-hover:hidden">
+                                  <span className="text-xs font-mono text-white/40 group-hover:hidden">
                                     {idx + 1}
                                   </span>
                                 )}
-                                <span className="hidden group-hover:inline-block text-xs text-white light:text-neutral-900">
-                                  ▶
+                                <span className="hidden group-hover:inline-block text-white">
+                                  <Icon name="play" size={12} />
                                 </span>
                               </div>
 
                               {/* Title, Artist, Thumb */}
                               <div className="flex-1 min-w-0 flex items-center gap-3 pr-2">
-                                <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 light:bg-neutral-900/[0.06] flex-shrink-0 shadow relative">
+                                <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 flex-shrink-0 shadow relative">
                                   {track.thumbnailUrl ? (
                                     <Image
                                       src={track.thumbnailUrl}
@@ -1555,32 +1446,32 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                       className="object-cover"
                                     />
                                   ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-xs">
-                                      🎵
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <Icon name="music" size={14} />
                                     </div>
                                   )}
                                 </div>
                                 <div className="min-w-0">
                                   <div
                                     className={`text-sm font-semibold truncate ${
-                                      isCurrent ? "text-rose-400 font-bold" : "text-white light:text-neutral-900"
+                                      isCurrent ? "text-rose-400 font-bold" : "text-white"
                                     }`}
                                   >
                                     {track.title}
                                   </div>
-                                  <div className="text-xs text-white/50 light:text-neutral-500 truncate flex items-center gap-2">
+                                  <div className="text-xs text-white/50 truncate flex items-center gap-2">
                                     <span>{track.artist}</span>
                                   </div>
                                 </div>
                               </div>
 
                               {/* Album / Genre */}
-                              <div className="hidden md:block w-48 text-xs text-white/60 light:text-neutral-600 truncate pr-4">
+                              <div className="hidden md:block w-48 text-xs text-white/60 truncate pr-4">
                                 {track.album || track.genre || t("music.infoView.singleRelease", "Single Release")}
                               </div>
 
                               {/* Plays count */}
-                              <div className="hidden sm:block w-28 text-right text-xs font-mono text-white/70 light:text-neutral-600 pr-4">
+                              <div className="hidden sm:block w-28 text-right text-xs font-mono text-white/70 pr-4">
                                 {(track.playCount ?? 0).toLocaleString()}
                               </div>
 
@@ -1591,12 +1482,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                     e.stopPropagation();
                                     toggleLike(track.id);
                                   }}
-                                  className="text-sm text-rose-400 hover:scale-125 transition-transform"
+                                  className="text-rose-400 hover:scale-125 transition-transform"
                                   title={t("music.favorites.removeTooltip", "Remove from favorites")}
                                 >
-                                  ❤️
+                                  <Icon name="heart" size={14} filled />
                                 </button>
-                                <span className="text-xs font-mono text-white/50 light:text-neutral-500 tabular-nums">
+                                <span className="text-xs font-mono text-white/50 tabular-nums">
                                   {formatTime(track.duration)}
                                 </span>
                               </div>
@@ -1615,8 +1506,8 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
               <section className="music-queue-view">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h2 className="text-xl font-bold text-white light:text-neutral-900">{t("music.queueView.title", "Up Next Queue")}</h2>
-                    <p className="text-xs text-white/50 light:text-neutral-500">
+                    <h2 className="text-xl font-bold text-white">{t("music.queueView.title", "Up Next Queue")}</h2>
+                    <p className="text-xs text-white/50">
                       {tracks.length} {t("music.queueView.desc", "tracks queued for continuous playback")}
                     </p>
                   </div>
@@ -1633,7 +1524,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         onClick={() => playTrackByIndex(i)}
                         className={`music-queue-item ${isSelected ? "music-queue-item--active" : ""}`}
                       >
-                        <div className="w-8 text-center text-xs text-white/40 light:text-neutral-500 font-mono">
+                        <div className="w-8 text-center text-xs text-white/40 font-mono">
                           {isSelected && isPlaying ? (
                             <div className="music-mini-bars">
                               <span />
@@ -1645,7 +1536,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           )}
                         </div>
 
-                        <div className="relative w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 bg-white/10 light:bg-neutral-900/[0.06] border border-white/10 light:border-neutral-900/10">
+                        <div className="relative w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 bg-white/10 border border-white/10">
                           {track.thumbnailUrl ? (
                             <Image
                               src={track.thumbnailUrl}
@@ -1655,17 +1546,17 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               className="object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-xs">
-                              🎵
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Icon name="music" size={14} />
                             </div>
                           )}
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-semibold text-white light:text-neutral-900 truncate">
+                          <div className="text-sm font-semibold text-white truncate">
                             {track.title}
                           </div>
-                          <div className="text-xs text-white/50 light:text-neutral-500 truncate flex items-center gap-1.5">
+                          <div className="text-xs text-white/50 truncate flex items-center gap-1.5">
                             <span>{track.artist}</span>
                             {track.genre && (
                               <>
@@ -1682,12 +1573,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               e.stopPropagation();
                               toggleLike(track.id);
                             }}
-                            className={`text-xs ${isLiked ? "text-red-400" : "text-white/30 light:text-neutral-400 hover:text-white light:hover:text-neutral-900"}`}
+                            className={isLiked ? "text-red-400" : "text-white/30 hover:text-white"}
                             title={isLiked ? t("music.favorites.removeTooltip", "Unlike") : t("music.playerBar.likeTrack", "Like track")}
                           >
-                            {isLiked ? "❤️" : "🤍"}
+                            <Icon name="heart" size={13} filled={isLiked} />
                           </button>
-                          <div className="text-xs text-white/40 light:text-neutral-500 tabular-nums">
+                          <div className="text-xs text-white/40 tabular-nums">
                             {formatTime(track.duration)}
                           </div>
                         </div>
@@ -1702,14 +1593,14 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
             {activeTab === "info" && (
               <section className="music-info-view">
                 <div className="music-info-card">
-                  <h3 className="text-lg font-bold text-white light:text-neutral-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                     <span>ℹ️</span>
                     <span>{t("music.infoView.title", "Audio Specifications & Analog VU Studio")}</span>
                   </h3>
 
                   {/* Dual Stereo Analog VU Meters */}
-                  <div className="p-4 rounded-2xl bg-black/40 light:bg-white/70 border border-white/10 light:border-neutral-900/10 mb-6">
-                    <div className="text-xs font-bold text-white/60 light:text-neutral-600 uppercase tracking-wider mb-3 text-center">
+                  <div className="p-4 rounded-2xl bg-black/40 border border-white/10 mb-6">
+                    <div className="text-xs font-bold text-white/60 uppercase tracking-wider mb-3 text-center">
                       {t("music.infoView.stereoVu", "STEREO ANALOG VU METERS (REAL-TIME dB)")}
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -1759,33 +1650,33 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-8">
                     <div className="music-info-field">
-                      <span className="text-white/40 light:text-neutral-500 text-xs block">{t("music.infoView.trackTitle", "TRACK TITLE")}</span>
-                      <span className="text-white light:text-neutral-900 font-medium">{currentTrack.title}</span>
+                      <span className="text-white/40 text-xs block">{t("music.infoView.trackTitle", "TRACK TITLE")}</span>
+                      <span className="text-white font-medium">{currentTrack.title}</span>
                     </div>
                     <div className="music-info-field">
-                      <span className="text-white/40 light:text-neutral-500 text-xs block">{t("music.infoView.artist", "ARTIST")}</span>
-                      <span className="text-white light:text-neutral-900 font-medium">{currentTrack.artist}</span>
+                      <span className="text-white/40 text-xs block">{t("music.infoView.artist", "ARTIST")}</span>
+                      <span className="text-white font-medium">{currentTrack.artist}</span>
                     </div>
                     <div className="music-info-field">
-                      <span className="text-white/40 light:text-neutral-500 text-xs block">{t("music.infoView.album", "ALBUM")}</span>
-                      <span className="text-white light:text-neutral-900 font-medium">
+                      <span className="text-white/40 text-xs block">{t("music.infoView.album", "ALBUM")}</span>
+                      <span className="text-white font-medium">
                         {currentTrack.album || t("music.infoView.singleRelease", "Single Release")}
                       </span>
                     </div>
                     <div className="music-info-field">
-                      <span className="text-white/40 light:text-neutral-500 text-xs block">{t("music.infoView.genreMood", "GENRE & MOOD")}</span>
-                      <span className="text-white light:text-neutral-900 font-medium">
+                      <span className="text-white/40 text-xs block">{t("music.infoView.genreMood", "GENRE & MOOD")}</span>
+                      <span className="text-white font-medium">
                         {currentTrack.genre || t("music.infoView.uncategorized", "Uncategorized")}
                       </span>
                     </div>
                     <div className="music-info-field">
-                      <span className="text-white/40 light:text-neutral-500 text-xs block">{t("music.infoView.activeEq", "ACTIVE EQUALIZER")}</span>
+                      <span className="text-white/40 text-xs block">{t("music.infoView.activeEq", "ACTIVE EQUALIZER")}</span>
                       <span className="text-purple-400 font-medium capitalize">
                         {eqPreset.replace("_", " ")} Preset
                       </span>
                     </div>
                     <div className="music-info-field">
-                      <span className="text-white/40 light:text-neutral-500 text-xs block">{t("music.infoView.streamEngine", "STREAM ENGINE")}</span>
+                      <span className="text-white/40 text-xs block">{t("music.infoView.streamEngine", "STREAM ENGINE")}</span>
                       <span className="text-cyan-400 font-medium">
                         {t("music.infoView.engineDesc", "Web Audio API (5-Band EQ / 64 Bins)")}
                       </span>
@@ -1793,11 +1684,11 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   </div>
 
                   {/* Keyboard Shortcuts Cheat Sheet */}
-                  <div className="pt-6 border-t border-white/10 light:border-neutral-900/10">
-                    <h4 className="text-xs font-bold text-white/60 light:text-neutral-600 uppercase tracking-wider mb-4">
+                  <div className="pt-6 border-t border-white/10">
+                    <h4 className="text-xs font-bold text-white/60 uppercase tracking-wider mb-4">
                       {t("music.infoView.shortcutsTitle", "Studio Keyboard Shortcuts")}
                     </h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs text-white/70 light:text-neutral-600">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs text-white/70">
                       <div>
                         <kbd className="music-kbd">Space</kbd> {t("music.infoView.shortcuts.playPause", "Play / Pause")}
                       </div>
@@ -1815,9 +1706,6 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       </div>
                       <div>
                         <kbd className="music-kbd">L</kbd> {t("music.infoView.shortcuts.like", "Like / Favorite")}
-                      </div>
-                      <div>
-                        <kbd className="music-kbd">Z</kbd> {t("music.infoView.shortcuts.zen", "Zen Fullscreen")}
                       </div>
                       <div>
                         <kbd className="music-kbd">C</kbd> {t("music.infoView.shortcuts.collapse", "Collapse Player")}
@@ -1850,7 +1738,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 {currentTrack.thumbnailUrl ? (
                   <Image src={currentTrack.thumbnailUrl} alt="" fill sizes="38px" />
                 ) : (
-                  <span>🎵</span>
+                  <Icon name="music" size={16} />
                 )}
               </div>
 
@@ -1891,7 +1779,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   className="music-dock-btn music-dock-btn--expand"
                   title={t("music.playerBar.expandTooltip", "Expand Player Bar (C)")}
                 >
-                  <span>▲</span>
+                  <Icon name="arrowUp" size={12} />
                 </button>
               </div>
             </motion.div>
@@ -1911,7 +1799,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   {currentTrack.thumbnailUrl ? (
                     <Image src={currentTrack.thumbnailUrl} alt="" fill sizes="52px" />
                   ) : (
-                    <div className="music-default-art">🎵</div>
+                    <div className="music-default-art"><Icon name="music" size={18} /></div>
                   )}
                 </div>
                 <div className="music-bar-meta">
@@ -1919,11 +1807,11 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     <span className="music-bar-title">{currentTrack.title}</span>
                     <button
                       onClick={() => toggleLike(currentTrack.id)}
-                      className={`text-xs transition-colors ${isCurrentLiked ? "text-red-400" : "text-white/30 light:text-neutral-400 hover:text-white light:hover:text-neutral-900"
+                      className={`transition-colors ${isCurrentLiked ? "text-red-400" : "text-white/30 hover:text-white"
                         }`}
                       title={isCurrentLiked ? t("music.playerBar.unlikeTrack", "Liked!") : t("music.playerBar.likeTrack", "Like track")}
                     >
-                      {isCurrentLiked ? "❤️" : "🤍"}
+                      <Icon name="heart" size={13} filled={isCurrentLiked} />
                     </button>
                   </div>
                   <span className="music-bar-artist">{currentTrack.artist}</span>
@@ -2043,7 +1931,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   className={`music-ctrl-btn music-ctrl-btn--sm ${
                     deckMode === "lyrics" && activeTab === "player"
                       ? "!text-cyan-300 !border-cyan-500/40 !bg-cyan-500/20"
-                      : "text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900"
+                      : "text-white/60 hover:text-white"
                   }`}
                   title={
                     deckMode === "lyrics" && activeTab === "player"
@@ -2052,8 +1940,50 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   }
                   aria-label="Karaoke"
                 >
-                  🎤
+                  <Icon name="mic" size={14} />
                 </button>
+
+                {/* EQ Preset (relocated from removed Zen Mode / header) */}
+                <select
+                  value={eqPreset}
+                  onChange={(e) => setEqPreset(e.target.value as EqPreset)}
+                  className="music-sort-select !text-xs hidden md:block"
+                  title={t("music.deck.eqLabel", "Equalizer Preset")}
+                  aria-label="Equalizer Preset"
+                >
+                  <option value="flat">{t("music.eq.flat", "EQ: Flat / Studio")}</option>
+                  <option value="bass_boost">{t("music.eq.bass_boost", "EQ: Bass Boost")}</option>
+                  <option value="vocal">{t("music.eq.vocal", "EQ: Vocal & Acoustic")}</option>
+                  <option value="electronic">{t("music.eq.electronic", "EQ: Synth & EDM")}</option>
+                  <option value="chill">{t("music.eq.chill", "EQ: Chill Lofi")}</option>
+                </select>
+
+                {/* Sleep Timer (relocated from removed Zen Mode / header) */}
+                <select
+                  value={sleepTimer.minutes === null ? "off" : sleepTimer.minutes === 0 ? "end" : String(sleepTimer.minutes)}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === "off") setSleepTimerMinutes(null);
+                    else if (v === "end") setSleepTimerMinutes(0);
+                    else setSleepTimerMinutes(Number(v));
+                  }}
+                  className={`music-sort-select !text-xs hidden md:block ${sleepTimer.minutes !== null ? "!border-cyan-400 !text-cyan-300" : ""}`}
+                  title={t("music.sleepTimer.title", "Sleep Timer")}
+                  aria-label={t("music.sleepTimer.title", "Sleep Timer")}
+                >
+                  <option value="off">{t("music.sleepTimer.off", "Timer: Off")}</option>
+                  <option value="15">{t("music.sleepTimer.m15", "Timer: 15 mins")}</option>
+                  <option value="30">{t("music.sleepTimer.m30", "Timer: 30 mins")}</option>
+                  <option value="45">{t("music.sleepTimer.m45", "Timer: 45 mins")}</option>
+                  <option value="60">{t("music.sleepTimer.m60", "Timer: 60 mins")}</option>
+                  <option value="end">{t("music.sleepTimer.endTrack", "Timer: End of Track")}</option>
+                </select>
+                {sleepTimer.remainingSeconds !== null && (
+                  <span className="text-[10px] font-mono font-bold text-cyan-300 bg-cyan-500/20 px-2 py-1 rounded-full border border-cyan-500/40 hidden lg:inline-flex items-center gap-1">
+                    <Icon name="clock" size={10} /> {Math.floor(sleepTimer.remainingSeconds / 60)}:
+                    {(sleepTimer.remainingSeconds % 60).toString().padStart(2, "0")}
+                  </span>
+                )}
 
                 {/* Playback speed */}
                 <button
@@ -2104,7 +2034,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   className="music-collapse-btn"
                   title={t("music.playerBar.collapseTooltip", "Collapse Player Bar (Hotkey: C)")}
                 >
-                  <span>▼</span>
+                  <Icon name="arrowDown" size={12} />
                   <span className="hidden lg:inline text-[11px]">{t("music.playerBar.collapseLabel", "Collapse")}</span>
                 </button>
               </div>
@@ -2113,14 +2043,13 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
         </AnimatePresence>
           </div>
         </div>
-      )}
     </div>
   );
 }
 
 export default function MusicPlayer(props: MusicPlayerProps) {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-black light:bg-white" />}>
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
       <MusicPlayerContent initialTracks={props.tracks} />
     </Suspense>
   );

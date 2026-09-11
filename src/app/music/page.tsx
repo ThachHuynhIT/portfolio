@@ -1,12 +1,13 @@
-import { Metadata } from "next";
 import { db } from "@/lib/db";
 import MusicPlayer from "@/components/music/MusicPlayer";
+import { buildMetadata } from "@/lib/seo";
 import "./music.css";
 
-export const metadata: Metadata = {
-  title: "Music Lounge | Soundtracks & Curated Vibes",
+export const metadata = buildMetadata({
+  title: "Music Lounge",
   description: "Immerse yourself in high-fidelity sound, lo-fi beats, and soundscapes curated for deep focus and chill vibes.",
-};
+  path: "/music",
+});
 
 export const revalidate = 60; // ISR — revalidate every 60 seconds
 

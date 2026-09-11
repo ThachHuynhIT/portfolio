@@ -7,6 +7,8 @@ import AdminModal from "@/components/admin/AdminModal";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
+import IconPickerModal from "@/components/admin/IconPickerModal";
+import Icon, { isKnownIconName } from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
 import type { SocialLink } from "@/lib/types";
@@ -27,6 +29,7 @@ export default function SocialLinksAdminPage() {
   const [formIcon, setFormIcon] = useState("github");
   const [formPublished, setFormPublished] = useState(true);
   const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
+  const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
 
   const fetchLinks = async () => {
     try {
@@ -210,6 +213,10 @@ export default function SocialLinksAdminPage() {
                     <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 p-1 flex items-center justify-center">
                       <img src={link.icon} alt={link.name} className="w-full h-full object-contain rounded-full" />
                     </div>
+                  ) : isKnownIconName(link.icon) ? (
+                    <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white">
+                      <Icon name={link.icon} size={16} />
+                    </div>
                   ) : (
                     <span className="font-mono text-xs text-purple-400 font-semibold">{link.icon}</span>
                   )}
@@ -287,28 +294,26 @@ export default function SocialLinksAdminPage() {
             category="general"
             subType="social"
             required
-            helperText="Choose an icon from Cloud, upload a custom logo, or pick a preset keyword below."
+            helperText="Choose an icon from Cloud, upload a custom logo, or pick a platform logo below."
           />
-          <div className="flex flex-wrap items-center gap-1.5 pt-1">
-            <span className="text-[10px] text-slate-500 mr-1">Suggested presets:</span>
-            {["github", "linkedin", "twitter", "facebook", "youtube", "instagram", "discord", "telegram"].map((key) => (
-              <button
-                key={key}
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setFormIcon(key);
-                }}
-                className={`px-2 py-0.5 rounded text-[10px] border transition-all ${
-                  formIcon === key
-                    ? "bg-purple-600 text-white border-purple-500 font-semibold"
-                    : "bg-slate-950 text-gray-400 border-white/10 hover:text-white"
-                }`}
-              >
-                {key}
-              </button>
-            ))}
+          <div className="flex items-center gap-3 pt-1">
+            <button
+              type="button"
+              onClick={() => setIsIconPickerOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-300 hover:text-white transition-all"
+            >
+              <Icon name="sparkles" size={13} />
+              Chọn logo mạng xã hội có sẵn
+            </button>
+            {formIcon && !formIcon.startsWith("http") && !formIcon.startsWith("/") && (
+              <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white">
+                {isKnownIconName(formIcon) ? (
+                  <Icon name={formIcon} size={16} />
+                ) : (
+                  <span className="font-mono text-[10px] text-purple-400">{formIcon}</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -337,6 +342,15 @@ export default function SocialLinksAdminPage() {
           </label>
         </div>
       </AdminModal>
+
+      <IconPickerModal
+        isOpen={isIconPickerOpen}
+        onClose={() => setIsIconPickerOpen(false)}
+        value={formIcon}
+        onSelect={setFormIcon}
+        categories={["social"]}
+        title="Chọn logo mạng xã hội"
+      />
 
       <ConfirmDialog
         isOpen={!!deleteTarget}

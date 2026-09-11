@@ -36,52 +36,6 @@ export interface AudioMetrics {
   avgVolume: number;
 }
 
-export interface RoomMember {
-  id: string;
-  name: string;
-  isHost: boolean;
-  color: string;
-  lastActive: number;
-}
-
-export interface LiveReaction {
-  id: string;
-  emoji: string;
-  sender: string;
-  createdAt: number;
-  x: number;
-}
-
-export interface RoomMessage {
-  id: string;
-  sender: string;
-  text: string;
-  color: string;
-  createdAt: number;
-}
-
-export interface MusicRoom {
-  code: string;
-  hostId: string;
-  hostName: string;
-  trackId: string;
-  isPlaying: boolean;
-  currentTime: number;
-  lastUpdated: number;
-  members: RoomMember[];
-  reactions: LiveReaction[];
-  messages: RoomMessage[];
-}
-
-export interface AmbientSoundsState {
-  rain: boolean;
-  rainVolume: number;
-  fire: boolean;
-  fireVolume: number;
-  vinyl: boolean;
-  vinylVolume: number;
-}
-
 export interface SleepTimerState {
   minutes: number | null; // null = off, 0 = end of current track, or number of minutes
   remainingSeconds: number | null;
@@ -112,7 +66,6 @@ interface MusicContextType {
 
   // View & UI State
   visualizerStyle: VisualizerStyle;
-  isZenMode: boolean;
   activeTab: TabView;
   deckMode: DeckMode;
   setDeckMode: (mode: DeckMode) => void;
@@ -134,27 +87,6 @@ interface MusicContextType {
   audioFrequencyData: number[];
   audioMetrics: AudioMetrics;
 
-  // Shared Room Features
-  room: MusicRoom | null;
-  myMemberId: string | null;
-  myMemberName: string;
-  isRoomModalOpen: boolean;
-  isRoomChatOpen: boolean;
-  prefilledRoomCode: string;
-  setPrefilledRoomCode: (code: string) => void;
-  setIsRoomModalOpen: (open: boolean) => void;
-  setIsRoomChatOpen: (open: boolean) => void;
-  createRoom: (code: string, nickname: string) => Promise<{ success: boolean; error?: string }>;
-  joinRoom: (code: string, nickname: string) => Promise<{ success: boolean; error?: string }>;
-  leaveRoom: () => Promise<void>;
-  sendReaction: (emoji: string) => void;
-  sendChatMessage: (text: string) => void;
-
-  // Ambient Sounds in Zen Mode
-  ambientSounds: AmbientSoundsState;
-  toggleAmbientSound: (type: "rain" | "fire" | "vinyl") => void;
-  setAmbientSoundVolume: (type: "rain" | "fire" | "vinyl", volume: number) => void;
-
   // Actions
   playTrackByIndex: (index: number) => void;
   playTrackById: (id: string) => void;
@@ -170,7 +102,6 @@ interface MusicContextType {
   cycleSpeed: () => void;
   setPlaybackRate: (rate: number) => void;
   setVisualizerStyle: (style: VisualizerStyle) => void;
-  setIsZenMode: React.Dispatch<React.SetStateAction<boolean>>;
   setActiveTab: (tab: TabView) => void;
   setIsPlayerCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
   togglePlayerCollapsed: () => void;
@@ -252,19 +183,6 @@ export function MusicProvider({
     high?: BiquadFilterNode;
   }>({});
 
-  // Web Audio Synthesizer Nodes for Ambient Sounds in Zen Mode
-  const ambientNodesRef = useRef<{
-    rainSource?: AudioBufferSourceNode;
-    rainGain?: GainNode;
-    fireSource?: AudioBufferSourceNode;
-    fireGain?: GainNode;
-    vinylSource?: AudioBufferSourceNode;
-    vinylGain?: GainNode;
-  }>({});
-
-  // BroadcastChannel for instant local cross-tab sync
-  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
-
   // Tracks State
   const [tracks, setTracks] = useState<Track[]>(() => {
     if (initialTracks && initialTracks.length > 0) {
@@ -299,29 +217,10 @@ export function MusicProvider({
 
   // View & UI State
   const [visualizerStyle, setVisualizerStyle] = useState<VisualizerStyle>("bars");
-  const [isZenMode, setIsZenMode] = useState(false);
   const [activeTab, setActiveTab] = useState<TabView>("charts");
   const [deckMode, setDeckMode] = useState<DeckMode>("vinyl");
   const [isPlayerCollapsed, setIsPlayerCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-
-  // Shared Room State
-  const [room, setRoom] = useState<MusicRoom | null>(null);
-  const [myMemberId, setMyMemberId] = useState<string | null>(null);
-  const [myMemberName, setMyMemberName] = useState("Listener");
-  const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
-  const [isRoomChatOpen, setIsRoomChatOpen] = useState(false);
-  const [prefilledRoomCode, setPrefilledRoomCode] = useState("");
-
-  // Ambient Sounds in Zen Mode State
-  const [ambientSounds, setAmbientSounds] = useState<AmbientSoundsState>({
-    rain: false,
-    rainVolume: 0.5,
-    fire: false,
-    fireVolume: 0.5,
-    vinyl: false,
-    vinylVolume: 0.4,
-  });
 
   // Filter & Search
   const [searchQuery, setSearchQuery] = useState("");
@@ -364,9 +263,6 @@ export function MusicProvider({
       if (savedEq && ["flat", "bass_boost", "vocal", "electronic", "chill"].includes(savedEq)) {
         setEqPresetState(savedEq as EqPreset);
       }
-
-      const savedName = localStorage.getItem("portfolio_music_username");
-      if (savedName) setMyMemberName(savedName);
     } catch {
       // ignore
     }
@@ -541,118 +437,6 @@ export function MusicProvider({
     return () => clearInterval(interval);
   }, [sleepTimer.endTime]);
 
-  // Procedural Web Audio Ambient Sound Generator (Rain, Fire, Vinyl Crackle)
-  const initAmbientSynth = useCallback(
-    (type: "rain" | "fire" | "vinyl", active: boolean, vol: number) => {
-      initAudioContext();
-      const ctx = audioCtxRef.current;
-      if (!ctx) return;
-
-      if (ctx.state === "suspended") {
-        ctx.resume().catch(() => {});
-      }
-
-      const keySource = `${type}Source` as keyof typeof ambientNodesRef.current;
-      const keyGain = `${type}Gain` as keyof typeof ambientNodesRef.current;
-
-      if (!active) {
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (ambientNodesRef.current[keySource] as any)?.stop();
-        } catch {
-          // ignore
-        }
-        ambientNodesRef.current[keySource] = undefined;
-        return;
-      }
-
-      if (ambientNodesRef.current[keySource]) {
-        const gain = ambientNodesRef.current[keyGain] as GainNode;
-        if (gain) gain.gain.setTargetAtTime(vol * 0.4, ctx.currentTime, 0.1);
-        return;
-      }
-
-      try {
-        const bufferSize = ctx.sampleRate * 2;
-        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-
-        if (type === "rain") {
-          let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-          for (let i = 0; i < bufferSize; i++) {
-            const white = Math.random() * 2 - 1;
-            b0 = 0.99886 * b0 + white * 0.0555179;
-            b1 = 0.99332 * b1 + white * 0.0750759;
-            b2 = 0.96900 * b2 + white * 0.1538520;
-            b3 = 0.86650 * b3 + white * 0.3104856;
-            b4 = 0.55000 * b4 + white * 0.5329522;
-            b5 = -0.7616 * b5 - white * 0.0168980;
-            data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.08;
-            b6 = white * 0.115926;
-          }
-        } else if (type === "fire") {
-          let last = 0;
-          for (let i = 0; i < bufferSize; i++) {
-            const white = Math.random() * 2 - 1;
-            last = (last + 0.02 * white) / 1.02;
-            const pop = Math.random() > 0.996 ? (Math.random() * 2 - 1) * 0.8 : 0;
-            data[i] = last * 0.6 + pop;
-          }
-        } else {
-          for (let i = 0; i < bufferSize; i++) {
-            const white = (Math.random() * 2 - 1) * 0.02;
-            const pop = Math.random() > 0.9985 ? (Math.random() * 2 - 1) * 0.5 : 0;
-            data[i] = white + pop;
-          }
-        }
-
-        const source = ctx.createBufferSource();
-        source.buffer = buffer;
-        source.loop = true;
-
-        const gainNode = ctx.createGain();
-        gainNode.gain.setValueAtTime(vol * 0.35, ctx.currentTime);
-
-        source.connect(gainNode);
-        gainNode.connect(ctx.destination);
-
-        source.start();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ambientNodesRef.current[keySource] = source as any;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ambientNodesRef.current[keyGain] = gainNode as any;
-      } catch {
-        // ignore
-      }
-    },
-    [initAudioContext]
-  );
-
-  const toggleAmbientSound = useCallback(
-    (type: "rain" | "fire" | "vinyl") => {
-      setAmbientSounds((prev) => {
-        const nextActive = !prev[type];
-        const vol = prev[`${type}Volume` as keyof AmbientSoundsState] as number;
-        initAmbientSynth(type, nextActive, vol);
-        return { ...prev, [type]: nextActive };
-      });
-    },
-    [initAmbientSynth]
-  );
-
-  const setAmbientSoundVolume = useCallback(
-    (type: "rain" | "fire" | "vinyl", vol: number) => {
-      setAmbientSounds((prev) => {
-        const nextVol = Math.max(0, Math.min(1, vol));
-        if (prev[type]) {
-          initAmbientSynth(type, true, nextVol);
-        }
-        return { ...prev, [`${type}Volume`]: nextVol };
-      });
-    },
-    [initAmbientSynth]
-  );
-
   // Animation Loop for Real-time Audio Analysis
   useEffect(() => {
     let lastTime = 0;
@@ -802,41 +586,10 @@ export function MusicProvider({
     });
   }, []);
 
-  // Broadcast Room Playback Sync
-  const syncRoomPlayback = useCallback(
-    (trackId: string, playing: boolean, time: number) => {
-      if (!room || !myMemberId) return;
-
-      if (broadcastChannelRef.current) {
-        broadcastChannelRef.current.postMessage({
-          type: "SYNC_PLAYBACK",
-          trackId,
-          isPlaying: playing,
-          currentTime: time,
-          senderId: myMemberId,
-        });
-      }
-
-      fetch(`/api/music/rooms/${room.code}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "sync",
-          memberId: myMemberId,
-          trackId,
-          isPlaying: playing,
-          currentTime: time,
-        }),
-      }).catch(() => {});
-    },
-    [room, myMemberId]
-  );
-
   const playTrackByIndex = useCallback(
     (index: number) => {
       initAudioContext();
       setHasStartedPlayback(true);
-      const targetTrack = tracks[index];
       if (index === currentIndex && isPlaying) {
         togglePlay();
         return;
@@ -848,13 +601,9 @@ export function MusicProvider({
         audio.currentTime = 0;
         audio.play().catch(() => {});
       }
-
-      if (room && targetTrack) {
-        syncRoomPlayback(targetTrack.id, true, 0);
-      }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [currentIndex, isPlaying, initAudioContext, room, syncRoomPlayback, tracks]
+    [currentIndex, isPlaying, initAudioContext]
   );
 
   const playTrackById = useCallback(
@@ -874,19 +623,17 @@ export function MusicProvider({
     if (isPlaying) {
       audio.pause();
       setIsPlaying(false);
-      if (room) syncRoomPlayback(currentTrack.id, false, audio.currentTime);
     } else {
       try {
         setHasStartedPlayback(true);
         await audio.play();
         setIsPlaying(true);
-        if (room) syncRoomPlayback(currentTrack.id, true, audio.currentTime);
       } catch (err) {
         console.error("Audio playback error:", err);
         setIsPlaying(false);
       }
     }
-  }, [isPlaying, currentTrack, initAudioContext, room, syncRoomPlayback]);
+  }, [isPlaying, currentTrack, initAudioContext]);
 
   const nextTrack = useCallback(() => {
     if (tracks.length === 0) return;
@@ -900,10 +647,7 @@ export function MusicProvider({
     }
     setCurrentIndex(nextIdx);
     setIsPlaying(true);
-    if (room && tracks[nextIdx]) {
-      syncRoomPlayback(tracks[nextIdx].id, true, 0);
-    }
-  }, [isShuffle, tracks, currentIndex, initAudioContext, room, syncRoomPlayback]);
+  }, [isShuffle, tracks, currentIndex, initAudioContext]);
 
   const prevTrack = useCallback(() => {
     if (tracks.length === 0) return;
@@ -913,16 +657,12 @@ export function MusicProvider({
     if (audio && audio.currentTime > 3) {
       audio.currentTime = 0;
       setCurrentTime(0);
-      if (room && currentTrack) syncRoomPlayback(currentTrack.id, isPlaying, 0);
       return;
     }
     const prevIdx = (currentIndex - 1 + tracks.length) % tracks.length;
     setCurrentIndex(prevIdx);
     setIsPlaying(true);
-    if (room && tracks[prevIdx]) {
-      syncRoomPlayback(tracks[prevIdx].id, true, 0);
-    }
-  }, [tracks, currentIndex, initAudioContext, currentTrack, isPlaying, room, syncRoomPlayback]);
+  }, [tracks, currentIndex, initAudioContext, currentTrack, isPlaying]);
 
   const seekTo = useCallback(
     (newTime: number) => {
@@ -931,14 +671,24 @@ export function MusicProvider({
       setHasStartedPlayback(true);
       audio.currentTime = newTime;
       setCurrentTime(newTime);
-      if (room && currentTrack) {
-        syncRoomPlayback(currentTrack.id, isPlaying, newTime);
-      }
     },
-    [room, currentTrack, isPlaying, syncRoomPlayback]
+    []
   );
 
   const handleEnded = useCallback(() => {
+    // Log a play once per track load (guarded by playCountLoggedRef, reset
+    // whenever the audio element's source changes) — bumps the local list
+    // optimistically so charts/plays counts update immediately, and hits
+    // the increment endpoint server-side.
+    if (currentTrack && playCountLoggedRef.current !== currentTrack.id) {
+      playCountLoggedRef.current = currentTrack.id;
+      const playedTrackId = currentTrack.id;
+      setTracks((prev) =>
+        prev.map((t) => (t.id === playedTrackId ? { ...t, playCount: t.playCount + 1 } : t))
+      );
+      fetch(`/api/music/tracks/${playedTrackId}`).catch(() => {});
+    }
+
     if (sleepTimer.minutes === 0) {
       // Sleep timer set to end of current track
       setIsPlaying(false);
@@ -957,7 +707,7 @@ export function MusicProvider({
     } else {
       setIsPlaying(false);
     }
-  }, [repeatMode, currentIndex, tracks.length, nextTrack, sleepTimer.minutes]);
+  }, [currentTrack, repeatMode, currentIndex, tracks.length, nextTrack, sleepTimer.minutes]);
 
   const setVolume = useCallback((val: number) => {
     const clamped = Math.max(0, Math.min(1, val));
@@ -1006,260 +756,6 @@ export function MusicProvider({
       return next;
     });
   }, []);
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // ROOM ACTIONS & REAL-TIME SYNCHRONIZATION
-  // ─────────────────────────────────────────────────────────────────────────────
-  const createRoom = useCallback(
-    async (code: string, nickname: string) => {
-      try {
-        const res = await fetch("/api/music/rooms", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            code: code.trim().toUpperCase(),
-            hostName: nickname.trim(),
-            trackId: currentTrack?.id || "",
-            isPlaying,
-            currentTime,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          return { success: false, error: data.error || "Failed to create room" };
-        }
-
-        setRoom(data.room);
-        setMyMemberId(data.memberId);
-        setMyMemberName(nickname.trim());
-        try {
-          localStorage.setItem("portfolio_music_username", nickname.trim());
-        } catch {
-          // ignore
-        }
-        return { success: true };
-      } catch (err) {
-        console.error("Create room error:", err);
-        return { success: false, error: "Network error creating room" };
-      }
-    },
-    [currentTrack, isPlaying, currentTime]
-  );
-
-  const joinRoom = useCallback(
-    async (code: string, nickname: string) => {
-      try {
-        const cleanCode = code.trim().toUpperCase();
-        const res = await fetch(`/api/music/rooms/${cleanCode}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "join",
-            memberName: nickname.trim(),
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          return { success: false, error: data.error || "Room not found or invalid" };
-        }
-
-        setRoom(data.room);
-        setMyMemberId(data.memberId);
-        setMyMemberName(nickname.trim());
-
-        try {
-          localStorage.setItem("portfolio_music_username", nickname.trim());
-        } catch {
-          // ignore
-        }
-
-        if (data.room.trackId) {
-          const idx = tracks.findIndex((t) => t.id === data.room.trackId);
-          if (idx !== -1) {
-            setCurrentIndex(idx);
-            setIsPlaying(data.room.isPlaying);
-            if (audioRef.current) {
-              audioRef.current.currentTime = data.room.currentTime;
-              if (data.room.isPlaying) audioRef.current.play().catch(() => {});
-            }
-          }
-        }
-
-        return { success: true };
-      } catch (err) {
-        console.error("Join room error:", err);
-        return { success: false, error: "Network error joining room" };
-      }
-    },
-    [tracks]
-  );
-
-  const leaveRoom = useCallback(async () => {
-    if (!room || !myMemberId) return;
-    try {
-      await fetch(`/api/music/rooms/${room.code}?memberId=${myMemberId}`, {
-        method: "DELETE",
-      });
-    } catch {
-      // ignore
-    }
-    setRoom(null);
-    setMyMemberId(null);
-  }, [room, myMemberId]);
-
-  const sendReaction = useCallback(
-    (emoji: string) => {
-      if (!room || !myMemberId) return;
-
-      const newReaction: LiveReaction = {
-        id: `react_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-        emoji,
-        sender: myMemberName,
-        createdAt: Date.now(),
-        x: Math.floor(Math.random() * 80) + 10,
-      };
-
-      setRoom((prev) => (prev ? { ...prev, reactions: [...prev.reactions, newReaction] } : null));
-
-      if (broadcastChannelRef.current) {
-        broadcastChannelRef.current.postMessage({
-          type: "NEW_REACTION",
-          reaction: newReaction,
-        });
-      }
-
-      fetch(`/api/music/rooms/${room.code}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "reaction",
-          memberId: myMemberId,
-          memberName: myMemberName,
-          emoji,
-        }),
-      }).catch(() => {});
-    },
-    [room, myMemberId, myMemberName]
-  );
-
-  const sendChatMessage = useCallback(
-    (text: string) => {
-      if (!room || !myMemberId || !text.trim()) return;
-
-      const newMessage: RoomMessage = {
-        id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-        sender: myMemberName,
-        text: text.trim(),
-        color: "#06b6d4",
-        createdAt: Date.now(),
-      };
-
-      setRoom((prev) => (prev ? { ...prev, messages: [...prev.messages, newMessage] } : null));
-
-      if (broadcastChannelRef.current) {
-        broadcastChannelRef.current.postMessage({
-          type: "NEW_MESSAGE",
-          message: newMessage,
-        });
-      }
-
-      fetch(`/api/music/rooms/${room.code}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "chat",
-          memberId: myMemberId,
-          memberName: myMemberName,
-          text,
-        }),
-      }).catch(() => {});
-    },
-    [room, myMemberId, myMemberName]
-  );
-
-  // BroadcastChannel setup for instant cross-tab sync
-  useEffect(() => {
-    if (!room) {
-      if (broadcastChannelRef.current) {
-        broadcastChannelRef.current.close();
-        broadcastChannelRef.current = null;
-      }
-      return;
-    }
-
-    const channel = new BroadcastChannel(`portfolio_music_room_${room.code}`);
-    broadcastChannelRef.current = channel;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    channel.onmessage = (event: MessageEvent<any>) => {
-      const { type, trackId, isPlaying: channelPlaying, currentTime: channelTime, senderId, reaction, message } = event.data;
-
-      if (type === "SYNC_PLAYBACK" && senderId !== myMemberId) {
-        if (trackId) {
-          const idx = tracks.findIndex((t) => t.id === trackId);
-          if (idx !== -1 && idx !== currentIndex) {
-            setCurrentIndex(idx);
-          }
-        }
-        setIsPlaying(channelPlaying);
-        const audio = audioRef.current;
-        if (audio) {
-          if (Math.abs(audio.currentTime - channelTime) > 2) {
-            audio.currentTime = channelTime;
-          }
-          if (channelPlaying) audio.play().catch(() => {});
-          else audio.pause();
-        }
-      } else if (type === "NEW_REACTION" && reaction) {
-        setRoom((prev) => (prev ? { ...prev, reactions: [...prev.reactions, reaction] } : null));
-      } else if (type === "NEW_MESSAGE" && message) {
-        setRoom((prev) => (prev ? { ...prev, messages: [...prev.messages, message] } : null));
-      }
-    };
-
-    return () => {
-      channel.close();
-      broadcastChannelRef.current = null;
-    };
-  }, [room?.code, myMemberId, tracks, currentIndex]);
-
-  // Periodic Room Polling Sync (every 2.5s)
-  useEffect(() => {
-    if (!room) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/music/rooms/${room.code}`);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.success && data.room) {
-          setRoom(data.room);
-
-          const isHost = data.room.hostId === myMemberId;
-          if (!isHost && data.room.trackId) {
-            const idx = tracks.findIndex((t) => t.id === data.room.trackId);
-            if (idx !== -1 && idx !== currentIndex) {
-              setCurrentIndex(idx);
-            }
-            if (data.room.isPlaying !== isPlaying) {
-              setIsPlaying(data.room.isPlaying);
-              if (audioRef.current) {
-                if (data.room.isPlaying) audioRef.current.play().catch(() => {});
-                else audioRef.current.pause();
-              }
-            }
-            if (audioRef.current && Math.abs(audioRef.current.currentTime - data.room.currentTime) > 3) {
-              audioRef.current.currentTime = data.room.currentTime;
-            }
-          }
-        }
-      } catch {
-        // ignore
-      }
-    }, 2500);
-
-    return () => clearInterval(interval);
-  }, [room?.code, myMemberId, tracks, currentIndex, isPlaying]);
 
   // Compute unique genres
   const genres = useMemo(() => {
@@ -1328,7 +824,6 @@ export function MusicProvider({
         setSleepTimerMinutes,
 
         visualizerStyle,
-        isZenMode,
         activeTab,
         deckMode,
         setDeckMode,
@@ -1342,25 +837,6 @@ export function MusicProvider({
 
         audioFrequencyData,
         audioMetrics,
-
-        room,
-        myMemberId,
-        myMemberName,
-        isRoomModalOpen,
-        isRoomChatOpen,
-        prefilledRoomCode,
-        setPrefilledRoomCode,
-        setIsRoomModalOpen,
-        setIsRoomChatOpen,
-        createRoom,
-        joinRoom,
-        leaveRoom,
-        sendReaction,
-        sendChatMessage,
-
-        ambientSounds,
-        toggleAmbientSound,
-        setAmbientSoundVolume,
 
         playTrackByIndex,
         playTrackById,
@@ -1376,7 +852,6 @@ export function MusicProvider({
         cycleSpeed,
         setPlaybackRate,
         setVisualizerStyle: handleSetVisualizer,
-        setIsZenMode,
         setActiveTab,
         setIsPlayerCollapsed,
         togglePlayerCollapsed,

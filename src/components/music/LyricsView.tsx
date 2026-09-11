@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import { useMusic } from "@/context/MusicContext";
 import { useTranslation } from "@/context/LanguageContext";
+import Icon from "@/components/ui/Icon";
 
 export interface ParsedLyricLine {
   id: number;
@@ -80,7 +81,7 @@ export default function LyricsView({ compact = false }: { compact?: boolean }) {
   if (parsedLyrics.length === 0) {
     return (
       <div className="music-lyrics-empty">
-        <div className="text-4xl mb-3">🎤</div>
+        <div className="flex justify-center mb-3"><Icon name="mic" size={32} /></div>
         <h3 className="text-lg font-bold text-white mb-1">{t("music.lyricsView.emptyTitle", "No Lyrics Available")}</h3>
         <p className="text-white/50 text-sm max-w-sm text-center">
           {t("music.lyricsView.emptyDesc", "Lyrics haven't been added for this track yet. Enjoy the instrumental vibe!")}
@@ -93,13 +94,13 @@ export default function LyricsView({ compact = false }: { compact?: boolean }) {
     <div className={`music-lyrics-wrapper ${compact ? "music-lyrics-wrapper--compact" : ""}`}>
       <div className="music-lyrics-header">
         <div className="flex items-center gap-2">
-          <span className="text-lg">🎤</span>
+          <Icon name="mic" size={16} />
           <h3 className="text-sm font-bold text-white tracking-wide uppercase">
             {t("music.lyricsView.header", "Live Synchronized Lyrics")}
           </h3>
         </div>
-        <span className="text-[11px] text-cyan-400 font-medium bg-cyan-500/10 px-2.5 py-0.5 rounded-full border border-cyan-500/20">
-          {t("music.lyricsView.seekHint", "Click any line to seek ⚡")}
+        <span className="text-[11px] text-cyan-400 font-medium bg-cyan-500/10 px-2.5 py-0.5 rounded-full border border-cyan-500/20 inline-flex items-center gap-1">
+          {t("music.lyricsView.seekHint", "Click any line to seek")} <Icon name="zap" size={10} />
         </span>
       </div>
 

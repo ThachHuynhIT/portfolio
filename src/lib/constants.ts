@@ -1,5 +1,6 @@
 /**
  * Route prefixes that stay dark-only and are excluded from the light/dark
- * theme toggle (admin CMS, arcade game, standalone couple page).
+ * theme toggle (admin CMS, arcade game, standalone couple page, music
+ * lounge — its Nebula/Aurora look is dark-only by design).
  */
-export const EXCLUDED_ROUTE_PREFIXES = ["/admin", "/contra", "/couple"] as const;
+export const EXCLUDED_ROUTE_PREFIXES = ["/admin", "/contra", "/couple", "/music"] as const;

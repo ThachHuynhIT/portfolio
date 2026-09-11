@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { getPublishedNavLinks } from "@/lib/content/nav-links";
 import { getPublishedSocialLinks } from "@/lib/content/social-links";
 import { getPublishedSiteConfig } from "@/lib/content/site-config";
+import { buildMetadata } from "@/lib/seo";
 
 // Floating overlay with no SSR value — mounted on every route, so keep it
 // out of the initial/shared bundle.
@@ -27,34 +28,43 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Thach Huynh | Creative Web Developer",
-  description:
-    "A passionate web developer crafting immersive digital experiences with cutting-edge technologies.",
-  keywords: [
-    "web developer",
-    "frontend",
-    "react",
-    "next.js",
-    "three.js",
-    "portfolio",
-  ],
-  authors: [{ name: "Thach Huynh" }],
-  openGraph: {
-    title: "Thach Huynh | Creative Web Developer",
-    description:
-      "A passionate web developer crafting immersive digital experiences with cutting-edge technologies.",
-    type: "website",
-    locale: "en_US",
-    url: "https://portfolio-thach.vercel.app",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Thach Huynh | Creative Web Developer",
-    description:
-      "A passionate web developer crafting immersive digital experiences with cutting-edge technologies.",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const siteConfig = await getPublishedSiteConfig();
+
+  // Only alternates/openGraph/twitter come from buildMetadata() — the root
+  // layout needs a title *template* (so descendant pages' bare `title`
+  // strings render as "Page | Site"), which buildMetadata's plain-string
+  // `title` input doesn't produce, so it's built directly below instead of
+  // spreading (and immediately overriding) the whole object.
+  const { alternates, openGraph, twitter } = buildMetadata({
+    title: siteConfig.title,
+    description: siteConfig.description,
+    path: "/",
+    image: siteConfig.ogImage,
+    siteName: siteConfig.name,
+  });
+
+  return {
+    metadataBase: new URL(siteConfig.url),
+    title: {
+      default: siteConfig.title,
+      template: `%s | ${siteConfig.name}`,
+    },
+    description: siteConfig.description,
+    keywords: [
+      "web developer",
+      "frontend",
+      "react",
+      "next.js",
+      "three.js",
+      "portfolio",
+    ],
+    authors: [{ name: siteConfig.author.name }],
+    alternates,
+    openGraph,
+    twitter,
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -68,7 +78,7 @@ import GlobalBackground from "@/components/layout/GlobalBackground";
 // src/context/ThemeContext.tsx — runs before hydration to set data-theme
 // on <html> pre-paint, avoiding a flash of the wrong theme.
 const THEME_INIT_SCRIPT = `(function(){try{
-  var excluded=["/admin","/contra","/couple"];
+  var excluded=["/admin","/contra","/couple","/music"];
   var path=window.location.pathname;
   if(excluded.some(function(p){return path.indexOf(p)===0})){
     document.documentElement.setAttribute("data-theme","dark");

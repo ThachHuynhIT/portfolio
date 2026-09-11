@@ -1,37 +1,69 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import crypto from "crypto";
+import { signToken, verifyToken } from "./session-token";
 
 const SESSION_COOKIE = "admin_session";
-const SESSION_MAX_AGE = 60 * 60 * 24; // 24 hours
+const SESSION_MAX_AGE = 60 * 60 * 24; // 24 hours, in seconds
 
 /**
- * Hash a value using SHA-256 for simple session token generation.
- */
-function sha256(value: string): string {
-  return crypto.createHash("sha256").update(value).digest("hex");
-}
-
-/**
- * Get the admin password from environment variable.
- * Falls back to "admin123" in development for convenience.
+ * Get the admin password from environment variable. Throws rather than
+ * silently falling back to a known default — an unset ADMIN_PASSWORD must
+ * fail loudly, not leave the admin panel guarded by "admin123".
  */
 function getAdminPassword(): string {
-  return process.env.ADMIN_PASSWORD || "admin123";
+  const password = process.env.ADMIN_PASSWORD;
+  if (!password) {
+    throw new Error("ADMIN_PASSWORD environment variable is not set.");
+  }
+  return password;
 }
 
 /**
- * Verify that the provided password matches the admin password.
+ * The secret used to sign session cookies. Reuses AUTH_SECRET (already
+ * provisioned for this project) rather than introducing a second secret.
  */
-export function verifyPassword(password: string): boolean {
-  return password === getAdminPassword();
+function getSessionSecret(): string {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    throw new Error("AUTH_SECRET environment variable is not set.");
+  }
+  return secret;
+}
+
+function sha256(value: string): Buffer {
+  return crypto.createHash("sha256").update(value).digest();
+}
+
+const HEX_64 = /^[0-9a-f]{64}$/i;
+
+/**
+ * Verify a client-hashed password: the client sends SHA-256(password) as a
+ * 64-char hex digest instead of the plaintext, so the raw password never
+ * appears in the request body. Compares against SHA-256(ADMIN_PASSWORD)
+ * using a constant-time comparison of equal-length digests to avoid leaking
+ * a match/mismatch through response-timing differences.
+ */
+export function verifyPasswordHash(passwordHash: string): boolean {
+  if (!HEX_64.test(passwordHash)) return false;
+  const expected = sha256(getAdminPassword());
+  const actual = Buffer.from(passwordHash.toLowerCase(), "hex");
+  return crypto.timingSafeEqual(actual, expected);
 }
 
 /**
- * Create a session token and set it as an HTTP-only cookie.
+ * Create a signed session token and set it as an HTTP-only cookie. The
+ * cookie is `<expiresAt>.<hmac>` — expiresAt is a plain Unix timestamp,
+ * hmac is HMAC-SHA256(AUTH_SECRET, expiresAt), so the token cannot be
+ * forged or extended without knowing AUTH_SECRET. Signing/verifying is
+ * shared with middleware.ts via session-token.ts (Web Crypto works in both
+ * this Node runtime and middleware's Edge runtime, so there's no need for
+ * two separate implementations).
  */
-export async function createSession(): Promise<string> {
-  const token = sha256(`${getAdminPassword()}-${Date.now()}-${Math.random()}`);
+export async function createSession(): Promise<void> {
+  const expiresAt = Date.now() + SESSION_MAX_AGE * 1000;
+  const token = await signToken(String(expiresAt), getSessionSecret());
+
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
@@ -40,42 +72,34 @@ export async function createSession(): Promise<string> {
     path: "/",
     maxAge: SESSION_MAX_AGE,
   });
-  // Store the token hash so we can verify it later
-  const tokenHash = sha256(token);
-  store.set("admin_session_hash", tokenHash, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    path: "/",
-    maxAge: SESSION_MAX_AGE,
-  });
-  return token;
 }
 
 /**
- * Verify the current session is valid.
- * Returns true if a valid session cookie exists.
+ * Verify the current session is valid: well-formed, signature matches, and
+ * not expired.
  */
 export async function verifySession(): Promise<boolean> {
   const store = await cookies();
-  const sessionToken = store.get(SESSION_COOKIE)?.value;
-  const sessionHash = store.get("admin_session_hash")?.value;
+  const token = store.get(SESSION_COOKIE)?.value;
+  if (!token) return false;
 
-  if (!sessionToken || !sessionHash) {
+  const payload = await verifyToken(token, getSessionSecret());
+  if (!payload) return false;
+
+  const expiresAt = Number(payload);
+  if (!Number.isFinite(expiresAt) || Date.now() > expiresAt) {
     return false;
   }
 
-  // Verify the token matches its stored hash
-  return sha256(sessionToken) === sessionHash;
+  return true;
 }
 
 /**
- * Destroy the current session by clearing cookies.
+ * Destroy the current session by clearing its cookie.
  */
 export async function destroySession(): Promise<void> {
   const store = await cookies();
   store.delete(SESSION_COOKIE);
-  store.delete("admin_session_hash");
 }
 
 /**

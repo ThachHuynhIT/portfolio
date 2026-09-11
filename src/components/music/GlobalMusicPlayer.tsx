@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMusic } from "@/context/MusicContext";
 import { useTranslation } from "@/context/LanguageContext";
+import Icon from "@/components/ui/Icon";
 
 export default function GlobalMusicPlayer() {
   const pathname = usePathname();
@@ -74,8 +75,8 @@ export default function GlobalMusicPlayer() {
                   className="object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-lg bg-gradient-to-br from-purple-900 to-indigo-950">
-                  🎵
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-950">
+                  <Icon name="music" size={16} />
                 </div>
               )}
             </div>
@@ -163,7 +164,7 @@ export default function GlobalMusicPlayer() {
               className="w-7 h-7 rounded-full hover:bg-purple-500/20 text-purple-300 hover:text-purple-200 flex items-center justify-center transition-all text-xs"
               title={t("music.globalMini.openStudio", "Open Full Music Studio")}
             >
-              ↗
+              <Icon name="externalLink" size={13} />
             </Link>
 
             <button
@@ -171,7 +172,7 @@ export default function GlobalMusicPlayer() {
               className="w-6 h-6 rounded-full text-white/30 light:text-neutral-400 hover:text-white/70 light:hover:text-neutral-600 hover:bg-white/5 light:hover:bg-neutral-900/[0.04] flex items-center justify-center text-xs transition-colors ml-0.5"
               title={t("music.globalMini.hideWidget", "Hide Mini Widget")}
             >
-              ✕
+              <Icon name="close" size={13} />
             </button>
           </div>
         </div>

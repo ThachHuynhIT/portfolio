@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import { Locale, localeNames } from "@/locales";
 import FlagIcon from "@/components/ui/FlagIcon";
+import Icon from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
 
 interface LanguageSwitcherProps {
@@ -94,7 +95,7 @@ export default function LanguageSwitcher({
           className="text-xs text-white/50 group-hover:text-purple-300 light:text-neutral-500 transition-transform duration-300 group-hover:rotate-180 flex items-center select-none"
           aria-hidden="true"
         >
-          ⇄
+          <Icon name="swap" size={14} />
         </span>
       </button>
     );
@@ -215,7 +216,7 @@ export default function LanguageSwitcher({
                     />
                     <span>{localeNames[loc].nativeName}</span>
                   </span>
-                  {isSelected && <span className="text-cyan-400 font-bold">✓</span>}
+                  {isSelected && <Icon name="check" size={14} className="text-cyan-400" />}
                 </button>
               );
             })}

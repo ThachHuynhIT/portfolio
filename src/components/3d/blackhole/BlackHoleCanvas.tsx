@@ -76,9 +76,7 @@ export default function BlackHoleCanvas({
     // mousePositionRef pattern elsewhere — this fires on every scroll tick).
     // Camera progress spans the ENTIRE scrollable page (completes exactly at
     // the bottom), so the tilt/zoom plays out gradually all the way to the
-    // footer instead of finishing after one screen of scrolling. Visibility
-    // fades separately, only over the last viewport-height before the
-    // footer (assumed to be the last block on the page).
+    // footer instead of finishing after one screen of scrolling.
     let rafPending = false;
     let onScroll: (() => void) | null = null;
     if (scrollEffect && engine) {
@@ -88,10 +86,6 @@ export default function BlackHoleCanvas({
         const maxScroll = Math.max(document.documentElement.scrollHeight - viewportH, 1);
         const cameraProgress = window.scrollY / maxScroll;
         engine?.setScrollProgress(cameraProgress);
-
-        const distanceFromBottom = maxScroll - window.scrollY;
-        const fadeOpacity = Math.max(0, Math.min(1, distanceFromBottom / viewportH));
-        mount.style.opacity = String(fadeOpacity);
       };
       onScroll = () => {
         if (rafPending) return;

@@ -7,6 +7,7 @@ export { default as TiltCard } from "./TiltCard";
 export { default as LanguageSwitcher } from "./LanguageSwitcher";
 export { default as ThemeToggle } from "./ThemeToggle";
 export { default as FlagIcon } from "./FlagIcon";
+export { default as Icon } from "./Icon";
 export {
   Skeleton,
   CardSkeleton,
@@ -15,3 +16,4 @@ export {
   TextSkeleton,
 } from "./Skeleton";
 export { default as ImageWithSkeleton } from "./ImageWithSkeleton";
+export { default as CVPreviewModal } from "./CVPreviewModal";

@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import { Button } from "@/components/ui";
+import { Button, CVPreviewModal } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
+import { resolveSectionText } from "@/lib/content-overrides";
 import type { SiteConfig } from "@/lib/types";
 
 // Same raymarched black hole engine as the 404 page (src/components/3d/blackhole),
@@ -24,8 +25,10 @@ export interface HeroSectionProps {
 export default function HeroSection({ siteConfig }: HeroSectionProps) {
   const { t, locale } = useTranslation();
   const { resolvedTheme } = useTheme();
+  const hero = siteConfig.sectionsContent?.hero;
 
   const [isMounted, setIsMounted] = useState(false);
+  const [isCVOpen, setIsCVOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -33,13 +36,6 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
 
   const handleViewWork = useCallback(() => {
     document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
-  }, []);
-
-  const handleDownloadCV = useCallback(() => {
-    const link = document.createElement("a");
-    link.href = "/resume.pdf";
-    link.download = "";
-    link.click();
   }, []);
 
   return (
@@ -99,7 +95,9 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 backdrop-blur-sm mb-8"
           >
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-sm text-white/70 light:text-neutral-600">{t("hero.available")}</span>
+            <span className="text-sm text-white/70 light:text-neutral-600">
+              {resolveSectionText(locale, hero?.available, hero?.available_vi, t("hero.available"))}
+            </span>
           </motion.div>
 
           {/* Heading */}
@@ -109,7 +107,9 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight"
           >
-            <span className="text-white light:text-neutral-900">{t("hero.greetingPrefix")}</span>
+            <span className="text-white light:text-neutral-900">
+              {resolveSectionText(locale, hero?.greetingPrefix, hero?.greetingPrefix_vi, t("hero.greetingPrefix"))}
+            </span>
             <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent ml-3">
               {siteConfig.author.name.split(" ")[0]}
             </span>
@@ -122,7 +122,12 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-xl md:text-2xl text-white/70 light:text-neutral-600 mb-12 max-w-2xl mx-auto leading-relaxed"
           >
-            {locale === "vi" && siteConfig.author.bio_vi ? siteConfig.author.bio_vi : t("hero.bio")}
+            {resolveSectionText(
+              locale,
+              hero?.bio,
+              hero?.bio_vi,
+              locale === "vi" && siteConfig.author.bio_vi ? siteConfig.author.bio_vi : t("hero.bio")
+            )}
           </motion.p>
 
           {/* CTA Buttons */}
@@ -133,29 +138,23 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Button size="lg" variant="primary" onClick={handleViewWork}>
-              {t("hero.viewWork")}
+              {resolveSectionText(locale, hero?.viewWork, hero?.viewWork_vi, t("hero.viewWork"))}
             </Button>
-            <Button size="lg" variant="outline" onClick={handleDownloadCV}>
-              {t("hero.downloadCV")}
-            </Button>
+            {siteConfig.resumeUrl && (
+              <Button size="lg" variant="outline" onClick={() => setIsCVOpen(true)}>
+                {resolveSectionText(locale, hero?.viewCV, hero?.viewCV_vi, t("hero.viewCV"))}
+              </Button>
+            )}
           </motion.div>
         </div>
 
-        {/* Scroll Indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-6 h-10 rounded-full border-2 border-white/20 light:border-neutral-900/20 flex items-start justify-center p-2"
-          >
-            <motion.span className="w-1.5 h-1.5 rounded-full bg-white/60 light:bg-neutral-900/60" />
-          </motion.div>
-        </motion.div>
+        {siteConfig.resumeUrl && (
+          <CVPreviewModal
+            url={siteConfig.resumeUrl}
+            isOpen={isCVOpen}
+            onClose={() => setIsCVOpen(false)}
+          />
+        )}
       </div>
     </section>
   );

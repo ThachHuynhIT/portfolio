@@ -2,31 +2,43 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AnimatedSection } from "@/components/ui";
+import { AnimatedSection, Icon } from "@/components/ui";
+import { isKnownIconName } from "@/components/ui/Icon";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
-import type { Skill } from "@/lib/types";
+import { resolveSectionText } from "@/lib/content-overrides";
+import type { Skill, SiteConfig } from "@/lib/types";
 
 const categories = ["frontend", "backend", "tools", "design"] as const;
 
 type CategoryType = (typeof categories)[number] | "all";
 
 const categoryIcons: Record<string, string> = {
-  frontend: "💻",
-  backend: "⚙️",
-  tools: "🛠️",
-  design: "🎨",
+  frontend: "frontend",
+  backend: "backend",
+  tools: "tools",
+  design: "design",
 };
 
 export interface SkillsSectionProps {
   skills: Skill[];
+  siteConfig: SiteConfig;
 }
 
-export default function SkillsSection({ skills }: SkillsSectionProps) {
-  const { t } = useTranslation();
+export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps) {
+  const { t, locale } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>("all");
+  const skillsCopy = siteConfig.sectionsContent?.skills;
 
   const publishedSkills = skills;
+
+  const categoryLabel = (cat: (typeof categories)[number]) =>
+    resolveSectionText(
+      locale,
+      skillsCopy?.categories?.[cat],
+      skillsCopy?.categories?.[`${cat}_vi`],
+      t(`skills.categories.${cat}`)
+    );
 
   const displayedCategories =
     selectedCategory === "all"
@@ -45,19 +57,19 @@ export default function SkillsSection({ skills }: SkillsSectionProps) {
         <AnimatedSection>
           <div className="text-center mb-12">
             <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/[0.04] light:bg-neutral-900/[0.04] text-cyan-400 border border-white/10 light:border-neutral-900/10 mb-4 backdrop-blur-md">
-              <span>⚡</span>
-              <span>{t("skills.badge")}</span>
+              <Icon name="zap" size={14} />
+              <span>{resolveSectionText(locale, skillsCopy?.badge, skillsCopy?.badge_vi, t("skills.badge"))}</span>
             </span>
 
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-5 tracking-tight">
-              {t("skills.titlePrefix")}
+              {resolveSectionText(locale, skillsCopy?.titlePrefix, skillsCopy?.titlePrefix_vi, t("skills.titlePrefix"))}
               <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
-                {t("skills.titleHighlight")}
+                {resolveSectionText(locale, skillsCopy?.titleHighlight, skillsCopy?.titleHighlight_vi, t("skills.titleHighlight"))}
               </span>
             </h2>
 
             <p className="text-sm sm:text-base text-slate-300 light:text-neutral-600 max-w-2xl mx-auto font-light leading-relaxed">
-              {t("skills.subtitle")}
+              {resolveSectionText(locale, skillsCopy?.subtitle, skillsCopy?.subtitle_vi, t("skills.subtitle"))}
             </p>
           </div>
         </AnimatedSection>
@@ -73,7 +85,7 @@ export default function SkillsSection({ skills }: SkillsSectionProps) {
                 : "bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] border border-white/5 light:border-neutral-900/10"
             }`}
           >
-            <span>✨</span>
+            <Icon name="sparkles" size={14} />
             <span>{t("photography.all") || "Tất cả"}</span>
             <span
               className={`text-[10px] px-1.5 py-0.5 rounded-full ${
@@ -101,8 +113,8 @@ export default function SkillsSection({ skills }: SkillsSectionProps) {
                     : "bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] border border-white/5 light:border-neutral-900/10"
                 }`}
               >
-                <span>{categoryIcons[cat]}</span>
-                <span>{t(`skills.categories.${cat}`)}</span>
+                <Icon name={categoryIcons[cat]} size={14} />
+                <span>{categoryLabel(cat)}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                     isSelected
@@ -146,15 +158,21 @@ export default function SkillsSection({ skills }: SkillsSectionProps) {
                   {/* Category Card Header */}
                   <div className="flex items-center justify-between pb-5 mb-5 border-b border-white/10 light:border-neutral-900/10">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-white/[0.06] light:bg-neutral-900/[0.06] border border-white/10 light:border-neutral-900/10 flex items-center justify-center text-xl shadow-inner">
-                        {categoryIcons[category]}
+                      <div className="w-10 h-10 rounded-2xl bg-white/[0.06] light:bg-neutral-900/[0.06] border border-white/10 light:border-neutral-900/10 flex items-center justify-center shadow-inner">
+                        <Icon name={categoryIcons[category]} size={18} />
                       </div>
                       <div>
                         <h3 className="text-base font-bold text-white light:text-neutral-900">
-                          {t(`skills.categories.${category}`)}
+                          {categoryLabel(category)}
                         </h3>
                         <p className="text-xs text-slate-400 light:text-neutral-500">
-                          {categorySkills.length} {t("skills.badge").toLowerCase()}
+                          {categorySkills.length}{" "}
+                          {resolveSectionText(
+                            locale,
+                            skillsCopy?.badge,
+                            skillsCopy?.badge_vi,
+                            t("skills.badge")
+                          ).toLowerCase()}
                         </p>
                       </div>
                     </div>
@@ -192,10 +210,12 @@ export default function SkillsSection({ skills }: SkillsSectionProps) {
                                 alt={skill.name}
                                 className="w-5 h-5 object-contain"
                               />
+                            ) : isKnownIconName(skill.icon) ? (
+                              <Icon name={skill.icon} size={18} />
+                            ) : skill.icon ? (
+                              <span className="text-base leading-none">{skill.icon}</span>
                             ) : (
-                              <span className="text-base leading-none">
-                                {skill.icon || "⚡"}
-                              </span>
+                              <Icon name="zap" size={16} />
                             )}
                           </div>
 

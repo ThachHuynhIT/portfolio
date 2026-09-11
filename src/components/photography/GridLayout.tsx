@@ -56,7 +56,7 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
               <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
                 {photo.featured && (
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-black shadow-md flex items-center gap-1">
-                    <span>⭐ {t("photography.featured", "Featured")}</span>
+                    <Icon name="star" size={10} /> {t("photography.featured", "Featured")}
                   </span>
                 )}
                 {photo.category && (
