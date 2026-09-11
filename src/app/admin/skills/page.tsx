@@ -7,7 +7,8 @@ import AdminModal from "@/components/admin/AdminModal";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
-import Icon from "@/components/ui/Icon";
+import IconPickerModal from "@/components/admin/IconPickerModal";
+import Icon, { isKnownIconName } from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
 import type { Skill } from "@/lib/types";
@@ -30,6 +31,7 @@ export default function SkillsAdminPage() {
   const [formLevel, setFormLevel] = useState(90);
   const [formPublished, setFormPublished] = useState(true);
   const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
+  const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
 
   const fetchSkills = async () => {
     try {
@@ -216,6 +218,8 @@ export default function SkillsAdminPage() {
                     <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 p-1 flex items-center justify-center">
                       <img src={skill.icon} alt={skill.name} className="w-full h-full object-contain rounded" />
                     </div>
+                  ) : isKnownIconName(skill.icon) ? (
+                    <Icon name={skill.icon} size={22} />
                   ) : skill.icon ? (
                     <span className="text-2xl">{skill.icon}</span>
                   ) : (
@@ -302,6 +306,26 @@ export default function SkillsAdminPage() {
           helperText="Select a logo from Cloud, upload a new image, or paste an image URL / Emoji (⚛️, ▲, 📘...)."
         />
 
+        <div className="flex items-center gap-3 -mt-2">
+          <button
+            type="button"
+            onClick={() => setIsIconPickerOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-300 hover:text-white transition-all"
+          >
+            <Icon name="sparkles" size={13} />
+            Chọn logo công nghệ hoặc emoji có sẵn
+          </button>
+          {formIcon && !formIcon.startsWith("http") && !formIcon.startsWith("/") && (
+            <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+              {isKnownIconName(formIcon) ? (
+                <Icon name={formIcon} size={16} />
+              ) : (
+                <span className="text-base leading-none">{formIcon}</span>
+              )}
+            </div>
+          )}
+        </div>
+
         <FormField label={t("admin.skills.fieldCategory", "Category")} id="skill-category" required>
           <select
             id="skill-category"
@@ -329,6 +353,15 @@ export default function SkillsAdminPage() {
           </label>
         </div>
       </AdminModal>
+
+      <IconPickerModal
+        isOpen={isIconPickerOpen}
+        onClose={() => setIsIconPickerOpen(false)}
+        value={formIcon}
+        onSelect={setFormIcon}
+        categories={["tech", "emoji"]}
+        title="Chọn icon cho Skill"
+      />
 
       {/* Delete Confirmation */}
       <ConfirmDialog

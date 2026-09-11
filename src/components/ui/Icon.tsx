@@ -93,6 +93,24 @@ import {
   Table,
   House,
 } from "lucide-react";
+import {
+  SiGithub,
+  SiX,
+  SiFacebook,
+  SiYoutube,
+  SiInstagram,
+  SiDiscord,
+  SiTelegram,
+  SiVuedotjs,
+  SiAngular,
+  SiRedux,
+  SiGraphql,
+  SiPython,
+  SiSass,
+  SiVite,
+  SiExpress,
+} from "react-icons/si";
+import { FaLinkedin, FaAws, FaJava } from "react-icons/fa6";
 
 interface IconProps {
   name: string;
@@ -270,7 +288,73 @@ const BRAND_ICONS: Record<string, React.ReactNode> = {
       <path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.564-2.438L1.5 0zm17.09 4.413L5.41 4.41l.213 2.622 10.125.002-.255 2.716h-6.64l.24 2.573h6.182l-.366 3.523-2.91.804-2.956-.81-.188-2.11h-2.61l.29 3.855L12 19.288l5.373-1.53L18.59 4.413z" fill="#1572B6" />
     </svg>
   ),
+  vue: <SiVuedotjs style={{ width: "100%", height: "100%" }} color="#4FC08D" />,
+  angular: <SiAngular style={{ width: "100%", height: "100%" }} color="#DD0031" />,
+  redux: <SiRedux style={{ width: "100%", height: "100%" }} color="#764ABC" />,
+  graphql: <SiGraphql style={{ width: "100%", height: "100%" }} color="#E10098" />,
+  python: <SiPython style={{ width: "100%", height: "100%" }} color="#3776AB" />,
+  aws: <FaAws style={{ width: "100%", height: "100%" }} color="#FF9900" />,
+  java: <FaJava style={{ width: "100%", height: "100%" }} color="#f89820" />,
+  sass: <SiSass style={{ width: "100%", height: "100%" }} color="#CC6699" />,
+  vite: <SiVite style={{ width: "100%", height: "100%" }} color="#646CFF" />,
+  express: <SiExpress style={{ width: "100%", height: "100%" }} />,
+  // ─── Social platform logos (monochrome — inherits surrounding text color,
+  // matching how these were previously hand-drawn inline in Footer.tsx) ────
+  github: <SiGithub style={{ width: "100%", height: "100%" }} />,
+  linkedin: <FaLinkedin style={{ width: "100%", height: "100%" }} />,
+  twitter: <SiX style={{ width: "100%", height: "100%" }} />,
+  facebook: <SiFacebook style={{ width: "100%", height: "100%" }} />,
+  youtube: <SiYoutube style={{ width: "100%", height: "100%" }} />,
+  instagram: <SiInstagram style={{ width: "100%", height: "100%" }} />,
+  discord: <SiDiscord style={{ width: "100%", height: "100%" }} />,
+  telegram: <SiTelegram style={{ width: "100%", height: "100%" }} />,
 };
+
+/** Icon names grouped for the admin icon-picker modal. */
+export const TECH_BRAND_ICON_NAMES = [
+  "react",
+  "nextjs",
+  "typescript",
+  "javascript",
+  "tailwind",
+  "nodejs",
+  "threejs",
+  "prisma",
+  "postgresql",
+  "mongodb",
+  "docker",
+  "git",
+  "figma",
+  "cloudinary",
+  "css",
+  "vue",
+  "angular",
+  "redux",
+  "graphql",
+  "python",
+  "aws",
+  "java",
+  "sass",
+  "vite",
+  "express",
+] as const;
+
+export const SOCIAL_BRAND_ICON_NAMES = [
+  "github",
+  "linkedin",
+  "twitter",
+  "facebook",
+  "youtube",
+  "instagram",
+  "discord",
+  "telegram",
+] as const;
+
+/** True when `name` matches a registered icon (lucide stroke icon or brand logo). */
+export function isKnownIconName(name: string | undefined | null): boolean {
+  if (!name) return false;
+  return name in STROKE_ICONS || name in BRAND_ICONS;
+}
 
 // ─── Main Icon Component ───────────────────────────────────────────────────
 export default function Icon({ name, size = 20, className = "", filled = false }: IconProps) {
