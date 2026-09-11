@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyPassword, createSession, destroySession, verifySession } from "@/lib/admin-auth";
+import { verifyPasswordHash, createSession, destroySession, verifySession } from "@/lib/admin-auth";
 import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
 
 const loginRateLimiter = createRateLimiter({ max: 5, windowMs: 15 * 60 * 1000 });
@@ -36,16 +36,16 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { password } = body;
+    const { passwordHash } = body;
 
-    if (!password || typeof password !== "string") {
+    if (!passwordHash || typeof passwordHash !== "string") {
       return NextResponse.json(
         { error: "Password is required" },
         { status: 400 }
       );
     }
 
-    if (!verifyPassword(password)) {
+    if (!verifyPasswordHash(passwordHash)) {
       loginRateLimiter.recordAttempt(ip);
       return NextResponse.json(
         { error: "Invalid password" },

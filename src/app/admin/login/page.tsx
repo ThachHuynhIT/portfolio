@@ -5,6 +5,13 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 
+async function hashPassword(password: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(password));
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 export default function AdminLoginPage() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -18,10 +25,11 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
+      const passwordHash = await hashPassword(password);
       const res = await fetch("/api/admin/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ passwordHash }),
       });
 
       const data = await res.json();
