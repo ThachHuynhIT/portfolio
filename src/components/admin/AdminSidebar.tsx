@@ -78,7 +78,18 @@ export default function AdminSidebar() {
 
   useEffect(() => {
     const saved = localStorage.getItem("admin_sidebar_collapsed");
-    if (saved === "true") setCollapsed(true);
+    if (saved !== null) {
+      setCollapsed(saved === "true");
+      return;
+    }
+
+    // No explicit preference yet — default to the icon-only rail below the
+    // md breakpoint so the sidebar doesn't eat most of a phone-width screen.
+    const mql = window.matchMedia("(min-width: 768px)");
+    const applyFromViewport = () => setCollapsed(!mql.matches);
+    applyFromViewport();
+    mql.addEventListener("change", applyFromViewport);
+    return () => mql.removeEventListener("change", applyFromViewport);
   }, []);
 
   const toggleCollapsed = () => {
