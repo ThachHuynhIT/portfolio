@@ -212,14 +212,14 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                       : "bg-cyan-500/10 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20"
                   }`}
                 >
-                  <span>📁</span>
+                  <Icon name="folder" size={13} />
                   <span><strong>{stats.albumsCount}</strong> {t("photography.albumsCount") || "Albums"}</span>
                 </button>
               )}
 
               {stats.featuredCount > 0 && (
                 <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 backdrop-blur-md text-amber-300 shadow-md">
-                  <span className="text-amber-400">⭐</span>
+                  <Icon name="star" size={13} className="text-amber-400" />
                   <span><strong>{stats.featuredCount}</strong> {t("photography.featured")}</span>
                 </div>
               )}
@@ -380,7 +380,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                         : "bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/30 light:text-amber-700"
                     }`}
                   >
-                    <span>⭐ {t("photography.featured")}</span>
+                    <Icon name="star" size={12} /> {t("photography.featured")}
                     <span
                       className={`text-[10px] px-1.5 py-0.2 rounded-full ${
                         selectedCategory === "featured"
@@ -577,7 +577,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                         {/* Top Badges */}
                         <div className="absolute top-3.5 left-3.5 flex items-center gap-2 z-10">
                           <span className="px-3 py-1 rounded-full text-xs font-bold bg-black/70 text-cyan-300 backdrop-blur-md border border-white/15 shadow flex items-center gap-1.5">
-                            <span>🖼️</span>
+                            <Icon name="image" size={12} />
                             <span>{photoCount} {t("photography.photosInAlbum") || "tác phẩm"}</span>
                           </span>
                         </div>
@@ -585,7 +585,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                         {album.featured && (
                           <div className="absolute top-3.5 right-3.5 z-10">
                             <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/90 text-black shadow-lg flex items-center gap-1">
-                              <span>⭐ {t("photography.featured")}</span>
+                              <Icon name="star" size={12} /> {t("photography.featured")}
                             </span>
                           </div>
                         )}
@@ -631,7 +631,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
 
                           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-400 group-hover:text-cyan-300 group-hover:translate-x-1 transition-all">
                             <span>{t("photography.viewAlbum") || "Khám phá Album"}</span>
-                            <span>→</span>
+                            <Icon name="arrowRight" size={12} />
                           </span>
                         </div>
                       </div>

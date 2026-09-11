@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { GlassCard, TiltCard, Button } from "@/components/ui";
+import { GlassCard, TiltCard, Button, Icon } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
 import type { Project } from "@/lib/types";
 
@@ -77,7 +77,7 @@ function ProjectDetailModal({
             aria-label={t("projects.closeModal")}
             className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all z-20 light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06]"
           >
-            ✕
+            <Icon name="close" size={16} />
           </button>
 
           <div className="relative aspect-video rounded-xl overflow-hidden mb-6 bg-slate-950 border border-white/10 shadow-lg light:bg-slate-100 light:border-neutral-900/10">
@@ -91,8 +91,8 @@ function ProjectDetailModal({
                 className="object-cover"
               />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-6xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20">
-                🚀
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-cyan-500/20 text-purple-300">
+                <Icon name="rocket" size={48} />
               </div>
             )}
             {project.featured && (
@@ -211,9 +211,9 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs light:text-neutral-500 light:hover:text-neutral-900"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white light:text-neutral-500 light:hover:text-neutral-900"
               >
-                ✕
+                <Icon name="close" size={14} />
               </button>
             )}
           </div>
@@ -271,8 +271,8 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
                           className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-4xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20">
-                          🚀
+                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-cyan-500/20 text-purple-300">
+                          <Icon name="rocket" size={32} />
                         </div>
                       )}
                       {project.featured && (

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/context/LanguageContext";
+import Icon from "@/components/ui/Icon";
 
 interface CVPreviewModalProps {
   url: string;
@@ -66,17 +67,17 @@ export default function CVPreviewModal({ url, isOpen, onClose }: CVPreviewModalP
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-xs transition-all"
+                  className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-xs transition-all inline-flex items-center gap-1"
                 >
-                  {t("hero.openInNewTab", "Open in new tab")} ↗
+                  {t("hero.openInNewTab", "Open in new tab")} <Icon name="externalLink" size={12} />
                 </a>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all text-sm flex items-center justify-center"
+                  className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all flex items-center justify-center"
                   title="Close (Esc)"
                 >
-                  ✕
+                  <Icon name="close" size={14} />
                 </button>
               </div>
             </div>

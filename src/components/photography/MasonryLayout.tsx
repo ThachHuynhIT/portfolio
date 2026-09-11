@@ -84,7 +84,7 @@ export default function MasonryLayout({ photos, onSelectPhoto }: MasonryLayoutPr
                     <div className="flex items-center gap-1.5">
                       {photo.featured && (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-black shadow-md flex items-center gap-1">
-                          <span>⭐ {t("photography.featured", "Featured")}</span>
+                          <Icon name="star" size={10} /> {t("photography.featured", "Featured")}
                         </span>
                       )}
                       {photo.category && (

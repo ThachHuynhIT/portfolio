@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AnimatedSection } from "@/components/ui";
+import { AnimatedSection, Icon } from "@/components/ui";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
 import { resolveSectionText } from "@/lib/content-overrides";
@@ -13,10 +13,10 @@ const categories = ["frontend", "backend", "tools", "design"] as const;
 type CategoryType = (typeof categories)[number] | "all";
 
 const categoryIcons: Record<string, string> = {
-  frontend: "💻",
-  backend: "⚙️",
-  tools: "🛠️",
-  design: "🎨",
+  frontend: "frontend",
+  backend: "backend",
+  tools: "tools",
+  design: "design",
 };
 
 export interface SkillsSectionProps {
@@ -56,7 +56,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
         <AnimatedSection>
           <div className="text-center mb-12">
             <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/[0.04] light:bg-neutral-900/[0.04] text-cyan-400 border border-white/10 light:border-neutral-900/10 mb-4 backdrop-blur-md">
-              <span>⚡</span>
+              <Icon name="zap" size={14} />
               <span>{resolveSectionText(locale, skillsCopy?.badge, skillsCopy?.badge_vi, t("skills.badge"))}</span>
             </span>
 
@@ -84,7 +84,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                 : "bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] border border-white/5 light:border-neutral-900/10"
             }`}
           >
-            <span>✨</span>
+            <Icon name="sparkles" size={14} />
             <span>{t("photography.all") || "Tất cả"}</span>
             <span
               className={`text-[10px] px-1.5 py-0.5 rounded-full ${
@@ -112,7 +112,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                     : "bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] border border-white/5 light:border-neutral-900/10"
                 }`}
               >
-                <span>{categoryIcons[cat]}</span>
+                <Icon name={categoryIcons[cat]} size={14} />
                 <span>{categoryLabel(cat)}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.5 rounded-full ${
@@ -157,8 +157,8 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                   {/* Category Card Header */}
                   <div className="flex items-center justify-between pb-5 mb-5 border-b border-white/10 light:border-neutral-900/10">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-white/[0.06] light:bg-neutral-900/[0.06] border border-white/10 light:border-neutral-900/10 flex items-center justify-center text-xl shadow-inner">
-                        {categoryIcons[category]}
+                      <div className="w-10 h-10 rounded-2xl bg-white/[0.06] light:bg-neutral-900/[0.06] border border-white/10 light:border-neutral-900/10 flex items-center justify-center shadow-inner">
+                        <Icon name={categoryIcons[category]} size={18} />
                       </div>
                       <div>
                         <h3 className="text-base font-bold text-white light:text-neutral-900">
@@ -209,10 +209,10 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                                 alt={skill.name}
                                 className="w-5 h-5 object-contain"
                               />
+                            ) : skill.icon ? (
+                              <span className="text-base leading-none">{skill.icon}</span>
                             ) : (
-                              <span className="text-base leading-none">
-                                {skill.icon || "⚡"}
-                              </span>
+                              <Icon name="zap" size={16} />
                             )}
                           </div>
 

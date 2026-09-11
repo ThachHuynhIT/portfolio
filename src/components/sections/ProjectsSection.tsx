@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { AnimatedSection, GlassCard, TiltCard, Button, ImageWithSkeleton } from "@/components/ui";
+import { AnimatedSection, GlassCard, TiltCard, Button, ImageWithSkeleton, Icon } from "@/components/ui";
 import { staggerContainer, fadeInUp } from "@/lib/animations";
 import { Project, ProjectsSectionContent, SiteConfig } from "@/lib/types";
 import { useTranslation } from "@/context/LanguageContext";
@@ -110,7 +110,7 @@ function ProjectModal({ project, onClose, projectsCopy }: ProjectModalProps) {
             aria-label={resolveSectionText(locale, projectsCopy?.closeModal, projectsCopy?.closeModal_vi, t("projects.closeModal"))}
             className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 flex items-center justify-center text-white/60 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] transition-all z-20"
           >
-            ✕
+            <Icon name="close" size={16} />
           </button>
 
           {/* Project Image */}
@@ -124,8 +124,8 @@ function ProjectModal({ project, onClose, projectsCopy }: ProjectModalProps) {
                 className="object-cover"
               />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-6xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20">
-                🚀
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-cyan-500/20 text-purple-300">
+                <Icon name="rocket" size={48} />
               </div>
             )}
             {project.featured && (
@@ -249,8 +249,8 @@ export default function ProjectsSection({ projects, siteConfig }: ProjectsSectio
                           className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-4xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20">
-                          🚀
+                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-cyan-500/20 text-purple-300">
+                          <Icon name="rocket" size={32} />
                         </div>
                       )}
                       {project.featured && (
@@ -294,7 +294,7 @@ export default function ProjectsSection({ projects, siteConfig }: ProjectsSectio
           >
             <span>{resolveSectionText(locale, projectsCopy?.viewAll, projectsCopy?.viewAll_vi, t("projects.viewAll"))}</span>
             <span className="transition-transform duration-200 group-hover:translate-x-1">
-              →
+              <Icon name="arrowRight" size={16} />
             </span>
           </Link>
         </div>

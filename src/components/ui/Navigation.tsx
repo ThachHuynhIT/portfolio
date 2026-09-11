@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import Icon from "@/components/ui/Icon";
 import type { NavLink } from "@/lib/types";
 
 const SECTION_IDS = ["home", "about", "skills", "projects", "contact"];
@@ -384,7 +385,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
               <span className="relative flex items-center gap-1.5">
                 <span>{t("nav.getInTouch")}</span>
                 <span className="transition-transform duration-200 group-hover:translate-x-0.5">
-                  →
+                  <Icon name="arrowRight" size={14} />
                 </span>
               </span>
             </Link>
@@ -536,7 +537,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
                         )}
                       >
                         <span className="flex items-center gap-2">
-                          {isMusic && <span>🎵</span>}
+                          {isMusic && <Icon name="music" size={14} />}
                           {getNavLabel(link)}
                         </span>
                         {active && (
