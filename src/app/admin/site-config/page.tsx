@@ -8,7 +8,7 @@ import FormField from "@/components/admin/FormField";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
 import ResumeFilePicker from "@/components/admin/ResumeFilePicker";
 import LanguageTabSelector from "@/components/admin/LanguageTabSelector";
-import SectionJsonEditor from "@/components/admin/SectionJsonEditor";
+import SectionFieldsEditor from "@/components/admin/SectionFieldsEditor";
 import FlagIcon from "@/components/ui/FlagIcon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
@@ -19,14 +19,14 @@ import {
   getProjectsDefaults,
   getSkillsDefaults,
 } from "@/lib/section-defaults";
-import type {
-  AboutSectionContent,
-  ContactSectionContent,
-  HeroSectionContent,
-  ProjectsSectionContent,
-  SiteConfig,
-  SkillsSectionContent,
-} from "@/lib/types";
+import {
+  ABOUT_FIELDS,
+  CONTACT_FIELDS,
+  HERO_FIELDS,
+  PROJECTS_FIELDS,
+  SKILLS_FIELDS,
+} from "@/lib/section-field-specs";
+import type { SiteConfig } from "@/lib/types";
 
 type TabId = "general" | "author" | "hero" | "about" | "skills" | "projects" | "contact";
 
@@ -134,31 +134,27 @@ export default function SiteConfigAdminPage() {
         ))}
       </div>
 
-      {/* Multilingual Switcher Header — only relevant to General/Author,
-          whose fields are conditionally rendered per language below. The
-          new section-copy tabs hold both languages in one JSON object. */}
-      {(activeTab === "general" || activeTab === "author") && (
-        <>
-          <LanguageTabSelector
-            activeLang={activeLang}
-            onChange={setActiveLang}
-            hasTranslation={{
-              en: Boolean(config.title?.trim() && config.author?.title?.trim()),
-              vi: Boolean(config.title_vi?.trim() && config.author?.title_vi?.trim()),
-            }}
-            label="Content Language / Ngôn ngữ đang sửa:"
-            className="mb-6"
-          />
+      {/* Multilingual Switcher Header — applies to every tab now, since each
+          section-copy tab shows one language's fields at a time, same as
+          General/Author. */}
+      <LanguageTabSelector
+        activeLang={activeLang}
+        onChange={setActiveLang}
+        hasTranslation={{
+          en: Boolean(config.title?.trim() && config.author?.title?.trim()),
+          vi: Boolean(config.title_vi?.trim() && config.author?.title_vi?.trim()),
+        }}
+        label="Content Language / Ngôn ngữ đang sửa:"
+        className="mb-6"
+      />
 
-          {activeLang === "vi" && (
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs mb-6">
-              <FlagIcon locale="vi" width={16} height={11} />
-              <span>
-                Đang chỉnh sửa bản dịch <strong>Tiếng Việt</strong>. Nếu để trống trường nào, hệ thống sẽ tự động dùng giá trị mặc định của bản Tiếng Anh.
-              </span>
-            </div>
-          )}
-        </>
+      {activeLang === "vi" && (
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs mb-6">
+          <FlagIcon locale="vi" width={16} height={11} />
+          <span>
+            Đang chỉnh sửa bản dịch <strong>Tiếng Việt</strong>. Nếu để trống trường nào, hệ thống sẽ tự động dùng giá trị mặc định của bản Tiếng Anh.
+          </span>
+        </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
@@ -452,11 +448,13 @@ export default function SiteConfigAdminPage() {
 
         {/* Hero Section Copy */}
         {activeTab === "hero" && (
-          <SectionJsonEditor<HeroSectionContent>
+          <SectionFieldsEditor
             title="Hero Section Copy"
-            helperText="Overrides the homepage Hero badge, greeting, bio, and buttons. Leave a field blank/omit it to use the site's default English/Vietnamese text (fields ending in _vi are the Vietnamese variant). Note: setting 'bio_vi' here takes priority over the Author tab's Vietnamese bio."
+            helperText="Overrides the homepage Hero badge, greeting, bio, and buttons. Leave a field blank to use the site's default text for the language you're currently editing. Note: setting the Vietnamese Bio here takes priority over the Author tab's Vietnamese bio."
             value={config.sectionsContent?.hero}
             defaultValue={getHeroDefaults()}
+            fields={HERO_FIELDS}
+            activeLang={activeLang}
             onChange={(hero) =>
               setConfig({ ...config, sectionsContent: { ...config.sectionsContent, hero } })
             }
@@ -465,11 +463,13 @@ export default function SiteConfigAdminPage() {
 
         {/* About Section Copy */}
         {activeTab === "about" && (
-          <SectionJsonEditor<AboutSectionContent>
+          <SectionFieldsEditor
             title="About Section Copy"
-            helperText="Overrides the About badge/heading/role/bio paragraphs and the 4 stat cards shown (e.g. '3+ Years Experience'). 'stats' is a fixed 4-item array in order: years, projects, clients, tech — each item may have label/label_vi/value/value_vi."
+            helperText="Overrides the About badge/heading/role/bio paragraphs and the 4 stat cards shown (e.g. '3+ Years Experience')."
             value={config.sectionsContent?.about}
             defaultValue={getAboutDefaults()}
+            fields={ABOUT_FIELDS}
+            activeLang={activeLang}
             onChange={(about) =>
               setConfig({ ...config, sectionsContent: { ...config.sectionsContent, about } })
             }
@@ -478,13 +478,15 @@ export default function SiteConfigAdminPage() {
 
         {/* Skills Section Copy */}
         {activeTab === "skills" && (
-          <SectionJsonEditor<SkillsSectionContent>
+          <SectionFieldsEditor
             title="Skills Section Copy"
             helperText="Overrides the Skills section heading/subtitle and category labels only. The skill list itself is managed on the Skills page."
             manageHref="/admin/skills"
             manageLabel="Manage Skills List →"
             value={config.sectionsContent?.skills}
             defaultValue={getSkillsDefaults()}
+            fields={SKILLS_FIELDS}
+            activeLang={activeLang}
             onChange={(skills) =>
               setConfig({ ...config, sectionsContent: { ...config.sectionsContent, skills } })
             }
@@ -493,13 +495,15 @@ export default function SiteConfigAdminPage() {
 
         {/* Projects Section Copy */}
         {activeTab === "projects" && (
-          <SectionJsonEditor<ProjectsSectionContent>
+          <SectionFieldsEditor
             title="Projects Section Copy"
             helperText="Overrides the Projects section heading/subtitle/button labels only. The project list itself is managed on the Projects page."
             manageHref="/admin/projects"
             manageLabel="Manage Projects List →"
             value={config.sectionsContent?.projects}
             defaultValue={getProjectsDefaults()}
+            fields={PROJECTS_FIELDS}
+            activeLang={activeLang}
             onChange={(projects) =>
               setConfig({ ...config, sectionsContent: { ...config.sectionsContent, projects } })
             }
@@ -508,11 +512,13 @@ export default function SiteConfigAdminPage() {
 
         {/* Contact Section Copy */}
         {activeTab === "contact" && (
-          <SectionJsonEditor<ContactSectionContent>
+          <SectionFieldsEditor
             title="Contact Section Copy"
             helperText="Overrides Contact heading/form labels/placeholders/validation messages/buttons/banners/availability card."
             value={config.sectionsContent?.contact}
             defaultValue={getContactDefaults()}
+            fields={CONTACT_FIELDS}
+            activeLang={activeLang}
             onChange={(contact) =>
               setConfig({ ...config, sectionsContent: { ...config.sectionsContent, contact } })
             }
