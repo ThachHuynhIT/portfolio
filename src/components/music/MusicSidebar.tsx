@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useMusic, TabView } from "@/context/MusicContext";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
+import Icon from "@/components/ui/Icon";
 
 export default function MusicSidebar() {
   const { t } = useTranslation();
@@ -59,7 +60,7 @@ export default function MusicSidebar() {
             title={t("music.returnHome")}
           >
             <div className="music-sidebar-logo-icon">
-              <span>🎧</span>
+              <Icon name="headphones" size={16} />
               {isPlaying && (
                 <span
                   className="music-logo-pulse"
@@ -84,7 +85,7 @@ export default function MusicSidebar() {
               className="md:hidden p-2 text-white/60 hover:text-white rounded-lg bg-white/5"
               aria-label="Close sidebar"
             >
-              ✕
+              <Icon name="close" size={14} />
             </button>
           </div>
         </div>
@@ -95,7 +96,7 @@ export default function MusicSidebar() {
           className="music-back-portfolio-btn"
           title={t("music.returnHome")}
         >
-          <span className="text-xs">←</span>
+          <Icon name="arrowLeft" size={12} />
           <span>{t("common.backToPortfolio")}</span>
         </Link>
       </div>
@@ -110,7 +111,7 @@ export default function MusicSidebar() {
             onClick={() => handleTabClick("player")}
             className={`music-nav-item ${activeTab === "player" ? "music-nav-item--active" : ""}`}
           >
-            <span className="music-nav-icon">🎛️</span>
+            <span className="music-nav-icon"><Icon name="slider" size={16} /></span>
             <span className="flex-1 text-left font-medium">
               {t("music.tabs.player")}
             </span>
@@ -123,7 +124,7 @@ export default function MusicSidebar() {
             onClick={() => handleTabClick("queue")}
             className={`music-nav-item ${activeTab === "queue" ? "music-nav-item--active" : ""}`}
           >
-            <span className="music-nav-icon">📑</span>
+            <span className="music-nav-icon"><Icon name="listMusic" size={16} /></span>
             <span className="flex-1 text-left font-medium">
               {t("music.tabs.queue")}
             </span>
@@ -151,7 +152,7 @@ export default function MusicSidebar() {
             onClick={() => handleTabClick("charts")}
             className={`music-nav-item ${activeTab === "charts" ? "music-nav-item--active" : ""}`}
           >
-            <span className="music-nav-icon">🏆</span>
+            <span className="music-nav-icon"><Icon name="trophy" size={16} /></span>
             <span className="flex-1 text-left font-medium">
               {t("music.tabs.charts")}
             </span>
@@ -162,7 +163,7 @@ export default function MusicSidebar() {
             onClick={handleLikedClick}
             className={`music-nav-item ${activeTab === "favorites" ? "music-nav-item--active music-nav-item--liked" : ""}`}
           >
-            <span className="music-nav-icon">❤️</span>
+            <span className="music-nav-icon"><Icon name="heart" size={16} /></span>
             <span className="flex-1 text-left font-medium">
               {t("music.tabs.favorites")}
             </span>

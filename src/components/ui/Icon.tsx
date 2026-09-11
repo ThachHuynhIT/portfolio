@@ -50,6 +50,7 @@ import {
   Maximize2,
   X,
   Play,
+  Pause,
   Video,
   Rocket,
   FileText,
@@ -87,12 +88,17 @@ import {
   Gift,
   Loader2,
   Copy,
+  HeartCrack,
+  Clock,
+  Table,
 } from "lucide-react";
 
 interface IconProps {
   name: string;
   size?: number;
   className?: string;
+  /** Fills the icon with the current text color — used for toggle states like a "liked" heart. */
+  filled?: boolean;
 }
 
 // ─── Admin / UI Icons (lucide-react) ───────────────────────────────────────
@@ -138,6 +144,7 @@ const STROKE_ICONS: Record<string, LucideIcon> = {
   maximize: Maximize2,
   close: X,
   play: Play,
+  pause: Pause,
   video: Video,
   rocket: Rocket,
   fileText: FileText,
@@ -173,6 +180,9 @@ const STROKE_ICONS: Record<string, LucideIcon> = {
   gift: Gift,
   loader: Loader2,
   copy: Copy,
+  heartCrack: HeartCrack,
+  clock: Clock,
+  table: Table,
 };
 
 // ─── Tech Brand Icons (colored fills, official SVG paths) ──────────────────
@@ -261,10 +271,10 @@ const BRAND_ICONS: Record<string, React.ReactNode> = {
 };
 
 // ─── Main Icon Component ───────────────────────────────────────────────────
-export default function Icon({ name, size = 20, className = "" }: IconProps) {
+export default function Icon({ name, size = 20, className = "", filled = false }: IconProps) {
   const LucideComp = STROKE_ICONS[name];
   if (LucideComp) {
-    return <LucideComp size={size} className={className} />;
+    return <LucideComp size={size} className={className} fill={filled ? "currentColor" : "none"} />;
   }
 
   const brandIcon = BRAND_ICONS[name];
