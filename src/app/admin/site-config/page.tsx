@@ -10,6 +10,7 @@ import ResumeFilePicker from "@/components/admin/ResumeFilePicker";
 import LanguageTabSelector from "@/components/admin/LanguageTabSelector";
 import SectionFieldsEditor from "@/components/admin/SectionFieldsEditor";
 import FlagIcon from "@/components/ui/FlagIcon";
+import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
 import {
@@ -31,13 +32,13 @@ import type { SiteConfig } from "@/lib/types";
 type TabId = "general" | "author" | "hero" | "about" | "skills" | "projects" | "contact";
 
 const TABS: { id: TabId; icon: string; label: string }[] = [
-  { id: "general", icon: "⚙️", label: "General" },
-  { id: "author", icon: "👤", label: "Author" },
-  { id: "hero", icon: "🚀", label: "Hero" },
-  { id: "about", icon: "📝", label: "About" },
-  { id: "skills", icon: "🧠", label: "Skills" },
-  { id: "projects", icon: "💼", label: "Projects" },
-  { id: "contact", icon: "✉️", label: "Contact" },
+  { id: "general", icon: "settings", label: "General" },
+  { id: "author", icon: "user", label: "Author" },
+  { id: "hero", icon: "rocket", label: "Hero" },
+  { id: "about", icon: "fileText", label: "About" },
+  { id: "skills", icon: "skills", label: "Skills" },
+  { id: "projects", icon: "projects", label: "Projects" },
+  { id: "contact", icon: "mail", label: "Contact" },
 ];
 
 export default function SiteConfigAdminPage() {
@@ -127,8 +128,9 @@ export default function SiteConfigAdminPage() {
                 : "text-slate-400 hover:text-white"
             }`}
           >
-            <span>
-              {tab.icon} {tab.label}
+            <span className="flex items-center gap-1.5">
+              <Icon name={tab.icon} size={14} />
+              {tab.label}
             </span>
           </button>
         ))}
@@ -482,7 +484,7 @@ export default function SiteConfigAdminPage() {
             title="Skills Section Copy"
             helperText="Overrides the Skills section heading/subtitle and category labels only. The skill list itself is managed on the Skills page."
             manageHref="/admin/skills"
-            manageLabel="Manage Skills List →"
+            manageLabel="Manage Skills List"
             value={config.sectionsContent?.skills}
             defaultValue={getSkillsDefaults()}
             fields={SKILLS_FIELDS}
@@ -499,7 +501,7 @@ export default function SiteConfigAdminPage() {
             title="Projects Section Copy"
             helperText="Overrides the Projects section heading/subtitle/button labels only. The project list itself is managed on the Projects page."
             manageHref="/admin/projects"
-            manageLabel="Manage Projects List →"
+            manageLabel="Manage Projects List"
             value={config.sectionsContent?.projects}
             defaultValue={getProjectsDefaults()}
             fields={PROJECTS_FIELDS}

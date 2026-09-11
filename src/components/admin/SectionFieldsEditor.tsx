@@ -1,6 +1,7 @@
 "use client";
 
 import FormField from "@/components/admin/FormField";
+import Icon from "@/components/ui/Icon";
 import type { FieldSpec, Lang } from "@/lib/section-field-specs";
 
 export interface SectionFieldsEditorProps<T extends object> {
@@ -34,8 +35,12 @@ export default function SectionFieldsEditor<T extends object>({
       <div className="flex items-center justify-between pb-3 border-b border-gray-800">
         <h2 className="text-lg font-bold text-white">{title}</h2>
         {manageHref && (
-          <a href={manageHref} className="text-xs text-purple-400 hover:text-purple-300 underline">
-            {manageLabel ?? "Manage list →"}
+          <a
+            href={manageHref}
+            className="inline-flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300 underline"
+          >
+            {manageLabel ?? "Manage list"}
+            <Icon name="arrowRight" size={12} />
           </a>
         )}
       </div>

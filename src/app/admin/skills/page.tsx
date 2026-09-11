@@ -7,6 +7,7 @@ import AdminModal from "@/components/admin/AdminModal";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
+import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
 import type { Skill } from "@/lib/types";
@@ -215,8 +216,10 @@ export default function SkillsAdminPage() {
                     <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 p-1 flex items-center justify-center">
                       <img src={skill.icon} alt={skill.name} className="w-full h-full object-contain rounded" />
                     </div>
+                  ) : skill.icon ? (
+                    <span className="text-2xl">{skill.icon}</span>
                   ) : (
-                    <span className="text-2xl">{skill.icon || "⚡"}</span>
+                    <Icon name="zap" size={20} />
                   )}
                 </td>
                 <td className="px-6 py-4 font-semibold text-white">{skill.name}</td>
