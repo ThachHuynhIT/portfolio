@@ -91,6 +91,7 @@ import {
   HeartCrack,
   Clock,
   Table,
+  House,
 } from "lucide-react";
 
 interface IconProps {
@@ -183,6 +184,7 @@ const STROKE_ICONS: Record<string, LucideIcon> = {
   heartCrack: HeartCrack,
   clock: Clock,
   table: Table,
+  home: House,
 };
 
 // ─── Tech Brand Icons (colored fills, official SVG paths) ──────────────────

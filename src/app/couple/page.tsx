@@ -8,6 +8,7 @@ import styles from "./couple.module.css";
 import type { CoupleData, CouplePhotoMemory } from "@/lib/types";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
+import Icon from "@/components/ui/Icon";
 
 // ============================================================
 // 📝 DỮ LIỆU MẶC ĐỊNH (Fallback khi chưa tải xong API)
@@ -186,13 +187,13 @@ type SectionId =
   | "favorites";
 
 const SECTIONS: { id: SectionId; icon: string; title: string; subtitle: string }[] = [
-  { id: "photos", icon: "📸", title: "Hình ảnh kỷ niệm", subtitle: "Khoảnh khắc yêu thương & kỷ niệm" },
-  { id: "birthdays", icon: "🎂", title: "Sinh nhật", subtitle: "Đếm ngược đến ngày đặc biệt" },
-  { id: "specialDates", icon: "📅", title: "Ngày đặc biệt", subtitle: "Những cột mốc quan trọng" },
-  { id: "memories", icon: "📖", title: "Hành trình tình yêu", subtitle: "Những khoảnh khắc đáng nhớ" },
-  { id: "bucketList", icon: "✅", title: "Bucket List", subtitle: "Những điều muốn cùng làm" },
-  { id: "loveLetters", icon: "💌", title: "Những lời yêu thương", subtitle: "Gửi gắm tình cảm" },
-  { id: "favorites", icon: "💝", title: "Những thứ của chúng ta", subtitle: "Our favorite things" },
+  { id: "photos", icon: "camera", title: "Hình ảnh kỷ niệm", subtitle: "Khoảnh khắc yêu thương & kỷ niệm" },
+  { id: "birthdays", icon: "cake", title: "Sinh nhật", subtitle: "Đếm ngược đến ngày đặc biệt" },
+  { id: "specialDates", icon: "calendar", title: "Ngày đặc biệt", subtitle: "Những cột mốc quan trọng" },
+  { id: "memories", icon: "bookOpen", title: "Hành trình tình yêu", subtitle: "Những khoảnh khắc đáng nhớ" },
+  { id: "bucketList", icon: "checkCircle", title: "Bucket List", subtitle: "Những điều muốn cùng làm" },
+  { id: "loveLetters", icon: "mail", title: "Những lời yêu thương", subtitle: "Gửi gắm tình cảm" },
+  { id: "favorites", icon: "gift", title: "Những thứ của chúng ta", subtitle: "Our favorite things" },
 ];
 
 // ============================================================
@@ -336,7 +337,7 @@ function HeroSection() {
             animate={{ scale: [1, 1.25, 1] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
           >
-            ❤️
+            <Icon name="heart" size={28} filled />
           </motion.span>
           <span className={styles.name}>{data.person2}</span>
         </div>
@@ -359,7 +360,7 @@ function HeroSection() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.5, duration: 0.6 }}
       >
-        📅 {locale === "vi" ? "Bắt đầu từ" : "Started on"}{" "}
+        <Icon name="calendar" size={14} className="inline mr-1.5 -mt-0.5" /> {locale === "vi" ? "Bắt đầu từ" : "Started on"}{" "}
         {new Date(data.anniversary).toLocaleDateString(
           locale === "vi" ? "vi-VN" : "en-US",
           {
@@ -441,7 +442,7 @@ function PhotosSection() {
   return (
     <section className={styles.section}>
       <SectionHeader
-        icon="📸"
+        icon="camera"
         title="Hình ảnh kỷ niệm"
         subtitle="Những khoảnh khắc ngọt ngào đã cùng nhau trải qua"
       />
@@ -467,7 +468,7 @@ function PhotosSection() {
       {/* Photos Grid */}
       {filteredPhotos.length === 0 ? (
         <div className={styles.emptyGallery}>
-          <p className="text-xl mb-2">📸</p>
+          <p className="flex justify-center mb-2"><Icon name="camera" size={22} /></p>
           <p>Chưa có hình ảnh nào trong mục này.</p>
         </div>
       ) : (
@@ -494,7 +495,10 @@ function PhotosSection() {
                   <span className={styles.photoOverlayBadge}>{photo.category}</span>
                 )}
                 {photo.featured && (
-                  <span className={styles.photoFeaturedBadge}>❤️ Yêu thích</span>
+                  <span className={styles.photoFeaturedBadge}>
+                    <Icon name="heart" size={11} filled className="inline mr-1" />
+                    Yêu thích
+                  </span>
                 )}
               </div>
 
@@ -508,7 +512,10 @@ function PhotosSection() {
                     })}
                   </span>
                   {photo.location && (
-                    <span className={styles.photoLocation}>📍 {photo.location}</span>
+                    <span className={styles.photoLocation}>
+                      <Icon name="mapPin" size={11} className="inline mr-1" />
+                      {photo.location}
+                    </span>
                   )}
                 </div>
                 <h3 className={styles.photoTitle}>{photo.title}</h3>
@@ -545,7 +552,7 @@ function PhotosSection() {
                 onClick={() => setLightboxIndex(null)}
                 aria-label="Đóng"
               >
-                ✕
+                <Icon name="close" size={16} />
               </button>
 
               {/* Prev / Next Arrows */}
@@ -562,7 +569,7 @@ function PhotosSection() {
                     }}
                     aria-label="Ảnh trước"
                   >
-                    ‹
+                    <Icon name="chevronLeft" size={20} />
                   </button>
                   <button
                     type="button"
@@ -575,7 +582,7 @@ function PhotosSection() {
                     }}
                     aria-label="Ảnh tiếp"
                   >
-                    ›
+                    <Icon name="chevronRight" size={20} />
                   </button>
                 </>
               )}
@@ -602,8 +609,8 @@ function PhotosSection() {
                       </span>
                     )}
                     {activePhoto.featured && (
-                      <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                        ❤️ Featured
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                        <Icon name="heart" size={11} filled /> Featured
                       </span>
                     )}
                   </div>
@@ -611,15 +618,19 @@ function PhotosSection() {
                     {activePhoto.title}
                   </h2>
                   <div className="flex flex-wrap items-center gap-3 text-xs text-white/50 mb-4 pb-3 border-b border-white/10">
-                    <span>
-                      📅{" "}
+                    <span className="inline-flex items-center gap-1">
+                      <Icon name="calendar" size={12} />
                       {new Date(activePhoto.date).toLocaleDateString("vi-VN", {
                         day: "numeric",
                         month: "long",
                         year: "numeric",
                       })}
                     </span>
-                    {activePhoto.location && <span>📍 {activePhoto.location}</span>}
+                    {activePhoto.location && (
+                      <span className="inline-flex items-center gap-1">
+                        <Icon name="mapPin" size={12} /> {activePhoto.location}
+                      </span>
+                    )}
                   </div>
                   {activePhoto.description ? (
                     <p className="text-white/80 text-sm md:text-base leading-relaxed whitespace-pre-wrap">
@@ -652,7 +663,7 @@ function BirthdaySection() {
   const { data } = useCouple();
   return (
     <section className={styles.section}>
-      <SectionHeader icon="🎂" title="Sinh nhật" subtitle="Đếm ngược đến ngày đặc biệt" />
+      <SectionHeader icon="cake" title="Sinh nhật" subtitle="Đếm ngược đến ngày đặc biệt" />
       <div className={styles.birthdayGrid}>
         {data.birthdays.map((person, i) => {
           const countdown = getCountdown(person.date);
@@ -704,7 +715,7 @@ function SpecialDatesSection() {
   const { data } = useCouple();
   return (
     <section className={styles.section}>
-      <SectionHeader icon="📅" title="Ngày đặc biệt" subtitle="Những cột mốc quan trọng" />
+      <SectionHeader icon="calendar" title="Ngày đặc biệt" subtitle="Những cột mốc quan trọng" />
       <div className={styles.specialDatesGrid}>
         {data.specialDates.map((item, i) => (
           <motion.div
@@ -743,7 +754,7 @@ function MemoryTimeline() {
   const { data } = useCouple();
   return (
     <section className={styles.section}>
-      <SectionHeader icon="📖" title="Hành trình tình yêu" subtitle="Những khoảnh khắc đáng nhớ" />
+      <SectionHeader icon="bookOpen" title="Hành trình tình yêu" subtitle="Những khoảnh khắc đáng nhớ" />
       <div className={styles.timeline}>
         {data.memories.map((memory, i) => (
           <motion.div
@@ -790,7 +801,7 @@ function BucketListSection() {
   return (
     <section className={styles.section}>
       <SectionHeader
-        icon="✅"
+        icon="checkCircle"
         title="Bucket List"
         subtitle={`${doneCount}/${items.length} đã hoàn thành`}
       />
@@ -818,7 +829,7 @@ function BucketListSection() {
             <div
               className={`${styles.bucketCheckbox} ${item.done ? styles.bucketCheckboxDone : ""}`}
             >
-              {item.done && "✓"}
+              {item.done && <Icon name="check" size={12} />}
             </div>
             <span className={`${styles.bucketText} ${item.done ? styles.bucketTextDone : ""}`}>
               {item.text}
@@ -852,7 +863,7 @@ function LoveLettersSection() {
   const { data } = useCouple();
   return (
     <section className={styles.section}>
-      <SectionHeader icon="💌" title="Những lời yêu thương" subtitle="Gửi gắm tình cảm" />
+      <SectionHeader icon="mail" title="Những lời yêu thương" subtitle="Gửi gắm tình cảm" />
       <div className={styles.lettersGrid}>
         {data.loveLetters.map((letter, i) => (
           <motion.div
@@ -880,7 +891,7 @@ function FavoritesSection() {
   const { data } = useCouple();
   return (
     <section className={styles.section}>
-      <SectionHeader icon="💝" title="Những thứ của chúng ta" subtitle="Our favorite things" />
+      <SectionHeader icon="gift" title="Những thứ của chúng ta" subtitle="Our favorite things" />
       <div className={styles.favoritesGrid}>
         {data.favorites.map((fav, i) => (
           <motion.div
@@ -917,7 +928,7 @@ function SectionHeader({
 }) {
   return (
     <div className={styles.sectionHeader}>
-      <div className={styles.sectionIcon}>{icon}</div>
+      <div className={styles.sectionIcon}><Icon name={icon} size={24} /></div>
       <div>
         <h2 className={styles.sectionTitle}>{title}</h2>
         <p className={styles.sectionSubtitle}>{subtitle}</p>
@@ -944,7 +955,7 @@ function SectionMenuGrid({ onSelect }: { onSelect: (id: SectionId) => void }) {
           whileHover={{ y: -6 }}
           whileTap={{ scale: 0.97 }}
         >
-          <div className={styles.menuCardIcon}>{section.icon}</div>
+          <div className={styles.menuCardIcon}><Icon name={section.icon} size={28} /></div>
           <div className={styles.menuCardTitle}>{section.title}</div>
           <div className={styles.menuCardSubtitle}>{section.subtitle}</div>
         </motion.button>
@@ -964,7 +975,7 @@ function BottomNav({
   onNavigate: (id: SectionId | "home") => void;
 }) {
   const items: { id: SectionId | "home"; icon: string; label: string }[] = [
-    { id: "home", icon: "🏠", label: "Trang chủ" },
+    { id: "home", icon: "home", label: "Trang chủ" },
     ...SECTIONS.map((s) => ({ id: s.id, icon: s.icon, label: s.title })),
   ];
 
@@ -988,7 +999,7 @@ function BottomNav({
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
               />
             )}
-            <span className={styles.navIcon}>{item.icon}</span>
+            <span className={styles.navIcon}><Icon name={item.icon} size={18} /></span>
             <span className={styles.navLabel}>{item.label}</span>
           </button>
         );
@@ -1050,7 +1061,7 @@ export default function CouplePage() {
             href="/"
             className="pointer-events-auto inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/60 hover:bg-black/80 border border-white/10 text-white/80 hover:text-white text-xs backdrop-blur-xl shadow-lg transition-all active:scale-95"
           >
-            <span>←</span>
+            <Icon name="arrowLeft" size={12} />
             <span>{t("couple.returnHome")}</span>
           </Link>
           <div className="pointer-events-auto">
@@ -1083,7 +1094,7 @@ export default function CouplePage() {
                 >
                   {coupleData.footerQuote}
                 </motion.p>
-                <div className={styles.footerHeart}>❤️</div>
+                <div className={styles.footerHeart}><Icon name="heart" size={20} filled /></div>
               </footer>
             </motion.div>
           ) : (
