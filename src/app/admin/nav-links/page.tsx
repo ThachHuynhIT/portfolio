@@ -7,6 +7,7 @@ import AdminModal from "@/components/admin/AdminModal";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import FlagIcon from "@/components/ui/FlagIcon";
+import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
 import type { NavLink, NavSubLink } from "@/lib/types";
@@ -280,7 +281,7 @@ export default function NavLinksAdminPage() {
                           className="w-6 h-5 flex items-center justify-center rounded bg-white/5 hover:bg-purple-600/30 text-[10px] text-slate-300 hover:text-purple-300 disabled:opacity-20 disabled:hover:bg-white/5 disabled:hover:text-slate-500 transition-all active:scale-95 cursor-pointer"
                           title="Move Up"
                         >
-                          ▲
+                          <Icon name="arrowUp" size={12} />
                         </button>
                         <button
                           type="button"
@@ -289,7 +290,7 @@ export default function NavLinksAdminPage() {
                           className="w-6 h-5 flex items-center justify-center rounded bg-white/5 hover:bg-purple-600/30 text-[10px] text-slate-300 hover:text-purple-300 disabled:opacity-20 disabled:hover:bg-white/5 disabled:hover:text-slate-500 transition-all active:scale-95 cursor-pointer"
                           title="Move Down"
                         >
-                          ▼
+                          <Icon name="arrowDown" size={12} />
                         </button>
                       </div>
                     </div>

@@ -10,6 +10,7 @@ import { AnimatedSection, GlassCard, Button } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
 import { usePerformanceTier } from "@/hooks/usePerformanceTier";
 import { cn } from "@/lib/utils";
+import { resolveSectionText } from "@/lib/content-overrides";
 import type { SiteConfig } from "@/lib/types";
 
 // Dynamic imports for 3D components
@@ -36,6 +37,7 @@ export interface ContactSectionProps {
 
 export default function ContactSection({ siteConfig }: ContactSectionProps) {
   const { t, locale } = useTranslation();
+  const contact = siteConfig.sectionsContent?.contact;
   const [isMounted, setIsMounted] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
@@ -52,12 +54,51 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
   const contactSchema = useMemo(
     () =>
       z.object({
-        name: z.string().min(2, t("contact.validation.nameMin")),
-        email: z.string().email(t("contact.validation.emailValid")),
-        subject: z.string().min(5, t("contact.validation.subjectMin")),
-        message: z.string().min(20, t("contact.validation.messageMin")),
+        name: z
+          .string()
+          .min(
+            2,
+            resolveSectionText(
+              locale,
+              contact?.validation?.nameMin,
+              contact?.validation?.nameMin_vi,
+              t("contact.validation.nameMin")
+            )
+          ),
+        email: z
+          .string()
+          .email(
+            resolveSectionText(
+              locale,
+              contact?.validation?.emailValid,
+              contact?.validation?.emailValid_vi,
+              t("contact.validation.emailValid")
+            )
+          ),
+        subject: z
+          .string()
+          .min(
+            5,
+            resolveSectionText(
+              locale,
+              contact?.validation?.subjectMin,
+              contact?.validation?.subjectMin_vi,
+              t("contact.validation.subjectMin")
+            )
+          ),
+        message: z
+          .string()
+          .min(
+            20,
+            resolveSectionText(
+              locale,
+              contact?.validation?.messageMin,
+              contact?.validation?.messageMin_vi,
+              t("contact.validation.messageMin")
+            )
+          ),
       }),
-    [t]
+    [t, locale, contact]
   );
 
   const {
@@ -98,8 +139,9 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
           data,
           message:
             response.status === 429
-              ? t("contact.errorRateLimited")
-              : body.error || t("contact.errorGeneric"),
+              ? resolveSectionText(locale, contact?.errorRateLimited, contact?.errorRateLimited_vi, t("contact.errorRateLimited"))
+              : body.error ||
+                resolveSectionText(locale, contact?.errorGeneric, contact?.errorGeneric_vi, t("contact.errorGeneric")),
         });
         return;
       }
@@ -107,7 +149,11 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
       setFormState({ status: "success" });
       reset();
     } catch {
-      setFormState({ status: "error", data, message: t("contact.errorGeneric") });
+      setFormState({
+        status: "error",
+        data,
+        message: resolveSectionText(locale, contact?.errorGeneric, contact?.errorGeneric_vi, t("contact.errorGeneric")),
+      });
     }
   };
 
@@ -145,16 +191,16 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
         <AnimatedSection>
           <div className="text-center mb-16">
             <span className="text-sm text-cyan-500 font-medium tracking-wider uppercase mb-4 block">
-              {t("contact.badge")}
+              {resolveSectionText(locale, contact?.badge, contact?.badge_vi, t("contact.badge"))}
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">
-              {t("contact.titlePrefix")}
+              {resolveSectionText(locale, contact?.titlePrefix, contact?.titlePrefix_vi, t("contact.titlePrefix"))}
               <span className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
-                {t("contact.titleHighlight")}
+                {resolveSectionText(locale, contact?.titleHighlight, contact?.titleHighlight_vi, t("contact.titleHighlight"))}
               </span>
             </h2>
             <p className="text-white/60 light:text-neutral-500 max-w-2xl mx-auto">
-              {t("contact.subtitle")}
+              {resolveSectionText(locale, contact?.subtitle, contact?.subtitle_vi, t("contact.subtitle"))}
             </p>
           </div>
         </AnimatedSection>
@@ -177,22 +223,25 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                   {formState.status === "success" ? (
                     <>
                       <p className="font-medium text-white light:text-neutral-900">
-                        {t("contact.successTitle")}
+                        {resolveSectionText(locale, contact?.successTitle, contact?.successTitle_vi, t("contact.successTitle"))}
                       </p>
-                      <p className="mt-1">{t("contact.successMessage")}</p>
+                      <p className="mt-1">
+                        {resolveSectionText(locale, contact?.successMessage, contact?.successMessage_vi, t("contact.successMessage"))}
+                      </p>
                     </>
                   ) : (
                     <>
                       <p>{formState.message}</p>
                       <p className="mt-2">
-                        {t("contact.unconnectedNotice")} {t("contact.mailtoPrefix")}
+                        {resolveSectionText(locale, contact?.unconnectedNotice, contact?.unconnectedNotice_vi, t("contact.unconnectedNotice"))}{" "}
+                        {resolveSectionText(locale, contact?.mailtoPrefix, contact?.mailtoPrefix_vi, t("contact.mailtoPrefix"))}
                         <a
                           href={mailtoHref}
                           className="text-cyan-400 underline hover:text-cyan-300"
                         >
-                          {t("contact.mailtoLinkText")}
+                          {resolveSectionText(locale, contact?.mailtoLinkText, contact?.mailtoLinkText_vi, t("contact.mailtoLinkText"))}
                         </a>
-                        {t("contact.mailtoSuffix")}
+                        {resolveSectionText(locale, contact?.mailtoSuffix, contact?.mailtoSuffix_vi, t("contact.mailtoSuffix"))}
                         <a
                           href={`mailto:${siteConfig.author.email}`}
                           className="text-cyan-400 underline hover:text-cyan-300"
@@ -223,13 +272,13 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                     htmlFor="contact-name"
                     className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
                   >
-                    {t("contact.nameLabel")}
+                    {resolveSectionText(locale, contact?.nameLabel, contact?.nameLabel_vi, t("contact.nameLabel"))}
                   </label>
                   <input
                     {...register("name")}
                     id="contact-name"
                     type="text"
-                    placeholder={t("contact.namePlaceholder")}
+                    placeholder={resolveSectionText(locale, contact?.namePlaceholder, contact?.namePlaceholder_vi, t("contact.namePlaceholder"))}
                     aria-invalid={!!errors.name}
                     aria-describedby={
                       errors.name ? "contact-name-error" : undefined
@@ -252,13 +301,13 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                     htmlFor="contact-email"
                     className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
                   >
-                    {t("contact.emailLabel")}
+                    {resolveSectionText(locale, contact?.emailLabel, contact?.emailLabel_vi, t("contact.emailLabel"))}
                   </label>
                   <input
                     {...register("email")}
                     id="contact-email"
                     type="email"
-                    placeholder={t("contact.emailPlaceholder")}
+                    placeholder={resolveSectionText(locale, contact?.emailPlaceholder, contact?.emailPlaceholder_vi, t("contact.emailPlaceholder"))}
                     aria-invalid={!!errors.email}
                     aria-describedby={
                       errors.email ? "contact-email-error" : undefined
@@ -281,13 +330,13 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                     htmlFor="contact-subject"
                     className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
                   >
-                    {t("contact.subjectLabel")}
+                    {resolveSectionText(locale, contact?.subjectLabel, contact?.subjectLabel_vi, t("contact.subjectLabel"))}
                   </label>
                   <input
                     {...register("subject")}
                     id="contact-subject"
                     type="text"
-                    placeholder={t("contact.subjectPlaceholder")}
+                    placeholder={resolveSectionText(locale, contact?.subjectPlaceholder, contact?.subjectPlaceholder_vi, t("contact.subjectPlaceholder"))}
                     aria-invalid={!!errors.subject}
                     aria-describedby={
                       errors.subject ? "contact-subject-error" : undefined
@@ -310,13 +359,13 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                     htmlFor="contact-message"
                     className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
                   >
-                    {t("contact.messageLabel")}
+                    {resolveSectionText(locale, contact?.messageLabel, contact?.messageLabel_vi, t("contact.messageLabel"))}
                   </label>
                   <textarea
                     {...register("message")}
                     id="contact-message"
                     rows={5}
-                    placeholder={t("contact.messagePlaceholder")}
+                    placeholder={resolveSectionText(locale, contact?.messagePlaceholder, contact?.messagePlaceholder_vi, t("contact.messagePlaceholder"))}
                     aria-invalid={!!errors.message}
                     aria-describedby={
                       errors.message ? "contact-message-error" : undefined
@@ -341,7 +390,9 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                   className="w-full"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? t("contact.sendingButton") : t("contact.sendButton")}
+                  {isSubmitting
+                    ? resolveSectionText(locale, contact?.sendingButton, contact?.sendingButton_vi, t("contact.sendingButton"))
+                    : resolveSectionText(locale, contact?.sendButton, contact?.sendButton_vi, t("contact.sendButton"))}
                 </Button>
               </form>
             </GlassCard>
@@ -358,7 +409,9 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">{t("contact.emailInfo")}</h3>
+                    <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">
+                      {resolveSectionText(locale, contact?.emailInfo, contact?.emailInfo_vi, t("contact.emailInfo"))}
+                    </h3>
                     <a
                       href={`mailto:${siteConfig.author.email}`}
                       className="text-white/60 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 transition-colors"
@@ -378,7 +431,9 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">{t("contact.locationInfo")}</h3>
+                    <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">
+                      {resolveSectionText(locale, contact?.locationInfo, contact?.locationInfo_vi, t("contact.locationInfo"))}
+                    </h3>
                     <p className="text-white/60 light:text-neutral-500">
                       {locale === "vi" && siteConfig.author.location_vi ? siteConfig.author.location_vi : siteConfig.author.location}
                     </p>
@@ -394,9 +449,16 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">{t("contact.availabilityInfo")}</h3>
-                    <p className="text-white/60 light:text-neutral-500">{t("contact.workHours")}</p>
-                    <p className="text-green-500 text-sm mt-1">● {t("contact.openForProjects")}</p>
+                    <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">
+                      {resolveSectionText(locale, contact?.availabilityInfo, contact?.availabilityInfo_vi, t("contact.availabilityInfo"))}
+                    </h3>
+                    <p className="text-white/60 light:text-neutral-500">
+                      {resolveSectionText(locale, contact?.workHours, contact?.workHours_vi, t("contact.workHours"))}
+                    </p>
+                    <p className="text-green-500 text-sm mt-1 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                      {resolveSectionText(locale, contact?.openForProjects, contact?.openForProjects_vi, t("contact.openForProjects"))}
+                    </p>
                   </div>
                 </div>
               </GlassCard>

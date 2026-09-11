@@ -7,6 +7,7 @@ import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/TranslationContext";
 import AdminHeader from "@/components/admin/AdminHeader";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import Icon from "@/components/ui/Icon";
 
 interface Track {
   id: string;
@@ -278,7 +279,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
             <span className="text-gray-400 text-xs font-semibold uppercase">
               {t.admin.music.statTotalTracks}
             </span>
-            <span className="text-xl">🎵</span>
+            <Icon name="music" size={18} />
           </div>
           <p className="text-2xl font-bold text-white mt-2">{tracks.length}</p>
           <span className="text-xs text-gray-500">{genres.length - 1} genres</span>
@@ -289,7 +290,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
             <span className="text-gray-400 text-xs font-semibold uppercase">
               {t.admin.music.statPublished}
             </span>
-            <span className="text-xl">🟢</span>
+            <span className="w-3 h-3 rounded-full bg-emerald-400" />
           </div>
           <p className="text-2xl font-bold text-emerald-400 mt-2">{publishedCount}</p>
           <span className="text-xs text-gray-500">
@@ -302,7 +303,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
             <span className="text-gray-400 text-xs font-semibold uppercase">
               {t.admin.music.statTotalPlays}
             </span>
-            <span className="text-xl">🔥</span>
+            <Icon name="flame" size={18} />
           </div>
           <p className="text-2xl font-bold text-cyan-400 mt-2">{totalPlays.toLocaleString()}</p>
           <span className="text-xs text-gray-500">{t.admin.music.liveListens}</span>
@@ -313,7 +314,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
             <span className="text-gray-400 text-xs font-semibold uppercase">
               {t.admin.music.statLibraryTime}
             </span>
-            <span className="text-xl">⏱️</span>
+            <Icon name="clock" size={18} />
           </div>
           <p className="text-2xl font-bold text-purple-400 mt-2">{formatTotalTime(tracks)}</p>
           <span className="text-xs text-gray-500">{t.admin.music.audioRuntime}</span>
@@ -333,7 +334,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
       <div className="p-4 rounded-2xl bg-gray-900/70 border border-gray-800 flex flex-wrap items-center justify-between gap-4">
         {/* Search */}
         <div className="relative min-w-[240px] flex-1 max-w-md">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">🔍</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"><Icon name="search" size={13} /></span>
           <input
             type="text"
             placeholder={t.admin.music.searchPlaceholder}
@@ -344,9 +345,9 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
           {search && (
             <button
               onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white text-xs"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
             >
-              ✕
+              <Icon name="close" size={13} />
             </button>
           )}
         </div>
@@ -395,14 +396,14 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
               className={`p-1.5 rounded-lg text-xs transition-colors ${viewMode === "table" ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"}`}
               title="Table View"
             >
-              📑
+              <Icon name="table" size={14} />
             </button>
             <button
               onClick={() => setViewMode("grid")}
               className={`p-1.5 rounded-lg text-xs transition-colors ${viewMode === "grid" ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"}`}
               title="Card Grid View"
             >
-              🎴
+              <Icon name="grid" size={14} />
             </button>
           </div>
         </div>
@@ -451,7 +452,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
       {/* ── Empty State ── */}
       {filtered.length === 0 ? (
         <div className="p-12 text-center rounded-2xl bg-gray-900 border border-gray-800 text-gray-400">
-          <div className="text-4xl mb-3">🎵</div>
+          <div className="flex justify-center mb-3"><Icon name="music" size={32} /></div>
           <h3 className="text-lg font-bold text-white mb-1">{t.admin.music.noTracksFound}</h3>
           <p className="text-sm max-w-sm mx-auto mb-4 text-gray-500">
             {tracks.length === 0
@@ -529,7 +530,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                         }`}
                         title={isPreviewing ? "Pause Preview" : "Play Preview"}
                       >
-                        {isPreviewing ? "⏸" : "▶"}
+                        <Icon name={isPreviewing ? "pause" : "play"} size={14} />
                       </button>
                     </td>
 
@@ -540,7 +541,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                           {track.thumbnailUrl ? (
                             <img src={track.thumbnailUrl} alt="" className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-base">🎵</div>
+                            <div className="w-full h-full flex items-center justify-center"><Icon name="music" size={16} /></div>
                           )}
                         </div>
                         <div className="min-w-0">
@@ -570,7 +571,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                     </td>
                     <td className="p-4 text-center">
                       <span className="inline-flex items-center gap-1 font-mono text-xs text-cyan-300 font-semibold">
-                        🔥 {track.playCount.toLocaleString()}
+                        <Icon name="flame" size={12} /> {track.playCount.toLocaleString()}
                       </span>
                     </td>
 
@@ -633,7 +634,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                     {track.thumbnailUrl ? (
                       <img src={track.thumbnailUrl} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-4xl">🎵</div>
+                      <div className="w-full h-full flex items-center justify-center"><Icon name="music" size={32} /></div>
                     )}
 
                     {/* Quick Preview overlay */}
@@ -645,7 +646,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                           : "bg-black/60 text-white opacity-0 group-hover:opacity-100 hover:scale-110"
                       }`}
                     >
-                      {isPreviewing ? "⏸" : "▶"}
+                      <Icon name={isPreviewing ? "pause" : "play"} size={16} />
                     </button>
 
                     {/* Top Right Status Badge */}
@@ -680,7 +681,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
                     <span>{track.genre || "—"}</span>
                     <span>{formatDuration(track.duration)}</span>
-                    <span className="text-cyan-400 font-mono">🔥 {track.playCount}</span>
+                    <span className="text-cyan-400 font-mono inline-flex items-center gap-1"><Icon name="flame" size={11} /> {track.playCount}</span>
                   </div>
                 </div>
 

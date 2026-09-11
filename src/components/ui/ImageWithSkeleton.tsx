@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image, { ImageProps } from "next/image";
 import { Skeleton, TwinklingStars } from "./Skeleton";
+import Icon from "./Icon";
 
 export interface ImageWithSkeletonProps
   extends Omit<ImageProps, "onLoad" | "onError"> {
@@ -82,7 +83,7 @@ export default function ImageWithSkeleton({
       {/* Error State */}
       {hasError ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 text-slate-500 light:bg-white/85 light:text-slate-600 text-xs p-3 text-center">
-          <span className="text-xl mb-1">🖼️</span>
+          <Icon name="image" size={22} className="mb-1" />
           <span>{fallbackText || "Unable to display image"}</span>
         </div>
       ) : (

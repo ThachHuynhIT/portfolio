@@ -92,8 +92,8 @@ export default function ResumeFilePicker({
           </div>
         ) : (
           <>
-            <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400 text-base">
-              📄
+            <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400">
+              <Icon name="fileText" size={16} />
             </div>
             <p className="text-xs font-medium text-slate-300">
               {value ? "Click to replace the PDF" : "Click to select a PDF file"}
@@ -104,8 +104,8 @@ export default function ResumeFilePicker({
 
       {value && (
         <div className="flex items-center gap-3 p-2.5 bg-slate-950/60 border border-white/10 rounded-xl mt-2">
-          <div className="w-10 h-10 rounded-lg bg-violet-500/10 flex items-center justify-center flex-shrink-0 text-lg">
-            📄
+          <div className="w-10 h-10 rounded-lg bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+            <Icon name="fileText" size={18} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs text-slate-300 font-mono truncate" title={value}>

@@ -7,6 +7,7 @@ import AdminModal from "@/components/admin/AdminModal";
 import FormField from "@/components/admin/FormField";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
+import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/TranslationContext";
 import type {
@@ -767,7 +768,7 @@ export default function CoupleAdminPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <span>📸 {t.admin.couple.tabs.photos}</span>
+          <span className="inline-flex items-center gap-1"><Icon name="camera" size={13} /> {t.admin.couple.tabs.photos}</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
             {data?.photos?.length || 0}
           </span>
@@ -781,7 +782,7 @@ export default function CoupleAdminPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <span>📖 {t.admin.couple.tabs.memories}</span>
+          <span className="inline-flex items-center gap-1"><Icon name="bookOpen" size={13} /> {t.admin.couple.tabs.memories}</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
             {data?.memories?.length || 0}
           </span>
@@ -795,7 +796,7 @@ export default function CoupleAdminPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <span>🎂 {t.admin.couple.tabs.dates}</span>
+          <span className="inline-flex items-center gap-1"><Icon name="cake" size={13} /> {t.admin.couple.tabs.dates}</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
             {(data?.birthdays?.length || 0) + (data?.specialDates?.length || 0)}
           </span>
@@ -809,7 +810,7 @@ export default function CoupleAdminPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <span>✅ {t.admin.couple.tabs.bucketList}</span>
+          <span className="inline-flex items-center gap-1"><Icon name="checkCircle" size={13} /> {t.admin.couple.tabs.bucketList}</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
             {data?.bucketList?.length || 0}
           </span>
@@ -823,7 +824,7 @@ export default function CoupleAdminPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <span>💌 {t.admin.couple.tabs.loveLetters}</span>
+          <span className="inline-flex items-center gap-1"><Icon name="mail" size={13} /> {t.admin.couple.tabs.loveLetters}</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
             {data?.loveLetters?.length || 0}
           </span>
@@ -837,7 +838,7 @@ export default function CoupleAdminPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          <span>💝 {t.admin.couple.tabs.favorites}</span>
+          <span className="inline-flex items-center gap-1"><Icon name="gift" size={13} /> {t.admin.couple.tabs.favorites}</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
             {data?.favorites?.length || 0}
           </span>
@@ -851,7 +852,7 @@ export default function CoupleAdminPage() {
               : "text-slate-400 hover:text-white"
           }`}
         >
-          ⚙️ {t.admin.couple.tabs.info}
+          <Icon name="settings" size={13} className="inline mr-1" /> {t.admin.couple.tabs.info}
         </button>
       </div>
 
@@ -869,7 +870,7 @@ export default function CoupleAdminPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-pink-500/50"
               />
-              <span className="absolute left-3 top-2.5 text-slate-500 text-xs">🔍</span>
+              <span className="absolute left-3 top-2.5 text-slate-500"><Icon name="search" size={13} /></span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -900,7 +901,7 @@ export default function CoupleAdminPage() {
 
           {filteredPhotos.length === 0 ? (
             <div className="py-16 text-center border border-dashed border-white/10 rounded-2xl bg-slate-900/30">
-              <div className="text-4xl mb-3">🖼️</div>
+              <div className="flex justify-center mb-3"><Icon name="image" size={32} /></div>
               <p className="text-slate-400 text-sm mb-4">{t.admin.common.noData}</p>
               <button
                 onClick={openCreatePhoto}
@@ -929,8 +930,8 @@ export default function CoupleAdminPage() {
                     )}
                     <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
                       {photo.featured && (
-                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-500 text-white shadow-md">
-                          ❤️ {t.admin.common.featured}
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-500 text-white shadow-md">
+                          <Icon name="heart" size={11} filled /> {t.admin.common.featured}
                         </span>
                       )}
                       {renderPublishBadge("photos", photo)}
@@ -940,10 +941,10 @@ export default function CoupleAdminPage() {
                   <div className="p-4 flex-1 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
-                        <span>📅 {photo.date}</span>
+                        <span className="inline-flex items-center gap-1"><Icon name="calendar" size={11} /> {photo.date}</span>
                         {photo.location && (
-                          <span className="text-pink-400 font-medium truncate max-w-[140px]">
-                            📍 {photo.location}
+                          <span className="text-pink-400 font-medium truncate max-w-[140px] inline-flex items-center gap-1">
+                            <Icon name="mapPin" size={11} /> {photo.location}
                           </span>
                         )}
                       </div>
@@ -1001,7 +1002,7 @@ export default function CoupleAdminPage() {
 
           {(data?.memories || []).length === 0 ? (
             <div className="py-16 text-center border border-dashed border-white/10 rounded-2xl bg-slate-900/30">
-              <div className="text-4xl mb-3">📖</div>
+              <div className="flex justify-center mb-3"><Icon name="bookOpen" size={32} /></div>
               <p className="text-slate-400 text-sm">{t.admin.common.noData}</p>
             </div>
           ) : (
@@ -1059,7 +1060,7 @@ export default function CoupleAdminPage() {
             <div className="flex justify-between items-center border-b border-white/8 pb-3">
               <div>
                 <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <span>🎂 {t.admin.couple.tabs.dates}</span>
+                  <Icon name="cake" size={16} /> {t.admin.couple.tabs.dates}
                 </h2>
                 <p className="text-xs text-slate-400">{t.admin.couple.description}</p>
               </div>
@@ -1119,7 +1120,7 @@ export default function CoupleAdminPage() {
             <div className="flex justify-between items-center border-b border-white/8 pb-3">
               <div>
                 <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <span>📅 {t.admin.couple.tabs.dates}</span>
+                  <Icon name="calendar" size={16} /> {t.admin.couple.tabs.dates}
                 </h2>
                 <p className="text-xs text-slate-400">{t.admin.couple.description}</p>
               </div>
@@ -1211,7 +1212,7 @@ export default function CoupleAdminPage() {
                         : "border-slate-600 hover:border-pink-400 bg-slate-950"
                     }`}
                   >
-                    {item.done && "✓"}
+                    {item.done && <Icon name="check" size={11} />}
                   </button>
                   <span className="text-lg flex-shrink-0">{item.emoji || "🌟"}</span>
                   <span
@@ -1227,10 +1228,10 @@ export default function CoupleAdminPage() {
                   {renderPublishBadge("bucketList", item)}
                   <button
                     onClick={() => openEditBucket(item)}
-                    className="p-1 text-slate-400 hover:text-white text-xs"
+                    className="p-1 text-slate-400 hover:text-white"
                     title={t.admin.common.edit}
                   >
-                    ✏️
+                    <Icon name="edit" size={13} />
                   </button>
                   <button
                     onClick={() =>
@@ -1242,10 +1243,10 @@ export default function CoupleAdminPage() {
                         title: item.text,
                       })
                     }
-                    className="p-1 text-rose-400 hover:text-rose-300 text-xs"
+                    className="p-1 text-rose-400 hover:text-rose-300"
                     title={t.admin.common.delete}
                   >
-                    🗑️
+                    <Icon name="trash" size={13} />
                   </button>
                 </div>
               </div>
@@ -1275,7 +1276,7 @@ export default function CoupleAdminPage() {
               >
                 <div>
                   <div className="flex items-center justify-between text-xs text-pink-400 font-semibold mb-3">
-                    <span>💌 {letter.from}</span>
+                    <span className="inline-flex items-center gap-1"><Icon name="mail" size={12} /> {letter.from}</span>
                     <div className="flex items-center gap-2">
                       <span className="text-slate-500 font-normal">{letter.date}</span>
                       {renderPublishBadge("loveLetters", letter)}
@@ -1531,7 +1532,7 @@ export default function CoupleAdminPage() {
               onChange={(e) => setPhotoForm({ ...photoForm, featured: e.target.checked })}
               className="rounded border-white/20 text-pink-600 focus:ring-pink-500 bg-slate-950 w-4 h-4"
             />
-            <span>❤️ {t.admin.photography.fieldFeatured}</span>
+            <span className="inline-flex items-center gap-1"><Icon name="heart" size={13} /> {t.admin.photography.fieldFeatured}</span>
           </label>
         </div>
       </AdminModal>

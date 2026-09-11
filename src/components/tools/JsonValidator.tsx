@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Icon from '@/components/ui/Icon';
 
 interface ValidationResult {
   suffix: string;
@@ -224,7 +225,9 @@ export default function JsonValidator() {
         onDrop={handleDrop}
       >
         <div className="text-center space-y-4">
-          <div className="text-6xl">📁</div>
+          <div className="flex justify-center text-white/70">
+            <Icon name="folder" size={56} />
+          </div>
           <h2 className="text-2xl font-bold text-white">
             Drag and drop files or folder here
           </h2>
@@ -242,8 +245,8 @@ export default function JsonValidator() {
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <div className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
-                📄 Choose Files
+              <div className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors inline-flex items-center gap-2">
+                <Icon name="fileText" size={16} /> Choose Files
               </div>
             </label>
 
@@ -258,8 +261,8 @@ export default function JsonValidator() {
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <div className="px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white rounded-lg transition-colors">
-                📂 Choose Folder
+              <div className="px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white rounded-lg transition-colors inline-flex items-center gap-2">
+                <Icon name="folderOpen" size={16} /> Choose Folder
               </div>
             </label>
           </div>
@@ -280,10 +283,10 @@ export default function JsonValidator() {
             {files.map((file, index) => (
               <div
                 key={index}
-                className="bg-gray-900/50 rounded px-3 py-2 text-gray-300 text-sm truncate"
+                className="bg-gray-900/50 rounded px-3 py-2 text-gray-300 text-sm truncate flex items-center gap-1.5"
                 title={file.name}
               >
-                📄 {file.name}
+                <Icon name="fileText" size={13} className="shrink-0" /> {file.name}
               </div>
             ))}
           </div>
@@ -304,11 +307,11 @@ export default function JsonValidator() {
                   </span>
                 </div>
                 <div className="grid md:grid-cols-2 gap-2 text-sm">
-                  <div className="text-red-300">
-                    🔴 {group.exceptionFile?.name}
+                  <div className="text-red-300 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-red-400 shrink-0" /> {group.exceptionFile?.name}
                   </div>
-                  <div className="text-green-300">
-                    🟢 {group.parameterFile?.name}
+                  <div className="text-green-300 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" /> {group.parameterFile?.name}
                   </div>
                 </div>
               </div>
@@ -320,9 +323,17 @@ export default function JsonValidator() {
             <button
               onClick={validateAllFiles}
               disabled={loading}
-              className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105"
+              className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 inline-flex items-center gap-2"
             >
-              {loading ? '⏳ Validating...' : '🔍 Validate All'}
+              {loading ? (
+                <>
+                  <Icon name="loader" size={16} className="animate-spin" /> Validating...
+                </>
+              ) : (
+                <>
+                  <Icon name="search" size={16} /> Validate All
+                </>
+              )}
             </button>
           </div>
         </motion.div>
@@ -335,7 +346,9 @@ export default function JsonValidator() {
           animate={{ opacity: 1 }}
           className="bg-red-500/20 border border-red-500 rounded-lg p-4"
         >
-          <p className="text-red-300 font-semibold">❌ Error: {error}</p>
+          <p className="text-red-300 font-semibold flex items-center gap-2">
+            <Icon name="xCircle" size={16} /> Error: {error}
+          </p>
         </motion.div>
       )}
 
@@ -350,8 +363,8 @@ export default function JsonValidator() {
           >
             {/* Summary */}
             <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-4">
-                📊 Results Summary
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <Icon name="activity" size={20} /> Results Summary
               </h2>
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="bg-blue-500/20 rounded-lg p-4 border border-blue-500/30">
@@ -387,18 +400,18 @@ export default function JsonValidator() {
                     {result.suffix}
                   </span>
                   {result.missingIds.length === 0 ? (
-                    <span className="text-green-400 text-xl">✅</span>
+                    <Icon name="checkCircle" size={22} className="text-green-400" />
                   ) : (
-                    <span className="text-red-400 text-xl">⚠️</span>
+                    <Icon name="alertTriangle" size={22} className="text-red-400" />
                   )}
                 </div>
 
                 <div className="space-y-2 mb-4 text-sm">
-                  <p className="text-red-300">
-                    🔴 Exception: <span className="font-mono">{result.exceptionFile}</span>
+                  <p className="text-red-300 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-red-400 shrink-0" /> Exception: <span className="font-mono">{result.exceptionFile}</span>
                   </p>
-                  <p className="text-green-300">
-                    🟢 Parameter: <span className="font-mono">{result.parameterFile}</span>
+                  <p className="text-green-300 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" /> Parameter: <span className="font-mono">{result.parameterFile}</span>
                   </p>
                 </div>
 
@@ -419,8 +432,8 @@ export default function JsonValidator() {
 
                 {result.missingIds.length > 0 ? (
                   <div>
-                    <h3 className="text-lg font-bold text-red-300 mb-3">
-                      ⚠️ Missing IDs:
+                    <h3 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">
+                      <Icon name="alertTriangle" size={18} /> Missing IDs:
                     </h3>
                     <div className="bg-gray-900/50 rounded-lg p-4 max-h-64 overflow-y-auto">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -437,8 +450,8 @@ export default function JsonValidator() {
                   </div>
                 ) : (
                   <div className="bg-green-500/20 border border-green-500 rounded-lg p-4">
-                    <p className="text-green-300 font-semibold text-center">
-                      ✅ All IDs are valid!
+                    <p className="text-green-300 font-semibold text-center flex items-center justify-center gap-2">
+                      <Icon name="checkCircle" size={16} /> All IDs are valid!
                     </p>
                   </div>
                 )}

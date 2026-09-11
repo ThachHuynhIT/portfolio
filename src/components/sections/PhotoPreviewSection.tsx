@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { AnimatedSection, GlassCard, ImageWithSkeleton } from "@/components/ui";
+import { AnimatedSection, GlassCard, ImageWithSkeleton, Icon } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
 import cloudinaryImageLoader from "@/lib/cloudinary-image-loader";
 import type { PhotoItem } from "@/lib/types";
@@ -125,8 +125,8 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
               >
                 <div className="space-y-2 max-w-xl">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-400 text-black shadow-sm">
-                      ⭐ {t("photography.featured")}
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-400 text-black shadow-sm">
+                      <Icon name="star" size={11} /> {t("photography.featured")}
                     </span>
                     {currentPhoto.category && (
                       <span className="px-3 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white backdrop-blur-md border border-white/15">
@@ -135,7 +135,7 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
                     )}
                     {currentPhoto.camera?.model && (
                       <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-black/60 text-cyan-300 border border-cyan-500/20">
-                        📷 {currentPhoto.camera.make} {currentPhoto.camera.model}
+                        <Icon name="camera" size={11} /> {currentPhoto.camera.make} {currentPhoto.camera.model}
                       </span>
                     )}
                   </div>
@@ -152,7 +152,7 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
 
                   {photoLoc && (
                     <p className="text-cyan-400/90 text-xs flex items-center gap-1 font-medium">
-                      <span>📍</span> {photoLoc}
+                      <Icon name="mapPin" size={12} /> {photoLoc}
                     </p>
                   )}
                 </div>
@@ -170,14 +170,14 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
               aria-label="Previous photo"
               className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/50 hover:bg-black/80 text-white/80 hover:text-white border border-white/15 flex items-center justify-center backdrop-blur-md transition-all duration-200 z-30 shadow-lg active:scale-95"
             >
-              ←
+              <Icon name="arrowLeft" size={18} />
             </button>
             <button
               onClick={nextSlide}
               aria-label="Next photo"
               className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/50 hover:bg-black/80 text-white/80 hover:text-white border border-white/15 flex items-center justify-center backdrop-blur-md transition-all duration-200 z-30 shadow-lg active:scale-95"
             >
-              →
+              <Icon name="arrowRight" size={18} />
             </button>
           </div>
 
@@ -229,7 +229,7 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
           >
             <span>{t("photoPreview.viewAll")}</span>
             <span className="transition-transform duration-200 group-hover:translate-x-1">
-              →
+              <Icon name="arrowRight" size={16} />
             </span>
           </Link>
         </div>

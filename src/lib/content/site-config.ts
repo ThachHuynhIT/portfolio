@@ -1,8 +1,8 @@
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
-import type { SiteConfig } from "@/lib/types";
-import type { CmsSiteConfig } from "@/generated/prisma";
+import type { SiteConfig, SiteSectionsContent } from "@/lib/types";
+import type { CmsSiteConfig, Prisma } from "@/generated/prisma";
 
 const SINGLETON_ID = "singleton";
 
@@ -27,6 +27,7 @@ const DEFAULT_CONFIG: Omit<CmsSiteConfig, "id" | "updatedAt"> = {
   authorLocation: "Go Vap, Ho Chi Minh City, Vietnam",
   authorLocationVi: "Phường Gò Vấp, Thành phố Hồ Chí Minh, Việt Nam",
   resumeUrl: null,
+  sectionsContent: {},
 };
 
 function toSiteConfig(row: CmsSiteConfig): SiteConfig {
@@ -50,6 +51,7 @@ function toSiteConfig(row: CmsSiteConfig): SiteConfig {
       location: row.authorLocation,
       location_vi: row.authorLocationVi ?? undefined,
     },
+    sectionsContent: (row.sectionsContent as SiteSectionsContent | null) ?? {},
   };
 }
 
@@ -57,7 +59,11 @@ export async function getSiteConfig(): Promise<SiteConfig> {
   const row = await db.cmsSiteConfig.upsert({
     where: { id: SINGLETON_ID },
     update: {},
-    create: { id: SINGLETON_ID, ...DEFAULT_CONFIG },
+    create: {
+      id: SINGLETON_ID,
+      ...DEFAULT_CONFIG,
+      sectionsContent: DEFAULT_CONFIG.sectionsContent as Prisma.InputJsonValue,
+    },
   });
   return toSiteConfig(row);
 }
@@ -96,6 +102,7 @@ export async function replaceSiteConfig(config: SiteConfig): Promise<SiteConfig>
       authorEmail: config.author.email,
       authorLocation: config.author.location,
       authorLocationVi: config.author.location_vi,
+      sectionsContent: (config.sectionsContent ?? {}) as Prisma.InputJsonValue,
     },
     update: {
       name: config.name,
@@ -115,6 +122,7 @@ export async function replaceSiteConfig(config: SiteConfig): Promise<SiteConfig>
       authorEmail: config.author.email,
       authorLocation: config.author.location,
       authorLocationVi: config.author.location_vi,
+      sectionsContent: (config.sectionsContent ?? {}) as Prisma.InputJsonValue,
     },
   });
   return toSiteConfig(row);

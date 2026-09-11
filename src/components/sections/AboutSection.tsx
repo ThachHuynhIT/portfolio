@@ -4,16 +4,25 @@ import { motion } from "framer-motion";
 import { AnimatedSection, GlassCard } from "@/components/ui";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
+import { resolveSectionText, resolveStatValue } from "@/lib/content-overrides";
+import { ABOUT_STAT_DEFS } from "@/lib/section-defaults";
+import type { SiteConfig } from "@/lib/types";
 
-export default function AboutSection() {
-  const { t } = useTranslation();
+export interface AboutSectionProps {
+  siteConfig: SiteConfig;
+}
 
-  const stats = [
-    { label: t("about.stats.years"), value: "3+" },
-    { label: t("about.stats.projects"), value: "3+" },
-    { label: t("about.stats.clients"), value: "3+" },
-    { label: t("about.stats.tech"), value: "9+" },
-  ];
+export default function AboutSection({ siteConfig }: AboutSectionProps) {
+  const { t, locale } = useTranslation();
+  const about = siteConfig.sectionsContent?.about;
+
+  const stats = ABOUT_STAT_DEFS.map((def, i) => {
+    const override = about?.stats?.[i];
+    return {
+      label: resolveSectionText(locale, override?.label, override?.label_vi, t(`about.stats.${def.key}`)),
+      value: resolveStatValue(locale, override, def.fallbackValue),
+    };
+  });
 
   return (
     <section id="about" className="relative py-32 overflow-hidden">
@@ -24,12 +33,12 @@ export default function AboutSection() {
         <AnimatedSection>
           <div className="text-center mb-16">
             <span className="text-sm text-purple-500 font-medium tracking-wider uppercase mb-4 block">
-              {t("about.badge")}
+              {resolveSectionText(locale, about?.badge, about?.badge_vi, t("about.badge"))}
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">
-              {t("about.titlePrefix")}
+              {resolveSectionText(locale, about?.titlePrefix, about?.titlePrefix_vi, t("about.titlePrefix"))}
               <span className="bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent">
-                {t("about.titleHighlight")}
+                {resolveSectionText(locale, about?.titleHighlight, about?.titleHighlight_vi, t("about.titleHighlight"))}
               </span>
             </h2>
           </div>
@@ -40,12 +49,12 @@ export default function AboutSection() {
           <AnimatedSection>
             <GlassCard className="p-8">
               <h3 className="text-2xl font-semibold text-white light:text-neutral-900 mb-6">
-                {t("about.role")}
+                {resolveSectionText(locale, about?.role, about?.role_vi, t("about.role"))}
               </h3>
               <div className="space-y-4 text-white/70 light:text-neutral-600 leading-relaxed">
-                <p>{t("about.bioP1")}</p>
-                <p>{t("about.bioP2")}</p>
-                <p>{t("about.bioP3")}</p>
+                <p>{resolveSectionText(locale, about?.bioP1, about?.bioP1_vi, t("about.bioP1"))}</p>
+                <p>{resolveSectionText(locale, about?.bioP2, about?.bioP2_vi, t("about.bioP2"))}</p>
+                <p>{resolveSectionText(locale, about?.bioP3, about?.bioP3_vi, t("about.bioP3"))}</p>
               </div>
             </GlassCard>
           </AnimatedSection>
@@ -58,8 +67,8 @@ export default function AboutSection() {
             viewport={{ once: true }}
             className="grid grid-cols-2 gap-4"
           >
-            {stats.map((stat) => (
-              <motion.div key={stat.label} variants={fadeInUp}>
+            {stats.map((stat, i) => (
+              <motion.div key={ABOUT_STAT_DEFS[i].key} variants={fadeInUp}>
                 <GlassCard className="text-center p-6 h-full">
                   <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent mb-2">
                     {stat.value}

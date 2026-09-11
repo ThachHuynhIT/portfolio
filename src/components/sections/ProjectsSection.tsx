@@ -3,17 +3,19 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { AnimatedSection, GlassCard, TiltCard, Button, ImageWithSkeleton } from "@/components/ui";
+import { AnimatedSection, GlassCard, TiltCard, Button, ImageWithSkeleton, Icon } from "@/components/ui";
 import { staggerContainer, fadeInUp } from "@/lib/animations";
-import { Project } from "@/lib/types";
+import { Project, ProjectsSectionContent, SiteConfig } from "@/lib/types";
 import { useTranslation } from "@/context/LanguageContext";
+import { resolveSectionText } from "@/lib/content-overrides";
 
 interface ProjectModalProps {
   project: Project | null;
   onClose: () => void;
+  projectsCopy: ProjectsSectionContent | undefined;
 }
 
-function ProjectModal({ project, onClose }: ProjectModalProps) {
+function ProjectModal({ project, onClose, projectsCopy }: ProjectModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
@@ -105,10 +107,10 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
           {/* Close button */}
           <button
             onClick={onClose}
-            aria-label={t("projects.closeModal")}
+            aria-label={resolveSectionText(locale, projectsCopy?.closeModal, projectsCopy?.closeModal_vi, t("projects.closeModal"))}
             className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 flex items-center justify-center text-white/60 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] transition-all z-20"
           >
-            ✕
+            <Icon name="close" size={16} />
           </button>
 
           {/* Project Image */}
@@ -122,13 +124,13 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
                 className="object-cover"
               />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-6xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20">
-                🚀
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-cyan-500/20 text-purple-300">
+                <Icon name="rocket" size={48} />
               </div>
             )}
             {project.featured && (
               <div className="absolute top-3 left-3 px-3 py-1 text-xs font-semibold text-white bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full shadow-md">
-                {t("projects.featuredBadge")}
+                {resolveSectionText(locale, projectsCopy?.featuredBadge, projectsCopy?.featuredBadge_vi, t("projects.featuredBadge"))}
               </div>
             )}
           </div>
@@ -158,7 +160,7 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
                   window.open(project.liveUrl, "_blank", "noopener,noreferrer")
                 }
               >
-                {t("projects.viewLive")}
+                {resolveSectionText(locale, projectsCopy?.viewLive, projectsCopy?.viewLive_vi, t("projects.viewLive"))}
               </Button>
             )}
             {project.githubUrl && (
@@ -168,7 +170,7 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
                   window.open(project.githubUrl, "_blank", "noopener,noreferrer")
                 }
               >
-                {t("projects.sourceCode")}
+                {resolveSectionText(locale, projectsCopy?.sourceCode, projectsCopy?.sourceCode_vi, t("projects.sourceCode"))}
               </Button>
             )}
           </div>
@@ -180,11 +182,13 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
 
 export interface ProjectsSectionProps {
   projects: Project[];
+  siteConfig: SiteConfig;
 }
 
-export default function ProjectsSection({ projects }: ProjectsSectionProps) {
+export default function ProjectsSection({ projects, siteConfig }: ProjectsSectionProps) {
   const { t, locale } = useTranslation();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const projectsCopy = siteConfig.sectionsContent?.projects;
 
   // Pick featured projects for homepage display (compact 6 projects)
   const featuredProjects = useMemo(() => {
@@ -201,16 +205,16 @@ export default function ProjectsSection({ projects }: ProjectsSectionProps) {
         <AnimatedSection>
           <div className="text-center mb-16">
             <span className="text-xs text-purple-400 font-semibold tracking-widest uppercase mb-3 block">
-              {t("projects.badge")}
+              {resolveSectionText(locale, projectsCopy?.badge, projectsCopy?.badge_vi, t("projects.badge"))}
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-4 tracking-tight">
-              {t("projects.titlePrefix")}
+              {resolveSectionText(locale, projectsCopy?.titlePrefix, projectsCopy?.titlePrefix_vi, t("projects.titlePrefix"))}
               <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
-                {t("projects.titleHighlight")}
+                {resolveSectionText(locale, projectsCopy?.titleHighlight, projectsCopy?.titleHighlight_vi, t("projects.titleHighlight"))}
               </span>
             </h2>
             <p className="text-white/60 light:text-neutral-500 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-              {t("projects.subtitle")}
+              {resolveSectionText(locale, projectsCopy?.subtitle, projectsCopy?.subtitle_vi, t("projects.subtitle"))}
             </p>
           </div>
         </AnimatedSection>
@@ -245,13 +249,13 @@ export default function ProjectsSection({ projects }: ProjectsSectionProps) {
                           className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-4xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20">
-                          🚀
+                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-cyan-500/20 text-purple-300">
+                          <Icon name="rocket" size={32} />
                         </div>
                       )}
                       {project.featured && (
                         <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 text-[11px] font-semibold text-white bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full shadow-md shadow-purple-500/30">
-                          {t("projects.featuredBadge")}
+                          {resolveSectionText(locale, projectsCopy?.featuredBadge, projectsCopy?.featuredBadge_vi, t("projects.featuredBadge"))}
                         </div>
                       )}
                     </div>
@@ -288,9 +292,9 @@ export default function ProjectsSection({ projects }: ProjectsSectionProps) {
             href="/projects"
             className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold text-white light:text-neutral-900 bg-white/[0.06] light:bg-neutral-900/[0.05] hover:bg-white/[0.12] light:hover:bg-neutral-900/[0.08] border border-white/15 light:border-neutral-900/10 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
           >
-            <span>{t("projects.viewAll")}</span>
+            <span>{resolveSectionText(locale, projectsCopy?.viewAll, projectsCopy?.viewAll_vi, t("projects.viewAll"))}</span>
             <span className="transition-transform duration-200 group-hover:translate-x-1">
-              →
+              <Icon name="arrowRight" size={16} />
             </span>
           </Link>
         </div>
@@ -302,6 +306,7 @@ export default function ProjectsSection({ projects }: ProjectsSectionProps) {
           <ProjectModal
             project={selectedProject}
             onClose={() => setSelectedProject(null)}
+            projectsCopy={projectsCopy}
           />
         )}
       </AnimatePresence>
