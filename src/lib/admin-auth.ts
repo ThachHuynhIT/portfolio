@@ -35,14 +35,19 @@ function sha256(value: string): Buffer {
   return crypto.createHash("sha256").update(value).digest();
 }
 
+const HEX_64 = /^[0-9a-f]{64}$/i;
+
 /**
- * Verify that the provided password matches the admin password.
- * Constant-time comparison of equal-length digests avoids leaking the
- * password length/prefix through response-timing differences.
+ * Verify a client-hashed password: the client sends SHA-256(password) as a
+ * 64-char hex digest instead of the plaintext, so the raw password never
+ * appears in the request body. Compares against SHA-256(ADMIN_PASSWORD)
+ * using a constant-time comparison of equal-length digests to avoid leaking
+ * a match/mismatch through response-timing differences.
  */
-export function verifyPassword(password: string): boolean {
+export function verifyPasswordHash(passwordHash: string): boolean {
+  if (!HEX_64.test(passwordHash)) return false;
   const expected = sha256(getAdminPassword());
-  const actual = sha256(password);
+  const actual = Buffer.from(passwordHash.toLowerCase(), "hex");
   return crypto.timingSafeEqual(actual, expected);
 }
 

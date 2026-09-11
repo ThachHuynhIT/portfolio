@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import { Button } from "@/components/ui";
+import { Button, CVPreviewModal } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
 import type { SiteConfig } from "@/lib/types";
@@ -26,6 +26,7 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
   const { resolvedTheme } = useTheme();
 
   const [isMounted, setIsMounted] = useState(false);
+  const [isCVOpen, setIsCVOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -33,13 +34,6 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
 
   const handleViewWork = useCallback(() => {
     document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
-  }, []);
-
-  const handleDownloadCV = useCallback(() => {
-    const link = document.createElement("a");
-    link.href = "/resume.pdf";
-    link.download = "";
-    link.click();
   }, []);
 
   return (
@@ -135,27 +129,21 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
             <Button size="lg" variant="primary" onClick={handleViewWork}>
               {t("hero.viewWork")}
             </Button>
-            <Button size="lg" variant="outline" onClick={handleDownloadCV}>
-              {t("hero.downloadCV")}
-            </Button>
+            {siteConfig.resumeUrl && (
+              <Button size="lg" variant="outline" onClick={() => setIsCVOpen(true)}>
+                {t("hero.viewCV")}
+              </Button>
+            )}
           </motion.div>
         </div>
 
-        {/* Scroll Indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-6 h-10 rounded-full border-2 border-white/20 light:border-neutral-900/20 flex items-start justify-center p-2"
-          >
-            <motion.span className="w-1.5 h-1.5 rounded-full bg-white/60 light:bg-neutral-900/60" />
-          </motion.div>
-        </motion.div>
+        {siteConfig.resumeUrl && (
+          <CVPreviewModal
+            url={siteConfig.resumeUrl}
+            isOpen={isCVOpen}
+            onClose={() => setIsCVOpen(false)}
+          />
+        )}
       </div>
     </section>
   );

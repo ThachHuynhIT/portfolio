@@ -9,10 +9,10 @@ export default function AboutSection() {
   const { t } = useTranslation();
 
   const stats = [
-    { label: t("about.stats.years"), value: "5+" },
-    { label: t("about.stats.projects"), value: "50+" },
-    { label: t("about.stats.clients"), value: "30+" },
-    { label: t("about.stats.tech"), value: "20+" },
+    { label: t("about.stats.years"), value: "3+" },
+    { label: t("about.stats.projects"), value: "3+" },
+    { label: t("about.stats.clients"), value: "3+" },
+    { label: t("about.stats.tech"), value: "9+" },
   ];
 
   return (

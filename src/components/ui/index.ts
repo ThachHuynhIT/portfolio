@@ -15,3 +15,4 @@ export {
   TextSkeleton,
 } from "./Skeleton";
 export { default as ImageWithSkeleton } from "./ImageWithSkeleton";
+export { default as CVPreviewModal } from "./CVPreviewModal";

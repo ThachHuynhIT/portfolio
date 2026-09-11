@@ -6,6 +6,7 @@ import AdminHeader from "@/components/admin/AdminHeader";
 import AdminFormFooter from "@/components/admin/AdminFormFooter";
 import FormField from "@/components/admin/FormField";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
+import ResumeFilePicker from "@/components/admin/ResumeFilePicker";
 import LanguageTabSelector from "@/components/admin/LanguageTabSelector";
 import FlagIcon from "@/components/ui/FlagIcon";
 import { useToast } from "@/context/ToastContext";
@@ -360,6 +361,16 @@ export default function SiteConfigAdminPage() {
               category="site"
               subType="avatar"
               helperText="Personal portrait photo / author profile avatar."
+            />
+          </div>
+
+          <div className="space-y-4">
+            <ResumeFilePicker
+              label="Resume / CV (PDF)"
+              value={config.resumeUrl}
+              onChange={(url) => setConfig({ ...config, resumeUrl: url })}
+              id="author-resume"
+              helperText="Shown as the 'View CV' button on the homepage, previewed in-page as a PDF (English only, no download forced)."
             />
           </div>
 
