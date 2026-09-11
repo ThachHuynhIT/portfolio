@@ -12,6 +12,13 @@ import SectionJsonEditor from "@/components/admin/SectionJsonEditor";
 import FlagIcon from "@/components/ui/FlagIcon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
+import {
+  getAboutDefaults,
+  getContactDefaults,
+  getHeroDefaults,
+  getProjectsDefaults,
+  getSkillsDefaults,
+} from "@/lib/section-defaults";
 import type {
   AboutSectionContent,
   ContactSectionContent,
@@ -449,6 +456,7 @@ export default function SiteConfigAdminPage() {
             title="Hero Section Copy"
             helperText="Overrides the homepage Hero badge, greeting, bio, and buttons. Leave a field blank/omit it to use the site's default English/Vietnamese text (fields ending in _vi are the Vietnamese variant). Note: setting 'bio_vi' here takes priority over the Author tab's Vietnamese bio."
             value={config.sectionsContent?.hero}
+            defaultValue={getHeroDefaults()}
             onChange={(hero) =>
               setConfig({ ...config, sectionsContent: { ...config.sectionsContent, hero } })
             }
@@ -461,6 +469,7 @@ export default function SiteConfigAdminPage() {
             title="About Section Copy"
             helperText="Overrides the About badge/heading/role/bio paragraphs and the 4 stat cards shown (e.g. '3+ Years Experience'). 'stats' is a fixed 4-item array in order: years, projects, clients, tech — each item may have label/label_vi/value/value_vi."
             value={config.sectionsContent?.about}
+            defaultValue={getAboutDefaults()}
             onChange={(about) =>
               setConfig({ ...config, sectionsContent: { ...config.sectionsContent, about } })
             }
@@ -475,6 +484,7 @@ export default function SiteConfigAdminPage() {
             manageHref="/admin/skills"
             manageLabel="Manage Skills List →"
             value={config.sectionsContent?.skills}
+            defaultValue={getSkillsDefaults()}
             onChange={(skills) =>
               setConfig({ ...config, sectionsContent: { ...config.sectionsContent, skills } })
             }
@@ -489,6 +499,7 @@ export default function SiteConfigAdminPage() {
             manageHref="/admin/projects"
             manageLabel="Manage Projects List →"
             value={config.sectionsContent?.projects}
+            defaultValue={getProjectsDefaults()}
             onChange={(projects) =>
               setConfig({ ...config, sectionsContent: { ...config.sectionsContent, projects } })
             }
@@ -501,6 +512,7 @@ export default function SiteConfigAdminPage() {
             title="Contact Section Copy"
             helperText="Overrides Contact heading/form labels/placeholders/validation messages/buttons/banners/availability card."
             value={config.sectionsContent?.contact}
+            defaultValue={getContactDefaults()}
             onChange={(contact) =>
               setConfig({ ...config, sectionsContent: { ...config.sectionsContent, contact } })
             }

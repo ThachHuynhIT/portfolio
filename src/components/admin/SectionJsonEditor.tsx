@@ -6,24 +6,40 @@ export interface SectionJsonEditorProps<T extends object> {
   title: string;
   helperText?: string;
   value: T | undefined;
+  /**
+   * The section's currently effective copy (sourced from the locale files),
+   * used to pre-fill the editor when there is no saved override yet — so
+   * admins see real field names/values to start from instead of "{}".
+   * Purely a display seed: it is never written back unless the admin
+   * actually edits the textarea.
+   */
+  defaultValue?: T;
   onChange: (next: T) => void;
   manageHref?: string;
   manageLabel?: string;
+}
+
+function isEmptyValue(value: unknown): boolean {
+  return !value || (typeof value === "object" && Object.keys(value).length === 0);
 }
 
 export default function SectionJsonEditor<T extends object>({
   title,
   helperText,
   value,
+  defaultValue,
   onChange,
   manageHref,
   manageLabel,
 }: SectionJsonEditorProps<T>) {
-  const [text, setText] = useState(() => JSON.stringify(value ?? {}, null, 2));
+  const showingDefaults = isEmptyValue(value);
+  const [text, setText] = useState(() =>
+    JSON.stringify(showingDefaults ? defaultValue ?? {} : value, null, 2)
+  );
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setText(JSON.stringify(value ?? {}, null, 2));
+    setText(JSON.stringify(isEmptyValue(value) ? defaultValue ?? {} : value, null, 2));
     setError(null);
     // Only re-sync when the parent hands us a genuinely different object
     // (e.g. switching tabs or loading), not on every keystroke we emit.
@@ -42,7 +58,7 @@ export default function SectionJsonEditor<T extends object>({
   };
 
   const handleReset = () => {
-    setText("{}");
+    setText(JSON.stringify(defaultValue ?? {}, null, 2));
     setError(null);
     onChange({} as T);
   };
@@ -58,6 +74,11 @@ export default function SectionJsonEditor<T extends object>({
         )}
       </div>
       {helperText && <p className="text-xs text-gray-500">{helperText}</p>}
+      {showingDefaults && defaultValue && (
+        <p className="text-[11px] text-purple-300/80">
+          Showing the site&apos;s current default text — edit any field below to override it, or leave as-is.
+        </p>
+      )}
       <textarea
         value={text}
         onChange={(e) => handleChange(e.target.value)}

@@ -5,24 +5,18 @@ import { AnimatedSection, GlassCard } from "@/components/ui";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
 import { resolveSectionText, resolveStatValue } from "@/lib/content-overrides";
+import { ABOUT_STAT_DEFS } from "@/lib/section-defaults";
 import type { SiteConfig } from "@/lib/types";
 
 export interface AboutSectionProps {
   siteConfig: SiteConfig;
 }
 
-const STAT_DEFS = [
-  { key: "years", fallbackValue: "3+" },
-  { key: "projects", fallbackValue: "3+" },
-  { key: "clients", fallbackValue: "3+" },
-  { key: "tech", fallbackValue: "9+" },
-] as const;
-
 export default function AboutSection({ siteConfig }: AboutSectionProps) {
   const { t, locale } = useTranslation();
   const about = siteConfig.sectionsContent?.about;
 
-  const stats = STAT_DEFS.map((def, i) => {
+  const stats = ABOUT_STAT_DEFS.map((def, i) => {
     const override = about?.stats?.[i];
     return {
       label: resolveSectionText(locale, override?.label, override?.label_vi, t(`about.stats.${def.key}`)),
@@ -74,7 +68,7 @@ export default function AboutSection({ siteConfig }: AboutSectionProps) {
             className="grid grid-cols-2 gap-4"
           >
             {stats.map((stat, i) => (
-              <motion.div key={STAT_DEFS[i].key} variants={fadeInUp}>
+              <motion.div key={ABOUT_STAT_DEFS[i].key} variants={fadeInUp}>
                 <GlassCard className="text-center p-6 h-full">
                   <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent mb-2">
                     {stat.value}
