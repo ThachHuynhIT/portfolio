@@ -430,6 +430,7 @@ model CmsSiteConfig {
   authorLocation   String
   authorLocationVi String?
   resumeUrl        String?
+  sectionsContent  Json?
   updatedAt        DateTime @updatedAt
 
   @@map("cms_site_config")

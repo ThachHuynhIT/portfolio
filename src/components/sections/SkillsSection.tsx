@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedSection } from "@/components/ui";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
-import type { Skill } from "@/lib/types";
+import { resolveSectionText } from "@/lib/content-overrides";
+import type { Skill, SiteConfig } from "@/lib/types";
 
 const categories = ["frontend", "backend", "tools", "design"] as const;
 
@@ -20,13 +21,23 @@ const categoryIcons: Record<string, string> = {
 
 export interface SkillsSectionProps {
   skills: Skill[];
+  siteConfig: SiteConfig;
 }
 
-export default function SkillsSection({ skills }: SkillsSectionProps) {
-  const { t } = useTranslation();
+export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps) {
+  const { t, locale } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>("all");
+  const skillsCopy = siteConfig.sectionsContent?.skills;
 
   const publishedSkills = skills;
+
+  const categoryLabel = (cat: (typeof categories)[number]) =>
+    resolveSectionText(
+      locale,
+      skillsCopy?.categories?.[cat],
+      skillsCopy?.categories?.[`${cat}_vi`],
+      t(`skills.categories.${cat}`)
+    );
 
   const displayedCategories =
     selectedCategory === "all"
@@ -46,18 +57,18 @@ export default function SkillsSection({ skills }: SkillsSectionProps) {
           <div className="text-center mb-12">
             <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/[0.04] light:bg-neutral-900/[0.04] text-cyan-400 border border-white/10 light:border-neutral-900/10 mb-4 backdrop-blur-md">
               <span>⚡</span>
-              <span>{t("skills.badge")}</span>
+              <span>{resolveSectionText(locale, skillsCopy?.badge, skillsCopy?.badge_vi, t("skills.badge"))}</span>
             </span>
 
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-5 tracking-tight">
-              {t("skills.titlePrefix")}
+              {resolveSectionText(locale, skillsCopy?.titlePrefix, skillsCopy?.titlePrefix_vi, t("skills.titlePrefix"))}
               <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
-                {t("skills.titleHighlight")}
+                {resolveSectionText(locale, skillsCopy?.titleHighlight, skillsCopy?.titleHighlight_vi, t("skills.titleHighlight"))}
               </span>
             </h2>
 
             <p className="text-sm sm:text-base text-slate-300 light:text-neutral-600 max-w-2xl mx-auto font-light leading-relaxed">
-              {t("skills.subtitle")}
+              {resolveSectionText(locale, skillsCopy?.subtitle, skillsCopy?.subtitle_vi, t("skills.subtitle"))}
             </p>
           </div>
         </AnimatedSection>
@@ -102,7 +113,7 @@ export default function SkillsSection({ skills }: SkillsSectionProps) {
                 }`}
               >
                 <span>{categoryIcons[cat]}</span>
-                <span>{t(`skills.categories.${cat}`)}</span>
+                <span>{categoryLabel(cat)}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                     isSelected
@@ -151,10 +162,16 @@ export default function SkillsSection({ skills }: SkillsSectionProps) {
                       </div>
                       <div>
                         <h3 className="text-base font-bold text-white light:text-neutral-900">
-                          {t(`skills.categories.${category}`)}
+                          {categoryLabel(category)}
                         </h3>
                         <p className="text-xs text-slate-400 light:text-neutral-500">
-                          {categorySkills.length} {t("skills.badge").toLowerCase()}
+                          {categorySkills.length}{" "}
+                          {resolveSectionText(
+                            locale,
+                            skillsCopy?.badge,
+                            skillsCopy?.badge_vi,
+                            t("skills.badge")
+                          ).toLowerCase()}
                         </p>
                       </div>
                     </div>

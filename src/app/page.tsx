@@ -57,11 +57,11 @@ export default async function Home() {
     <>
       {/* Above-the-fold immediate render for instant FCP */}
       <HeroSection siteConfig={siteConfig} />
-      <AboutSection />
+      <AboutSection siteConfig={siteConfig} />
 
       {/* Below-the-fold code-split sections */}
-      <SkillsSection skills={skills} />
-      <ProjectsSection projects={projects} />
+      <SkillsSection skills={skills} siteConfig={siteConfig} />
+      <ProjectsSection projects={projects} siteConfig={siteConfig} />
       <PhotoPreviewSection photography={photography} />
       <BlogPreviewSection posts={recentPosts} />
       <ContactSection siteConfig={siteConfig} />

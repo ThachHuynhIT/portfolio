@@ -8,10 +8,30 @@ import FormField from "@/components/admin/FormField";
 import MediaImagePicker from "@/components/admin/MediaImagePicker";
 import ResumeFilePicker from "@/components/admin/ResumeFilePicker";
 import LanguageTabSelector from "@/components/admin/LanguageTabSelector";
+import SectionJsonEditor from "@/components/admin/SectionJsonEditor";
 import FlagIcon from "@/components/ui/FlagIcon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
-import type { SiteConfig } from "@/lib/types";
+import type {
+  AboutSectionContent,
+  ContactSectionContent,
+  HeroSectionContent,
+  ProjectsSectionContent,
+  SiteConfig,
+  SkillsSectionContent,
+} from "@/lib/types";
+
+type TabId = "general" | "author" | "hero" | "about" | "skills" | "projects" | "contact";
+
+const TABS: { id: TabId; icon: string; label: string }[] = [
+  { id: "general", icon: "⚙️", label: "General" },
+  { id: "author", icon: "👤", label: "Author" },
+  { id: "hero", icon: "🚀", label: "Hero" },
+  { id: "about", icon: "📝", label: "About" },
+  { id: "skills", icon: "🧠", label: "Skills" },
+  { id: "projects", icon: "💼", label: "Projects" },
+  { id: "contact", icon: "✉️", label: "Contact" },
+];
 
 export default function SiteConfigAdminPage() {
   const router = useRouter();
@@ -21,6 +41,7 @@ export default function SiteConfigAdminPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeLang, setActiveLang] = useState<"en" | "vi">("en");
+  const [activeTab, setActiveTab] = useState<TabId>("general");
 
   useEffect(() => {
     async function loadConfig() {
@@ -86,29 +107,56 @@ export default function SiteConfigAdminPage() {
         closeHref="/admin"
       />
 
-      {/* Multilingual Switcher Header */}
-      <LanguageTabSelector
-        activeLang={activeLang}
-        onChange={setActiveLang}
-        hasTranslation={{
-          en: Boolean(config.title?.trim() && config.author?.title?.trim()),
-          vi: Boolean(config.title_vi?.trim() && config.author?.title_vi?.trim()),
-        }}
-        label="Content Language / Ngôn ngữ đang sửa:"
-        className="mb-6"
-      />
+      {/* Section Tabs */}
+      <div className="flex border-b border-white/10 gap-1 overflow-x-auto pb-0.5 no-scrollbar mb-6">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={`pb-3 px-3.5 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === tab.id
+                ? "text-purple-400 border-b-2 border-purple-400"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <span>
+              {tab.icon} {tab.label}
+            </span>
+          </button>
+        ))}
+      </div>
 
-      {activeLang === "vi" && (
-        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs mb-6">
-          <FlagIcon locale="vi" width={16} height={11} />
-          <span>
-            Đang chỉnh sửa bản dịch <strong>Tiếng Việt</strong>. Nếu để trống trường nào, hệ thống sẽ tự động dùng giá trị mặc định của bản Tiếng Anh.
-          </span>
-        </div>
+      {/* Multilingual Switcher Header — only relevant to General/Author,
+          whose fields are conditionally rendered per language below. The
+          new section-copy tabs hold both languages in one JSON object. */}
+      {(activeTab === "general" || activeTab === "author") && (
+        <>
+          <LanguageTabSelector
+            activeLang={activeLang}
+            onChange={setActiveLang}
+            hasTranslation={{
+              en: Boolean(config.title?.trim() && config.author?.title?.trim()),
+              vi: Boolean(config.title_vi?.trim() && config.author?.title_vi?.trim()),
+            }}
+            label="Content Language / Ngôn ngữ đang sửa:"
+            className="mb-6"
+          />
+
+          {activeLang === "vi" && (
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs mb-6">
+              <FlagIcon locale="vi" width={16} height={11} />
+              <span>
+                Đang chỉnh sửa bản dịch <strong>Tiếng Việt</strong>. Nếu để trống trường nào, hệ thống sẽ tự động dùng giá trị mặc định của bản Tiếng Anh.
+              </span>
+            </div>
+          )}
+        </>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* General Site Info */}
+        {activeTab === "general" && (
         <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
           <div className="flex items-center justify-between pb-3 border-b border-gray-800">
             <h2 className="text-lg font-bold text-white">{t("admin.siteConfig.tabBasic", "General Information")}</h2>
@@ -209,8 +257,10 @@ export default function SiteConfigAdminPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Author Details */}
+        {activeTab === "author" && (
         <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
           <div className="flex items-center justify-between pb-3 border-b border-gray-800">
             <h2 className="text-lg font-bold text-white">{t("admin.siteConfig.tabContact", "Author Profile")}</h2>
@@ -391,6 +441,71 @@ export default function SiteConfigAdminPage() {
             </FormField>
           </div>
         </div>
+        )}
+
+        {/* Hero Section Copy */}
+        {activeTab === "hero" && (
+          <SectionJsonEditor<HeroSectionContent>
+            title="Hero Section Copy"
+            helperText="Overrides the homepage Hero badge, greeting, bio, and buttons. Leave a field blank/omit it to use the site's default English/Vietnamese text (fields ending in _vi are the Vietnamese variant). Note: setting 'bio_vi' here takes priority over the Author tab's Vietnamese bio."
+            value={config.sectionsContent?.hero}
+            onChange={(hero) =>
+              setConfig({ ...config, sectionsContent: { ...config.sectionsContent, hero } })
+            }
+          />
+        )}
+
+        {/* About Section Copy */}
+        {activeTab === "about" && (
+          <SectionJsonEditor<AboutSectionContent>
+            title="About Section Copy"
+            helperText="Overrides the About badge/heading/role/bio paragraphs and the 4 stat cards shown (e.g. '3+ Years Experience'). 'stats' is a fixed 4-item array in order: years, projects, clients, tech — each item may have label/label_vi/value/value_vi."
+            value={config.sectionsContent?.about}
+            onChange={(about) =>
+              setConfig({ ...config, sectionsContent: { ...config.sectionsContent, about } })
+            }
+          />
+        )}
+
+        {/* Skills Section Copy */}
+        {activeTab === "skills" && (
+          <SectionJsonEditor<SkillsSectionContent>
+            title="Skills Section Copy"
+            helperText="Overrides the Skills section heading/subtitle and category labels only. The skill list itself is managed on the Skills page."
+            manageHref="/admin/skills"
+            manageLabel="Manage Skills List →"
+            value={config.sectionsContent?.skills}
+            onChange={(skills) =>
+              setConfig({ ...config, sectionsContent: { ...config.sectionsContent, skills } })
+            }
+          />
+        )}
+
+        {/* Projects Section Copy */}
+        {activeTab === "projects" && (
+          <SectionJsonEditor<ProjectsSectionContent>
+            title="Projects Section Copy"
+            helperText="Overrides the Projects section heading/subtitle/button labels only. The project list itself is managed on the Projects page."
+            manageHref="/admin/projects"
+            manageLabel="Manage Projects List →"
+            value={config.sectionsContent?.projects}
+            onChange={(projects) =>
+              setConfig({ ...config, sectionsContent: { ...config.sectionsContent, projects } })
+            }
+          />
+        )}
+
+        {/* Contact Section Copy */}
+        {activeTab === "contact" && (
+          <SectionJsonEditor<ContactSectionContent>
+            title="Contact Section Copy"
+            helperText="Overrides Contact heading/form labels/placeholders/validation messages/buttons/banners/availability card."
+            value={config.sectionsContent?.contact}
+            onChange={(contact) =>
+              setConfig({ ...config, sectionsContent: { ...config.sectionsContent, contact } })
+            }
+          />
+        )}
 
         <AdminFormFooter
           closeHref="/admin"
