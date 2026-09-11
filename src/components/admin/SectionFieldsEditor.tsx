@@ -27,7 +27,7 @@ export default function SectionFieldsEditor<T extends object>({
   onChange,
 }: SectionFieldsEditorProps<T>) {
   const inputClass =
-    "w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder:text-gray-600 focus:outline-none focus:border-purple-500";
+    "w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500";
 
   return (
     <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
@@ -43,16 +43,21 @@ export default function SectionFieldsEditor<T extends object>({
 
       {fields.map((field) => {
         const inputId = `${title}-${field.id}`.replace(/[^a-zA-Z0-9-]/g, "-");
-        const val = field.getValue(value, activeLang);
+        const savedVal = field.getValue(value, activeLang);
         const placeholder = field.getPlaceholder(defaultValue, activeLang);
+        // Show the site's real current text as the editable value when no
+        // override has been typed yet, so admins see and can tweak the
+        // actual default instead of starting from a blank field.
+        const isCustomized = savedVal.trim().length > 0;
+        const displayVal = isCustomized ? savedVal : placeholder;
+        const helper = isCustomized ? undefined : "Showing site default — edit to override.";
         return (
-          <FormField key={field.id} label={field.label} id={inputId}>
+          <FormField key={field.id} label={field.label} id={inputId} helper={helper}>
             {field.multiline ? (
               <textarea
                 id={inputId}
                 rows={field.rows ?? 3}
-                value={val}
-                placeholder={placeholder}
+                value={displayVal}
                 onChange={(e) => onChange(field.setValue(value, activeLang, e.target.value))}
                 className={inputClass}
               />
@@ -60,8 +65,7 @@ export default function SectionFieldsEditor<T extends object>({
               <input
                 id={inputId}
                 type="text"
-                value={val}
-                placeholder={placeholder}
+                value={displayVal}
                 onChange={(e) => onChange(field.setValue(value, activeLang, e.target.value))}
                 className={inputClass}
               />
