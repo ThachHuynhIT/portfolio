@@ -926,9 +926,9 @@ export default function MediaAdminPage() {
                     href={selectedAsset.secureUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex-1 py-2 px-3 bg-white/5 hover:bg-white/10 text-slate-300 text-center rounded-xl text-xs font-medium transition-all"
+                    className="flex-1 py-2 px-3 bg-white/5 hover:bg-white/10 text-slate-300 text-center rounded-xl text-xs font-medium transition-all inline-flex items-center justify-center gap-1"
                   >
-                    {t.admin.media.openInNewTab}
+                    {t.admin.media.openInNewTab} <Icon name="externalLink" size={11} />
                   </a>
                   <button
                     onClick={() => setDeleteTarget(selectedAsset)}
