@@ -455,8 +455,9 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                     <p className="text-white/60 light:text-neutral-500">
                       {resolveSectionText(locale, contact?.workHours, contact?.workHours_vi, t("contact.workHours"))}
                     </p>
-                    <p className="text-green-500 text-sm mt-1">
-                      ● {resolveSectionText(locale, contact?.openForProjects, contact?.openForProjects_vi, t("contact.openForProjects"))}
+                    <p className="text-green-500 text-sm mt-1 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                      {resolveSectionText(locale, contact?.openForProjects, contact?.openForProjects_vi, t("contact.openForProjects"))}
                     </p>
                   </div>
                 </div>

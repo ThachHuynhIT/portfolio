@@ -519,8 +519,8 @@ export default function MediaAdminPage() {
                         className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                         preload="metadata"
                       />
-                      <div className="absolute w-10 h-10 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-white text-sm backdrop-blur-sm pointer-events-none group-hover:scale-110 transition-transform">
-                        ▶
+                      <div className="absolute w-10 h-10 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-white backdrop-blur-sm pointer-events-none group-hover:scale-110 transition-transform">
+                        <Icon name="play" size={16} />
                       </div>
                       {asset.duration ? (
                         <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/70 text-[10px] font-mono text-white">
