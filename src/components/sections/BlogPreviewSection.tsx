@@ -6,6 +6,7 @@ import { AnimatedSection, GlassCard, Icon } from "@/components/ui";
 import { staggerContainer, fadeInUp } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
 import type { BlogPost } from "@/lib/types";
+import { translateBlogCategory, translateReadTime } from "@/lib/content-overrides";
 
 interface BlogPreviewSectionProps {
   posts: BlogPost[];
@@ -60,10 +61,10 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
                       {/* Top metadata */}
                       <div className="flex items-center justify-between gap-2 mb-4">
                         <span className="inline-block px-3 py-1 text-xs font-semibold text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded-full">
-                          {post.category}
+                          {translateBlogCategory(post.category, locale)}
                         </span>
                         <span className="text-xs text-white/40 light:text-neutral-500 font-medium">
-                          {post.readTime}
+                          {translateReadTime(post.readTime, locale, t("blog.minRead"))}
                         </span>
                       </div>
 

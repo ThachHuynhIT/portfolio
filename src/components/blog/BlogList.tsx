@@ -5,6 +5,7 @@ import Link from "next/link";
 import { GlassCard } from "@/components/ui";
 import { BlogPost } from "@/lib/types";
 import { useTranslation } from "@/context/LanguageContext";
+import { translateBlogCategory, translateReadTime } from "@/lib/content-overrides";
 
 interface BlogListProps {
   posts: BlogPost[];
@@ -67,7 +68,7 @@ export default function BlogList({ posts, categories }: BlogListProps) {
                   : "text-white/70 bg-white/5 border border-white/10 hover:text-white hover:bg-white/10 light:text-neutral-700 light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06]"
               }`}
             >
-              {category}
+              {translateBlogCategory(category, locale)}
             </button>
           ))}
         </div>
@@ -79,7 +80,7 @@ export default function BlogList({ posts, categories }: BlogListProps) {
             <Link key={post.slug} href={`/blog/${post.slug}`}>
               <GlassCard className="h-full p-6 group cursor-pointer">
                 <span className="inline-block px-3 py-1 text-xs font-medium text-purple-400 bg-purple-500/10 rounded-full mb-4">
-                  {post.category}
+                  {translateBlogCategory(post.category, locale)}
                 </span>
 
                 <h2 className="text-xl font-semibold text-white light:text-neutral-900 mb-3 group-hover:text-purple-400 transition-colors">
@@ -101,7 +102,7 @@ export default function BlogList({ posts, categories }: BlogListProps) {
                       }
                     )}
                   </span>
-                  <span>{post.readTime}</span>
+                  <span>{translateReadTime(post.readTime, locale, t("blog.minRead"))}</span>
                 </div>
 
                 <div className="flex flex-wrap gap-2 mt-4">
