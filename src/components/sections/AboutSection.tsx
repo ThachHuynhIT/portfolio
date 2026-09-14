@@ -32,7 +32,7 @@ export default function AboutSection({ siteConfig }: AboutSectionProps) {
       <div className="container mx-auto px-6">
         <AnimatedSection>
           <div className="text-center mb-16">
-            <span className="text-sm text-purple-500 font-medium tracking-wider uppercase mb-4 block">
+            <span className="text-sm text-purple-500 light:text-purple-700 font-medium tracking-wider uppercase mb-4 block">
               {resolveSectionText(locale, about?.badge, about?.badge_vi, t("about.badge"))}
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">

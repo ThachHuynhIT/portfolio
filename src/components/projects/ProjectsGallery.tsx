@@ -185,7 +185,7 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
 
         {/* Page Header */}
         <div className="text-center mb-14">
-          <span className="text-xs text-purple-400 font-semibold tracking-widest uppercase mb-3 block">
+          <span className="text-xs text-purple-400 light:text-purple-700 font-semibold tracking-widest uppercase mb-3 block">
             {t("projects.badge")}
           </span>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-tight light:text-neutral-900">

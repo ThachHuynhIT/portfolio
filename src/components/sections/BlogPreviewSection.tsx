@@ -26,7 +26,7 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
         {/* Header */}
         <AnimatedSection>
           <div className="text-center mb-16">
-            <span className="text-xs text-purple-400 font-semibold tracking-widest uppercase mb-3 block">
+            <span className="text-xs text-purple-400 light:text-purple-700 font-semibold tracking-widest uppercase mb-3 block">
               {t("blogPreview.badge")}
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-4 tracking-tight">

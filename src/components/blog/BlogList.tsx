@@ -28,7 +28,7 @@ export default function BlogList({ posts, categories }: BlogListProps) {
     <>
       {/* Header */}
       <div className="text-center mb-16">
-        <span className="text-sm text-purple-500 font-medium tracking-wider uppercase mb-4 block">
+        <span className="text-sm text-purple-500 light:text-purple-700 font-medium tracking-wider uppercase mb-4 block">
           {t("blog.badge")}
         </span>
         <h1 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">

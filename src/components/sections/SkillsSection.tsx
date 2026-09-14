@@ -56,7 +56,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
         {/* ── Section Header ── */}
         <AnimatedSection>
           <div className="text-center mb-12">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/[0.04] light:bg-neutral-900/[0.04] text-cyan-400 border border-white/10 light:border-neutral-900/10 mb-4 backdrop-blur-md">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/[0.04] light:bg-neutral-900/[0.04] text-cyan-400 light:text-cyan-700 border border-white/10 light:border-neutral-900/10 mb-4 backdrop-blur-md">
               <Icon name="zap" size={14} />
               <span>{resolveSectionText(locale, skillsCopy?.badge, skillsCopy?.badge_vi, t("skills.badge"))}</span>
             </span>
