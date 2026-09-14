@@ -118,7 +118,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                 <span
                   className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                     isSelected
-                      ? "bg-black/30 text-white"
+                      ? "bg-black/30 text-white light:bg-white/20"
                       : "bg-white/10 light:bg-neutral-900/[0.06] text-slate-400 light:text-neutral-500"
                   }`}
                 >

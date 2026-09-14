@@ -60,7 +60,7 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
                     <div>
                       {/* Top metadata */}
                       <div className="flex items-center justify-between gap-2 mb-4">
-                        <span className="inline-block px-3 py-1 text-xs font-semibold text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded-full">
+                        <span className="inline-block px-3 py-1 text-xs font-semibold text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded-full light:text-purple-700">
                           {translateBlogCategory(post.category, locale)}
                         </span>
                         <span className="text-xs text-white/40 light:text-neutral-500 font-medium">

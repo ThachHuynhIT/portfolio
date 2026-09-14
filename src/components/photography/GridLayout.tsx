@@ -43,7 +43,7 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
             onClick={() => onSelectPhoto(photo)}
           >
             {/* Card Image */}
-            <div className="relative w-full aspect-[4/3] overflow-hidden bg-black/40">
+            <div className="relative w-full aspect-[4/3] overflow-hidden bg-black/40 light:bg-slate-100">
               <ImageWithSkeleton
                 src={photo.image}
                 alt={title}

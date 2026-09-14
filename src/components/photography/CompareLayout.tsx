@@ -104,7 +104,7 @@ export default function CompareLayout({ photos, onSelectPhoto }: CompareLayoutPr
             {(hasEditingInfo || hasCameraInfo) && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-4 border-t border-white/10 light:border-neutral-900/10">
                 {hasEditingInfo && (
-                  <div className="rounded-xl bg-purple-500/[0.04] border border-purple-500/20 p-4">
+                  <div className="rounded-xl bg-purple-500/[0.04] border border-purple-500/20 p-4 light:border-purple-500/25">
                     <span className="font-semibold text-purple-300 uppercase tracking-wider block mb-1 text-[10px] light:text-purple-700">
                       Post-Processing Workflow
                     </span>

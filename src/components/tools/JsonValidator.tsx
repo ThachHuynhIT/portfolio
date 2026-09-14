@@ -215,23 +215,23 @@ export default function JsonValidator() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`bg-white/10 backdrop-blur-lg rounded-xl p-8 border-2 border-dashed transition-all ${
+        className={`bg-white/10 light:bg-neutral-900/[0.06] backdrop-blur-lg rounded-xl p-8 border-2 border-dashed transition-all ${
           isDragging
             ? 'border-purple-500 bg-purple-500/20'
-            : 'border-white/20 hover:border-white/40'
+            : 'border-white/20 hover:border-white/40 light:border-neutral-900/15 light:hover:border-neutral-900/30'
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <div className="text-center space-y-4">
-          <div className="flex justify-center text-white/70">
+          <div className="flex justify-center text-white/70 light:text-neutral-700">
             <Icon name="folder" size={56} />
           </div>
-          <h2 className="text-2xl font-bold text-white">
+          <h2 className="text-2xl font-bold text-white light:text-neutral-900">
             Drag and drop files or folder here
           </h2>
-          <p className="text-gray-300">
+          <p className="text-gray-300 light:text-neutral-600">
             Supports multiple JSON files at once. Automatically pairs files based on filename suffix.
           </p>
 
@@ -274,16 +274,16 @@ export default function JsonValidator() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20"
+          className="bg-white/10 light:bg-neutral-900/[0.06] backdrop-blur-lg rounded-xl p-6 border border-white/20 light:border-neutral-900/15"
         >
-          <h3 className="text-xl font-bold text-white mb-4">
+          <h3 className="text-xl font-bold text-white light:text-neutral-900 mb-4">
             Selected {files.length} file(s):
           </h3>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
             {files.map((file, index) => (
               <div
                 key={index}
-                className="bg-gray-900/50 rounded px-3 py-2 text-gray-300 text-sm truncate flex items-center gap-1.5"
+                className="bg-gray-900/50 light:bg-neutral-100 rounded px-3 py-2 text-gray-300 light:text-neutral-600 text-sm truncate flex items-center gap-1.5"
                 title={file.name}
               >
                 <Icon name="fileText" size={13} className="shrink-0" /> {file.name}
@@ -293,13 +293,13 @@ export default function JsonValidator() {
 
           {/* File Groups Preview */}
           <div className="mt-6">
-            <h4 className="text-lg font-bold text-white mb-3">
+            <h4 className="text-lg font-bold text-white light:text-neutral-900 mb-3">
               Mapped File Pairs:
             </h4>
             {groupFilesBySuffix(files).map((group, index) => (
               <div
                 key={index}
-                className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-lg p-4 mb-3"
+                className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 light:border-purple-500/40 rounded-lg p-4 mb-3"
               >
                 <div className="flex items-center gap-2 mb-2">
                   <span className="px-3 py-1 bg-purple-600 text-white rounded-full text-sm font-bold">
@@ -307,10 +307,10 @@ export default function JsonValidator() {
                   </span>
                 </div>
                 <div className="grid md:grid-cols-2 gap-2 text-sm">
-                  <div className="text-red-300 flex items-center gap-2">
+                  <div className="text-red-300 light:text-red-700 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-red-400 shrink-0" /> {group.exceptionFile?.name}
                   </div>
-                  <div className="text-green-300 flex items-center gap-2">
+                  <div className="text-green-300 light:text-green-700 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" /> {group.parameterFile?.name}
                   </div>
                 </div>
@@ -346,7 +346,7 @@ export default function JsonValidator() {
           animate={{ opacity: 1 }}
           className="bg-red-500/20 border border-red-500 rounded-lg p-4"
         >
-          <p className="text-red-300 font-semibold flex items-center gap-2">
+          <p className="text-red-300 light:text-red-700 font-semibold flex items-center gap-2">
             <Icon name="xCircle" size={16} /> Error: {error}
           </p>
         </motion.div>
@@ -362,24 +362,24 @@ export default function JsonValidator() {
             className="space-y-6"
           >
             {/* Summary */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+            <div className="bg-white/10 light:bg-neutral-900/[0.06] backdrop-blur-lg rounded-xl p-6 border border-white/20 light:border-neutral-900/15">
+              <h2 className="text-2xl font-bold text-white light:text-neutral-900 mb-4 flex items-center gap-2">
                 <Icon name="activity" size={20} /> Results Summary
               </h2>
               <div className="grid md:grid-cols-3 gap-4">
-                <div className="bg-blue-500/20 rounded-lg p-4 border border-blue-500/30">
-                  <p className="text-blue-300 text-sm">Total Pairs</p>
-                  <p className="text-white text-3xl font-bold">{results.length}</p>
+                <div className="bg-blue-500/20 rounded-lg p-4 border border-blue-500/30 light:border-blue-500/35">
+                  <p className="text-blue-300 light:text-blue-700 text-sm">Total Pairs</p>
+                  <p className="text-white light:text-neutral-900 text-3xl font-bold">{results.length}</p>
                 </div>
-                <div className="bg-green-500/20 rounded-lg p-4 border border-green-500/30">
-                  <p className="text-green-300 text-sm">Valid Pairs</p>
-                  <p className="text-white text-3xl font-bold">
+                <div className="bg-green-500/20 rounded-lg p-4 border border-green-500/30 light:border-green-500/35">
+                  <p className="text-green-300 light:text-green-700 text-sm">Valid Pairs</p>
+                  <p className="text-white light:text-neutral-900 text-3xl font-bold">
                     {results.filter((r) => r.missingIds.length === 0).length}
                   </p>
                 </div>
-                <div className="bg-red-500/20 rounded-lg p-4 border border-red-500/30">
-                  <p className="text-red-300 text-sm">Pairs with Errors</p>
-                  <p className="text-white text-3xl font-bold">
+                <div className="bg-red-500/20 rounded-lg p-4 border border-red-500/30 light:border-red-500/35">
+                  <p className="text-red-300 light:text-red-700 text-sm">Pairs with Errors</p>
+                  <p className="text-white light:text-neutral-900 text-3xl font-bold">
                     {results.filter((r) => r.missingIds.length > 0).length}
                   </p>
                 </div>
@@ -393,7 +393,7 @@ export default function JsonValidator() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20"
+                className="bg-white/10 light:bg-neutral-900/[0.06] backdrop-blur-lg rounded-xl p-6 border border-white/20 light:border-neutral-900/15"
               >
                 <div className="flex items-center gap-3 mb-4">
                   <span className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-lg font-bold">
@@ -407,40 +407,40 @@ export default function JsonValidator() {
                 </div>
 
                 <div className="space-y-2 mb-4 text-sm">
-                  <p className="text-red-300 flex items-center gap-2">
+                  <p className="text-red-300 light:text-red-700 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-red-400 shrink-0" /> Exception: <span className="font-mono">{result.exceptionFile}</span>
                   </p>
-                  <p className="text-green-300 flex items-center gap-2">
+                  <p className="text-green-300 light:text-green-700 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" /> Parameter: <span className="font-mono">{result.parameterFile}</span>
                   </p>
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-4 mb-4">
-                  <div className="bg-blue-500/20 rounded-lg p-3 border border-blue-500/30">
-                    <p className="text-blue-300 text-xs">Checked IDs</p>
-                    <p className="text-white text-2xl font-bold">{result.totalChecked}</p>
+                  <div className="bg-blue-500/20 rounded-lg p-3 border border-blue-500/30 light:border-blue-500/35">
+                    <p className="text-blue-300 light:text-blue-700 text-xs">Checked IDs</p>
+                    <p className="text-white light:text-neutral-900 text-2xl font-bold">{result.totalChecked}</p>
                   </div>
-                  <div className="bg-green-500/20 rounded-lg p-3 border border-green-500/30">
-                    <p className="text-green-300 text-xs">Valid IDs</p>
-                    <p className="text-white text-2xl font-bold">{result.totalAvailable}</p>
+                  <div className="bg-green-500/20 rounded-lg p-3 border border-green-500/30 light:border-green-500/35">
+                    <p className="text-green-300 light:text-green-700 text-xs">Valid IDs</p>
+                    <p className="text-white light:text-neutral-900 text-2xl font-bold">{result.totalAvailable}</p>
                   </div>
-                  <div className="bg-red-500/20 rounded-lg p-3 border border-red-500/30">
-                    <p className="text-red-300 text-xs">Missing IDs</p>
-                    <p className="text-white text-2xl font-bold">{result.missingIds.length}</p>
+                  <div className="bg-red-500/20 rounded-lg p-3 border border-red-500/30 light:border-red-500/35">
+                    <p className="text-red-300 light:text-red-700 text-xs">Missing IDs</p>
+                    <p className="text-white light:text-neutral-900 text-2xl font-bold">{result.missingIds.length}</p>
                   </div>
                 </div>
 
                 {result.missingIds.length > 0 ? (
                   <div>
-                    <h3 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-red-300 light:text-red-700 mb-3 flex items-center gap-2">
                       <Icon name="alertTriangle" size={18} /> Missing IDs:
                     </h3>
-                    <div className="bg-gray-900/50 rounded-lg p-4 max-h-64 overflow-y-auto">
+                    <div className="bg-gray-900/50 light:bg-neutral-100 rounded-lg p-4 max-h-64 overflow-y-auto">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                         {result.missingIds.map((id) => (
                           <div
                             key={id}
-                            className="bg-red-500/20 border border-red-500/30 rounded px-3 py-2 text-red-300 font-mono text-sm"
+                            className="bg-red-500/20 border border-red-500/30 light:border-red-500/35 rounded px-3 py-2 text-red-300 light:text-red-700 font-mono text-sm"
                           >
                             {id}
                           </div>
@@ -450,7 +450,7 @@ export default function JsonValidator() {
                   </div>
                 ) : (
                   <div className="bg-green-500/20 border border-green-500 rounded-lg p-4">
-                    <p className="text-green-300 font-semibold text-center flex items-center justify-center gap-2">
+                    <p className="text-green-300 light:text-green-700 font-semibold text-center flex items-center justify-center gap-2">
                       <Icon name="checkCircle" size={16} /> All IDs are valid!
                     </p>
                   </div>

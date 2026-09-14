@@ -117,7 +117,7 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                   {hasCameraInfo && (
                     <div className="rounded-xl bg-white/[0.03] border border-white/5 p-4 text-xs light:bg-neutral-900/[0.03] light:border-neutral-900/10">
-                      <div className="flex items-center gap-2 text-cyan-400 font-semibold mb-2">
+                      <div className="flex items-center gap-2 text-cyan-400 font-semibold mb-2 light:text-cyan-700">
                         <Icon name="camera" size={13} />
                         <span>Gear & Settings</span>
                       </div>
@@ -140,8 +140,8 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
                   )}
 
                   {hasEditingInfo && (
-                    <div className="rounded-xl bg-purple-500/[0.03] border border-purple-500/15 p-4 text-xs">
-                      <div className="flex items-center gap-2 text-purple-400 font-semibold mb-2">
+                    <div className="rounded-xl bg-purple-500/[0.03] border border-purple-500/15 p-4 text-xs light:border-purple-500/20">
+                      <div className="flex items-center gap-2 text-purple-400 font-semibold mb-2 light:text-purple-700">
                         <Icon name="compare" size={13} />
                         <span>Color Concept</span>
                       </div>

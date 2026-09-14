@@ -254,7 +254,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
               const triggerClassName = cn(
                 "relative flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200",
                 active
-                  ? "text-white light:text-neutral-900 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 shadow-sm shadow-purple-500/20"
+                  ? "text-white light:text-neutral-900 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 light:border-purple-500/40 shadow-sm shadow-purple-500/20"
                   : "text-white/70 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 hover:bg-white/[0.06] light:hover:bg-neutral-900/[0.05] border border-transparent"
               );
 
@@ -459,7 +459,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
                           className={cn(
                             "flex items-center justify-between w-full px-4 py-3 rounded-xl text-base font-medium transition-all duration-200",
                             active
-                              ? "bg-gradient-to-r from-purple-500/20 to-cyan-500/20 text-white light:text-neutral-900 border border-purple-500/30"
+                              ? "bg-gradient-to-r from-purple-500/20 to-cyan-500/20 text-white light:text-neutral-900 border border-purple-500/30 light:border-purple-500/40"
                               : "text-white/70 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 hover:bg-white/[0.06] light:hover:bg-neutral-900/[0.05] border border-transparent"
                           )}
                         >
@@ -499,7 +499,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
                                         className={cn(
                                           "flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                                           childActive
-                                            ? "bg-gradient-to-r from-purple-500/20 to-cyan-500/20 text-white light:text-neutral-900 border border-purple-500/30"
+                                            ? "bg-gradient-to-r from-purple-500/20 to-cyan-500/20 text-white light:text-neutral-900 border border-purple-500/30 light:border-purple-500/40"
                                             : "text-white/60 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 hover:bg-white/[0.06] light:hover:bg-neutral-900/[0.05] border border-transparent"
                                         )}
                                       >
@@ -532,7 +532,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
                         className={cn(
                           "flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium transition-all duration-200",
                           active
-                            ? "bg-gradient-to-r from-purple-500/20 to-cyan-500/20 text-white light:text-neutral-900 border border-purple-500/30"
+                            ? "bg-gradient-to-r from-purple-500/20 to-cyan-500/20 text-white light:text-neutral-900 border border-purple-500/30 light:border-purple-500/40"
                             : "text-white/70 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 hover:bg-white/[0.06] light:hover:bg-neutral-900/[0.05] border border-transparent"
                         )}
                       >

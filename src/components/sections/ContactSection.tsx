@@ -216,8 +216,8 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                   className={cn(
                     "mb-6 p-4 rounded-xl border text-sm text-white/80 light:text-neutral-700",
                     formState.status === "success"
-                      ? "border-green-500/30 bg-green-500/10"
-                      : "border-red-500/30 bg-red-500/10"
+                      ? "border-green-500/30 bg-green-500/10 light:border-green-500/40"
+                      : "border-red-500/30 bg-red-500/10 light:border-red-500/40"
                   )}
                 >
                   {formState.status === "success" ? (

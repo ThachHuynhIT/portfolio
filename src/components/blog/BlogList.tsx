@@ -79,7 +79,7 @@ export default function BlogList({ posts, categories }: BlogListProps) {
           {filteredPosts.map((post) => (
             <Link key={post.slug} href={`/blog/${post.slug}`}>
               <GlassCard className="h-full p-6 group cursor-pointer">
-                <span className="inline-block px-3 py-1 text-xs font-medium text-purple-400 bg-purple-500/10 rounded-full mb-4">
+                <span className="inline-block px-3 py-1 text-xs font-medium text-purple-400 bg-purple-500/10 rounded-full mb-4 light:text-purple-700">
                   {translateBlogCategory(post.category, locale)}
                 </span>
 

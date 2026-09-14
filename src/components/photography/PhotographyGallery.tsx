@@ -384,7 +384,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     <span
                       className={`text-[10px] px-1.5 py-0.2 rounded-full ${
                         selectedCategory === "featured"
-                          ? "bg-black/20 text-black font-extrabold"
+                          ? "bg-black/20 text-black font-extrabold light:bg-white/30"
                           : "bg-amber-400/20 text-amber-200 light:text-amber-800"
                       }`}
                     >
@@ -411,7 +411,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                       <span>{cat}</span>
                       <span
                         className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                          isActive ? "bg-black/10 text-black font-bold" : "bg-white/10 text-slate-400 light:bg-neutral-900/[0.06] light:text-neutral-500"
+                          isActive ? "bg-black/10 text-black font-bold light:bg-white/10 light:text-white" : "bg-white/10 text-slate-400 light:bg-neutral-900/[0.06] light:text-neutral-500"
                         }`}
                       >
                         {count}
