@@ -243,7 +243,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
           {/* Desktop Navigation */}
           <ul
             ref={desktopNavRef}
-            className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] light:bg-neutral-900/[0.03] border border-white/[0.08] light:border-neutral-900/[0.08] backdrop-blur-md"
+            className="hidden lg:flex items-center gap-1 px-2 py-1.5 rounded-full bg-white/[0.04] light:bg-neutral-900/[0.03] border border-white/[0.08] light:border-neutral-900/[0.08] backdrop-blur-md"
           >
             {navLinks.map((link) => {
               const active = isNavItemActive(link);
@@ -252,7 +252,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
               const isDropdownOpen = openDropdownId === link.id;
 
               const triggerClassName = cn(
-                "relative flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200",
+                "relative flex items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium rounded-full whitespace-nowrap transition-all duration-200",
                 active
                   ? "text-white light:text-neutral-900 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 light:border-purple-500/40 shadow-sm shadow-purple-500/20"
                   : "text-white/70 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 hover:bg-white/[0.06] light:hover:bg-neutral-900/[0.05] border border-transparent"
@@ -368,14 +368,14 @@ export default function Navigation({ navLinks }: NavigationProps) {
           </ul>
 
           {/* Desktop Right: Theme Toggle, Language Switcher & Contact Button */}
-          <div className="hidden xl:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2">
             <ThemeToggle size="sm" />
             <LanguageSwitcher variant="pill" size="sm" />
             <Link
               href={getResolvedHref("#contact")}
               onClick={(e) => handleNavClick(e, "#contact")}
               className={cn(
-                "relative group inline-flex items-center justify-center px-5 py-2 text-sm font-medium text-white overflow-hidden rounded-full transition-all duration-300 shadow-md active:scale-95",
+                "relative group inline-flex items-center justify-center px-3.5 py-2 text-sm font-medium text-white overflow-hidden rounded-full transition-all duration-300 shadow-md active:scale-95 whitespace-nowrap",
                 isContactActive
                   ? "shadow-purple-500/40 ring-2 ring-cyan-400/50"
                   : "shadow-purple-500/10 hover:shadow-lg hover:shadow-purple-500/30"
@@ -392,7 +392,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
           </div>
 
           {/* Mobile Right Controls: Theme Toggle, Language Switcher & Hamburger */}
-          <div className="flex xl:hidden items-center gap-2">
+          <div className="flex lg:hidden items-center gap-2">
             <ThemeToggle size="sm" />
             <LanguageSwitcher variant="pill" size="sm" />
             <button
@@ -435,7 +435,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="xl:hidden mt-3 rounded-2xl bg-black/95 light:bg-white/95 border border-white/10 light:border-neutral-900/10 backdrop-blur-2xl p-4 shadow-2xl shadow-black/80 light:shadow-neutral-400/30 overflow-hidden"
+              className="lg:hidden mt-3 rounded-2xl bg-black/95 light:bg-white/95 border border-white/10 light:border-neutral-900/10 backdrop-blur-2xl p-4 shadow-2xl shadow-black/80 light:shadow-neutral-400/30 overflow-hidden"
             >
               <ul className="flex flex-col gap-1.5">
                 {navLinks.map((link, index) => {
