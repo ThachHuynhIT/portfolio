@@ -47,14 +47,16 @@ export default function MascotWidget() {
   return (
     <AnimatePresence>
       <motion.div
-        ref={containerRef}
         initial={{ x: -50, opacity: 0, scale: 0.9 }}
         animate={{ x: 0, opacity: 1, scale: 1 }}
         exit={{ x: -50, opacity: 0, scale: 0.9 }}
         transition={{ type: "spring", stiffness: 350, damping: 25 }}
         className="fixed bottom-6 left-6 z-50"
       >
-        <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 rounded-full overflow-hidden">
+        <div
+          ref={containerRef}
+          className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 rounded-full overflow-hidden"
+        >
           <SceneContainer fill={false}>
             <MascotCharacter pointerRef={pointerRef} />
           </SceneContainer>
