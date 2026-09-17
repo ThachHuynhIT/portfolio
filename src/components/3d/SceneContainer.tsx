@@ -3,6 +3,7 @@
 import { Canvas } from "@react-three/fiber";
 import { Preload } from "@react-three/drei";
 import { Component, Suspense, ReactNode, useEffect, useState } from "react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 interface SceneContainerProps {
   children: ReactNode;
@@ -13,11 +14,6 @@ interface SceneContainerProps {
    * cap DPR lower, since multiple such canvases can run concurrently.
    */
   highQuality?: boolean;
-  /**
-   * Set false for scenes sized by a normal-flow/fixed-position parent (e.g. a
-   * small corner widget) instead of a full-bleed section. Defaults to true.
-   */
-  fill?: boolean;
 }
 
 const STATIC_FALLBACK = (
@@ -50,23 +46,6 @@ class SceneErrorBoundary extends Component<
   }
 }
 
-export function usePrefersReducedMotion() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
-
-    const handleChange = (event: MediaQueryListEvent) =>
-      setPrefersReducedMotion(event.matches);
-
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, []);
-
-  return prefersReducedMotion;
-}
-
 /**
  * Pauses the Canvas render loop while the browser tab is in the background,
  * so decorative/always-mounted scenes (e.g. the site-wide starry background)
@@ -93,18 +72,16 @@ export default function SceneContainer({
   children,
   className = "",
   highQuality = false,
-  fill = true,
 }: SceneContainerProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const isTabVisible = useIsTabVisible();
-  const positionClass = fill ? "absolute inset-0" : "relative w-full h-full";
 
   if (prefersReducedMotion) {
-    return <div className={`${positionClass} ${className}`}>{STATIC_FALLBACK}</div>;
+    return <div className={`absolute inset-0 ${className}`}>{STATIC_FALLBACK}</div>;
   }
 
   return (
-    <div className={`${positionClass} ${className}`}>
+    <div className={`absolute inset-0 ${className}`}>
       <SceneErrorBoundary>
         <Canvas
           camera={{ position: [0, 0, 8], fov: 50 }}
