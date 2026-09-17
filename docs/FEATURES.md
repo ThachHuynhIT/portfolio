@@ -36,6 +36,7 @@ Trang chủ là một One-Page Application cuộn mượt mà, ghép các sectio
 - **Dynamic Text Highlight**: tên hiển thị với gradient tím → lục lam (`.gradient-text`).
 - **Call-to-Action**: `View My Work` cuộn mượt tới `#projects`; `Download CV` tải `/resume.pdf` từ `public/` (cần đảm bảo file tồn tại).
 - **Song ngữ**: phần bio đổi sang `siteConfig.author.bio_vi` khi locale là `vi`.
+- **Padding responsive**: `py-20 lg:py-0` — thêm khoảng thở trên/dưới cho nội dung ở màn hình ≤1024px (badge/heading/mô tả xuống nhiều dòng hơn), giữ nguyên căn giữa toàn màn hình (`min-h-screen`) từ `lg` trở lên. Khoảng cách trước About **không** nằm trong padding của Hero — xem [mục 13.2](#132-ui-building-blocks-srccomponentsui) và `docs/ARCHITECTURE.md` §3.7.
 
 ### 1.2. About Section (`src/components/sections/AboutSection.tsx`)
 - Bio, triết lý làm việc, highlight cards (Fast Delivery, Modern Design, Continuous Learning).
@@ -318,7 +319,7 @@ Không dùng `next-intl` hay locale-prefixed routing — là hệ thống tự v
 | `GlassCard` | Thẻ kính mờ (`backdrop-blur-xl`, viền bán trong suốt), có prop `hover` để sáng viền khi hover. |
 | `TiltCard` | Nghiêng 3D theo chuột bằng spring physics, có "shine" highlight, hỗ trợ bàn phím (Enter/Space) cho a11y. |
 | `AnimatedSection` | Wrapper kích hoạt animation Framer Motion khi cuộn vào viewport (`useInView`, mặc định chỉ chạy 1 lần). |
-| `Navigation` | Header cố định, scroll-spy mục active, mobile menu, tự ẩn ở `/admin`, `/music`, `/couple`. |
+| `Navigation` | Header cố định, scroll-spy mục active, chuyển sang mobile menu (hamburger) dưới breakpoint `lg` (1024px — đã hạ từ `xl`/1280px kèm thu gọn gap/padding pill để vừa khít khoảng ~976px nội dung khả dụng), tự ẩn ở `/admin`, `/music`, `/couple`, `/contra`. Xem `docs/ARCHITECTURE.md` §3.7 cho cơ chế đệm section khi cuộn tới mục và fix race condition với Framer Motion. |
 | `Footer` | 4 cột (brand/quick links/contact/copyright), cùng logic ẩn route như Navigation. |
 | `Icon` | Bộ icon SVG tự vẽ dùng chung, thay cho thư viện icon ngoài. |
 | `ImageWithSkeleton` | Wrapper `next/image` có shimmer/fade-in/error fallback/lazy-load. |
@@ -375,3 +376,4 @@ Các điểm phát hiện được khi khảo sát toàn bộ source — nên đ
 | 🟡 Thấp | Theme sáng phải thêm `light:` thủ công từng component | Vì dự án dùng biến thể cộng thêm (`light:`) thay vì `dark:` chuẩn của Tailwind, **component mới/route mới không tự động hỗ trợ Light mode** — phải chủ động thêm class `light:` khi build UI mới, dễ bị bỏ sót nếu không biết quy ước (xem [mục 14](#14-chế-độ-sáng--tối-lightdark-theme-toggle) và `CLAUDE.md`). |
 | 🟡 Thấp | Phòng nghe chung nhạc không bền | `/api/music/rooms*` lưu state trong biến `globalThis` (in-memory) — mất khi restart/redeploy server, không hoạt động đúng khi chạy nhiều instance (không phù hợp môi trường serverless đa instance). |
 | ℹ️ Ghi chú | Tag filter blog chưa có UI | `getAllTags()`/`getPostsByTag()` đã viết sẵn trong `src/lib/blog.ts` nhưng chưa có nơi nào gọi tới — hiện tại blog chỉ lọc được theo category. |
+| 🟡 Thấp | `window.scrollTo` có thể bị Framer Motion ghi đè | Bất kỳ animation layout nào dùng chiều cao `auto` (VD: đóng mobile menu trong `Navigation.tsx`) khiến Framer Motion tạm gọi `window.scrollTo(0,0)` để đo rồi phục hồi. Nếu code gọi `window.scrollTo({behavior:"smooth"})` thủ công trong cùng tick, lệnh đo của Framer sẽ huỷ animation cuộn đó (trang bật về đầu). Cách xử lý hiện tại trong `handleNavClick`: dời lệnh `scrollTo` vào `requestAnimationFrame` lồng đôi — cần áp dụng lại pattern này nếu thêm animation layout mới có kèm scroll thủ công ở nơi khác. |
