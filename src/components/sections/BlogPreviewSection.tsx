@@ -6,6 +6,7 @@ import { AnimatedSection, GlassCard, Icon } from "@/components/ui";
 import { staggerContainer, fadeInUp } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
 import type { BlogPost } from "@/lib/types";
+import { translateBlogCategory, translateReadTime } from "@/lib/content-overrides";
 
 interface BlogPreviewSectionProps {
   posts: BlogPost[];
@@ -17,7 +18,7 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
   if (!posts || posts.length === 0) return null;
 
   return (
-    <section id="blog" className="relative py-28 overflow-hidden">
+    <section id="blog" className="relative pt-8 pb-60 overflow-hidden">
       {/* Background ambient lighting */}
       <div className="absolute top-1/2 right-0 w-1/2 h-1/2 bg-gradient-radial from-purple-500/5 via-transparent to-transparent pointer-events-none" />
 
@@ -25,7 +26,7 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
         {/* Header */}
         <AnimatedSection>
           <div className="text-center mb-16">
-            <span className="text-xs text-purple-400 font-semibold tracking-widest uppercase mb-3 block">
+            <span className="text-xs text-purple-400 light:text-purple-700 font-semibold tracking-widest uppercase mb-3 block">
               {t("blogPreview.badge")}
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-4 tracking-tight">
@@ -59,11 +60,11 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
                     <div>
                       {/* Top metadata */}
                       <div className="flex items-center justify-between gap-2 mb-4">
-                        <span className="inline-block px-3 py-1 text-xs font-semibold text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded-full">
-                          {post.category}
+                        <span className="inline-block px-3 py-1 text-xs font-semibold text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded-full light:text-purple-700">
+                          {translateBlogCategory(post.category, locale)}
                         </span>
                         <span className="text-xs text-white/40 light:text-neutral-500 font-medium">
-                          {post.readTime}
+                          {translateReadTime(post.readTime, locale, t("blog.minRead"))}
                         </span>
                       </div>
 

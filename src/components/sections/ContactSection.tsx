@@ -170,7 +170,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
     <section
       id="contact"
       ref={sectionRef}
-      className="relative py-32 overflow-hidden"
+      className="relative pt-8 pb-32 overflow-hidden"
     >
       {/* 3D Particle Background */}
       {isMounted && isNearView && (
@@ -190,7 +190,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
       <div className="relative z-10 container mx-auto px-6">
         <AnimatedSection>
           <div className="text-center mb-16">
-            <span className="text-sm text-cyan-500 font-medium tracking-wider uppercase mb-4 block">
+            <span className="text-sm text-cyan-500 light:text-cyan-700 font-medium tracking-wider uppercase mb-4 block">
               {resolveSectionText(locale, contact?.badge, contact?.badge_vi, t("contact.badge"))}
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">
@@ -216,8 +216,8 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                   className={cn(
                     "mb-6 p-4 rounded-xl border text-sm text-white/80 light:text-neutral-700",
                     formState.status === "success"
-                      ? "border-green-500/30 bg-green-500/10"
-                      : "border-red-500/30 bg-red-500/10"
+                      ? "border-green-500/30 bg-green-500/10 light:border-green-500/40"
+                      : "border-red-500/30 bg-red-500/10 light:border-red-500/40"
                   )}
                 >
                   {formState.status === "success" ? (
@@ -237,14 +237,14 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                         {resolveSectionText(locale, contact?.mailtoPrefix, contact?.mailtoPrefix_vi, t("contact.mailtoPrefix"))}
                         <a
                           href={mailtoHref}
-                          className="text-cyan-400 underline hover:text-cyan-300"
+                          className="text-cyan-400 light:text-cyan-700 underline hover:text-cyan-300 light:hover:text-cyan-800"
                         >
                           {resolveSectionText(locale, contact?.mailtoLinkText, contact?.mailtoLinkText_vi, t("contact.mailtoLinkText"))}
                         </a>
                         {resolveSectionText(locale, contact?.mailtoSuffix, contact?.mailtoSuffix_vi, t("contact.mailtoSuffix"))}
                         <a
                           href={`mailto:${siteConfig.author.email}`}
-                          className="text-cyan-400 underline hover:text-cyan-300"
+                          className="text-cyan-400 light:text-cyan-700 underline hover:text-cyan-300 light:hover:text-cyan-800"
                         >
                           {siteConfig.author.email}
                         </a>
@@ -288,7 +288,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                   {errors.name && (
                     <p
                       id="contact-name-error"
-                      className="mt-1 text-sm text-red-400"
+                      className="mt-1 text-sm text-red-400 light:text-red-600"
                     >
                       {errors.name.message}
                     </p>
@@ -317,7 +317,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                   {errors.email && (
                     <p
                       id="contact-email-error"
-                      className="mt-1 text-sm text-red-400"
+                      className="mt-1 text-sm text-red-400 light:text-red-600"
                     >
                       {errors.email.message}
                     </p>
@@ -346,7 +346,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                   {errors.subject && (
                     <p
                       id="contact-subject-error"
-                      className="mt-1 text-sm text-red-400"
+                      className="mt-1 text-sm text-red-400 light:text-red-600"
                     >
                       {errors.subject.message}
                     </p>
@@ -375,7 +375,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                   {errors.message && (
                     <p
                       id="contact-message-error"
-                      className="mt-1 text-sm text-red-400"
+                      className="mt-1 text-sm text-red-400 light:text-red-600"
                     >
                       {errors.message.message}
                     </p>

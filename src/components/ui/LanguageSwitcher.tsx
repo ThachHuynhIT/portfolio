@@ -129,7 +129,7 @@ export default function LanguageSwitcher({
               {isActive && (
                 <motion.span
                   layoutId="activeFlagIndicator"
-                  className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/40 to-cyan-500/40 border border-purple-500/50 shadow-sm shadow-purple-500/30 -z-10"
+                  className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/40 to-cyan-500/40 border border-purple-500/50 light:border-purple-500/60 shadow-sm shadow-purple-500/30 -z-10"
                   transition={{ type: "spring", stiffness: 450, damping: 32 }}
                 />
               )}

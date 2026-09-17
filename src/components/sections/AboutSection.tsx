@@ -25,14 +25,14 @@ export default function AboutSection({ siteConfig }: AboutSectionProps) {
   });
 
   return (
-    <section id="about" className="relative py-32 overflow-hidden">
+    <section id="about" className="relative pt-8 pb-60 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-radial from-purple-500/5 via-transparent to-transparent" />
 
       <div className="container mx-auto px-6">
         <AnimatedSection>
           <div className="text-center mb-16">
-            <span className="text-sm text-purple-500 font-medium tracking-wider uppercase mb-4 block">
+            <span className="text-sm text-purple-500 light:text-purple-700 font-medium tracking-wider uppercase mb-4 block">
               {resolveSectionText(locale, about?.badge, about?.badge_vi, t("about.badge"))}
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">

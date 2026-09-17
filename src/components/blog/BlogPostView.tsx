@@ -7,6 +7,7 @@ import { useTranslation } from "@/context/LanguageContext";
 import FlagIcon from "@/components/ui/FlagIcon";
 import Icon from "@/components/ui/Icon";
 import type { BlogPost } from "@/lib/types";
+import { translateBlogCategory, translateReadTime } from "@/lib/content-overrides";
 
 interface BlogPostViewProps {
   post: BlogPost;
@@ -62,7 +63,7 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
               {isVi ? "Tiếng Việt" : "English"}
             </span>
             {isVi && !post.content_vi && (
-              <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+              <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 light:text-amber-700">
                 (Đang hiển thị bản gốc EN)
               </span>
             )}
@@ -72,10 +73,12 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
         {/* Header */}
         <header className="mb-12">
           <div className="flex items-center gap-3 mb-4">
-            <span className="px-3 py-1 text-xs font-medium text-purple-400 bg-purple-500/10 rounded-full">
-              {post.category}
+            <span className="px-3 py-1 text-xs font-medium text-purple-400 bg-purple-500/10 rounded-full light:text-purple-700">
+              {translateBlogCategory(post.category, locale)}
             </span>
-            <span className="text-white/40 text-sm light:text-neutral-500">{post.readTime}</span>
+            <span className="text-white/40 text-sm light:text-neutral-500">
+              {translateReadTime(post.readTime, locale, t("blog.minRead"))}
+            </span>
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">

@@ -46,7 +46,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
       : categories.filter((cat) => cat === selectedCategory);
 
   return (
-    <section id="skills" className="relative py-28 overflow-hidden">
+    <section id="skills" className="relative pt-8 pb-56 overflow-hidden">
       {/* Subtle ambient lighting */}
       <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-r from-cyan-600/10 via-purple-600/10 to-indigo-600/10 blur-[120px] rounded-full" />
@@ -56,7 +56,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
         {/* ── Section Header ── */}
         <AnimatedSection>
           <div className="text-center mb-12">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/[0.04] light:bg-neutral-900/[0.04] text-cyan-400 border border-white/10 light:border-neutral-900/10 mb-4 backdrop-blur-md">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/[0.04] light:bg-neutral-900/[0.04] text-cyan-400 light:text-cyan-700 border border-white/10 light:border-neutral-900/10 mb-4 backdrop-blur-md">
               <Icon name="zap" size={14} />
               <span>{resolveSectionText(locale, skillsCopy?.badge, skillsCopy?.badge_vi, t("skills.badge"))}</span>
             </span>
@@ -118,7 +118,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                 <span
                   className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                     isSelected
-                      ? "bg-black/30 text-white"
+                      ? "bg-black/30 text-white light:bg-white/20"
                       : "bg-white/10 light:bg-neutral-900/[0.06] text-slate-400 light:text-neutral-500"
                   }`}
                 >

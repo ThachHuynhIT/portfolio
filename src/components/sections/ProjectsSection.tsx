@@ -197,14 +197,14 @@ export default function ProjectsSection({ projects, siteConfig }: ProjectsSectio
   }, [projects]);
 
   return (
-    <section id="projects" className="relative py-28 overflow-hidden">
+    <section id="projects" className="relative pt-8 pb-56 overflow-hidden">
       {/* Background ambient lighting */}
       <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-radial from-cyan-500/5 via-transparent to-transparent pointer-events-none" />
 
       <div className="container mx-auto px-6 max-w-7xl">
         <AnimatedSection>
           <div className="text-center mb-16">
-            <span className="text-xs text-purple-400 font-semibold tracking-widest uppercase mb-3 block">
+            <span className="text-xs text-purple-400 light:text-purple-700 font-semibold tracking-widest uppercase mb-3 block">
               {resolveSectionText(locale, projectsCopy?.badge, projectsCopy?.badge_vi, t("projects.badge"))}
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-4 tracking-tight">

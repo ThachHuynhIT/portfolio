@@ -194,6 +194,7 @@ export default function SocialLinksAdminPage() {
       />
 
       <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-gray-300">
           <thead className="bg-gray-950 text-gray-400 uppercase text-xs border-b border-gray-800">
             <tr>
@@ -255,6 +256,7 @@ export default function SocialLinksAdminPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Modal for Create/Edit */}
