@@ -41,7 +41,7 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background pb-32"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background"
     >
       {/* Black hole — sole 3D visual in the Hero. Fixed (not absolute) so it
           stays pinned in the viewport instead of scrolling away with the

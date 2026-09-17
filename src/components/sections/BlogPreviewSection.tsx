@@ -18,7 +18,7 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
   if (!posts || posts.length === 0) return null;
 
   return (
-    <section id="blog" className="relative pt-0 pb-60 overflow-hidden">
+    <section id="blog" className="relative pt-8 pb-60 overflow-hidden">
       {/* Background ambient lighting */}
       <div className="absolute top-1/2 right-0 w-1/2 h-1/2 bg-gradient-radial from-purple-500/5 via-transparent to-transparent pointer-events-none" />
 

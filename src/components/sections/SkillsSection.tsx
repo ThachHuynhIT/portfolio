@@ -46,7 +46,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
       : categories.filter((cat) => cat === selectedCategory);
 
   return (
-    <section id="skills" className="relative pt-0 pb-56 overflow-hidden">
+    <section id="skills" className="relative pt-8 pb-56 overflow-hidden">
       {/* Subtle ambient lighting */}
       <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-r from-cyan-600/10 via-purple-600/10 to-indigo-600/10 blur-[120px] rounded-full" />
