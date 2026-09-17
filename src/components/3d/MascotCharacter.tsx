@@ -1,11 +1,18 @@
 "use client";
 
-import { useRef } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { MutableRefObject, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 interface MascotCharacterProps {
-  performanceTier: "high" | "low";
+  /**
+   * Mutable ref holding the cursor's direction relative to the widget,
+   * normalized to roughly [-1, 1] on each axis. Updated from a
+   * window-level pointermove listener (see MascotWidget) so the mascot
+   * reacts to the cursor anywhere on the page, not just over its own
+   * small canvas. Read inside useFrame only — never drives React state.
+   */
+  pointerRef: MutableRefObject<{ x: number; y: number }>;
 }
 
 const PURPLE = "#8b5cf6";
@@ -15,27 +22,28 @@ const CYAN = "#06b6d4";
  * A small procedural character (no external model/asset) for the floating
  * mascot widget. Kept to primitives + basic materials on purpose.
  */
-export default function MascotCharacter({ performanceTier }: MascotCharacterProps) {
+export default function MascotCharacter({ pointerRef }: MascotCharacterProps) {
   const groupRef = useRef<THREE.Group>(null);
   const headRef = useRef<THREE.Group>(null);
   const eyeLeftRef = useRef<THREE.Mesh>(null);
   const eyeRightRef = useRef<THREE.Mesh>(null);
   const nextBlinkAtRef = useRef(2 + Math.random() * 2);
-  const { pointer } = useThree();
 
   useFrame(({ clock }, delta) => {
     const t = clock.getElapsedTime();
+    const { x: pointerX, y: pointerY } = pointerRef.current;
 
     if (groupRef.current) {
       groupRef.current.position.y = Math.sin(t * 1.6) * 0.12;
-      groupRef.current.rotation.y = Math.sin(t * 0.5) * 0.15;
+      groupRef.current.rotation.y = Math.sin(t * 0.5) * 0.15 + pointerX * 0.15;
+      groupRef.current.rotation.z = THREE.MathUtils.lerp(groupRef.current.rotation.z, pointerX * 0.08, 0.05);
     }
 
-    if (headRef.current && performanceTier === "high") {
-      const targetX = THREE.MathUtils.clamp(pointer.y * 0.2, -0.2, 0.2);
-      const targetY = THREE.MathUtils.clamp(pointer.x * 0.3, -0.3, 0.3);
-      headRef.current.rotation.x = THREE.MathUtils.lerp(headRef.current.rotation.x, targetX, 0.08);
-      headRef.current.rotation.y = THREE.MathUtils.lerp(headRef.current.rotation.y, targetY, 0.08);
+    if (headRef.current) {
+      const targetY = THREE.MathUtils.clamp(pointerX * 0.7, -0.7, 0.7);
+      const targetX = THREE.MathUtils.clamp(pointerY * 0.4, -0.4, 0.4);
+      headRef.current.rotation.y = THREE.MathUtils.lerp(headRef.current.rotation.y, targetY, 0.1);
+      headRef.current.rotation.x = THREE.MathUtils.lerp(headRef.current.rotation.x, targetX, 0.1);
     }
 
     if (eyeLeftRef.current && eyeRightRef.current) {
