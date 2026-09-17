@@ -9,9 +9,13 @@ interface MascotCatProps {
   facingRight: boolean;
 }
 
-const FUR = "#e8974a";
-const FUR_DARK = "#c97a34";
-const BELLY = "#fff7ef";
+// Classic white-cat-with-black-outline "neko" coloring (a generic, common
+// cartoon-cat style) — redrawn as our own vector shapes rather than reusing
+// any existing sprite art.
+const BODY = "#ffffff";
+const SHADE = "#eceff1";
+const OUTLINE = "#20232a";
+const STROKE = 2;
 
 const BODY_POSE: Record<CatPose, { scaleX: number; scaleY: number; y: number }> = {
   sit: { scaleX: 1, scaleY: 1, y: 0 },
@@ -47,9 +51,12 @@ const FRONT_LEG_POSE: Record<CatPose, { rotate: number; opacity: number }> = {
  * than distinct drawings, kept in one file since the parts are tightly
  * coupled (shared pivot points between pose and micro-animations).
  *
- * Behavior/pose timeline (sit -> wash -> sleep the longer the cursor stays
- * put, chase while it's moving) is ported from the classic oneko/neko
- * cursor-chasing cat; see MascotWidget for the state machine driving it.
+ * Look (white body, black outline) and behavior/pose timeline (sit -> wash
+ * -> sleep the longer the cursor stays put, chase while it's moving) are
+ * both modeled on the classic oneko/neko cursor-chasing cat — redrawn as
+ * our own vector art rather than reusing its sprite files, since their
+ * copyright provenance predates that project's own license and is unclear.
+ * See MascotWidget for the state machine driving the pose.
  */
 export default function MascotCat({ pose, facingRight }: MascotCatProps) {
   const body = BODY_POSE[pose];
@@ -81,7 +88,7 @@ export default function MascotCat({ pose, facingRight }: MascotCatProps) {
             y={14}
             fontSize={8}
             fontWeight={700}
-            fill="#9fb4c7"
+            fill={OUTLINE}
             initial={{ opacity: 0, x: 80, y: 14, scale: 0.6 }}
             animate={{ opacity: [0, 1, 0], x: 92, y: -6, scale: 1 }}
             transition={{
@@ -95,13 +102,9 @@ export default function MascotCat({ pose, facingRight }: MascotCatProps) {
           </motion.text>
         ))}
 
-      {/* tail */}
-      <motion.path
-        d="M22,38 Q6,32 8,14 Q9,5 18,3"
-        fill="none"
-        stroke={FUR}
-        strokeWidth={6}
-        strokeLinecap="round"
+      {/* tail: outlined by stacking a wider black stroke under a narrower
+          white one along the same curve */}
+      <motion.g
         style={{ transformOrigin: "22px 38px" }}
         animate={{
           rotate: isChasing
@@ -113,7 +116,22 @@ export default function MascotCat({ pose, facingRight }: MascotCatProps) {
             ? { duration: 0.6, repeat: Infinity, ease: "easeInOut" }
             : { duration: 0.5 }
         }
-      />
+      >
+        <path
+          d="M22,38 Q6,32 8,14 Q9,5 18,3"
+          fill="none"
+          stroke={OUTLINE}
+          strokeWidth={8}
+          strokeLinecap="round"
+        />
+        <path
+          d="M22,38 Q6,32 8,14 Q9,5 18,3"
+          fill="none"
+          stroke={BODY}
+          strokeWidth={5}
+          strokeLinecap="round"
+        />
+      </motion.g>
 
       {/* back leg */}
       <motion.g
@@ -128,8 +146,7 @@ export default function MascotCat({ pose, facingRight }: MascotCatProps) {
             : { duration: 0.4 }
         }
       >
-        <rect x={26} y={42} width={8} height={15} rx={4} fill={FUR_DARK} />
-        <ellipse cx={30} cy={58} rx={5} ry={3} fill={BELLY} />
+        <rect x={26} y={42} width={8} height={15} rx={4} fill={SHADE} stroke={OUTLINE} strokeWidth={STROKE} />
       </motion.g>
 
       {/* body */}
@@ -138,8 +155,7 @@ export default function MascotCat({ pose, facingRight }: MascotCatProps) {
         animate={{ scaleX: body.scaleX, scaleY: body.scaleY, y: body.y }}
         transition={{ duration: 0.4 }}
       >
-        <ellipse cx={45} cy={38} rx={24} ry={15} fill={FUR} />
-        <ellipse cx={46} cy={45} rx={14} ry={7} fill={BELLY} />
+        <ellipse cx={45} cy={38} rx={24} ry={15} fill={BODY} stroke={OUTLINE} strokeWidth={STROKE} />
       </motion.g>
 
       {/* front leg */}
@@ -161,8 +177,7 @@ export default function MascotCat({ pose, facingRight }: MascotCatProps) {
               : { duration: 0.4 }
         }
       >
-        <rect x={65} y={40} width={7} height={16} rx={3.5} fill={FUR} />
-        <ellipse cx={68} cy={57} rx={4.5} ry={3} fill={BELLY} />
+        <rect x={65} y={40} width={7} height={16} rx={3.5} fill={BODY} stroke={OUTLINE} strokeWidth={STROKE} />
       </motion.g>
 
       {/* head */}
@@ -178,14 +193,14 @@ export default function MascotCat({ pose, facingRight }: MascotCatProps) {
             : { duration: 0.4 }
         }
       >
-        <polygon points="63,18 69,4 75,17" fill={FUR} />
-        <polygon points="78,17 84,3 90,18" fill={FUR} />
-        <circle cx={76} cy={28} r={13} fill={FUR} />
+        <polygon points="63,18 69,4 75,17" fill={BODY} stroke={OUTLINE} strokeWidth={STROKE} strokeLinejoin="round" />
+        <polygon points="78,17 84,3 90,18" fill={BODY} stroke={OUTLINE} strokeWidth={STROKE} strokeLinejoin="round" />
+        <circle cx={76} cy={28} r={13} fill={BODY} stroke={OUTLINE} strokeWidth={STROKE} />
         {isSleeping ? (
           <path
             d="M78,27 Q81,30 84,27"
             fill="none"
-            stroke="#1a1a1a"
+            stroke={OUTLINE}
             strokeWidth={1.4}
             strokeLinecap="round"
           />
@@ -195,7 +210,7 @@ export default function MascotCat({ pose, facingRight }: MascotCatProps) {
             cy={27}
             rx={2.6}
             ry={3.6}
-            fill="#1a1a1a"
+            fill={OUTLINE}
             style={{ transformOrigin: "81px 27px" }}
             animate={{ scaleY: [1, 1, 0.1, 1] }}
             transition={{
@@ -206,8 +221,8 @@ export default function MascotCat({ pose, facingRight }: MascotCatProps) {
           />
         )}
         <polygon points="88,29 92,31 88,33" fill="#e8899e" />
-        <line x1={83} y1={31} x2={94} y2={29} stroke="#fff" strokeWidth={0.7} opacity={0.7} />
-        <line x1={83} y1={33} x2={94} y2={34} stroke="#fff" strokeWidth={0.7} opacity={0.7} />
+        <line x1={83} y1={31} x2={95} y2={29} stroke={OUTLINE} strokeWidth={0.8} opacity={0.6} />
+        <line x1={83} y1={33} x2={95} y2={34} stroke={OUTLINE} strokeWidth={0.8} opacity={0.6} />
       </motion.g>
     </motion.svg>
   );
