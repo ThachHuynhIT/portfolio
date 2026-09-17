@@ -54,7 +54,7 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
   return (
     <section
       id="photos"
-      className="relative py-28 overflow-hidden"
+      className="relative pt-0 pb-56 overflow-hidden"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >

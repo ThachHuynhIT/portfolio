@@ -197,7 +197,7 @@ export default function ProjectsSection({ projects, siteConfig }: ProjectsSectio
   }, [projects]);
 
   return (
-    <section id="projects" className="relative py-28 overflow-hidden">
+    <section id="projects" className="relative pt-0 pb-56 overflow-hidden">
       {/* Background ambient lighting */}
       <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-radial from-cyan-500/5 via-transparent to-transparent pointer-events-none" />
 

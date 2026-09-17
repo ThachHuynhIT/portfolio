@@ -170,7 +170,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
     <section
       id="contact"
       ref={sectionRef}
-      className="relative py-32 overflow-hidden"
+      className="relative pt-0 pb-32 overflow-hidden"
     >
       {/* 3D Particle Background */}
       {isMounted && isNearView && (

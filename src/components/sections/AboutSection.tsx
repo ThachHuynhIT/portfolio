@@ -25,7 +25,7 @@ export default function AboutSection({ siteConfig }: AboutSectionProps) {
   });
 
   return (
-    <section id="about" className="relative py-32 overflow-hidden">
+    <section id="about" className="relative pt-0 pb-60 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-radial from-purple-500/5 via-transparent to-transparent" />
 
