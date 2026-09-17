@@ -18,6 +18,11 @@ const GlobalMusicPlayer = dynamic(
   { ssr: false }
 );
 
+const MascotWidget = dynamic(
+  () => import("@/components/mascot/MascotWidget"),
+  { ssr: false }
+);
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -115,6 +120,7 @@ export default async function RootLayout({
               <main>{children}</main>
               <Footer navLinks={navLinks} socialLinks={socialLinks} siteConfig={siteConfig} />
               <GlobalMusicPlayer />
+              <MascotWidget />
             </MusicProvider>
           </LanguageProvider>
         </ThemeProvider>

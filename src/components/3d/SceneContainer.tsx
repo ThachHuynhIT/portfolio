@@ -13,6 +13,11 @@ interface SceneContainerProps {
    * cap DPR lower, since multiple such canvases can run concurrently.
    */
   highQuality?: boolean;
+  /**
+   * Set false for scenes sized by a normal-flow/fixed-position parent (e.g. a
+   * small corner widget) instead of a full-bleed section. Defaults to true.
+   */
+  fill?: boolean;
 }
 
 const STATIC_FALLBACK = (
@@ -45,7 +50,7 @@ class SceneErrorBoundary extends Component<
   }
 }
 
-function usePrefersReducedMotion() {
+export function usePrefersReducedMotion() {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -88,16 +93,18 @@ export default function SceneContainer({
   children,
   className = "",
   highQuality = false,
+  fill = true,
 }: SceneContainerProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const isTabVisible = useIsTabVisible();
+  const positionClass = fill ? "absolute inset-0" : "relative w-full h-full";
 
   if (prefersReducedMotion) {
-    return <div className={`absolute inset-0 ${className}`}>{STATIC_FALLBACK}</div>;
+    return <div className={`${positionClass} ${className}`}>{STATIC_FALLBACK}</div>;
   }
 
   return (
-    <div className={`absolute inset-0 ${className}`}>
+    <div className={`${positionClass} ${className}`}>
       <SceneErrorBoundary>
         <Canvas
           camera={{ position: [0, 0, 8], fov: 50 }}
