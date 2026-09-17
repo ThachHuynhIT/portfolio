@@ -179,16 +179,25 @@ export default function Navigation({ navLinks }: NavigationProps) {
       // Lock scroll spy during smooth scrolling
       isClickScrollingRef.current = true;
 
-      if (targetId === "home") {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      } else {
-        const element = document.getElementById(targetId);
-        if (element) {
-          const yOffset = -70; // offset for fixed header
-          const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-          window.scrollTo({ top: y, behavior: "smooth" });
-        }
-      }
+      // Defer the actual scroll two frames: closing the mobile menu triggers a
+      // Framer Motion height/layout measurement that temporarily calls
+      // window.scrollTo(0, 0) and restores it - if our smooth scrollTo runs in
+      // the same tick, that hack cancels it and the page snaps back to the
+      // top instead of landing on the target section.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (targetId === "home") {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          } else {
+            const element = document.getElementById(targetId);
+            if (element) {
+              const yOffset = -70; // offset for fixed header
+              const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+              window.scrollTo({ top: y, behavior: "smooth" });
+            }
+          }
+        });
+      });
 
       if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
       clickTimeoutRef.current = setTimeout(() => {
