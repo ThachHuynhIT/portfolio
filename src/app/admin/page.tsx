@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import Icon from "@/components/ui/Icon";
 import { useTranslation } from "@/context/LanguageContext";
+import { cn } from "@/lib/utils";
+import { gap, radius, text } from "@/lib/design-tokens";
 
 interface DashboardStats {
   skillsCount: number;
@@ -169,17 +171,17 @@ export default function AdminDashboardPage() {
       />
 
       {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className={cn("grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6", gap.base)}>
         {STAT_CONFIG.map((card) => (
           <Link
             key={card.key}
             href={card.href}
-            className="group p-4 rounded-2xl bg-white/[0.03] border border-white/[0.07] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-150"
+            className={cn("group p-4", radius.card, "bg-white/[0.03] border border-white/[0.07] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-150")}
           >
             <div className={`w-8 h-8 rounded-lg border flex items-center justify-center mb-3 ${ACCENT_CLASSES[card.accent]}`}>
               <Icon name={card.icon} size={15} />
             </div>
-            <p className="text-2xl font-bold text-white tabular-nums">
+            <p className={cn("text-2xl font-bold", text.primaryDark, "tabular-nums")}>
               {loading ? (
                 <span className="inline-block w-8 h-6 bg-white/8 rounded animate-pulse" />
               ) : (
@@ -198,21 +200,21 @@ export default function AdminDashboardPage() {
         <h2 className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-3">
           {t("admin.dashboard.quickActions")}
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className={cn("grid grid-cols-1 md:grid-cols-3", gap.loose)}>
           {quickActions.map((section) => (
             <div
               key={section.label}
-              className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.07] flex flex-col justify-between gap-4"
+              className={cn("p-5", radius.card, "bg-white/[0.02] border border-white/[0.07] flex flex-col justify-between", gap.loose)}
             >
               <div>
                 <div className="flex items-center gap-2.5 mb-2">
                   <Icon name={section.icon} size={16} className="text-slate-500" />
-                  <h3 className="text-sm font-semibold text-white">{section.label}</h3>
+                  <h3 className={cn("text-sm font-semibold", text.primaryDark)}>{section.label}</h3>
                 </div>
                 <p className="text-xs text-slate-500 leading-relaxed">{section.description}</p>
               </div>
 
-              <div className="flex gap-2">
+              <div className={cn("flex", gap.tight)}>
                 {section.actions.map((action) => (
                   <Link
                     key={action.href}
@@ -237,8 +239,8 @@ export default function AdminDashboardPage() {
         <h2 className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-3">
           {t("admin.dashboard.techStack")}
         </h2>
-        <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.07]">
-          <div className="flex flex-wrap gap-3 items-center">
+        <div className={cn("p-5", radius.card, "bg-white/[0.02] border border-white/[0.07]")}>
+          <div className={cn("flex flex-wrap", gap.base, "items-center")}>
             {[
               { name: "nextjs", label: "Next.js 14" },
               { name: "react", label: "React 18" },
@@ -251,7 +253,7 @@ export default function AdminDashboardPage() {
             ].map((tech) => (
               <div
                 key={tech.name}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.07]"
+                className={cn("flex items-center gap-1.5 px-2.5 py-1.5", radius.chip, "bg-white/[0.04] border border-white/[0.07]")}
               >
                 <Icon name={tech.name} size={14} />
                 <span className="text-xs text-slate-400 font-medium">{tech.label}</span>

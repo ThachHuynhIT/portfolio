@@ -180,6 +180,7 @@ npm run start
 - 🏛️ [**Kiến Trúc Hệ Thống (Architecture)**](docs/ARCHITECTURE.md): Phân tích chi tiết WebGL pipeline, MDX rendering, Canvas loop và Error Boundary.
 - 🚀 [**Đặc Tả Tính Năng (Features Spec)**](docs/FEATURES.md): Danh mục chi tiết các component và khả năng tương tác.
 - 🎨 [**Hướng Dẫn Tùy Biến (Customization Guide)**](docs/CUSTOMIZATION_GUIDE.md): Các bước chỉnh sửa thông tin cá nhân, cập nhật kỹ năng, thêm dự án mới và viết blog.
+- 🎯 [**Design Tokens (Màu & Kích Thước Dùng Chung)**](docs/DESIGN_TOKENS.md): Nguồn chân lý duy nhất cho màu sắc, bo góc, khoảng cách, z-index — sửa một chỗ, đổi toàn site.
 - 🚢 [**Hướng Dẫn Triển Khai (Deployment Guide)**](docs/DEPLOYMENT.md): Hướng dẫn deploy lên Vercel, VPS, Docker container và tối ưu hóa SEO.
 
 ---

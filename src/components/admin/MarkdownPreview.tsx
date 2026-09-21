@@ -3,19 +3,21 @@
 import { useEffect, useState, useRef } from "react";
 import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
 import Icon from "@/components/ui/Icon";
+import { cn } from "@/lib/utils";
+import { border, gap, radius, surface, text } from "@/lib/design-tokens";
 
 const mdxComponents = {
   h1: (props: React.HTMLProps<HTMLHeadingElement>) => (
-    <h1 className="text-3xl md:text-4xl font-bold text-white mt-8 mb-4 border-b border-white/10 pb-2" {...props} />
+    <h1 className={cn("text-3xl md:text-4xl font-bold", text.primaryDark, "mt-8 mb-4 border-b border-white/10 pb-2")} {...props} />
   ),
   h2: (props: React.HTMLProps<HTMLHeadingElement>) => (
-    <h2 className="text-2xl md:text-3xl font-bold text-white mt-7 mb-3" {...props} />
+    <h2 className={cn("text-2xl md:text-3xl font-bold", text.primaryDark, "mt-7 mb-3")} {...props} />
   ),
   h3: (props: React.HTMLProps<HTMLHeadingElement>) => (
-    <h3 className="text-xl md:text-2xl font-semibold text-white mt-5 mb-2" {...props} />
+    <h3 className={cn("text-xl md:text-2xl font-semibold", text.primaryDark, "mt-5 mb-2")} {...props} />
   ),
   h4: (props: React.HTMLProps<HTMLHeadingElement>) => (
-    <h4 className="text-lg font-semibold text-white mt-4 mb-2" {...props} />
+    <h4 className={cn("text-lg font-semibold", text.primaryDark, "mt-4 mb-2")} {...props} />
   ),
   p: (props: React.HTMLProps<HTMLParagraphElement>) => (
     <p className="text-gray-300 leading-relaxed mb-4 text-base" {...props} />
@@ -45,20 +47,20 @@ const mdxComponents = {
   ),
   code: (props: React.HTMLProps<HTMLElement>) => (
     <code
-      className="bg-white/10 text-purple-300 px-1.5 py-0.5 rounded text-xs font-mono"
+      className={cn(surface.raisedDark, "text-purple-300 px-1.5 py-0.5 rounded text-xs font-mono")}
       {...props}
     />
   ),
   pre: (props: React.HTMLProps<HTMLPreElement>) => (
     <pre
-      className="bg-black/80 border border-gray-800 rounded-xl p-4 overflow-x-auto my-4 text-sm font-mono text-gray-200"
+      className={cn("bg-black/80 border border-gray-800", radius.control, "p-4 overflow-x-auto my-4 text-sm font-mono text-gray-200")}
       {...props}
     />
   ),
   img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
     <span className="block my-6">
       <img
-        className="rounded-2xl border border-white/10 max-h-[480px] w-auto max-w-full mx-auto object-cover shadow-xl"
+        className={cn(radius.card, border.subtleDark, "max-h-[480px] w-auto max-w-full mx-auto object-cover shadow-xl")}
         loading="lazy"
         {...props}
       />
@@ -71,11 +73,11 @@ const mdxComponents = {
   ),
   table: (props: React.TableHTMLAttributes<HTMLTableElement>) => (
     <div className="overflow-x-auto my-4">
-      <table className="w-full text-left text-sm text-gray-300 border border-gray-800 rounded-xl overflow-hidden" {...props} />
+      <table className={cn("w-full text-left text-sm text-gray-300 border border-gray-800", radius.control, "overflow-hidden")} {...props} />
     </div>
   ),
   th: (props: React.ThHTMLAttributes<HTMLTableHeaderCellElement>) => (
-    <th className="px-4 py-2 bg-gray-900 border-b border-gray-800 text-white font-semibold" {...props} />
+    <th className={cn("px-4 py-2 bg-gray-900 border-b border-gray-800", text.primaryDark, "font-semibold")} {...props} />
   ),
   td: (props: React.TdHTMLAttributes<HTMLTableDataCellElement>) => (
     <td className="px-4 py-2 border-b border-gray-800/60" {...props} />
@@ -148,16 +150,16 @@ export default function MarkdownPreview({ content }: MarkdownPreviewProps) {
     <div className="relative">
       {/* Loading indicator bar */}
       {loading && (
-        <div className="absolute top-0 right-0 flex items-center gap-2 text-xs text-purple-400 bg-gray-900/90 px-3 py-1 rounded-lg border border-purple-500/30 z-10">
-          <div className="w-3 h-3 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+        <div className={cn("absolute top-0 right-0 flex items-center", gap.tight, "text-xs text-purple-400 bg-gray-900/90 px-3 py-1", radius.chip, "border border-purple-500/30 z-10")}>
+          <div className={cn("w-3 h-3 border-2 border-purple-400 border-t-transparent", radius.pill, "animate-spin")} />
           <span>Rendering preview…</span>
         </div>
       )}
 
       {/* Compile Error Banner */}
       {compileError && (
-        <div className="p-4 mb-6 bg-red-950/40 border border-red-500/40 rounded-xl text-red-300 text-xs">
-          <div className="flex items-center gap-2 font-bold mb-1">
+        <div className={cn("p-4 mb-6 bg-red-950/40 border border-red-500/40", radius.control, "text-red-300 text-xs")}>
+          <div className={cn("flex items-center", gap.tight, "font-bold mb-1")}>
             <Icon name="alertTriangle" size={14} />
             <span>MDX Syntax Error:</span>
           </div>

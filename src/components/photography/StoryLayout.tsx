@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import type { PhotoItem } from "@/lib/types";
 import Icon from "@/components/ui/Icon";
 import { useTranslation } from "@/context/LanguageContext";
+import { cn } from "@/lib/utils";
+import { elevation, gap, motion as motionTokens, radius } from "@/lib/design-tokens";
 
 interface StoryLayoutProps {
   photos: PhotoItem[];
@@ -43,7 +45,7 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.08, duration: 0.5 }}
-            className="group rounded-3xl overflow-hidden bg-slate-900/50 border border-white/10 hover:border-white/20 transition-all duration-300 light:bg-white light:border-neutral-900/10 light:hover:border-neutral-900/15"
+            className={cn("group", radius.panel, "overflow-hidden bg-slate-900/50 border border-white/10 hover:border-white/20", motionTokens.base, "light:bg-white light:border-neutral-900/10 light:hover:border-neutral-900/15")}
           >
             {/* Main Visual */}
             <div
@@ -62,14 +64,14 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
               {/* Video Play badge */}
               {isVideo && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-16 h-16 rounded-full bg-black/60 backdrop-blur-md border border-white/30 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
+                  <div className={cn("w-16 h-16", radius.pill, "bg-black/60", elevation.blur, "border border-white/30 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl")}>
                     <Icon name="play" size={24} className="text-cyan-400 translate-x-0.5" />
                   </div>
                 </div>
               )}
 
               <div className="absolute bottom-4 right-4 z-10">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-black/60 text-white backdrop-blur-md border border-white/20 hover:bg-black/80 transition-colors">
+                <span className={cn("inline-flex items-center gap-1.5 px-3 py-1.5", radius.pill, "text-xs font-medium bg-black/60 text-white", elevation.blur, "border border-white/20 hover:bg-black/80 transition-colors")}>
                   <Icon name={isVideo ? "play" : "maximize"} size={13} />
                   <span>{isVideo ? "Xem Video" : "Xem Ảnh Lớn"}</span>
                 </span>
@@ -78,13 +80,13 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
 
             {/* Editorial Content */}
             <div className="p-6 md:p-8 space-y-5">
-              <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 light:text-neutral-500">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-white font-medium light:bg-neutral-900/10 light:text-neutral-900">
+              <div className={cn("flex flex-wrap items-center justify-between", gap.base, "text-xs text-slate-400 light:text-neutral-500")}>
+                <div className={cn("flex items-center", gap.tight)}>
+                  <span className={cn("px-2.5 py-0.5", radius.pill, "bg-white/10 text-white font-medium light:bg-neutral-900/10 light:text-neutral-900")}>
                     {photo.category}
                   </span>
                   {isVideo && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-bold uppercase text-[10px]">
+                    <span className={cn("px-2.5 py-0.5", radius.pill, "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-bold uppercase text-[10px]")}>
                       Video
                     </span>
                   )}
@@ -114,10 +116,10 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
 
               {/* Editing and EXIF Badges: only show if at least one exists */}
               {(hasCameraInfo || hasEditingInfo) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.loose, "pt-2")}>
                   {hasCameraInfo && (
-                    <div className="rounded-xl bg-white/[0.03] border border-white/5 p-4 text-xs light:bg-neutral-900/[0.03] light:border-neutral-900/10">
-                      <div className="flex items-center gap-2 text-cyan-400 font-semibold mb-2">
+                    <div className={cn(radius.control, "bg-white/[0.03] border border-white/5 p-4 text-xs light:bg-neutral-900/[0.03] light:border-neutral-900/10")}>
+                      <div className={cn("flex items-center", gap.tight, "text-cyan-400 font-semibold mb-2 light:text-cyan-700")}>
                         <Icon name="camera" size={13} />
                         <span>Gear & Settings</span>
                       </div>
@@ -140,8 +142,8 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
                   )}
 
                   {hasEditingInfo && (
-                    <div className="rounded-xl bg-purple-500/[0.03] border border-purple-500/15 p-4 text-xs">
-                      <div className="flex items-center gap-2 text-purple-400 font-semibold mb-2">
+                    <div className={cn(radius.control, "bg-purple-500/[0.03] border border-purple-500/15 p-4 text-xs light:border-purple-500/20")}>
+                      <div className={cn("flex items-center", gap.tight, "text-purple-400 font-semibold mb-2 light:text-purple-700")}>
                         <Icon name="compare" size={13} />
                         <span>Color Concept</span>
                       </div>

@@ -8,6 +8,8 @@ import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
 import { resolveSectionText } from "@/lib/content-overrides";
 import type { Skill, SiteConfig } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { border, elevation, gap, radius, text } from "@/lib/design-tokens";
 
 const categories = ["frontend", "backend", "tools", "design"] as const;
 
@@ -46,22 +48,22 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
       : categories.filter((cat) => cat === selectedCategory);
 
   return (
-    <section id="skills" className="relative py-28 overflow-hidden">
+    <section id="skills" className="relative pt-8 pb-56 overflow-hidden">
       {/* Subtle ambient lighting */}
       <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-r from-cyan-600/10 via-purple-600/10 to-indigo-600/10 blur-[120px] rounded-full" />
+        <div className={cn("absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-r from-cyan-600/10 via-purple-600/10 to-indigo-600/10 blur-[120px]", radius.pill)} />
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
         {/* ── Section Header ── */}
         <AnimatedSection>
           <div className="text-center mb-12">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/[0.04] light:bg-neutral-900/[0.04] text-cyan-400 border border-white/10 light:border-neutral-900/10 mb-4 backdrop-blur-md">
+            <span className={cn("inline-flex items-center", gap.tight, "px-3.5 py-1.5", radius.pill, "text-xs font-semibold uppercase tracking-wider bg-white/[0.04] light:bg-neutral-900/[0.04] text-cyan-400 light:text-cyan-700", border.subtle, "mb-4", elevation.blur)}>
               <Icon name="zap" size={14} />
               <span>{resolveSectionText(locale, skillsCopy?.badge, skillsCopy?.badge_vi, t("skills.badge"))}</span>
             </span>
 
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-5 tracking-tight">
+            <h2 className={cn("text-3xl sm:text-4xl md:text-5xl font-extrabold", text.primary, "mb-5 tracking-tight")}>
               {resolveSectionText(locale, skillsCopy?.titlePrefix, skillsCopy?.titlePrefix_vi, t("skills.titlePrefix"))}
               <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
                 {resolveSectionText(locale, skillsCopy?.titleHighlight, skillsCopy?.titleHighlight_vi, t("skills.titleHighlight"))}
@@ -75,7 +77,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
         </AnimatedSection>
 
         {/* ── Category Filter Tabs ── */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
+        <div className={cn("flex flex-wrap items-center justify-center", gap.tight, "mb-10")}>
           <button
             type="button"
             onClick={() => setSelectedCategory("all")}
@@ -118,7 +120,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                 <span
                   className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                     isSelected
-                      ? "bg-black/30 text-white"
+                      ? "bg-black/30 text-white light:bg-white/20"
                       : "bg-white/10 light:bg-neutral-900/[0.06] text-slate-400 light:text-neutral-500"
                   }`}
                 >
@@ -153,16 +155,16 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
               return (
                 <div
                   key={category}
-                  className="rounded-3xl bg-slate-900/50 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/10 p-6 sm:p-7 backdrop-blur-md hover:border-white/20 light:hover:border-neutral-900/15 transition-all shadow-xl light:shadow-neutral-400/10 flex flex-col justify-between"
+                  className={cn(radius.panel, "bg-slate-900/50 light:bg-neutral-900/[0.03]", border.subtle, "p-6 sm:p-7", elevation.blur, border.subtleHover, "transition-all shadow-xl light:shadow-neutral-400/10 flex flex-col justify-between")}
                 >
                   {/* Category Card Header */}
-                  <div className="flex items-center justify-between pb-5 mb-5 border-b border-white/10 light:border-neutral-900/10">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-white/[0.06] light:bg-neutral-900/[0.06] border border-white/10 light:border-neutral-900/10 flex items-center justify-center shadow-inner">
+                  <div className={cn("flex items-center justify-between pb-5 mb-5", border.dividerBottom)}>
+                    <div className={cn("flex items-center", gap.base)}>
+                      <div className={cn("w-10 h-10", radius.card, "bg-white/[0.06] light:bg-neutral-900/[0.06]", border.subtle, "flex items-center justify-center shadow-inner")}>
                         <Icon name={categoryIcons[category]} size={18} />
                       </div>
                       <div>
-                        <h3 className="text-base font-bold text-white light:text-neutral-900">
+                        <h3 className={cn("text-base font-bold", text.primary)}>
                           {categoryLabel(category)}
                         </h3>
                         <p className="text-xs text-slate-400 light:text-neutral-500">
@@ -177,7 +179,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                       </div>
                     </div>
 
-                    <span className="text-[11px] px-2.5 py-1 rounded-full bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-500 font-mono border border-white/5 light:border-neutral-900/10">
+                    <span className={cn("text-[11px] px-2.5 py-1", radius.pill, "bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-500 font-mono border border-white/5 light:border-neutral-900/10")}>
                       {category.toUpperCase()}
                     </span>
                   </div>
@@ -200,7 +202,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                           variants={fadeInUp}
                           whileHover={{ scale: 1.04, y: -2 }}
                           transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                          className="group inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/[0.04] light:bg-neutral-900/[0.04] hover:bg-white/[0.08] light:hover:bg-neutral-900/[0.06] border border-white/10 light:border-neutral-900/10 hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-colors cursor-default"
+                          className={cn("group inline-flex items-center gap-2.5 px-4 py-2.5", radius.card, "bg-white/[0.04] light:bg-neutral-900/[0.04] hover:bg-white/[0.08] light:hover:bg-neutral-900/[0.06]", border.subtle, "hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-colors cursor-default")}
                         >
                           {/* Skill Icon */}
                           <div className="w-5 h-5 flex items-center justify-center shrink-0">

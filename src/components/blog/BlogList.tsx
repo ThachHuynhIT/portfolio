@@ -5,6 +5,9 @@ import Link from "next/link";
 import { GlassCard } from "@/components/ui";
 import { BlogPost } from "@/lib/types";
 import { useTranslation } from "@/context/LanguageContext";
+import { translateBlogCategory, translateReadTime } from "@/lib/content-overrides";
+import { cn } from "@/lib/utils";
+import { brand, gap, radius, text } from "@/lib/design-tokens";
 
 interface BlogListProps {
   posts: BlogPost[];
@@ -27,22 +30,22 @@ export default function BlogList({ posts, categories }: BlogListProps) {
     <>
       {/* Header */}
       <div className="text-center mb-16">
-        <span className="text-sm text-purple-500 font-medium tracking-wider uppercase mb-4 block">
+        <span className="text-sm text-purple-500 light:text-purple-700 font-medium tracking-wider uppercase mb-4 block">
           {t("blog.badge")}
         </span>
-        <h1 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">
+        <h1 className={cn("text-4xl md:text-5xl font-bold", text.primary, "mb-6")}>
           {t("blog.titlePrefix")}
-          <span className="bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent">
+          <span className={cn(brand.gradient, "bg-clip-text text-transparent")}>
             {t("blog.titleHighlight")}
           </span>
         </h1>
-        <p className="text-white/60 light:text-neutral-600 max-w-2xl mx-auto">
+        <p className={cn(text.muted, "max-w-2xl mx-auto")}>
           {t("blog.subtitle")}
         </p>
       </div>
 
       {categories.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
+        <div className={cn("flex flex-wrap justify-center", gap.base, "mb-12")}>
           <button
             type="button"
             onClick={() => setSelectedCategory(null)}
@@ -67,30 +70,30 @@ export default function BlogList({ posts, categories }: BlogListProps) {
                   : "text-white/70 bg-white/5 border border-white/10 hover:text-white hover:bg-white/10 light:text-neutral-700 light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06]"
               }`}
             >
-              {category}
+              {translateBlogCategory(category, locale)}
             </button>
           ))}
         </div>
       )}
 
       {filteredPosts.length > 0 ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={cn("grid md:grid-cols-2 lg:grid-cols-3", gap.grid)}>
           {filteredPosts.map((post) => (
             <Link key={post.slug} href={`/blog/${post.slug}`}>
               <GlassCard className="h-full p-6 group cursor-pointer">
-                <span className="inline-block px-3 py-1 text-xs font-medium text-purple-400 bg-purple-500/10 rounded-full mb-4">
-                  {post.category}
+                <span className={cn("inline-block px-3 py-1 text-xs font-medium text-purple-400 bg-purple-500/10", radius.pill, "mb-4 light:text-purple-700")}>
+                  {translateBlogCategory(post.category, locale)}
                 </span>
 
-                <h2 className="text-xl font-semibold text-white light:text-neutral-900 mb-3 group-hover:text-purple-400 transition-colors">
+                <h2 className={cn("text-xl font-semibold", text.primary, "mb-3 group-hover:text-purple-400 transition-colors")}>
                   {locale === "vi" && post.title_vi ? post.title_vi : post.title}
                 </h2>
 
-                <p className="text-white/60 light:text-neutral-600 text-sm mb-4 line-clamp-2">
+                <p className={cn(text.muted, "text-sm mb-4 line-clamp-2")}>
                   {locale === "vi" && post.excerpt_vi ? post.excerpt_vi : post.excerpt}
                 </p>
 
-                <div className="flex items-center justify-between text-sm text-white/40 light:text-neutral-500">
+                <div className={cn("flex items-center justify-between text-sm", text.subtle)}>
                   <span>
                     {new Date(post.date).toLocaleDateString(
                       locale === "vi" ? "vi-VN" : "en-US",
@@ -101,10 +104,10 @@ export default function BlogList({ posts, categories }: BlogListProps) {
                       }
                     )}
                   </span>
-                  <span>{post.readTime}</span>
+                  <span>{translateReadTime(post.readTime, locale, t("blog.minRead"))}</span>
                 </div>
 
-                <div className="flex flex-wrap gap-2 mt-4">
+                <div className={cn("flex flex-wrap", gap.tight, "mt-4")}>
                   {post.tags.slice(0, 3).map((tag) => (
                     <span
                       key={tag}
@@ -120,7 +123,7 @@ export default function BlogList({ posts, categories }: BlogListProps) {
         </div>
       ) : (
         <div className="text-center py-20">
-          <p className="text-white/60 light:text-neutral-600 text-lg">
+          <p className={cn(text.muted, "text-lg")}>
             {posts.length === 0
               ? locale === "vi"
                 ? "Chưa có bài viết nào. Hãy quay lại sau nhé!"

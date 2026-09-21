@@ -5,6 +5,8 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/context/LanguageContext";
 import Icon from "@/components/ui/Icon";
+import { cn } from "@/lib/utils";
+import { border, elevation, gap, radius } from "@/lib/design-tokens";
 
 interface CVPreviewModalProps {
   url: string;
@@ -13,10 +15,7 @@ interface CVPreviewModalProps {
 }
 
 /**
- * Full-screen PDF viewer for the CV, in the same dark "theater mode" spirit
- * as PhotoLightboxModal — an intentional dark-only exception to the
- * light/dark toggle (see CLAUDE.md), since a document viewer isn't part of
- * the themed site chrome.
+ * Full-screen PDF viewer for the CV, themed for both light and dark mode.
  */
 export default function CVPreviewModal({ url, isOpen, onClose }: CVPreviewModalProps) {
   const { t } = useTranslation();
@@ -48,7 +47,7 @@ export default function CVPreviewModal({ url, isOpen, onClose }: CVPreviewModalP
           className="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6"
           onClick={onClose}
         >
-          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" />
+          <div className={cn("absolute inset-0 bg-black/90 light:bg-white/80", elevation.blur)} />
 
           <motion.div
             initial={{ opacity: 0, scale: 0.97 }}
@@ -58,23 +57,23 @@ export default function CVPreviewModal({ url, isOpen, onClose }: CVPreviewModalP
             className="relative z-10 w-full max-w-4xl h-[88vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-3 text-xs text-white/80 gap-3">
-              <span className="font-mono text-[11px] text-slate-300 truncate bg-slate-900/90 px-3 py-1.5 rounded-xl border border-white/10">
+            <div className={cn("flex items-center justify-between pb-3 text-xs text-white/80 light:text-neutral-700", gap.base)}>
+              <span className={cn("font-mono text-[11px] text-slate-300 light:text-neutral-600 truncate bg-slate-900/90 light:bg-slate-100 px-3 py-1.5", radius.control, border.subtle)}>
                 {t("hero.viewCV", "View CV")}
               </span>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className={cn("flex items-center", gap.tight, "flex-shrink-0")}>
                 <a
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-xs transition-all inline-flex items-center gap-1"
+                  className={cn("px-3 py-1.5", radius.control, "bg-white/10 hover:bg-white/20 text-white font-medium text-xs transition-all inline-flex items-center gap-1 light:bg-neutral-900/[0.06] light:hover:bg-neutral-900/10 light:text-neutral-900")}
                 >
                   {t("hero.openInNewTab", "Open in new tab")} <Icon name="externalLink" size={12} />
                 </a>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all flex items-center justify-center"
+                  className={cn("w-8 h-8", radius.control, "bg-white/10 hover:bg-white/20 text-white transition-all flex items-center justify-center light:bg-neutral-900/[0.06] light:hover:bg-neutral-900/10 light:text-neutral-900")}
                   title="Close (Esc)"
                 >
                   <Icon name="close" size={14} />
@@ -82,7 +81,7 @@ export default function CVPreviewModal({ url, isOpen, onClose }: CVPreviewModalP
               </div>
             </div>
 
-            <div className="flex-1 rounded-2xl overflow-hidden border border-white/15 shadow-2xl bg-black/70">
+            <div className={cn("flex-1", radius.card, "overflow-hidden border border-white/15 light:border-neutral-900/15 shadow-2xl bg-black/70 light:bg-white/90")}>
               <iframe src={url} title="CV" className="w-full h-full" />
             </div>
           </motion.div>
