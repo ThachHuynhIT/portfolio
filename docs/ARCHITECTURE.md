@@ -194,9 +194,14 @@ Công cụ kiểm tra tính toàn vẹn dữ liệu JSON:
 
 ---
 
-### 3.5. Hệ Thống Design System & Animation (`src/app/globals.css`, `src/lib/animations.ts`)
+### 3.5. Hệ Thống Design System & Animation (`src/app/globals.css`, `src/lib/design-tokens.ts`, `src/lib/ui-presets.ts`, `src/lib/animations.ts`)
 
 - **Tailwind CSS v4**: Cấu hình theme trực tiếp qua `@theme inline` và biến CSS Custom Properties (`--background: #050505`, `--foreground`, `--purple-500`, `--cyan-500`).
+- **Design Tokens (nguồn chân lý cho màu & kích thước dùng chung)** — chi tiết tại [`docs/DESIGN_TOKENS.md`](DESIGN_TOKENS.md):
+  - `globals.css` khai báo thang màu thương hiệu (`--purple-400/500/600`, `--cyan-400/500/600`) và mọi hiệu ứng CSS thuần (gradient, glow, scrollbar, focus ring, selection, palette code block `--code-*`) đều đọc từ đó.
+  - `src/lib/design-tokens.ts` export token đơn lẻ cho phía TSX: `surface.*`, `border.*`, `text.*`, `status.*`, `brand.*`, `radius.*`, `layout.*`, `gap.*`, `iconSize.*`, `motion.*`, `elevation.*`, `zIndex.*`, `focus.*`, `heading.*`. Mỗi token đã kèm sẵn biến thể `light:`; token hậu tố `Dark` không kèm, dành cho route trong `EXCLUDED_ROUTE_PREFIXES`.
+  - `src/lib/ui-presets.ts` ghép token thành công thức hoàn chỉnh (`presets.card`, `presets.input`, `presets.inputDark`, `presets.badge.*`, `presets.section`...). `<GlassCard />` và `<Button />` đã dựng trên lớp này.
+  - Nguyên tắc: giá trị dùng ở từ 3 component trở lên thì đưa vào token, đặt tên theo **vai trò** (`radius.card`) chứ không theo giá trị. Luôn ghép bằng `cn()` để class thêm vào ghi đè được token.
 - **Standardized Micro-Animations**:
   - `fadeInUp`, `fadeInDown`, `fadeInLeft`, `fadeInRight`: Xuất hiện với độ trễ chuyển động mượt mà.
   - `staggerContainer`: Điều phối xuất hiện lần lượt cho các danh sách (skills, project cards).

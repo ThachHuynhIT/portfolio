@@ -35,6 +35,7 @@ Detailed documentation files are available in the [`docs/`](file:///d:/WorkSpace
 - [Architecture Documentation](file:///d:/WorkSpace/portfolio/docs/ARCHITECTURE.md) (`docs/ARCHITECTURE.md`)
 - [Features Specification](file:///d:/WorkSpace/portfolio/docs/FEATURES.md) (`docs/FEATURES.md`)
 - [Customization Guide](file:///d:/WorkSpace/portfolio/docs/CUSTOMIZATION_GUIDE.md) (`docs/CUSTOMIZATION_GUIDE.md`)
+- [Design Tokens](file:///d:/WorkSpace/portfolio/docs/DESIGN_TOKENS.md) (`docs/DESIGN_TOKENS.md`)
 - [Deployment Guide](file:///d:/WorkSpace/portfolio/docs/DEPLOYMENT.md) (`docs/DEPLOYMENT.md`)
 
 ---
@@ -75,6 +76,11 @@ Path alias `@/*` maps to `./src/*`.
 
 ### 4. Styling Conventions
 - Tailwind v4 is configured via `@import "tailwindcss"` + `@theme inline` in `src/app/globals.css` (no `tailwind.config.js`).
+- **Shared colors and sizes are tokenized — do not hand-write repeated values.** See `docs/DESIGN_TOKENS.md` for the full inventory.
+  - `src/lib/design-tokens.ts` — individual tokens (`surface.card`, `border.subtle`, `text.muted`, `radius.card`, `motion.base`, `zIndex.nav`, `brand.gradient`, ...). Each already bundles its `light:` variant; `*Dark` tokens carry none and are for the excluded routes.
+  - `src/lib/ui-presets.ts` — whole recipes composed from those tokens (`presets.card`, `presets.input`, `presets.inputDark`, `presets.badge.success`, ...).
+  - `src/app/globals.css` — CSS custom properties for anything styled in plain CSS. The brand scale (`--purple-400/500/600`, `--cyan-400/500/600`) drives the gradients, glows, focus ring, scrollbar and selection; `--code-*` drives the blog syntax theme. These hex values are mirrored by `palette` in `design-tokens.ts` — **change both together**.
+  - Rule of thumb: a value used in 3+ components belongs in a token, named by role (`radius.card`) not by value. Compose with `cn()` so appended classes override the token.
 - Design tokens: `--background: #050505`, `--foreground: #fafafa`, `--purple-500: #8b5cf6`, `--cyan-500: #06b6d4`. These tokens flip automatically per theme (see below), so `bg-background`/`text-foreground` need no extra work.
 - Reusable utility classes: `.gradient-text`, `.glass`, `.glow-purple`, `.glow-cyan`, `.animate-float`, `.animate-pulse-glow`, `.animate-gradient`.
 
