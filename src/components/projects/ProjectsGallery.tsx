@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard, TiltCard, Button, Icon } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
 import type { Project } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { brand, gap, layout, radius, text } from "@/lib/design-tokens";
 
 interface ProjectsGalleryProps {
   initialProjects: Project[];
@@ -75,12 +77,12 @@ function ProjectDetailModal({
           <button
             onClick={onClose}
             aria-label={t("projects.closeModal")}
-            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all z-20 light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06]"
+            className={cn("absolute top-4 right-4 w-9 h-9", radius.pill, "bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all z-20 light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06]")}
           >
             <Icon name="close" size={16} />
           </button>
 
-          <div className="relative aspect-video rounded-xl overflow-hidden mb-6 bg-slate-950 border border-white/10 shadow-lg light:bg-slate-100 light:border-neutral-900/10">
+          <div className={cn("relative aspect-video", radius.control, "overflow-hidden mb-6 bg-slate-950 border border-white/10 shadow-lg light:bg-slate-100 light:border-neutral-900/10")}>
             {project.image ? (
               <Image
                 src={project.image}
@@ -96,7 +98,7 @@ function ProjectDetailModal({
               </div>
             )}
             {project.featured && (
-              <div className="absolute top-3 left-3 px-3 py-1 text-xs font-semibold text-white bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full shadow-md">
+              <div className={cn("absolute top-3 left-3 px-3 py-1 text-xs font-semibold text-white", brand.gradient, radius.pill, "shadow-md")}>
                 {t("projects.featuredBadge")}
               </div>
             )}
@@ -105,18 +107,18 @@ function ProjectDetailModal({
           <h3 className="text-2xl font-bold text-white mb-3 light:text-neutral-900">{displayTitle}</h3>
           <p className="text-white/70 text-sm sm:text-base mb-6 leading-relaxed light:text-neutral-600">{displayLongDesc}</p>
 
-          <div className="flex flex-wrap gap-2 mb-6">
+          <div className={cn("flex flex-wrap", gap.tight, "mb-6")}>
             {project.tags.map((tag) => (
               <span
                 key={tag}
-                className="px-3 py-1 text-xs font-medium text-white/80 bg-white/5 border border-white/10 rounded-full light:text-neutral-700 light:bg-neutral-900/[0.04] light:border-neutral-900/10"
+                className={cn("px-3 py-1 text-xs font-medium text-white/80 bg-white/5 border border-white/10", radius.pill, "light:text-neutral-700 light:bg-neutral-900/[0.04] light:border-neutral-900/10")}
               >
                 {tag}
               </span>
             ))}
           </div>
 
-          <div className="flex gap-4">
+          <div className={cn("flex", gap.loose)}>
             {project.liveUrl && (
               <Button
                 variant="primary"
@@ -180,8 +182,8 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
   }, [initialProjects, selectedTag, searchQuery, locale]);
 
   return (
-    <div className="min-h-screen pt-32 pb-24 text-white light:text-neutral-900">
-      <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
+    <div className={cn("min-h-screen pt-32 pb-24", text.primary)}>
+      <div className={cn(layout.container)}>
 
         {/* Page Header */}
         <div className="text-center mb-14">
@@ -197,7 +199,7 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
         </div>
 
         {/* Search & Tag Filters Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10">
+        <div className={cn("flex flex-col sm:flex-row items-center justify-between", gap.loose, "mb-10")}>
           {/* Search Input */}
           <div className="relative w-full sm:w-80">
             <input
@@ -205,7 +207,7 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={locale === "vi" ? "Tìm kiếm dự án, công nghệ..." : "Search projects, tags..."}
-              className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-all light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-900 light:placeholder-neutral-400"
+              className={cn("w-full px-4 py-2.5", radius.control, "bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-all light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-900 light:placeholder-neutral-400")}
             />
             {searchQuery && (
               <button
@@ -219,7 +221,7 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
           </div>
 
           {/* Tags Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 scrollbar-none">
+          <div className={cn("flex items-center", gap.tight, "overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 scrollbar-none")}>
             <button
               type="button"
               onClick={() => setSelectedTag("all")}
@@ -248,7 +250,7 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
 
         {/* Projects Grid */}
         {filteredProjects.length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className={cn("grid sm:grid-cols-2 lg:grid-cols-3", gap.grid)}>
             {filteredProjects.map((project) => {
               const cardTitle = locale === "vi" && project.title_vi ? project.title_vi : project.title;
               const cardDesc = locale === "vi" && project.description_vi ? project.description_vi : project.description;
@@ -261,7 +263,7 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
                 >
                   <div className="p-5 flex flex-col h-full">
                     {/* Project Thumbnail Image */}
-                    <div className="relative aspect-[16/10] rounded-xl overflow-hidden mb-4 bg-slate-950 border border-white/10 shadow-sm light:bg-slate-100 light:border-neutral-900/10">
+                    <div className={cn("relative aspect-[16/10]", radius.control, "overflow-hidden mb-4 bg-slate-950 border border-white/10 shadow-sm light:bg-slate-100 light:border-neutral-900/10")}>
                       {project.image ? (
                         <Image
                           src={project.image}
@@ -276,7 +278,7 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
                         </div>
                       )}
                       {project.featured && (
-                        <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 text-[11px] font-semibold text-white bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full shadow-md shadow-purple-500/30">
+                        <div className={cn("absolute top-2.5 right-2.5 px-2.5 py-0.5 text-[11px] font-semibold text-white", brand.gradient, radius.pill, "shadow-md shadow-purple-500/30")}>
                           {t("projects.featuredBadge")}
                         </div>
                       )}
@@ -307,7 +309,7 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
             })}
           </div>
         ) : (
-          <div className="text-center py-24 rounded-2xl bg-white/[0.02] border border-white/5 light:bg-neutral-900/[0.03] light:border-neutral-900/10">
+          <div className={cn("text-center py-24", radius.card, "bg-white/[0.02] border border-white/5 light:bg-neutral-900/[0.03] light:border-neutral-900/10")}>
             <p className="text-white/60 text-base light:text-neutral-600">{t("projects.noProjectsFound")}</p>
           </div>
         )}

@@ -6,6 +6,8 @@ import { Stars } from "@react-three/drei";
 import * as THREE from "three";
 import SceneContainer from "./SceneContainer";
 import { usePerformanceTier } from "@/hooks/usePerformanceTier";
+import { cn } from "@/lib/utils";
+import { radius } from "@/lib/design-tokens";
 
 /**
  * Nebula Dust & Star Clusters layer
@@ -91,8 +93,8 @@ export default function StarryBackground3D() {
     <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden bg-[#030014]">
       {/* Deep cosmic gradient overlays to ensure high contrast for typography */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#030014]/60 via-[#040118]/80 to-[#02000d] pointer-events-none z-10" />
-      <div className="absolute top-0 left-1/4 w-[600px] h-[500px] bg-purple-900/10 blur-[150px] pointer-events-none z-10 rounded-full" />
-      <div className="absolute top-1/2 right-10 w-[500px] h-[500px] bg-cyan-900/10 blur-[160px] pointer-events-none z-10 rounded-full" />
+      <div className={cn("absolute top-0 left-1/4 w-[600px] h-[500px] bg-purple-900/10 blur-[150px] pointer-events-none z-10", radius.pill)} />
+      <div className={cn("absolute top-1/2 right-10 w-[500px] h-[500px] bg-cyan-900/10 blur-[160px] pointer-events-none z-10", radius.pill)} />
 
       <SceneContainer className="w-full h-full">
         {/* Distant stars field with subtle natural twinkle */}

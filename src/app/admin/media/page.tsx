@@ -9,6 +9,8 @@ import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
 import type { MediaAsset, MediaCategory } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { border, elevation, gap, motion, radius, surface, text } from "@/lib/design-tokens";
 
 // Helper: Format bytes to human-readable size
 function formatBytes(bytes: number, decimals = 1): string {
@@ -261,11 +263,11 @@ export default function MediaAdminPage() {
         description={t.admin.media.description}
         icon="image"
         action={
-          <div className="flex items-center gap-3">
+          <div className={cn("flex items-center", gap.base)}>
             <button
               onClick={handleSyncCloudinary}
               disabled={isSyncing}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-900 border border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white transition-all shadow-sm disabled:opacity-50"
+              className={cn("flex items-center", gap.tight, "px-3.5 py-2", radius.control, "text-xs font-medium bg-slate-900", border.subtleDark, "hover:border-violet-500/40 text-slate-300 hover:text-white transition-all shadow-sm disabled:opacity-50")}
               title={t.admin.media.syncCloudinary}
             >
               <span className={isSyncing ? "animate-spin" : ""}><Icon name="refresh" size={14} /></span>
@@ -274,7 +276,7 @@ export default function MediaAdminPage() {
 
             <button
               onClick={() => setIsUploadOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-lg shadow-violet-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className={cn("flex items-center", gap.tight, "px-4 py-2", radius.control, "text-xs font-semibold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500", text.primaryDark, "shadow-lg shadow-violet-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]")}
             >
               <Icon name="plus" size={14} />
               <span>{t.admin.media.uploadMedia}</span>
@@ -285,47 +287,47 @@ export default function MediaAdminPage() {
 
       {/* ── Quick Stats Bar ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div className="bg-slate-900/60 border border-white/5 p-4 rounded-2xl backdrop-blur-sm relative overflow-hidden">
+        <div className={cn("bg-slate-900/60 border border-white/5 p-4", radius.card, "backdrop-blur-sm relative overflow-hidden")}>
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">{t.admin.media.statTotalFiles}</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 font-mono">
+            <span className={cn("text-xs px-2 py-0.5", radius.pill, "bg-violet-500/10 text-violet-400 font-mono")}>
               {t.admin.media.categories.all}
             </span>
           </div>
-          <p className="text-2xl font-bold text-white mt-1.5">{stats.totalFiles}</p>
+          <p className={cn("text-2xl font-bold", text.primaryDark, "mt-1.5")}>{stats.totalFiles}</p>
           <p className="text-[11px] text-slate-500 mt-0.5">{t.admin.media.statFilesSub}</p>
         </div>
 
-        <div className="bg-slate-900/60 border border-white/5 p-4 rounded-2xl backdrop-blur-sm">
+        <div className={cn("bg-slate-900/60 border border-white/5 p-4", radius.card, "backdrop-blur-sm")}>
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">{t.admin.media.statTotalStorage}</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-mono">
+            <span className={cn("text-xs px-2 py-0.5", radius.pill, "bg-cyan-500/10 text-cyan-400 font-mono")}>
               CDN
             </span>
           </div>
-          <p className="text-2xl font-bold text-white mt-1.5">{formatBytes(stats.totalBytes)}</p>
+          <p className={cn("text-2xl font-bold", text.primaryDark, "mt-1.5")}>{formatBytes(stats.totalBytes)}</p>
           <p className="text-[11px] text-slate-500 mt-0.5">{t.admin.media.statStorageSub}</p>
         </div>
 
-        <div className="bg-slate-900/60 border border-white/5 p-4 rounded-2xl backdrop-blur-sm">
+        <div className={cn("bg-slate-900/60 border border-white/5 p-4", radius.card, "backdrop-blur-sm")}>
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">{t.admin.media.statImages}</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-mono">
+            <span className={cn("text-xs px-2 py-0.5", radius.pill, "bg-emerald-500/10 text-emerald-400 font-mono")}>
               IMG
             </span>
           </div>
-          <p className="text-2xl font-bold text-white mt-1.5">{stats.totalImages}</p>
+          <p className={cn("text-2xl font-bold", text.primaryDark, "mt-1.5")}>{stats.totalImages}</p>
           <p className="text-[11px] text-slate-500 mt-0.5">{t.admin.media.statImagesSub}</p>
         </div>
 
-        <div className="bg-slate-900/60 border border-white/5 p-4 rounded-2xl backdrop-blur-sm">
+        <div className={cn("bg-slate-900/60 border border-white/5 p-4", radius.card, "backdrop-blur-sm")}>
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">{t.admin.media.statAudioVideo}</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-mono">
+            <span className={cn("text-xs px-2 py-0.5", radius.pill, "bg-purple-500/10 text-purple-400 font-mono")}>
               AV
             </span>
           </div>
-          <p className="text-2xl font-bold text-white mt-1.5">
+          <p className={cn("text-2xl font-bold", text.primaryDark, "mt-1.5")}>
             {stats.totalAudios + stats.totalVideos}
           </p>
           <p className="text-[11px] text-slate-500 mt-0.5">
@@ -337,8 +339,8 @@ export default function MediaAdminPage() {
       </div>
 
       {/* ── Toolbar: Search & Multi-level Filter ── */}
-      <div className="bg-slate-900/80 border border-white/5 p-4 rounded-2xl space-y-3.5 backdrop-blur-md">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className={cn("bg-slate-900/80 border border-white/5 p-4", radius.card, "space-y-3.5", elevation.blur)}>
+        <div className={cn("flex flex-col md:flex-row md:items-center justify-between", gap.base)}>
           {/* Search bar */}
           <form onSubmit={handleSearchSubmit} className="flex-1 relative max-w-md">
             <input
@@ -346,7 +348,7 @@ export default function MediaAdminPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t.admin.media.searchPlaceholder}
-              className="w-full bg-slate-950/80 border border-white/10 rounded-xl pl-9 pr-8 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 transition-all"
+              className={cn("w-full bg-slate-950/80", border.subtleDark, radius.control, "pl-9 pr-8 py-2 text-sm", text.primaryDark, "placeholder-slate-500 focus:outline-none focus:border-violet-500 transition-all")}
             />
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
               <Icon name="search" size={15} />
@@ -366,9 +368,9 @@ export default function MediaAdminPage() {
           </form>
 
           {/* Media type filter & View mode */}
-          <div className="flex items-center gap-3">
+          <div className={cn("flex items-center", gap.base)}>
             {/* Resource Type Tabs */}
-            <div className="flex items-center bg-slate-950/80 border border-white/10 rounded-xl p-0.5">
+            <div className={cn("flex items-center bg-slate-950/80", border.subtleDark, radius.control, "p-0.5")}>
               {(
                 [
                   { id: "all", icon: null, label: t.admin.media.filterAllTypes },
@@ -393,7 +395,7 @@ export default function MediaAdminPage() {
             </div>
 
             {/* View Mode Toggle */}
-            <div className="flex items-center bg-slate-950/80 border border-white/10 rounded-xl p-0.5">
+            <div className={cn("flex items-center bg-slate-950/80", border.subtleDark, radius.control, "p-0.5")}>
               <button
                 onClick={() => setViewMode("grid")}
                 title="Grid View"
@@ -417,7 +419,7 @@ export default function MediaAdminPage() {
         </div>
 
         {/* Category Pills Bar */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-1 border-t border-white/5">
+        <div className={cn("flex items-center", gap.tight, "overflow-x-auto pb-1 scrollbar-none pt-1 border-t border-white/5")}>
           <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mr-1 flex-shrink-0">
             {t.admin.media.categoryLabel}
           </span>
@@ -454,32 +456,32 @@ export default function MediaAdminPage() {
 
       {/* ── Content View ── */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center min-h-[350px] bg-slate-900/30 rounded-2xl border border-white/5">
-          <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin mb-3" />
+        <div className={cn("flex flex-col items-center justify-center min-h-[350px] bg-slate-900/30", radius.card, "border border-white/5")}>
+          <div className={cn("w-8 h-8 border-2 border-violet-500 border-t-transparent", radius.pill, "animate-spin mb-3")} />
           <p className="text-slate-400 text-sm font-medium">{t.admin.common.loading}</p>
         </div>
       ) : assets.length === 0 ? (
-        <div className="flex flex-col items-center justify-center min-h-[350px] bg-slate-900/20 rounded-2xl border border-dashed border-white/10 p-8 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-slate-500 mb-3">
+        <div className={cn("flex flex-col items-center justify-center min-h-[350px] bg-slate-900/20", radius.card, "border border-dashed border-white/10 p-8 text-center")}>
+          <div className={cn("w-14 h-14", radius.card, surface.cardDark, "flex items-center justify-center text-slate-500 mb-3")}>
             <Icon name="folder" size={24} />
           </div>
-          <h3 className="text-base font-semibold text-white">{t.admin.media.noAssets}</h3>
+          <h3 className={cn("text-base font-semibold", text.primaryDark)}>{t.admin.media.noAssets}</h3>
           <p className="text-slate-500 text-xs mt-1 max-w-sm">
             {searchQuery || categoryFilter !== "all" || typeFilter !== "all"
               ? t.admin.media.noAssetsFiltered
               : t.admin.media.noAssetsHint}
           </p>
-          <div className="flex items-center gap-3 mt-5">
+          <div className={cn("flex items-center", gap.base, "mt-5")}>
             <button
               onClick={() => setIsUploadOpen(true)}
-              className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold rounded-xl transition-all"
+              className={cn("px-4 py-2 bg-violet-600 hover:bg-violet-500", text.primaryDark, "text-xs font-semibold", radius.control, "transition-all")}
             >
               {t.admin.media.uploadFirstFile}
             </button>
             <button
               onClick={handleSyncCloudinary}
               disabled={isSyncing}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-xl transition-all"
+              className={cn("px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium", radius.control, "transition-all")}
             >
               {t.admin.media.syncCloudinary}
             </button>
@@ -496,7 +498,7 @@ export default function MediaAdminPage() {
             return (
               <div
                 key={asset.id}
-                className="group bg-slate-900/60 border border-white/5 hover:border-violet-500/40 rounded-2xl overflow-hidden flex flex-col transition-all duration-200 hover:shadow-xl hover:shadow-violet-950/20 relative"
+                className={cn("group bg-slate-900/60 border border-white/5 hover:border-violet-500/40", radius.card, "overflow-hidden flex flex-col", motion.fast, "hover:shadow-xl hover:shadow-violet-950/20 relative")}
               >
                 {/* Media Preview Box */}
                 <div
@@ -504,8 +506,8 @@ export default function MediaAdminPage() {
                   className="aspect-square bg-slate-950 relative overflow-hidden cursor-pointer flex items-center justify-center"
                 >
                   {isAudio ? (
-                    <div className="flex flex-col items-center justify-center gap-2 p-4 text-purple-400">
-                      <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div className={cn("flex flex-col items-center justify-center", gap.tight, "p-4 text-purple-400")}>
+                      <div className={cn("w-12 h-12", radius.card, "bg-purple-500/10 border border-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform")}>
                         <Icon name="music" size={20} />
                       </div>
                       <span className="text-[11px] font-mono text-slate-400">
@@ -519,11 +521,11 @@ export default function MediaAdminPage() {
                         className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                         preload="metadata"
                       />
-                      <div className="absolute w-10 h-10 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-white backdrop-blur-sm pointer-events-none group-hover:scale-110 transition-transform">
+                      <div className={cn("absolute w-10 h-10", radius.pill, "bg-black/60", border.strongDark, "flex items-center justify-center", text.primaryDark, "backdrop-blur-sm pointer-events-none group-hover:scale-110 transition-transform")}>
                         <Icon name="play" size={16} />
                       </div>
                       {asset.duration ? (
-                        <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/70 text-[10px] font-mono text-white">
+                        <span className={cn("absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/70 text-[10px] font-mono", text.primaryDark)}>
                           {formatDuration(asset.duration)}
                         </span>
                       ) : null}
@@ -560,20 +562,20 @@ export default function MediaAdminPage() {
 
                   {/* Top right format badge */}
                   <div className="absolute top-2 right-2">
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-black/60 text-slate-300 border border-white/10 uppercase">
+                    <span className={cn("text-[9px] font-mono px-1.5 py-0.5 rounded bg-black/60 text-slate-300", border.subtleDark, "uppercase")}>
                       {asset.format}
                     </span>
                   </div>
 
                   {/* Quick hover actions overlay */}
-                  <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <div className={cn("absolute inset-0 bg-black/50 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center", gap.tight)}>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleCopyLink(asset.secureUrl, asset.id);
                       }}
                       title={t.admin.media.copyLink}
-                      className="p-2 rounded-xl bg-white/15 hover:bg-violet-600 text-white transition-all transform hover:scale-110"
+                      className={cn("p-2", radius.control, "bg-white/15 hover:bg-violet-600", text.primaryDark, "transition-all transform hover:scale-110")}
                     >
                       <Icon name={isCopied ? "check" : "copy"} size={16} />
                     </button>
@@ -583,7 +585,7 @@ export default function MediaAdminPage() {
                         setSelectedAsset(asset);
                       }}
                       title={t.admin.media.viewDetails}
-                      className="p-2 rounded-xl bg-white/15 hover:bg-violet-600 text-white transition-all transform hover:scale-110"
+                      className={cn("p-2", radius.control, "bg-white/15 hover:bg-violet-600", text.primaryDark, "transition-all transform hover:scale-110")}
                     >
                       <Icon name="eye" size={16} />
                     </button>
@@ -593,7 +595,7 @@ export default function MediaAdminPage() {
                         setDeleteTarget(asset);
                       }}
                       title={t.admin.media.deleteFile}
-                      className="p-2 rounded-xl bg-red-500/20 hover:bg-red-600 text-red-300 hover:text-white transition-all transform hover:scale-110"
+                      className={cn("p-2", radius.control, "bg-red-500/20 hover:bg-red-600 text-red-300 hover:text-white transition-all transform hover:scale-110")}
                     >
                       <Icon name="trash" size={16} />
                     </button>
@@ -632,7 +634,7 @@ export default function MediaAdminPage() {
         </div>
       ) : (
         /* ── LIST VIEW ── */
-        <div className="bg-slate-900/60 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm">
+        <div className={cn("bg-slate-900/60 border border-white/5", radius.card, "overflow-hidden backdrop-blur-sm")}>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-950/80 border-b border-white/5 text-slate-400 uppercase tracking-wider font-semibold text-[10px]">
@@ -659,12 +661,12 @@ export default function MediaAdminPage() {
                       onClick={() => setSelectedAsset(asset)}
                     >
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-slate-950 border border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                        <div className={cn("flex items-center", gap.base)}>
+                          <div className={cn("w-10 h-10", radius.chip, "bg-slate-950", border.subtleDark, "overflow-hidden flex-shrink-0 flex items-center justify-center")}>
                             {isAudio ? (
                               <Icon name="music" size={16} className="text-purple-400" />
                             ) : isVideo ? (
-                              <Icon name="video" size={16} className="text-white" />
+                              <Icon name="video" size={16} className={cn(text.primaryDark)} />
                             ) : (
                               <img
                                 src={asset.secureUrl}
@@ -674,7 +676,7 @@ export default function MediaAdminPage() {
                             )}
                           </div>
                           <div className="min-w-0 max-w-xs">
-                            <p className="font-medium text-white truncate" title={asset.filename}>
+                            <p className={cn("font-medium", text.primaryDark, "truncate")} title={asset.filename}>
                               {asset.filename}
                             </p>
                             <p className="text-[10px] text-slate-500 font-mono truncate" title={asset.publicId}>
@@ -684,7 +686,7 @@ export default function MediaAdminPage() {
                         </div>
                       </td>
                       <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-white/5 text-slate-300 border border-white/10 uppercase">
+                        <span className={cn("px-2 py-0.5 rounded text-[10px] font-semibold", surface.cardDark, "text-slate-300", border.subtleDark, "uppercase")}>
                           {getCategoryLabel(asset.category, asset.category)}
                         </span>
                       </td>
@@ -711,7 +713,7 @@ export default function MediaAdminPage() {
                         >
                           <button
                             onClick={() => handleCopyLink(asset.secureUrl, asset.id)}
-                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all text-xs inline-flex items-center gap-1"
+                            className={cn("p-1.5", radius.chip, surface.cardDark, "hover:bg-white/10 text-slate-300 hover:text-white transition-all text-xs inline-flex items-center gap-1")}
                             title={t.admin.media.copyUrl}
                           >
                             {isCopied && <Icon name="check" size={12} />}
@@ -719,14 +721,14 @@ export default function MediaAdminPage() {
                           </button>
                           <button
                             onClick={() => setSelectedAsset(asset)}
-                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all"
+                            className={cn("p-1.5", radius.chip, surface.cardDark, "hover:bg-white/10 text-slate-300 hover:text-white transition-all")}
                             title={t.admin.media.viewDetails}
                           >
                             <Icon name="eye" size={14} />
                           </button>
                           <button
                             onClick={() => setDeleteTarget(asset)}
-                            className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all"
+                            className={cn("p-1.5", radius.chip, "bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all")}
                             title={t.admin.media.deleteFile}
                           >
                             <Icon name="trash" size={14} />
@@ -750,16 +752,16 @@ export default function MediaAdminPage() {
             onClick={() => setSelectedAsset(null)}
           />
 
-          <div className="relative z-10 w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
+          <div className={cn("relative z-10 w-full max-w-4xl bg-slate-900 border border-slate-800", radius.card, "shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]")}>
             {/* Left/Top: Media Preview */}
             <div className="md:w-3/5 bg-slate-950 p-6 flex flex-col items-center justify-center relative min-h-[300px] border-b md:border-b-0 md:border-r border-white/5">
               {isAudioItem(selectedAsset) ? (
                 <div className="w-full flex flex-col items-center gap-5">
-                  <div className="w-24 h-24 rounded-3xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                  <div className={cn("w-24 h-24", radius.panel, "bg-purple-500/10 border border-purple-500/20 flex items-center justify-center")}>
                     <Icon name="music" size={40} />
                   </div>
                   <div className="text-center">
-                    <p className="text-white font-semibold">{selectedAsset.filename}</p>
+                    <p className={cn(text.primaryDark, "font-semibold")}>{selectedAsset.filename}</p>
                     <p className="text-xs text-slate-500 mt-0.5 font-mono">
                       {formatBytes(selectedAsset.bytes)} · {selectedAsset.format.toUpperCase()}
                     </p>
@@ -776,7 +778,7 @@ export default function MediaAdminPage() {
                     src={selectedAsset.secureUrl}
                     controls
                     autoPlay
-                    className="max-h-[500px] max-w-full rounded-xl shadow-lg"
+                    className={cn("max-h-[500px] max-w-full", radius.control, "shadow-lg")}
                   />
                 </div>
               ) : (
@@ -784,7 +786,7 @@ export default function MediaAdminPage() {
                   <img
                     src={selectedAsset.secureUrl}
                     alt={selectedAsset.filename}
-                    className="max-h-[520px] max-w-full object-contain rounded-lg shadow-2xl"
+                    className={cn("max-h-[520px] max-w-full object-contain", radius.chip, "shadow-2xl")}
                   />
                 </div>
               )}
@@ -793,13 +795,13 @@ export default function MediaAdminPage() {
             {/* Right: Metadata & Actions */}
             <div className="md:w-2/5 p-6 flex flex-col justify-between overflow-y-auto">
               <div className="space-y-4">
-                <div className="flex items-start justify-between gap-3">
+                <div className={cn("flex items-start justify-between", gap.base)}>
                   <div>
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 uppercase tracking-wider">
+                    <span className={cn("text-[10px] font-semibold px-2 py-0.5", radius.pill, "bg-violet-500/10 text-violet-400 border border-violet-500/20 uppercase tracking-wider")}>
                       {getCategoryLabel(selectedAsset.category, selectedAsset.category)}
                     </span>
                     <h3
-                      className="text-base font-bold text-white mt-1.5 break-all"
+                      className={cn("text-base font-bold", text.primaryDark, "mt-1.5 break-all")}
                       title={selectedAsset.filename}
                     >
                       {selectedAsset.filename}
@@ -807,7 +809,7 @@ export default function MediaAdminPage() {
                   </div>
                   <button
                     onClick={() => setSelectedAsset(null)}
-                    className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 active:scale-95 transition-all focus:outline-none"
+                    className={cn("p-2 text-slate-400 hover:text-white", radius.control, "hover:bg-white/10", motion.press, "transition-all focus:outline-none")}
                     title={t.admin.common.close}
                     aria-label={t.admin.common.close}
                   >
@@ -870,7 +872,7 @@ export default function MediaAdminPage() {
                         {selectedAsset.tags.map((tag) => (
                           <span
                             key={tag}
-                            className="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-[10px] text-slate-300 font-mono"
+                            className={cn("px-2 py-0.5 rounded-md", surface.cardDark, "border border-white/5 text-[10px] text-slate-300 font-mono")}
                           >
                             #{tag}
                           </span>
@@ -887,13 +889,13 @@ export default function MediaAdminPage() {
                   onClick={() =>
                     handleCopyLink(selectedAsset.secureUrl, selectedAsset.id, t.admin.media.copiedDirectUrl)
                   }
-                  className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-semibold transition-all shadow-md shadow-violet-600/20"
+                  className={cn("w-full flex items-center justify-center", gap.tight, "py-2 px-3 bg-violet-600 hover:bg-violet-500", text.primaryDark, radius.control, "text-xs font-semibold transition-all shadow-md shadow-violet-600/20")}
                 >
                   <Icon name="copy" size={14} />
                   <span>{t.admin.media.copyDirectUrl}</span>
                 </button>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className={cn("grid grid-cols-2", gap.tight)}>
                   <button
                     onClick={() =>
                       handleCopyLink(
@@ -902,7 +904,7 @@ export default function MediaAdminPage() {
                         t.admin.media.copiedMarkdown
                       )
                     }
-                    className="py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition-all"
+                    className={cn("py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300", radius.control, "text-xs font-medium transition-all")}
                   >
                     {t.admin.media.copyMarkdown}
                   </button>
@@ -915,30 +917,30 @@ export default function MediaAdminPage() {
                         t.admin.media.copiedHtml
                       )
                     }
-                    className="py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition-all"
+                    className={cn("py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300", radius.control, "text-xs font-medium transition-all")}
                   >
                     {t.admin.media.copyHtml}
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2">
+                <div className={cn("flex items-center", gap.tight, "pt-2")}>
                   <a
                     href={selectedAsset.secureUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex-1 py-2 px-3 bg-white/5 hover:bg-white/10 text-slate-300 text-center rounded-xl text-xs font-medium transition-all inline-flex items-center justify-center gap-1"
+                    className={cn("flex-1 py-2 px-3", surface.cardDark, "hover:bg-white/10 text-slate-300 text-center", radius.control, "text-xs font-medium transition-all inline-flex items-center justify-center gap-1")}
                   >
                     {t.admin.media.openInNewTab} <Icon name="externalLink" size={11} />
                   </a>
                   <button
                     onClick={() => setDeleteTarget(selectedAsset)}
-                    className="py-2 px-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-medium transition-all"
+                    className={cn("py-2 px-3 bg-red-500/10 hover:bg-red-500/20 text-red-400", radius.control, "text-xs font-medium transition-all")}
                   >
                     {t.admin.media.deleteFile}
                   </button>
                   <button
                     onClick={() => setSelectedAsset(null)}
-                    className="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition-all"
+                    className={cn("py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300", radius.control, "text-xs font-medium transition-all")}
                   >
                     {t.admin.common.close}
                   </button>
@@ -964,7 +966,7 @@ export default function MediaAdminPage() {
         maxWidth="max-w-lg"
       >
         {/* Category selector */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className={cn("grid grid-cols-2", gap.base)}>
           <div>
             <label className="block text-xs font-medium text-slate-400 mb-1.5">
               {t.admin.media.uploadCategoryLabel}
@@ -981,7 +983,7 @@ export default function MediaAdminPage() {
                 else if (cat === "site") setUploadSubType("avatar");
                 else setUploadSubType("asset");
               }}
-              className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
+              className={cn("w-full bg-slate-950", border.subtleDark, radius.control, "px-3 py-2 text-xs", text.primaryDark, "focus:outline-none focus:border-violet-500")}
             >
               <option value="photo">{t.admin.media.categories.photo}</option>
               <option value="music">{t.admin.media.categories.music}</option>
@@ -1001,13 +1003,13 @@ export default function MediaAdminPage() {
               value={uploadSubType}
               onChange={(e) => setUploadSubType(e.target.value)}
               placeholder="e.g. audio, thumb, cover..."
-              className="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
+              className={cn("w-full bg-slate-950", border.subtleDark, radius.control, "px-3 py-2 text-xs", text.primaryDark, "focus:outline-none focus:border-violet-500")}
             />
           </div>
         </div>
 
         {/* Dynamic Prefix Preview Box */}
-        <div className="bg-slate-950/80 border border-violet-500/20 rounded-xl p-3">
+        <div className={cn("bg-slate-950/80 border border-violet-500/20", radius.control, "p-3")}>
           <p className="text-[11px] text-slate-400">
             {t.admin.media.uploadPrefixLabel}
           </p>
@@ -1039,7 +1041,7 @@ export default function MediaAdminPage() {
           >
             {uploadPreview ? (
               <div className="space-y-3">
-                <div className="w-24 h-24 mx-auto rounded-xl overflow-hidden bg-slate-950 border border-white/10 shadow-lg">
+                <div className={cn("w-24 h-24 mx-auto", radius.control, "overflow-hidden bg-slate-950", border.subtleDark, "shadow-lg")}>
                   <img
                     src={uploadPreview}
                     alt="Preview"
@@ -1047,7 +1049,7 @@ export default function MediaAdminPage() {
                   />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-white">
+                  <p className={cn("text-xs font-medium", text.primaryDark)}>
                     {uploadFile?.name}
                   </p>
                   <p className="text-[10px] text-slate-400 font-mono mt-0.5">
@@ -1068,7 +1070,7 @@ export default function MediaAdminPage() {
             ) : uploadFile ? (
               <div className="space-y-2">
                 <div className="flex justify-center"><Icon name="folder" size={28} /></div>
-                <p className="text-xs font-medium text-white">
+                <p className={cn("text-xs font-medium", text.primaryDark)}>
                   {uploadFile.name}
                 </p>
                 <p className="text-[10px] text-slate-400 font-mono">
@@ -1087,7 +1089,7 @@ export default function MediaAdminPage() {
               </div>
             ) : (
               <div className="py-4">
-                <div className="w-10 h-10 rounded-2xl bg-violet-500/10 border border-violet-500/20 text-violet-400 flex items-center justify-center mx-auto mb-2">
+                <div className={cn("w-10 h-10", radius.card, "bg-violet-500/10 border border-violet-500/20 text-violet-400 flex items-center justify-center mx-auto mb-2")}>
                   <Icon name="uploadCloud" size={20} />
                 </div>
                 <p className="text-xs font-medium text-slate-300">

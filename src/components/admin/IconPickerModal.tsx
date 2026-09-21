@@ -3,6 +3,8 @@
 import { useState } from "react";
 import AdminModal from "@/components/admin/AdminModal";
 import Icon, { TECH_BRAND_ICON_NAMES, SOCIAL_BRAND_ICON_NAMES } from "@/components/ui/Icon";
+import { cn } from "@/lib/utils";
+import { gap } from "@/lib/design-tokens";
 
 /**
  * A general-purpose curated emoji set for content that's purely decorative
@@ -81,7 +83,7 @@ export default function IconPickerModal({
       )}
 
       {activeCategory === "emoji" ? (
-        <div className="grid grid-cols-8 gap-2 max-h-72 overflow-y-auto p-1">
+        <div className={cn("grid grid-cols-8", gap.tight, "max-h-72 overflow-y-auto p-1")}>
           {DEFAULT_EMOJI_OPTIONS.map((emoji) => (
             <button
               key={emoji}
@@ -97,7 +99,7 @@ export default function IconPickerModal({
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-5 gap-2 max-h-72 overflow-y-auto p-1">
+        <div className={cn("grid grid-cols-5", gap.tight, "max-h-72 overflow-y-auto p-1")}>
           {brandNames.map((name) => (
             <button
               key={name}

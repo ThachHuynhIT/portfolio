@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState } from "react";
+import { cn } from "@/lib/utils";
+import { gap, radius } from "@/lib/design-tokens";
 
 // ═══════════════════════════════════════════════════
 // TYPES & INTERFACES
@@ -1790,7 +1792,7 @@ export default function ContraGame() {
         </div>
       )}
 
-      <div className="relative w-full max-w-[800px] border-2 border-gray-800 rounded-lg overflow-hidden shadow-[0_0_40px_rgba(255,50,50,0.1)]">
+      <div className={cn("relative w-full max-w-[800px] border-2 border-gray-800", radius.chip, "overflow-hidden shadow-[0_0_40px_rgba(255,50,50,0.1)]")}>
         <canvas
           ref={canvasRef}
           width={CANVAS_W}
@@ -1801,7 +1803,7 @@ export default function ContraGame() {
         />
       </div>
 
-      <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs font-mono text-gray-500 max-w-2xl">
+      <div className={cn("mt-4 flex flex-wrap justify-center", gap.base, "text-xs font-mono text-gray-500 max-w-2xl")}>
         <span className="px-3 py-1.5 bg-gray-900/50 border border-gray-800 rounded-md">← → ↑ ↓ Move/Aim</span>
         <span className="px-3 py-1.5 bg-gray-900/50 border border-gray-800 rounded-md">SPACE Jump</span>
         <span className="px-3 py-1.5 bg-gray-900/50 border border-gray-800 rounded-md">Z / X / J Shoot</span>
@@ -1810,7 +1812,7 @@ export default function ContraGame() {
       </div>
 
       <div className="mt-3 text-xs font-mono text-gray-600 max-w-lg text-center space-y-1">
-        <p className="flex flex-wrap justify-center gap-2">
+        <p className={cn("flex flex-wrap justify-center", gap.tight)}>
           <span className="text-red-400 bg-red-400/10 px-2 py-0.5 rounded">S Spread</span>
           <span className="text-orange-400 bg-orange-400/10 px-2 py-0.5 rounded">M Machine</span>
           <span className="text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded">L Laser</span>

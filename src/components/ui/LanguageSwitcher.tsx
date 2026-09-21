@@ -7,6 +7,7 @@ import { Locale, localeNames } from "@/locales";
 import FlagIcon from "@/components/ui/FlagIcon";
 import Icon from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
+import { border, elevation, radius } from "@/lib/design-tokens";
 
 interface LanguageSwitcherProps {
   variant?: "pill" | "toggle" | "dropdown";
@@ -84,7 +85,7 @@ export default function LanguageSwitcher({
                 locale={locale}
                 width={flagDimensions.width}
                 height={flagDimensions.height}
-                className="border border-white/20 light:border-neutral-900/15 shadow-sm rounded-[3px]"
+                className={cn(border.strong, "shadow-sm rounded-[3px]")}
               />
             </motion.div>
           </AnimatePresence>
@@ -129,7 +130,7 @@ export default function LanguageSwitcher({
               {isActive && (
                 <motion.span
                   layoutId="activeFlagIndicator"
-                  className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/40 to-cyan-500/40 border border-purple-500/50 light:border-purple-500/60 shadow-sm shadow-purple-500/30 -z-10"
+                  className={cn("absolute inset-0", radius.pill, "bg-gradient-to-r from-purple-500/40 to-cyan-500/40 border border-purple-500/50 light:border-purple-500/60 shadow-sm shadow-purple-500/30 -z-10")}
                   transition={{ type: "spring", stiffness: 450, damping: 32 }}
                 />
               )}
@@ -166,7 +167,7 @@ export default function LanguageSwitcher({
           locale={locale}
           width={flagDimensions.width}
           height={flagDimensions.height}
-          className="border border-white/20 light:border-neutral-900/15 shadow-sm rounded-[3px]"
+          className={cn(border.strong, "shadow-sm rounded-[3px]")}
         />
         <svg
           className={cn(
@@ -188,7 +189,7 @@ export default function LanguageSwitcher({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-1.5 w-40 rounded-xl bg-slate-950/95 border border-white/12 light:bg-white/95 light:border-neutral-900/10 backdrop-blur-xl shadow-2xl shadow-black/80 light:shadow-neutral-400/40 py-1 z-50 overflow-hidden"
+            className={cn("absolute right-0 mt-1.5 w-40", radius.control, "bg-slate-950/95 border border-white/12 light:bg-white/95 light:border-neutral-900/10", elevation.blurStrong, "shadow-2xl shadow-black/80 light:shadow-neutral-400/40 py-1 z-50 overflow-hidden")}
           >
             {(["vi", "en"] as Locale[]).map((loc) => {
               const isSelected = locale === loc;
@@ -212,7 +213,7 @@ export default function LanguageSwitcher({
                       locale={loc}
                       width={18}
                       height={12}
-                      className="border border-white/20 light:border-neutral-900/15 shadow-sm rounded-[2px]"
+                      className={cn(border.strong, "shadow-sm rounded-[2px]")}
                     />
                     <span>{localeNames[loc].nativeName}</span>
                   </span>

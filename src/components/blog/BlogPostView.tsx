@@ -8,6 +8,8 @@ import FlagIcon from "@/components/ui/FlagIcon";
 import Icon from "@/components/ui/Icon";
 import type { BlogPost } from "@/lib/types";
 import { translateBlogCategory, translateReadTime } from "@/lib/content-overrides";
+import { cn } from "@/lib/utils";
+import { brand, gap, radius, text } from "@/lib/design-tokens";
 
 interface BlogPostViewProps {
   post: BlogPost;
@@ -35,7 +37,7 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
         <div className="flex items-center justify-between mb-8">
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors light:text-neutral-600 light:hover:text-neutral-900"
+            className={cn("inline-flex items-center", gap.tight, "text-white/60 hover:text-white transition-colors light:text-neutral-600 light:hover:text-neutral-900")}
           >
             <svg
               className="w-4 h-4"
@@ -54,8 +56,8 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
           </Link>
 
           {/* Translation Availability Indicator */}
-          <div className="flex items-center gap-2 text-xs text-white/50 bg-white/[0.03] px-3 py-1.5 rounded-full border border-white/8 light:text-neutral-500 light:bg-neutral-900/[0.04] light:border-neutral-900/10">
-            <span className="text-[11px] uppercase tracking-wider text-white/40 light:text-neutral-500">
+          <div className={cn("flex items-center", gap.tight, "text-xs text-white/50 bg-white/[0.03] px-3 py-1.5", radius.pill, "border border-white/8 light:text-neutral-500 light:bg-neutral-900/[0.04] light:border-neutral-900/10")}>
+            <span className={cn("text-[11px] uppercase tracking-wider", text.subtle)}>
               {isVi ? "Ngôn ngữ:" : "Language:"}
             </span>
             <span className="inline-flex items-center gap-1 text-white/80 font-medium light:text-neutral-800">
@@ -72,8 +74,8 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
 
         {/* Header */}
         <header className="mb-12">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="px-3 py-1 text-xs font-medium text-purple-400 bg-purple-500/10 rounded-full light:text-purple-700">
+          <div className={cn("flex items-center", gap.base, "mb-4")}>
+            <span className={cn("px-3 py-1 text-xs font-medium text-purple-400 bg-purple-500/10", radius.pill, "light:text-purple-700")}>
               {translateBlogCategory(post.category, locale)}
             </span>
             <span className="text-white/40 text-sm light:text-neutral-500">
@@ -81,13 +83,13 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
             </span>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">
+          <h1 className={cn("text-4xl md:text-5xl font-bold", text.primary, "mb-6")}>
             {title}
           </h1>
 
-          <p className="text-xl text-white/60 light:text-neutral-600 mb-6">{excerpt}</p>
+          <p className={cn("text-xl", text.muted, "mb-6")}>{excerpt}</p>
 
-          <div className="flex items-center gap-4 text-sm text-white/40 light:text-neutral-500">
+          <div className={cn("flex items-center", gap.loose, "text-sm", text.subtle)}>
             <time dateTime={post.date}>
               {new Date(post.date).toLocaleDateString(isVi ? "vi-VN" : "en-US", {
                 month: "long",
@@ -98,11 +100,11 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
           </div>
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-2 mt-6">
+          <div className={cn("flex flex-wrap", gap.tight, "mt-6")}>
             {post.tags.map((tag) => (
               <span
                 key={tag}
-                className="px-3 py-1 text-sm text-white/60 bg-white/5 border border-white/10 rounded-full light:text-neutral-600 light:bg-neutral-900/[0.04] light:border-neutral-900/10"
+                className={cn("px-3 py-1 text-sm text-white/60 bg-white/5 border border-white/10", radius.pill, "light:text-neutral-600 light:bg-neutral-900/[0.04] light:border-neutral-900/10")}
               >
                 #{tag}
               </span>
@@ -120,12 +122,12 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
         {/* Author */}
         <div className="mt-12">
           <GlassCard className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center text-white">
+            <div className={cn("flex items-center", gap.loose)}>
+              <div className={cn("w-16 h-16", radius.pill, brand.gradient, "flex items-center justify-center text-white")}>
                 <Icon name="user" size={28} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white light:text-neutral-900">Thach Huynh</h3>
+                <h3 className={cn("text-lg font-semibold", text.primary)}>Thach Huynh</h3>
                 <p className="text-white/60 text-sm light:text-neutral-600">
                   {isVi
                     ? "Lập trình viên Web Sáng tạo chuyên về các trải nghiệm kỹ thuật số sống động và hiện đại."

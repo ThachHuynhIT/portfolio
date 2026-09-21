@@ -8,6 +8,8 @@ import { useTranslation } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
 import { resolveSectionText } from "@/lib/content-overrides";
 import type { SiteConfig } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { border, gap, radius, surface, text } from "@/lib/design-tokens";
 
 // Same raymarched black hole engine as the 404 page (src/components/3d/blackhole),
 // used here in non-interactive/decorative mode — the sole 3D visual in the
@@ -92,9 +94,9 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 backdrop-blur-sm mb-8"
+            className={cn("inline-flex items-center", gap.tight, "px-4 py-2", radius.pill, surface.card, border.subtle, "backdrop-blur-sm mb-8")}
           >
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className={cn("w-2 h-2", radius.pill, "bg-green-500 animate-pulse")} />
             <span className="text-sm text-white/70 light:text-neutral-600">
               {resolveSectionText(locale, hero?.available, hero?.available_vi, t("hero.available"))}
             </span>
@@ -107,7 +109,7 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight"
           >
-            <span className="text-white light:text-neutral-900">
+            <span className={cn(text.primary)}>
               {resolveSectionText(locale, hero?.greetingPrefix, hero?.greetingPrefix_vi, t("hero.greetingPrefix"))}
             </span>
             <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent ml-3">
@@ -135,7 +137,7 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            className={cn("flex flex-col sm:flex-row", gap.loose, "justify-center")}
           >
             <Button size="lg" variant="primary" onClick={handleViewWork}>
               {resolveSectionText(locale, hero?.viewWork, hero?.viewWork_vi, t("hero.viewWork"))}

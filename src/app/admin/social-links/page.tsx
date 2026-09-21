@@ -12,6 +12,8 @@ import Icon, { isKnownIconName } from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
 import type { SocialLink } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { border, gap, radius, surface, text } from "@/lib/design-tokens";
 
 export default function SocialLinksAdminPage() {
   const router = useRouter();
@@ -172,11 +174,11 @@ export default function SocialLinksAdminPage() {
         description={t("admin.socialLinks.description", "Manage your social media profiles and links.")}
         icon="links"
         action={
-          <div className="flex items-center gap-3">
+          <div className={cn("flex items-center", gap.base)}>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none"
+              className={cn("px-3 py-2 bg-slate-900", border.subtleDark, radius.control, "text-xs text-slate-300 focus:outline-none")}
             >
               <option value="all">{t("admin.common.all", "All Links")} ({links.length})</option>
               <option value="published">{t("admin.common.published", "Published")} ({links.filter((l) => l.published !== false).length})</option>
@@ -184,7 +186,7 @@ export default function SocialLinksAdminPage() {
             </select>
             <button
               onClick={openCreateModal}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
+              className={cn("inline-flex items-center gap-1.5 px-4 py-2", radius.control, "bg-violet-600 hover:bg-violet-500", text.primaryDark, "text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20")}
             >
               <span className="text-base leading-none">+</span>
               {t("admin.socialLinks.addLink", "Add Link")}
@@ -193,7 +195,7 @@ export default function SocialLinksAdminPage() {
         }
       />
 
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+      <div className={cn("bg-gray-900 border border-gray-800", radius.card, "overflow-hidden")}>
         <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-gray-300">
           <thead className="bg-gray-950 text-gray-400 uppercase text-xs border-b border-gray-800">
@@ -208,14 +210,14 @@ export default function SocialLinksAdminPage() {
           <tbody className="divide-y divide-gray-800">
             {filteredLinks.map((link) => (
               <tr key={link.id} className="hover:bg-gray-800/50 transition-colors">
-                <td className="px-6 py-4 font-semibold text-white">{link.name}</td>
+                <td className={cn("px-6 py-4 font-semibold", text.primaryDark)}>{link.name}</td>
                 <td className="px-6 py-4">
                   {link.icon && (link.icon.startsWith("http") || link.icon.startsWith("/")) ? (
-                    <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 p-1 flex items-center justify-center">
-                      <img src={link.icon} alt={link.name} className="w-full h-full object-contain rounded-full" />
+                    <div className={cn("w-7 h-7", radius.pill, surface.cardDark, border.subtleDark, "p-1 flex items-center justify-center")}>
+                      <img src={link.icon} alt={link.name} className={cn("w-full h-full object-contain", radius.pill)} />
                     </div>
                   ) : isKnownIconName(link.icon) ? (
-                    <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white">
+                    <div className={cn("w-7 h-7", radius.pill, surface.cardDark, border.subtleDark, "flex items-center justify-center", text.primaryDark)}>
                       <Icon name={link.icon} size={16} />
                     </div>
                   ) : (
@@ -241,13 +243,13 @@ export default function SocialLinksAdminPage() {
                 <td className="px-6 py-4 text-right space-x-2">
                   <button
                     onClick={() => openEditModal(link)}
-                    className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg text-xs font-medium transition-all"
+                    className={cn("px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-400", radius.chip, "text-xs font-medium transition-all")}
                   >
                     {t("admin.common.edit", "Edit")}
                   </button>
                   <button
                     onClick={() => setDeleteTarget(link)}
-                    className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-medium transition-all"
+                    className={cn("px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400", radius.chip, "text-xs font-medium transition-all")}
                   >
                     {t("admin.common.delete", "Delete")}
                   </button>
@@ -283,7 +285,7 @@ export default function SocialLinksAdminPage() {
             value={formName}
             onChange={(e) => setFormName(e.target.value)}
             placeholder={t("admin.socialLinks.fieldNamePlaceholder", "GitHub, LinkedIn, Twitter, Facebook...")}
-            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            className={cn("w-full px-4 py-2 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
             required
           />
         </FormField>
@@ -298,17 +300,17 @@ export default function SocialLinksAdminPage() {
             required
             helperText="Choose an icon from Cloud, upload a custom logo, or pick a platform logo below."
           />
-          <div className="flex items-center gap-3 pt-1">
+          <div className={cn("flex items-center", gap.base, "pt-1")}>
             <button
               type="button"
               onClick={() => setIsIconPickerOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-300 hover:text-white transition-all"
+              className={cn("inline-flex items-center gap-1.5 px-3 py-1.5", radius.chip, surface.cardDark, "hover:bg-white/10", border.subtleDark, "text-xs font-medium text-slate-300 hover:text-white transition-all")}
             >
               <Icon name="sparkles" size={13} />
               Chọn logo mạng xã hội có sẵn
             </button>
             {formIcon && !formIcon.startsWith("http") && !formIcon.startsWith("/") && (
-              <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white">
+              <div className={cn("w-7 h-7", radius.pill, surface.cardDark, border.subtleDark, "flex items-center justify-center", text.primaryDark)}>
                 {isKnownIconName(formIcon) ? (
                   <Icon name={formIcon} size={16} />
                 ) : (
@@ -326,12 +328,12 @@ export default function SocialLinksAdminPage() {
             value={formUrl}
             onChange={(e) => setFormUrl(e.target.value)}
             placeholder={t("admin.socialLinks.fieldUrlPlaceholder", "https://...")}
-            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            className={cn("w-full px-4 py-2 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
             required
           />
         </FormField>
 
-        <div className="flex items-center gap-2 pt-1">
+        <div className={cn("flex items-center", gap.tight, "pt-1")}>
           <input
             type="checkbox"
             id="social-published"
