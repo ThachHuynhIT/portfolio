@@ -206,6 +206,7 @@ function parse(data: unknown): ClientMessage | null {
 /** Wire a freshly upgraded WebSocket into the game. */
 export function attachConnection(socket: HubSocket, opts: AttachOptions = {}) {
   const conn: Conn = { socket, code: null, token: null };
+  socket.send(JSON.stringify({ type: "debug", step: "attached" }));
   const hubPromise = opts.hub ? Promise.resolve(opts.hub) : getHub();
   let closed = false;
   let windowStart = Date.now();
@@ -302,9 +303,12 @@ export function attachConnection(socket: HubSocket, opts: AttachOptions = {}) {
     }
     const msg = parse(data);
     if (!msg) return;
+    if ((msg as { debug?: boolean }).debug) socket.send(JSON.stringify({ type: "debug", step: "onMessage:" + msg.type }));
     queue = queue.then(async () => {
       try {
-        await handle(await hubPromise, msg);
+        const hub = await hubPromise;
+        if ((msg as { debug?: boolean }).debug) socket.send(JSON.stringify({ type: "debug", step: "hubReady" }));
+        await handle(hub, msg);
       } catch (err) {
         console.error("[tienlen]", err);
         if ("id" in msg) ack(Number(msg.id) || 0, { ok: false, error: err instanceof Error ? err.message : "Lỗi máy chủ" });
