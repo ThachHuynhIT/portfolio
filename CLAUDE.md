@@ -47,6 +47,7 @@ Path alias `@/*` maps to `./src/*`.
 - **`/` (`page.tsx`)**: One-page portfolio composing sections in order: `HeroSection` ➔ `AboutSection` ➔ `SkillsSection` ➔ `ProjectsSection` ➔ `ContactSection`.
 - **`/blog` & `/blog/[slug]`**: Server-side MDX blog engine. Content lives as `.mdx` files in `content/blog/` (outside `src/`). Files are read at build/request time via server-only functions in `src/lib/blog.ts` using Node `fs`.
 - **`/contra` (`page.tsx`)**: Fullscreen 2D Contra arcade canvas game (`src/components/game/ContraGame.tsx`, ~1800 lines). Loaded dynamically with `{ ssr: false }` and `mounted` state protection to prevent hydration mismatches.
+- **`/tien-len` & `/tien-len/[room]`**: Online multiplayer Tiến Lên Miền Nam. Rules live as pure TS in `src/lib/tienlen/` (shared with the server); UI in `src/components/tienlen/`. Realtime runs on a separate Socket.IO server in `game-server/` (own `package.json`, vitest tests, deployed outside Vercel — see `docs/DEPLOYMENT.md` §3.1). Client reads `NEXT_PUBLIC_TIENLEN_SERVER_URL`.
 - **`/tools/json-validator` (`page.tsx`)**: Utility for batch-validating parameter matching across `tb_def_exception_parameter_*.json` and `tb_def_parameter_*.json` files.
 - **`/couple` (`page.tsx`)**: Isolated anniversary countdown and romantic memory page with its own CSS module (`couple.module.css`). Keep its config (`COUPLE_CONFIG`) isolated within the page component.
 

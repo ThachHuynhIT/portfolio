@@ -45,6 +45,29 @@ Vì dự án được xây dựng bằng Next.js 14, **Vercel** là nền tảng
 
 ---
 
+### 3.1. Server game Tiến Lên (`game-server/`)
+
+Trang `/tien-len` cần một server Socket.IO chạy riêng, vì Vercel không giữ được kết nối WebSocket lâu dài. Server nằm trong thư mục `game-server/` và dùng chung luật chơi với web ở `src/lib/tienlen/`.
+
+**Chạy local:**
+```bash
+cd game-server && npm install && npm run dev   # http://localhost:4000
+npm test                                       # test luật chơi (vitest)
+```
+
+**Deploy lên Render (miễn phí):** tạo *Web Service* từ repo này với các thiết lập:
+- **Root Directory:** để trống (repo root), vì server import `../src/lib/tienlen`
+- **Build Command:** `npm install --prefix game-server && npm run build --prefix game-server`
+- **Start Command:** `node game-server/dist/index.js`
+- **Environment:** `ALLOWED_ORIGIN=https://<domain-portfolio>`. Nhiều domain thì ngăn cách bằng dấu phẩy, ví dụ thêm `http://localhost:3000`.
+- **Health check path:** `/health`
+
+Railway và Fly.io cấu hình tương tự. Cổng lấy từ biến `PORT`.
+
+Sau khi deploy, vào Vercel → *Settings → Environment Variables*, thêm `NEXT_PUBLIC_TIENLEN_SERVER_URL=https://<ten-service>.onrender.com`, rồi redeploy web.
+
+> Lưu ý: phòng chơi được lưu trong bộ nhớ, nên server restart là mất các phòng đang mở. Gói free của Render sẽ "ngủ" sau khoảng 15 phút không có ai truy cập; lần vào đầu tiên phải chờ server khởi động lại khoảng 30–60 giây.
+
 ## 4. Triển Khai Bằng Docker
 
 Nếu bạn muốn deploy ứng dụng lên VPS hoặc Kubernetes:

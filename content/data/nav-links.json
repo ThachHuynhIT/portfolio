@@ -62,6 +62,14 @@
         "href": "/photography",
         "published": true,
         "order": 1
+      },
+      {
+        "id": "nav-tienlen",
+        "label": "Tien Len",
+        "label_vi": "Tiến Lên",
+        "href": "/tien-len",
+        "published": true,
+        "order": 2
       }
     ]
   },
