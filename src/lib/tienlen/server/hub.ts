@@ -220,6 +220,7 @@ export function attachConnection(socket: HubSocket, opts: AttachOptions = {}) {
   const ack = (id: number, res: AckResult<{ code?: string }>) => send(socket, { type: "ack", id, ...res });
 
   const handle = async (hub: RoomHub, msg: ClientMessage) => {
+    if ((msg as { debug?: boolean }).debug) socket.send(JSON.stringify({ type: "debug", step: "handle:" + msg.type }));
     if (msg.type === "ping") {
       send(socket, { type: "pong" });
       if (conn.code && conn.token) {
@@ -238,15 +239,25 @@ export function attachConnection(socket: HubSocket, opts: AttachOptions = {}) {
     }
 
     if (msg.type === "join") {
+      // TEMP debug trace
+      const dbg = (step: string) => (msg as { debug?: boolean }).debug && socket.send(JSON.stringify({ type: "debug", step, t: Date.now() }));
+      dbg("join:start");
       const code = String(msg.code ?? "").toUpperCase().slice(0, 8);
       const token = String(msg.token ?? "");
-      const res = await hub.mutate(code, (room, now) => joinRoom(room, token, String(msg.name ?? ""), now, newId));
+      const res = await hub.mutate(code, (room, now) => {
+        dbg("join:inMutate");
+        const r = joinRoom(room, token, String(msg.name ?? ""), now, newId);
+        dbg("join:joined " + r.ok);
+        return r;
+      });
+      dbg("join:mutated " + res.found);
       if (!res.found) return ack(id, { ok: false, error: "Không tìm thấy phòng" });
       if (!res.result.ok) return ack(id, res.result);
       if (conn.code && conn.code !== code) hub.remove(conn);
       conn.code = code;
       conn.token = token;
       await hub.add(conn, code);
+      dbg("join:added");
       ack(id, { ok: true });
       // The save above already notified subscribers, but this socket may have registered after it.
       return hub.refresh(code);
