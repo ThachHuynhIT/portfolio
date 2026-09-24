@@ -64,10 +64,10 @@
         "order": 1
       },
       {
-        "id": "nav-tienlen",
-        "label": "Tien Len",
-        "label_vi": "Tiến Lên",
-        "href": "/tien-len",
+        "id": "nav-games",
+        "label": "Games",
+        "label_vi": "Trò chơi",
+        "href": "/games",
         "published": true,
         "order": 2
       }

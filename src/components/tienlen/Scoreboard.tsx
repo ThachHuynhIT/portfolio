@@ -1,6 +1,6 @@
 "use client";
 
-import { INSTANT_WIN_NAMES, type RoomView } from "@/lib/tienlen";
+import { type GameRecord, INSTANT_WIN_NAMES } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 
 const RANK_TITLES = ["Nhất", "Nhì", "Ba"];
@@ -22,7 +22,17 @@ export function DeltaBadge({ delta }: { delta: number }) {
 }
 
 /** Room scoreboard: cumulative points per seat plus the last games. */
-export function ScoreboardModal({ view, onClose }: { view: RoomView; onClose: () => void }) {
+/** What the scoreboard needs from a room view (Tiến Lên and Mèo Nổ both fit). */
+export interface ScoreboardData {
+  code: string;
+  meId: string;
+  seats: ({ id: string; name: string; points: number; games: number; wins: number } | null)[];
+  history: GameRecord[];
+}
+
+const TIENLEN_NOTE = "Điểm mỗi ván: 4 người +3/+1/−1/−3 · 3 người +2/0/−2 · 2 người +1/−1 · tới trắng +2 từ mỗi người.";
+
+export function ScoreboardModal({ view, onClose, note = TIENLEN_NOTE }: { view: ScoreboardData; onClose: () => void; note?: string }) {
   const players = view.seats.filter((s): s is NonNullable<typeof s> => !!s).sort((a, b) => b.points - a.points);
   const history = view.history.slice().reverse();
 
@@ -93,7 +103,7 @@ export function ScoreboardModal({ view, onClose }: { view: RoomView; onClose: ()
           </ol>
         )}
         <p className="mt-4 text-xs text-emerald-100/40">
-          Điểm mỗi ván: 4 người +3/+1/−1/−3 · 3 người +2/0/−2 · 2 người +1/−1 · tới trắng +2 từ mỗi người.
+          {note}
         </p>
       </div>
     </div>
