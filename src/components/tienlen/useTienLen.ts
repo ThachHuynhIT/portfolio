@@ -12,25 +12,75 @@ import type {
 
 type TLSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
-export const SERVER_URL = process.env.NEXT_PUBLIC_TIENLEN_SERVER_URL || "http://localhost:4000";
+const GAME_PORT = process.env.NEXT_PUBLIC_TIENLEN_SERVER_PORT || "4000";
+
+/**
+ * Default game server: NEXT_PUBLIC_TIENLEN_SERVER_URL if set, otherwise the
+ * same host the page was loaded from on the game port — so when both run on
+ * one machine (`npm run tienlen:host`), http://<your-ip>:3000 talks to
+ * http://<your-ip>:4000 with no configuration.
+ */
+const defaultServerUrl = () =>
+  process.env.NEXT_PUBLIC_TIENLEN_SERVER_URL || `${window.location.protocol}//${window.location.hostname}:${GAME_PORT}`;
 
 const TOKEN_KEY = "tienlen:token";
 const NAME_KEY = "tienlen:name";
+const SERVER_KEY = "tienlen:server";
+
+const normalizeServer = (raw: string | null): string | null => {
+  if (!raw) return null;
+  try {
+    const url = new URL(raw.includes("://") ? raw : `https://${raw}`);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.origin : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Game server to connect to. A `?server=` query param (put in invite links by
+ * `npm run share` in game-server/) overrides the build-time default and is
+ * remembered for this tab, so a server running on someone's own machine
+ * works without redeploying the site.
+ */
+export function getServerUrl(): string {
+  try {
+    const fromQuery = normalizeServer(new URLSearchParams(window.location.search).get("server"));
+    if (fromQuery) sessionStorage.setItem(SERVER_KEY, fromQuery);
+    return fromQuery ?? normalizeServer(sessionStorage.getItem(SERVER_KEY)) ?? defaultServerUrl();
+  } catch {
+    return defaultServerUrl();
+  }
+}
+
+/** Invite link for a room; carries the server override when one is in use. */
+export function inviteLink(code: string): string {
+  const url = new URL(`/tien-len/${code}`, window.location.origin);
+  const server = getServerUrl();
+  if (server !== defaultServerUrl()) url.searchParams.set("server", server);
+  return url.toString();
+}
+
+const randomToken = () =>
+  typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : Array.from({ length: 4 }, () => Math.random().toString(36).slice(2)).join("");
 
 /**
  * Secret reconnect token. Kept in sessionStorage so a reload keeps the seat,
  * while separate tabs act as separate players.
  */
+let memoryToken: string | null = null;
 export function getToken(): string {
   try {
     let t = sessionStorage.getItem(TOKEN_KEY);
     if (!t) {
-      t = crypto.randomUUID();
+      t = randomToken();
       sessionStorage.setItem(TOKEN_KEY, t);
     }
     return t;
   } catch {
-    return Math.random().toString(36).slice(2) + Date.now().toString(36);
+    return (memoryToken ??= randomToken());
   }
 }
 
@@ -50,7 +100,7 @@ export function saveName(name: string) {
   }
 }
 
-const connect = (): TLSocket => io(SERVER_URL, { transports: ["websocket", "polling"] });
+const connect = (): TLSocket => io(getServerUrl(), { transports: ["websocket", "polling"] });
 
 /** Ask the server for a new room code using a short-lived connection. */
 export function createRoom(name: string): Promise<string> {

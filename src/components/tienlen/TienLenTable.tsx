@@ -17,7 +17,7 @@ import {
 } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { CardBack, PlayingCard } from "./PlayingCard";
-import { useTienLenRoom } from "./useTienLen";
+import { inviteLink, useTienLenRoom } from "./useTienLen";
 
 const RANK_TITLES = ["Nhất", "Nhì", "Ba"];
 /** Ranking label; whoever finishes last is always "Bét". */
@@ -150,15 +150,28 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, toast }: TableProp
     setBusy(false);
   };
 
-  const inviteUrl = typeof window !== "undefined" ? `${window.location.origin}/tien-len/${view.code}` : "";
+  const inviteUrl = typeof window !== "undefined" ? inviteLink(view.code) : "";
   const [copied, setCopied] = useState(false);
   const copyInvite = async () => {
     try {
-      await navigator.clipboard.writeText(inviteUrl);
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(inviteUrl);
+      } else {
+        // Plain http://<ip> pages have no async clipboard API.
+        const ta = document.createElement("textarea");
+        ta.value = inviteUrl;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        ta.remove();
+        if (!ok) throw new Error("copy failed");
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      /* clipboard blocked — the code is visible anyway */
+      window.prompt("Chép link mời:", inviteUrl);
     }
   };
 

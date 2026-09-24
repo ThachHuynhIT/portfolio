@@ -4,11 +4,21 @@ import type { AckResult, ClientToServerEvents, ServerToClientEvents } from "../.
 import { RoomManager } from "./rooms";
 
 const PORT = Number(process.env.PORT) || 4000;
-/** Comma-separated list of allowed web origins, e.g. "https://example.com,http://localhost:3000". */
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGIN ?? "http://localhost:3000")
+/**
+ * Comma-separated list of allowed web origins. `*` wildcards match one or more
+ * host labels, e.g. "https://example.com,https://*.vercel.app". The default
+ * covers local dev and quick Cloudflare tunnels (`npm run share`).
+ */
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGIN ?? "http://localhost:3000,https://*.trycloudflare.com")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
+
+const originPatterns = ALLOWED_ORIGINS.map(
+  (o) => new RegExp(`^${o.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[a-z0-9-.]+")}$`, "i"),
+);
+const isAllowedOrigin = (origin: string | undefined) =>
+  !origin || ALLOWED_ORIGINS.includes("*") || originPatterns.some((re) => re.test(origin));
 
 interface SocketData {
   roomCode?: string;
@@ -25,7 +35,9 @@ const httpServer = createServer((req, res) => {
 });
 
 const io = new Server<ClientToServerEvents, ServerToClientEvents, object, SocketData>(httpServer, {
-  cors: { origin: ALLOWED_ORIGINS.includes("*") ? true : ALLOWED_ORIGINS },
+  cors: { origin: (origin, cb) => cb(null, isAllowedOrigin(origin)) },
+  // WebSocket upgrades skip CORS, so check the origin there too.
+  allowRequest: (req, cb) => cb(null, isAllowedOrigin(req.headers.origin)),
 });
 
 const rooms = new RoomManager((room) => {

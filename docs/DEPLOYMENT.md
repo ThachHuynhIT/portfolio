@@ -55,6 +55,17 @@ cd game-server && npm install && npm run dev   # http://localhost:4000
 npm test                                       # test luật chơi (vitest)
 ```
 
+**Tự host trên máy của bạn (web + server game):** xem hướng dẫn chi tiết (forward port, firewall, CGNAT) tại [`TIENLEN_SELF_HOST.md`](./TIENLEN_SELF_HOST.md).
+```bash
+npm run tienlen:host              # build web nếu chưa có, chạy web :3000 + game :4000 trên mọi interface
+npm run tienlen:host -- --build   # build lại web sau khi sửa code
+npm run tienlen:host -- --dev     # dùng next dev
+```
+- Cùng wifi: mọi người mở `http://<IP-LAN>:3000/tien-len`. Script sẽ in ra địa chỉ IP LAN của máy.
+- Qua internet: trên router, forward **TCP 3000 và 4000** về máy này, rồi mọi người mở `http://<IP-public>:3000/tien-len`.
+- Trang web tự kết nối tới server game ở cùng host, cổng 4000. Muốn đổi cổng thì đặt `NEXT_PUBLIC_TIENLEN_SERVER_PORT` trước khi build.
+- Không muốn mở port thì dùng `npm --prefix game-server run share`. Lệnh này tạo tunnel Cloudflare miễn phí, link đổi mỗi lần chạy.
+
 **Deploy lên Render (miễn phí):** tạo *Web Service* từ repo này với các thiết lập:
 - **Root Directory:** để trống (repo root), vì server import `../src/lib/tienlen`
 - **Build Command:** `npm install --prefix game-server && npm run build --prefix game-server`

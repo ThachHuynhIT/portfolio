@@ -7,6 +7,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=cjs --packages=external --outfile=dist/index.js",
     "start": "node dist/index.js",
+    "host": "node scripts/serve.mjs",
+    "share": "node scripts/serve.mjs --tunnel",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
@@ -18,6 +20,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "cloudflared": "^0.7.3",
     "esbuild": "^0.25.0",
     "tsx": "^4.19.0",
     "typescript": "^5",
