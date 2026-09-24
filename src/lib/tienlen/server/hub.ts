@@ -291,6 +291,12 @@ export function attachConnection(socket: HubSocket, opts: AttachOptions = {}) {
   // Process messages one at a time per connection so acks keep their order.
   let queue = Promise.resolve();
   socket.on("message", (data) => {
+    try {
+      const d = data as { constructor?: { name?: string }; length?: number; byteLength?: number };
+      socket.send(JSON.stringify({ type: "debug", step: "raw", closed, ctor: d?.constructor?.name, isBuf: data instanceof Buffer, len: d?.length ?? d?.byteLength, head: String(toText(data)).slice(0, 40) }));
+    } catch (e) {
+      socket.send(JSON.stringify({ type: "debug", step: "raw-err", e: String(e) }));
+    }
     if (closed) return;
     const now = Date.now();
     if (now - windowStart > 1000) {
