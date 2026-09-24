@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { parseCards as c } from "../../src/lib/tienlen/cards";
-import { canBeat, detectCombo, isChop } from "../../src/lib/tienlen/combos";
-import { detectInstantWin } from "../../src/lib/tienlen/rules";
+import { parseCards as c } from "../cards";
+import { canBeat, detectCombo, isChop } from "../combos";
+import { detectInstantWin } from "../rules";
 
 const combo = (labels: string) => {
   const r = detectCombo(c(labels));

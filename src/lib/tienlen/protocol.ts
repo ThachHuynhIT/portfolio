@@ -4,6 +4,10 @@ import type { InstantWinReason } from "./rules";
 
 export const MAX_NAME_LENGTH = 16;
 export const TURN_SECONDS = 30;
+/** Path of the WebSocket endpoint, on Vercel and on the self-hosted server alike. */
+export const WS_PATH = "/api/tienlen/ws";
+/** Clients ping this often; the ping doubles as the presence heartbeat. */
+export const PING_INTERVAL_MS = 10_000;
 
 export interface SeatView {
   /** Public id — safe to show to everyone (the secret reconnect token never leaves the server). */
@@ -21,7 +25,7 @@ export interface SeatView {
 export interface GameView {
   status: "playing" | "ended";
   turn: string | null;
-  /** Epoch ms when the current turn auto-resolves. */
+  /** Epoch ms (server clock) when the current turn auto-resolves. */
   turnDeadline: number | null;
   lastPlay: LastPlay | null;
   finished: string[];
@@ -33,30 +37,30 @@ export interface GameView {
 export interface RoomView {
   code: string;
   meId: string;
+  /** Server clock when the view was built — lets clients correct for clock skew. */
+  serverTime: number;
   /** Up to 4 seats in turn order; null = empty seat. */
   seats: (SeatView | null)[];
   game: GameView | null;
   hand: Card[];
 }
 
-export interface JoinPayload {
-  code: string;
-  name: string;
-  token: string;
-}
-
 export type AckResult<T = object> = ({ ok: true } & T) | { ok: false; error: string };
-export type Ack<T = object> = (res: AckResult<T>) => void;
 
-export interface ClientToServerEvents {
-  "room:create": (p: { name: string; token: string }, ack: Ack<{ code: string }>) => void;
-  "room:join": (p: JoinPayload, ack: Ack) => void;
-  "room:leave": () => void;
-  "game:start": (ack: Ack) => void;
-  "game:play": (p: { cards: Card[] }, ack: Ack) => void;
-  "game:pass": (ack: Ack) => void;
-}
+/** Client → server. Every message except `ping` carries an `id` that the server acks. */
+export type ClientMessage =
+  | { type: "create"; id: number }
+  | { type: "join"; id: number; code: string; name: string; token: string }
+  | { type: "start"; id: number }
+  | { type: "play"; id: number; cards: Card[] }
+  | { type: "pass"; id: number }
+  | { type: "leave"; id: number }
+  | { type: "ping" };
 
-export interface ServerToClientEvents {
-  state: (view: RoomView) => void;
-}
+/** Server → client. */
+export type ServerMessage =
+  | ({ type: "ack"; id: number } & AckResult<{ code?: string }>)
+  | { type: "state"; view: RoomView }
+  /** This connection is about to hit the platform time limit — open a new one now. */
+  | { type: "reconnect" }
+  | { type: "pong" };

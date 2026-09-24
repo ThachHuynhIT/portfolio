@@ -1,64 +1,31 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { io, type Socket } from "socket.io-client";
-import type {
-  AckResult,
-  Card,
-  ClientToServerEvents,
-  RoomView,
-  ServerToClientEvents,
+import {
+  type AckResult,
+  type Card,
+  type ClientMessage,
+  PING_INTERVAL_MS,
+  type RoomView,
+  type ServerMessage,
+  WS_PATH,
 } from "@/lib/tienlen";
-
-type TLSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
-
-const GAME_PORT = process.env.NEXT_PUBLIC_TIENLEN_SERVER_PORT || "4000";
-
-/**
- * Default game server: NEXT_PUBLIC_TIENLEN_SERVER_URL if set, otherwise the
- * same host the page was loaded from on the game port — so when both run on
- * one machine (`npm run tienlen:host`), http://<your-ip>:3000 talks to
- * http://<your-ip>:4000 with no configuration.
- */
-const defaultServerUrl = () =>
-  process.env.NEXT_PUBLIC_TIENLEN_SERVER_URL || `${window.location.protocol}//${window.location.hostname}:${GAME_PORT}`;
 
 const TOKEN_KEY = "tienlen:token";
 const NAME_KEY = "tienlen:name";
-const SERVER_KEY = "tienlen:server";
-
-const normalizeServer = (raw: string | null): string | null => {
-  if (!raw) return null;
-  try {
-    const url = new URL(raw.includes("://") ? raw : `https://${raw}`);
-    return url.protocol === "http:" || url.protocol === "https:" ? url.origin : null;
-  } catch {
-    return null;
-  }
-};
 
 /**
- * Game server to connect to. A `?server=` query param (put in invite links by
- * `npm run share` in game-server/) overrides the build-time default and is
- * remembered for this tab, so a server running on someone's own machine
- * works without redeploying the site.
+ * WebSocket endpoint. Same origin by default — the Vercel route handler and the
+ * self-hosted server both serve it at WS_PATH. NEXT_PUBLIC_TIENLEN_SERVER_URL
+ * points the page at a game server elsewhere.
  */
-export function getServerUrl(): string {
-  try {
-    const fromQuery = normalizeServer(new URLSearchParams(window.location.search).get("server"));
-    if (fromQuery) sessionStorage.setItem(SERVER_KEY, fromQuery);
-    return fromQuery ?? normalizeServer(sessionStorage.getItem(SERVER_KEY)) ?? defaultServerUrl();
-  } catch {
-    return defaultServerUrl();
-  }
+function wsUrl(): string {
+  const base = process.env.NEXT_PUBLIC_TIENLEN_SERVER_URL || window.location.origin;
+  return base.replace(/^http/, "ws").replace(/\/$/, "") + WS_PATH;
 }
 
-/** Invite link for a room; carries the server override when one is in use. */
 export function inviteLink(code: string): string {
-  const url = new URL(`/tien-len/${code}`, window.location.origin);
-  const server = getServerUrl();
-  if (server !== defaultServerUrl()) url.searchParams.set("server", server);
-  return url.toString();
+  return new URL(`/tien-len/${code}`, window.location.origin).toString();
 }
 
 const randomToken = () =>
@@ -100,77 +67,194 @@ export function saveName(name: string) {
   }
 }
 
-const connect = (): TLSocket => io(getServerUrl(), { transports: ["websocket", "polling"] });
+type Outgoing = ClientMessage extends infer M ? (M extends { id: number } ? Omit<M, "id"> : never) : never;
+type Ack = AckResult<{ code?: string }>;
+
+/** One WebSocket with request/ack bookkeeping. */
+class Channel {
+  readonly ws: WebSocket;
+  private nextId = 1;
+  private pending = new Map<number, (res: Ack) => void>();
+  onMessage: (msg: ServerMessage) => void = () => {};
+  onClose: () => void = () => {};
+
+  constructor(url: string) {
+    this.ws = new WebSocket(url);
+    this.ws.onmessage = (e) => {
+      let msg: ServerMessage;
+      try {
+        msg = JSON.parse(String(e.data));
+      } catch {
+        return;
+      }
+      if (msg.type === "ack") {
+        // The ack carries the AckResult fields (plus harmless `type`/`id`).
+        this.pending.get(msg.id)?.(msg as Ack);
+        this.pending.delete(msg.id);
+      } else {
+        this.onMessage(msg);
+      }
+    };
+    this.ws.onclose = () => {
+      this.pending.forEach((resolve) => resolve({ ok: false, error: "Mất kết nối máy chủ" }));
+      this.pending.clear();
+      this.onClose();
+    };
+  }
+
+  opened(timeoutMs = 10_000): Promise<boolean> {
+    if (this.ws.readyState === WebSocket.OPEN) return Promise.resolve(true);
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => resolve(false), timeoutMs);
+      this.ws.addEventListener("open", () => (clearTimeout(timer), resolve(true)), { once: true });
+      this.ws.addEventListener("close", () => (clearTimeout(timer), resolve(false)), { once: true });
+    });
+  }
+
+  request(msg: Outgoing, timeoutMs = 10_000): Promise<Ack> {
+    if (this.ws.readyState !== WebSocket.OPEN) return Promise.resolve({ ok: false, error: "Mất kết nối máy chủ" });
+    const id = this.nextId++;
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        resolve({ ok: false, error: "Máy chủ không phản hồi" });
+      }, timeoutMs);
+      this.pending.set(id, (res) => {
+        clearTimeout(timer);
+        resolve(res);
+      });
+      this.ws.send(JSON.stringify({ ...msg, id }));
+    });
+  }
+
+  ping() {
+    if (this.ws.readyState === WebSocket.OPEN) this.ws.send(JSON.stringify({ type: "ping" }));
+  }
+
+  close() {
+    this.onClose = () => {};
+    this.ws.close(1000);
+  }
+}
 
 /** Ask the server for a new room code using a short-lived connection. */
-export function createRoom(name: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const socket = connect();
-    const fail = (msg: string) => {
-      socket.disconnect();
-      reject(new Error(msg));
-    };
-    const timer = setTimeout(() => fail("Không kết nối được máy chủ game"), 8000);
-    socket.on("connect", () => {
-      socket.emit("room:create", { name, token: getToken() }, (res) => {
-        clearTimeout(timer);
-        socket.disconnect();
-        if (res.ok) resolve(res.code);
-        else reject(new Error(res.error));
-      });
-    });
-  });
+export async function createRoom(): Promise<string> {
+  const ch = new Channel(wsUrl());
+  try {
+    if (!(await ch.opened(8000))) throw new Error("Không kết nối được máy chủ game");
+    const res = await ch.request({ type: "create" });
+    if (!res.ok) throw new Error(res.error);
+    if (!res.code) throw new Error("Không tạo được phòng");
+    return res.code;
+  } finally {
+    ch.close();
+  }
 }
 
 export type ConnectionStatus = "connecting" | "joined" | "reconnecting" | "error";
+
+/** Shift server-clock deadlines onto the local clock. */
+function localizeView(view: RoomView): RoomView {
+  if (!view.game?.turnDeadline) return view;
+  const skew = Date.now() - view.serverTime;
+  return { ...view, game: { ...view.game, turnDeadline: view.game.turnDeadline + skew } };
+}
 
 export function useTienLenRoom(code: string, name: string | null) {
   const [view, setView] = useState<RoomView | null>(null);
   const [status, setStatus] = useState<ConnectionStatus>("connecting");
   const [error, setError] = useState<string | null>(null);
-  const socketRef = useRef<TLSocket | null>(null);
+  const channelRef = useRef<Channel | null>(null);
 
   useEffect(() => {
     if (!name) return;
-    const socket = connect();
-    socketRef.current = socket;
+    let disposed = false;
+    let retry = 0;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    const token = getToken();
 
-    const join = () =>
-      socket.emit("room:join", { code, name, token: getToken() }, (res) => {
-        if (res.ok) {
-          setStatus("joined");
-          setError(null);
-        } else {
-          setStatus("error");
-          setError(res.error);
+    /**
+     * Open a channel and join. Used for the first connection, after drops, and
+     * for a planned hand-over (`reconnect` from the server before the platform
+     * cuts the connection): the new channel joins before the old one closes.
+     */
+    const open = async () => {
+      if (disposed) return;
+      const ch = new Channel(wsUrl());
+      ch.onMessage = (msg) => {
+        if (msg.type === "state") setView(localizeView(msg.view));
+        else if (msg.type === "reconnect" && channelRef.current === ch) void open();
+      };
+      ch.onClose = () => {
+        if (disposed || channelRef.current !== ch) return;
+        channelRef.current = null;
+        setStatus((s) => (s === "error" ? s : "reconnecting"));
+        scheduleRetry();
+      };
+
+      if (!(await ch.opened())) {
+        ch.close();
+        if (!channelRef.current) {
+          setStatus((s) => (s === "joined" ? "reconnecting" : s));
+          scheduleRetry();
         }
-      });
+        return;
+      }
+      const res = await ch.request({ type: "join", code, name, token });
+      if (disposed) return ch.close();
+      if (!res.ok) {
+        ch.close();
+        setStatus("error");
+        setError(res.error);
+        return;
+      }
+      const previous = channelRef.current;
+      channelRef.current = ch;
+      previous?.close();
+      retry = 0;
+      setStatus("joined");
+      setError(null);
+    };
 
-    socket.on("connect", join);
-    socket.on("disconnect", () => setStatus((s) => (s === "error" ? s : "reconnecting")));
-    socket.on("connect_error", () => setStatus((s) => (s === "joined" ? "reconnecting" : s)));
-    socket.on("state", setView);
+    const scheduleRetry = () => {
+      if (disposed || retryTimer) return;
+      const delay = Math.min(500 * 2 ** retry++, 8000);
+      retryTimer = setTimeout(() => {
+        retryTimer = null;
+        void open();
+      }, delay);
+    };
+
+    const pinger = setInterval(() => channelRef.current?.ping(), PING_INTERVAL_MS);
+    // Come back fast when the tab regains focus or the network returns.
+    const wake = () => {
+      if (!channelRef.current && !retryTimer) void open();
+    };
+    window.addEventListener("online", wake);
+    document.addEventListener("visibilitychange", wake);
+
+    void open();
 
     return () => {
-      socket.emit("room:leave");
-      socket.disconnect();
-      socketRef.current = null;
+      disposed = true;
+      clearInterval(pinger);
+      if (retryTimer) clearTimeout(retryTimer);
+      window.removeEventListener("online", wake);
+      document.removeEventListener("visibilitychange", wake);
+      const ch = channelRef.current;
+      channelRef.current = null;
+      if (ch) void ch.request({ type: "leave" }, 1500).finally(() => ch.close());
     };
   }, [code, name]);
 
-  const call = useCallback(
-    (fn: (s: TLSocket, ack: (r: AckResult) => void) => void) =>
-      new Promise<AckResult>((resolve) => {
-        const s = socketRef.current;
-        if (!s?.connected) return resolve({ ok: false, error: "Mất kết nối máy chủ" });
-        fn(s, resolve);
-      }),
-    [],
-  );
+  const call = useCallback((msg: Outgoing) => {
+    const ch = channelRef.current;
+    return ch ? ch.request(msg) : Promise.resolve<Ack>({ ok: false, error: "Mất kết nối máy chủ" });
+  }, []);
 
-  const play = useCallback((cards: Card[]) => call((s, ack) => s.emit("game:play", { cards }, ack)), [call]);
-  const pass = useCallback(() => call((s, ack) => s.emit("game:pass", ack)), [call]);
-  const start = useCallback(() => call((s, ack) => s.emit("game:start", ack)), [call]);
+  const play = useCallback((cards: Card[]) => call({ type: "play", cards }), [call]);
+  const pass = useCallback(() => call({ type: "pass" }), [call]);
+  const start = useCallback(() => call({ type: "start" }), [call]);
 
   return { view, status, error, play, pass, start };
 }

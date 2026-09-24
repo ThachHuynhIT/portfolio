@@ -1,16 +1,13 @@
-// Host Tiến Lên (web + game server) from this machine.
+// Host the portfolio + Tiến Lên from this machine, on ONE port (default 3000).
 //
-//   npm run host                  # production web (`next start`) on :3000 + game server on :4000,
-//                                 #   both listening on all interfaces. Builds the web app first
-//                                 #   if there is no build yet (`--build` forces a rebuild).
-//   npm run host -- --dev         # use `next dev` instead of a production build
-//   npm run host -- --no-web      # only the game server
-//   npm run share                 # same as host, plus free Cloudflare quick tunnels (no port forwarding)
+//   npm run host                  # production build (built first if missing) on 0.0.0.0:3000
+//   npm run host -- --build       # force a rebuild first
+//   npm run host -- --dev         # next dev
+//   npm run share                 # same, plus a free Cloudflare quick tunnel (no port forwarding)
 //
-// For friends outside your network, forward TCP 3000 and 4000 on your router to
-// this machine and allow them in the Windows firewall; they then open
-// http://<your-public-ip>:3000/tien-len. The page finds the game server on the
-// same host automatically (port 4000).
+// Friends outside your network: forward TCP 3000 on the router to this
+// machine, then share http://<your-public-ip>:3000/tien-len.
+// See docs/TIENLEN_SELF_HOST.md.
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { networkInterfaces } from "node:os";
@@ -22,11 +19,9 @@ const serverDir = resolve(here, "..");
 const repoRoot = resolve(serverDir, "..");
 
 const args = new Set(process.argv.slice(2));
-const withWeb = !args.has("--no-web");
 const dev = args.has("--dev");
 const withTunnel = args.has("--tunnel");
-const GAME_PORT = Number(process.env.PORT) || 4000;
-const WEB_PORT = Number(process.env.WEB_PORT) || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const nextBin = resolve(repoRoot, "node_modules/next/dist/bin/next");
 
 const children = [];
@@ -48,23 +43,13 @@ function run(name, cmdArgs, cwd, env = {}) {
   return child;
 }
 
-/** Run to completion (used for `next build`). */
 function runOnce(name, cmdArgs, cwd) {
-  return new Promise((resolveRun, reject) => {
+  return new Promise((ok, fail) => {
     const child = run(name, cmdArgs, cwd);
     child.on("exit", (code) => {
       children.splice(children.indexOf(child), 1);
-      code === 0 ? resolveRun() : reject(new Error(`${name} failed (${code})`));
+      code === 0 ? ok() : fail(new Error(`${name} failed (${code})`));
     });
-  });
-}
-
-/** Long-running service: if it dies, stop everything. */
-function service(name, cmdArgs, cwd, env) {
-  const child = run(name, cmdArgs, cwd, env);
-  child.on("exit", (code) => {
-    console.log(`[${name}] exited (${code})`);
-    shutdown(code ?? 1);
   });
 }
 
@@ -74,19 +59,19 @@ async function openTunnel(port) {
     console.log("Downloading cloudflared…");
     await install(bin);
   }
-  return new Promise((resolveUrl, reject) => {
+  return new Promise((ok, fail) => {
     const t = Tunnel.quick(`http://localhost:${port}`);
     tunnels.push(t);
-    const timer = setTimeout(() => reject(new Error(`Tunnel for :${port} did not start in 60s`)), 60_000);
+    const timer = setTimeout(() => fail(new Error("Tunnel did not start in 60s")), 60_000);
     t.once("url", (url) => {
       clearTimeout(timer);
-      resolveUrl(url);
+      ok(url);
     });
-    t.on("error", reject);
+    t.on("error", fail);
   });
 }
 
-async function waitForPort(port, path = "/", timeoutMs = 180_000) {
+async function waitForPort(port, path, timeoutMs = 180_000) {
   const until = Date.now() + timeoutMs;
   while (Date.now() < until) {
     try {
@@ -99,11 +84,11 @@ async function waitForPort(port, path = "/", timeoutMs = 180_000) {
   throw new Error(`Nothing is listening on :${port}`);
 }
 
+// Real network adapters only (skip link-local 169.254.x and VirtualBox host-only 192.168.56.x).
 const lanAddresses = () =>
-  Object.values(networkInterfaces())
-    .flat()
-    .filter((a) => a && a.family === "IPv4" && !a.internal)
-    .map((a) => a.address);
+  Object.entries(networkInterfaces())
+    .flatMap(([name, addrs]) => (addrs ?? []).map((a) => ({ name, ...a })))
+    .filter((a) => a.family === "IPv4" && !a.internal && !a.address.startsWith("169.254.") && !a.address.startsWith("192.168.56.") && !/virtualbox|vmware|vethernet/i.test(a.name));
 
 let stopping = false;
 function shutdown(code = 0) {
@@ -117,40 +102,32 @@ process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));
 
 async function main() {
-  if (withWeb && !existsSync(nextBin)) throw new Error("Run `npm install` in the repo root first.");
-  if (withWeb && !dev && (args.has("--build") || !existsSync(resolve(repoRoot, ".next/BUILD_ID")))) {
+  if (!existsSync(nextBin)) throw new Error("Run `npm install` in the repo root first.");
+  if (!dev && (args.has("--build") || !existsSync(resolve(repoRoot, ".next/BUILD_ID")))) {
     console.log("[host] Building the web app (next build)…");
     await runOnce("build", [nextBin, "build"], repoRoot);
   }
 
-  service("game", ["--import", "tsx", "src/index.ts"], serverDir, {
-    PORT: String(GAME_PORT),
-    // Friends reach the page via your IP / domain, so accept any origin unless told otherwise.
+  const server = run("server", ["--import", "tsx", "src/index.ts", ...(dev ? ["--dev"] : [])], serverDir, {
+    PORT: String(PORT),
+    NODE_ENV: dev ? "development" : "production",
+    // Friends reach the page via your IP / a tunnel host; accept any origin unless told otherwise.
     ALLOWED_ORIGIN: process.env.ALLOWED_ORIGIN ?? "*",
   });
-  if (withWeb) {
-    service("web", [nextBin, dev ? "dev" : "start", "-H", "0.0.0.0", "-p", String(WEB_PORT)], repoRoot);
-  }
+  server.on("exit", (code) => {
+    console.log(`[server] exited (${code})`);
+    shutdown(code ?? 1);
+  });
 
-  await waitForPort(GAME_PORT, "/health");
-  if (withWeb) await waitForPort(WEB_PORT, "/tien-len");
-
-  const lines = [];
-  if (withWeb) {
-    lines.push("  Trên máy này:      http://localhost:" + WEB_PORT + "/tien-len");
-    for (const ip of lanAddresses()) lines.push(`  Cùng mạng wifi/LAN: http://${ip}:${WEB_PORT}/tien-len`);
-    lines.push(`  Qua internet:      http://<IP-public-của-bạn>:${WEB_PORT}/tien-len`);
-    lines.push(`                     (cần mở port ${WEB_PORT} và ${GAME_PORT} TCP trên router + firewall)`);
-  }
-  if (withTunnel) {
-    const [gameUrl, webUrl] = await Promise.all([openTunnel(GAME_PORT), withWeb ? openTunnel(WEB_PORT) : null]);
-    const site = webUrl ?? process.env.PORTFOLIO_URL ?? "https://<your-portfolio>";
-    lines.push(`  Link tunnel:       ${site.replace(/\/$/, "")}/tien-len?server=${encodeURIComponent(gameUrl)}`);
-  }
+  await waitForPort(PORT, "/healthz");
+  const lines = [`  Trên máy này:       http://localhost:${PORT}/tien-len`];
+  for (const a of lanAddresses()) lines.push(`  Mạng ${a.name}: http://${a.address}:${PORT}/tien-len`);
+  lines.push(`  Qua internet:       http://<IP-public-của-bạn>:${PORT}/tien-len  (forward TCP ${PORT} trên router)`);
+  if (withTunnel) lines.push(`  Link tunnel:        ${await openTunnel(PORT)}/tien-len`);
 
   console.log(`
 ============================================================
-  Tiến Lên đang chạy trên máy bạn — server game :${GAME_PORT}
+  Tiến Lên đang chạy trên máy bạn (1 cổng: ${PORT})
 ${lines.join("\n")}
   Nhấn Ctrl+C để tắt.
 ============================================================

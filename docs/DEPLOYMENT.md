@@ -45,39 +45,27 @@ Vì dự án được xây dựng bằng Next.js 14, **Vercel** là nền tảng
 
 ---
 
-### 3.1. Server game Tiến Lên (`game-server/`)
+### 3.1. Game Tiến Lên (`/tien-len`) trên Vercel
 
-Trang `/tien-len` cần một server Socket.IO chạy riêng, vì Vercel không giữ được kết nối WebSocket lâu dài. Server nằm trong thư mục `game-server/` và dùng chung luật chơi với web ở `src/lib/tienlen/`.
+Game dùng **WebSocket trên Vercel Functions** (Beta), qua route `src/app/api/tienlen/ws/route.ts`. Luật chơi nằm trong `src/lib/tienlen/`, còn trạng thái phòng lưu trong **Redis**. Redis là bắt buộc: các người chơi trong cùng một phòng có thể kết nối vào những instance khác nhau.
 
-**Chạy local:**
+**Cấu hình một lần:**
+1. **Redis:** vào Vercel → *Storage / Marketplace* → thêm **Upstash for Redis** (gói Free là đủ) và gắn vào project `portfolio`. Chọn region **Singapore** cho gần function. Vercel sẽ tự thêm biến `REDIS_URL` (hoặc `KV_URL`); code đọc được cả hai tên.
+2. **Region:** `vercel.json` đã đặt `"regions": ["sin1"]`. Function chạy ở Singapore nên độ trễ từ Việt Nam thấp hơn nhiều so với `iad1` (Mỹ).
+3. **Fluid compute** phải bật: vào *Settings → Functions*. Project tạo từ 23/04/2025 trở đi được bật sẵn.
+4. Redeploy.
+
+**Giới hạn cần biết:**
+- Một kết nối WebSocket chỉ sống bằng thời gian tối đa của function: gói Hobby là **300 giây**. Khoảng 25 giây trước hạn, server gửi `reconnect`; client mở kết nối mới rồi mới đóng kết nối cũ, nên người chơi không bị văng.
+- Chưa gắn Redis thì server log lỗi `REDIS_URL is not set`, và phòng chỉ hoạt động khi mọi người tình cờ rơi vào cùng một instance.
+- Khi chạy local với `next dev` thì endpoint WebSocket không hoạt động. Hãy dùng chế độ tự host (bên dưới), hoặc `vc dev` (Vercel CLI ≥ 54.14.2).
+
+**Tự host trên máy của bạn** (web và game dùng chung **một cổng 3000**): xem [`TIENLEN_SELF_HOST.md`](./TIENLEN_SELF_HOST.md).
 ```bash
-cd game-server && npm install && npm run dev   # http://localhost:4000
-npm test                                       # test luật chơi (vitest)
+npm run tienlen:host              # build nếu chưa có, chạy trên 0.0.0.0:3000
+npm run tienlen:host -- --build   # build lại sau khi sửa code
+npm test                          # test luật chơi + hub (vitest)
 ```
-
-**Tự host trên máy của bạn (web + server game):** xem hướng dẫn chi tiết (forward port, firewall, CGNAT) tại [`TIENLEN_SELF_HOST.md`](./TIENLEN_SELF_HOST.md).
-```bash
-npm run tienlen:host              # build web nếu chưa có, chạy web :3000 + game :4000 trên mọi interface
-npm run tienlen:host -- --build   # build lại web sau khi sửa code
-npm run tienlen:host -- --dev     # dùng next dev
-```
-- Cùng wifi: mọi người mở `http://<IP-LAN>:3000/tien-len`. Script sẽ in ra địa chỉ IP LAN của máy.
-- Qua internet: trên router, forward **TCP 3000 và 4000** về máy này, rồi mọi người mở `http://<IP-public>:3000/tien-len`.
-- Trang web tự kết nối tới server game ở cùng host, cổng 4000. Muốn đổi cổng thì đặt `NEXT_PUBLIC_TIENLEN_SERVER_PORT` trước khi build.
-- Không muốn mở port thì dùng `npm --prefix game-server run share`. Lệnh này tạo tunnel Cloudflare miễn phí, link đổi mỗi lần chạy.
-
-**Deploy lên Render (miễn phí):** tạo *Web Service* từ repo này với các thiết lập:
-- **Root Directory:** để trống (repo root), vì server import `../src/lib/tienlen`
-- **Build Command:** `npm install --prefix game-server && npm run build --prefix game-server`
-- **Start Command:** `node game-server/dist/index.js`
-- **Environment:** `ALLOWED_ORIGIN=https://<domain-portfolio>`. Nhiều domain thì ngăn cách bằng dấu phẩy, ví dụ thêm `http://localhost:3000`.
-- **Health check path:** `/health`
-
-Railway và Fly.io cấu hình tương tự. Cổng lấy từ biến `PORT`.
-
-Sau khi deploy, vào Vercel → *Settings → Environment Variables*, thêm `NEXT_PUBLIC_TIENLEN_SERVER_URL=https://<ten-service>.onrender.com`, rồi redeploy web.
-
-> Lưu ý: phòng chơi được lưu trong bộ nhớ, nên server restart là mất các phòng đang mở. Gói free của Render sẽ "ngủ" sau khoảng 15 phút không có ai truy cập; lần vào đầu tiên phải chờ server khởi động lại khoảng 30–60 giây.
 
 ## 4. Triển Khai Bằng Docker
 

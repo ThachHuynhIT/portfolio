@@ -19,7 +19,7 @@ export default function TienLenLobbyPage() {
     setBusy(true);
     setError(null);
     try {
-      const code = await createRoom(n);
+      const code = await createRoom();
       router.push(`/tien-len/${code}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Không tạo được phòng");

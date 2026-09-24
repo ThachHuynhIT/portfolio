@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { parseCards as c } from "../../src/lib/tienlen/cards";
-import { autoAction, newGame, pass, play } from "../../src/lib/tienlen/game";
+import { parseCards as c } from "../cards";
+import { autoAction, newGame, pass, play } from "../game";
 
 // Hands that do not trigger tới trắng. A holds 3♠.
 const HANDS = {

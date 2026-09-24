@@ -3,12 +3,11 @@
 Hướng dẫn chạy **web và server game trên chính máy bạn**, rồi mở port để bạn bè vào chơi qua mạng LAN hoặc internet.
 
 ```
-Bạn bè ──▶ http://<IP>:3000/tien-len   (web Next.js)
-                 │
-                 └──▶ ws://<IP>:4000   (server game Socket.IO, trang web tự kết nối)
+Bạn bè ──▶ http://<IP>:3000/tien-len          (web Next.js)
+           ws://<IP>:3000/api/tienlen/ws      (WebSocket game, cùng cổng, trang web tự kết nối)
 ```
 
-Cần mở **2 cổng TCP**: `3000` cho web và `4000` cho server game.
+Chỉ cần mở **1 cổng TCP: `3000`**. Web và game chạy chung một tiến trình. Phòng chơi được lưu trong RAM, trừ khi bạn đặt `REDIS_URL`.
 
 ---
 
@@ -34,19 +33,18 @@ npm run tienlen:host
 
 | Lệnh | Tác dụng |
 |---|---|
-| `npm run tienlen:host` | Build web nếu chưa có bản build, rồi chạy web `:3000` và game `:4000` |
+| `npm run tienlen:host` | Build web nếu chưa có bản build, rồi chạy web + game trên `:3000` |
 | `npm run tienlen:host -- --build` | **Build lại** web. Dùng sau khi bạn sửa code |
 | `npm run tienlen:host -- --dev` | Chạy `next dev`, không cần build, nhưng lần tải đầu chậm |
-| `npm run tienlen:host -- --no-web` | Chỉ chạy server game |
 
 Khi chạy thành công, terminal in ra:
 
 ```
 ============================================================
-  Tiến Lên đang chạy trên máy bạn — server game :4000
-  Trên máy này:      http://localhost:3000/tien-len
-  Cùng mạng wifi/LAN: http://192.168.1.11:3000/tien-len
-  Qua internet:      http://<IP-public-của-bạn>:3000/tien-len
+  Tiến Lên đang chạy trên máy bạn (1 cổng: 3000)
+  Trên máy này:       http://localhost:3000/tien-len
+  Mạng Wi-Fi: http://192.168.1.11:3000/tien-len
+  Qua internet:       http://<IP-public-của-bạn>:3000/tien-len  (forward TCP 3000 trên router)
   Nhấn Ctrl+C để tắt.
 ============================================================
 ```
@@ -90,12 +88,11 @@ Get-NetAdapter | Select-Object Name, MacAddress, Status
 
 1. Vào trang quản trị router, thường là `http://192.168.1.1` hoặc `http://192.168.0.1`. Tài khoản mặc định thường in ở mặt dưới router.
 2. Tìm mục **Port Forwarding**. Tuỳ router, mục này có thể tên là *NAT*, *Virtual Server* hoặc *Advanced → NAT Forwarding*.
-3. Tạo **2 rule**:
+3. Tạo **1 rule**:
 
    | Tên | Giao thức | Port ngoài (External) | IP trong (Internal IP) | Port trong (Internal) |
    |---|---|---|---|---|
-   | tienlen-web | TCP | 3000 | 192.168.1.11 | 3000 |
-   | tienlen-game | TCP | 4000 | 192.168.1.11 | 4000 |
+   | tienlen | TCP | 3000 | 192.168.1.11 | 3000 |
 
 4. Lưu lại. Một số router cần khởi động lại mới áp dụng.
 
@@ -106,13 +103,12 @@ Get-NetAdapter | Select-Object Name, MacAddress, Status
 Nếu lúc chạy Node lần đầu Windows hỏi *"Allow access"* và bạn đã bấm **Allow** thì bỏ qua bước này. Nếu chưa, mở **PowerShell bằng quyền Administrator** và chạy:
 
 ```powershell
-New-NetFirewallRule -DisplayName "TienLen web 3000"  -Direction Inbound -Protocol TCP -LocalPort 3000 -Action Allow
-New-NetFirewallRule -DisplayName "TienLen game 4000" -Direction Inbound -Protocol TCP -LocalPort 4000 -Action Allow
+New-NetFirewallRule -DisplayName "TienLen 3000" -Direction Inbound -Protocol TCP -LocalPort 3000 -Action Allow
 ```
 
-Khi không cần nữa, xoá 2 rule này:
+Khi không cần nữa, xoá rule này:
 ```powershell
-Remove-NetFirewallRule -DisplayName "TienLen web 3000","TienLen game 4000"
+Remove-NetFirewallRule -DisplayName "TienLen 3000"
 ```
 
 ### Bước 4: Lấy IP public và gửi link
@@ -125,7 +121,7 @@ Remove-NetFirewallRule -DisplayName "TienLen web 3000","TienLen game 4000"
 
 ### Bước 5: Kiểm tra port đã mở chưa
 
-Trong lúc server đang chạy, vào https://www.yougetsignal.com/tools/open-ports/ hoặc https://canyouseeme.org và kiểm tra port `3000` và `4000`. Cả hai phải báo **Open**.
+Trong lúc server đang chạy, vào https://www.yougetsignal.com/tools/open-ports/ hoặc https://canyouseeme.org và kiểm tra port `3000`. Kết quả phải báo **Open**.
 
 ---
 
@@ -143,7 +139,7 @@ Nhiều nhà mạng ở Việt Nam dùng **CGNAT**: mạng nhà bạn không có
    ```bash
    npm --prefix game-server run share
    ```
-   Terminal sẽ in ra một link `https://....trycloudflare.com/tien-len?server=...`, gửi link đó cho bạn bè. Link đổi mỗi lần chạy.
+   Terminal sẽ in ra một link `https://....trycloudflare.com/tien-len`, gửi link đó cho bạn bè. Link đổi mỗi lần chạy.
 3. **Dùng VPN LAN ảo** như Tailscale, Radmin VPN hoặc ZeroTier. Mọi người cài cùng một ứng dụng và vào chung một mạng. Sau đó chơi như trong mạng LAN, bằng IP mà ứng dụng VPN cấp cho máy bạn (ví dụ `http://26.x.x.x:3000/tien-len` với Radmin, hoặc `http://100.x.x.x:3000/tien-len` với Tailscale).
 
 ---
@@ -152,9 +148,9 @@ Nhiều nhà mạng ở Việt Nam dùng **CGNAT**: mạng nhà bạn không có
 
 | Triệu chứng | Nguyên nhân / cách xử lý |
 |---|---|
-| Trang báo **"Không kết nối được máy chủ game"** | Cổng `4000` chưa mở, trong khi web ở cổng `3000` vẫn vào được. Kiểm tra lại rule forward và firewall cho port 4000. |
+| Trang báo **"Không kết nối được máy chủ game"** | Router, proxy hoặc phần mềm diệt virus đang chặn WebSocket. Thử lại bằng 4G hoặc bằng `npm --prefix game-server run share`. Nếu bạn đặt `NEXT_PUBLIC_TIENLEN_SERVER_URL` thì kiểm tra lại giá trị đó. |
 | Bạn bè không vào được trang | Kiểm tra port 3000 bằng canyouseeme.org. Kiểm tra mạng có bị CGNAT không (mục 5), và server trên máy bạn còn chạy không. |
-| `EADDRINUSE: port 3000/4000` | Có chương trình khác đang dùng cổng này. Tắt nó đi, hoặc đổi cổng: `set WEB_PORT=3001` / `set PORT=4001`. Nếu đổi cổng game, phải build lại với `NEXT_PUBLIC_TIENLEN_SERVER_PORT=4001`. |
+| `EADDRINUSE: port 3000` | Có chương trình khác đang dùng cổng này. Tắt nó đi, hoặc đổi cổng: `set PORT=3001` rồi forward cổng mới. |
 | Sửa code mà trang không đổi | Cần build lại: `npm run tienlen:host -- --build`. |
 | Mất phòng sau khi tắt/bật lại server | Đây là hành vi bình thường: phòng chỉ lưu trong RAM, restart là mất hết. |
 | Đang chơi bị văng | Mở lại đúng link phòng trong **cùng tab**. Server giữ chỗ ngồi 60 giây sau khi mất kết nối. |
@@ -175,8 +171,8 @@ Nhiều nhà mạng ở Việt Nam dùng **CGNAT**: mạng nhà bạn không có
 
 | Biến môi trường | Mặc định | Ý nghĩa |
 |---|---|---|
-| `WEB_PORT` | `3000` | Cổng web khi chạy `tienlen:host` |
-| `PORT` | `4000` | Cổng server game |
-| `NEXT_PUBLIC_TIENLEN_SERVER_PORT` | `4000` | Cổng game mà trang web kết nối tới. Áp dụng lúc build |
-| `NEXT_PUBLIC_TIENLEN_SERVER_URL` | _(trống)_ | Địa chỉ đầy đủ của server game. Nếu đặt thì bỏ qua cơ chế tự tìm server trên cùng host |
-| `ALLOWED_ORIGIN` | `*` khi tự host | Giới hạn trang web nào được kết nối vào server game, ví dụ `http://1.2.3.4:3000` |
+| `PORT` | `3000` | Cổng web + game khi chạy `tienlen:host` |
+| `HOST` | `0.0.0.0` | Địa chỉ lắng nghe. Đặt `127.0.0.1` nếu chỉ muốn chơi trên máy này |
+| `REDIS_URL` | _(trống)_ | Lưu phòng trong Redis thay vì RAM, để phòng không mất khi restart |
+| `NEXT_PUBLIC_TIENLEN_SERVER_URL` | _(trống)_ | Trỏ trang web tới server game ở origin khác. Áp dụng lúc build |
+| `ALLOWED_ORIGIN` | `*` khi tự host | Giới hạn trang web nào được kết nối WebSocket, ví dụ `http://1.2.3.4:3000` |

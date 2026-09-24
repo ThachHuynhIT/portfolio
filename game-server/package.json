@@ -1,29 +1,21 @@
 {
   "name": "tienlen-game-server",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Realtime Socket.IO server for the Tiến Lên Miền Nam game on the portfolio",
+  "description": "Self-host the portfolio + Tiến Lên WebSocket game on one port (on Vercel the route handler in src/app/api/tienlen/ws is used instead)",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=cjs --packages=external --outfile=dist/index.js",
-    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts --dev",
     "host": "node scripts/serve.mjs",
     "share": "node scripts/serve.mjs --tunnel",
-    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "engines": {
     "node": ">=20"
   },
-  "dependencies": {
-    "socket.io": "^4.8.1"
-  },
   "devDependencies": {
     "@types/node": "^20",
     "cloudflared": "^0.7.3",
-    "esbuild": "^0.25.0",
     "tsx": "^4.19.0",
-    "typescript": "^5",
-    "vitest": "^3.2.0"
+    "typescript": "^5"
   }
 }
