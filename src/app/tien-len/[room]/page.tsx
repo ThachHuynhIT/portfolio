@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { NameForm } from "@/components/tienlen/NameForm";
 import { getSavedName, saveName } from "@/components/tienlen/useTienLen";
 
@@ -12,6 +14,7 @@ const TienLenTable = dynamic(() => import("@/components/tienlen/TienLenTable"), 
 
 export default function TienLenRoomPage({ params }: { params: { room: string } }) {
   const code = decodeURIComponent(params.room).toUpperCase();
+  const watch = useSearchParams().get("watch") === "1";
   const [saved, setSaved] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
 
@@ -26,11 +29,14 @@ export default function TienLenRoomPage({ params }: { params: { room: string } }
   if (!name) {
     return (
       <main className="mx-auto flex min-h-[100dvh] max-w-sm flex-col justify-center px-4">
-        <h1 className="mb-1 text-2xl font-black text-amber-300">Vào phòng {code}</h1>
+        <Link href="/tien-len" className="mb-6 self-start text-sm text-emerald-100/70 hover:text-emerald-50">
+          ← Sảnh
+        </Link>
+        <h1 className="mb-1 text-2xl font-black text-amber-300">{watch ? "Xem" : "Vào"} phòng {code}</h1>
         <p className="mb-5 text-sm text-emerald-100/70">Nhập tên để mọi người nhận ra bạn.</p>
         <NameForm
           initial=""
-          submitLabel="Vào bàn"
+          submitLabel={watch ? "Vào xem" : "Vào bàn"}
           onSubmit={(n) => {
             saveName(n);
             setName(n);
@@ -40,5 +46,5 @@ export default function TienLenRoomPage({ params }: { params: { room: string } }
     );
   }
 
-  return <TienLenTable code={code} name={name} />;
+  return <TienLenTable code={code} name={name} watch={watch} />;
 }

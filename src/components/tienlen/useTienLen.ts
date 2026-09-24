@@ -6,6 +6,8 @@ import {
   type Card,
   type ClientMessage,
   PING_INTERVAL_MS,
+  type LeaderboardEntry,
+  type RoomSummary,
   type RoomView,
   type ServerMessage,
   WS_PATH,
@@ -19,9 +21,17 @@ const NAME_KEY = "tienlen:name";
  * Set NEXT_PUBLIC_TIENLEN_SERVER_URL to its URL, e.g. https://be-game.vercel.app;
  * defaults to be_game's local dev server.
  */
+const serverBase = () => (process.env.NEXT_PUBLIC_TIENLEN_SERVER_URL || "http://localhost:4000").replace(/\/$/, "");
+
 function wsUrl(): string {
-  const base = process.env.NEXT_PUBLIC_TIENLEN_SERVER_URL || "http://localhost:4000";
-  return base.replace(/^http/, "ws").replace(/\/$/, "") + WS_PATH;
+  return serverBase().replace(/^http/, "ws") + WS_PATH;
+}
+
+/** GET a JSON endpoint of the be_game backend (rooms list, leaderboard). */
+export async function fetchApi<T>(path: string): Promise<T> {
+  const res = await fetch(serverBase() + path, { cache: "no-store" });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return (await res.json()) as T;
 }
 
 export function inviteLink(code: string): string {
@@ -160,7 +170,8 @@ function localizeView(view: RoomView): RoomView {
   return { ...view, game: { ...view.game, turnDeadline: view.game.turnDeadline + skew } };
 }
 
-export function useTienLenRoom(code: string, name: string | null) {
+/** `mode` "watch" joins as a spectator (no seat, no hand). */
+export function useTienLenRoom(code: string, name: string | null, mode: "play" | "watch" = "play") {
   const [view, setView] = useState<RoomView | null>(null);
   const [status, setStatus] = useState<ConnectionStatus>("connecting");
   const [error, setError] = useState<string | null>(null);
@@ -200,7 +211,7 @@ export function useTienLenRoom(code: string, name: string | null) {
         }
         return;
       }
-      const res = await ch.request({ type: "join", code, name, token });
+      const res = await ch.request({ type: mode === "watch" ? "watch" : "join", code, name, token });
       if (disposed) return ch.close();
       if (!res.ok) {
         ch.close();
@@ -245,7 +256,7 @@ export function useTienLenRoom(code: string, name: string | null) {
       channelRef.current = null;
       if (ch) void ch.request({ type: "leave" }, 1500).finally(() => ch.close());
     };
-  }, [code, name]);
+  }, [code, name, mode]);
 
   const call = useCallback((msg: Outgoing) => {
     const ch = channelRef.current;
@@ -255,6 +266,10 @@ export function useTienLenRoom(code: string, name: string | null) {
   const play = useCallback((cards: Card[]) => call({ type: "play", cards }), [call]);
   const pass = useCallback(() => call({ type: "pass" }), [call]);
   const start = useCallback(() => call({ type: "start" }), [call]);
+  const sendEmoji = useCallback((emoji: string) => call({ type: "emoji", emoji }), [call]);
+  const kick = useCallback((playerId: string) => call({ type: "kick", playerId }), [call]);
 
-  return { view, status, error, play, pass, start };
+  return { view, status, error, play, pass, start, sendEmoji, kick };
 }
+
+export type { LeaderboardEntry, RoomSummary };

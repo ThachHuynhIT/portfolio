@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   type Card,
+  type Reaction,
   type RoomView,
   type SeatView,
   INSTANT_WIN_NAMES,
@@ -16,12 +17,10 @@ import {
   suitOf,
 } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
+import { ChopOverlay, EmojiBar, SeatBubble, Shake, SpectatorReactions, useChopEffect, useLiveReactions } from "./Effects";
 import { CardBack, PlayingCard } from "./PlayingCard";
+import { DeltaBadge, ScoreboardModal, rankTitle, signed } from "./Scoreboard";
 import { inviteLink, useTienLenRoom } from "./useTienLen";
-
-const RANK_TITLES = ["Nhất", "Nhì", "Ba"];
-/** Ranking label; whoever finishes last is always "Bét". */
-const rankTitle = (i: number, total: number) => (i === total - 1 ? "Bét" : RANK_TITLES[i] ?? String(i + 1));
 
 type SortMode = "rank" | "suit";
 
@@ -41,8 +40,8 @@ function useCountdown(deadline: number | null) {
   return deadline ? Math.max(0, (deadline - now) / 1000) : null;
 }
 
-export default function TienLenTable({ code, name }: { code: string; name: string }) {
-  const { view, status, error, play, pass, start } = useTienLenRoom(code, name);
+export default function TienLenTable({ code, name, watch }: { code: string; name: string; watch?: boolean }) {
+  const { view, status, error, play, pass, start, sendEmoji, kick } = useTienLenRoom(code, name, watch ? "watch" : "play");
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,12 +51,23 @@ export default function TienLenTable({ code, name }: { code: string; name: strin
   }, [toast]);
 
   if (status === "error") {
+    const full = error?.includes("đủ 4 người");
     return (
       <CenterMessage>
         <p className="text-lg text-rose-300">{error}</p>
-        <Link href="/tien-len" className="mt-4 inline-block rounded-lg bg-amber-400 px-4 py-2 font-semibold text-black">
-          Về sảnh
-        </Link>
+        <div className="mt-4 flex gap-2">
+          {full && (
+            <Link
+              href={`/tien-len/${code}?watch=1`}
+              className="rounded-lg bg-amber-400 px-4 py-2 font-semibold text-black"
+            >
+              Vào xem 👀
+            </Link>
+          )}
+          <Link href="/tien-len" className="rounded-lg border border-emerald-200/25 px-4 py-2 font-semibold text-emerald-50">
+            Về sảnh
+          </Link>
+        </div>
       </CenterMessage>
     );
   }
@@ -82,13 +92,15 @@ export default function TienLenTable({ code, name }: { code: string; name: strin
       onPlay={(cards) => act(play(cards))}
       onPass={() => act(pass())}
       onStart={() => act(start())}
+      onEmoji={(e) => void act(sendEmoji(e))}
+      onKick={(id) => act(kick(id))}
       toast={toast}
     />
   );
 }
 
 function CenterMessage({ children }: { children: React.ReactNode }) {
-  return <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">{children}</div>;
+  return <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">{children}</div>;
 }
 
 interface TableProps {
@@ -97,20 +109,34 @@ interface TableProps {
   onPlay: (cards: Card[]) => Promise<boolean>;
   onPass: () => Promise<boolean>;
   onStart: () => Promise<boolean>;
+  onEmoji: (emoji: string) => void;
+  onKick: (playerId: string) => Promise<boolean>;
   toast: string | null;
 }
 
-function Table({ view, reconnecting, onPlay, onPass, onStart, toast }: TableProps) {
+function Table({ view, reconnecting, onPlay, onPass, onStart, onEmoji, onKick, toast }: TableProps) {
   const { seats, game, meId } = view;
+  const spectator = view.role === "spectator";
   const me = seats.find((s) => s?.id === meId) ?? null;
-  const myIndex = seats.findIndex((s) => s?.id === meId);
+  // Spectators look at the table from seat 0's side.
+  const myIndex = Math.max(0, seats.findIndex((s) => s?.id === meId));
   // Turn order goes counter-clockwise: next player sits on my right, then top, then left.
   const at = (offset: number) => seats[(myIndex + offset) % 4] ?? null;
-  const nameOf = (id: string) => seats.find((s) => s?.id === id)?.name ?? "?";
+  // Players who left since keep their name in the game history.
+  const nameOf = (id: string) =>
+    seats.find((s) => s?.id === id)?.name ??
+    view.history.flatMap((g) => g.results).find((r) => r.id === id)?.name ??
+    "?";
 
   const [selected, setSelected] = useState<Card[]>([]);
   const [sortMode, setSortMode] = useState<SortMode>("rank");
   const [busy, setBusy] = useState(false);
+  const [showScores, setShowScores] = useState(false);
+
+  const chopFx = useChopEffect(game?.status === "playing" ? game.lastPlay : null, nameOf);
+  const live = useLiveReactions(view.reactions);
+  const reactionsFor = (id: string | undefined): Reaction[] => (id ? live.filter((r) => r.playerId === id) : []);
+  const spectatorReactions = live.filter((r) => !r.playerId);
 
   // Drop selections for cards that are no longer in hand.
   const handKey = view.hand.join(",");
@@ -120,7 +146,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, toast }: TableProp
 
   const hand = useMemo(() => sortHand(view.hand, sortMode), [view.hand, sortMode]);
   const playing = game?.status === "playing";
-  const myTurn = playing && game.turn === meId;
+  const myTurn = !spectator && playing && game.turn === meId;
   const lastCombo = game?.lastPlay?.combo ?? null;
 
   const selectedCombo = selected.length ? detectCombo(selected) : null;
@@ -150,9 +176,9 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, toast }: TableProp
     setBusy(false);
   };
 
-  const inviteUrl = typeof window !== "undefined" ? inviteLink(view.code) : "";
   const [copied, setCopied] = useState(false);
   const copyInvite = async () => {
+    const inviteUrl = inviteLink(view.code);
     try {
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(inviteUrl);
@@ -175,6 +201,13 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, toast }: TableProp
     }
   };
 
+  const isHost = !!me?.isHost;
+  const kickable = (s: SeatView | null) => isHost && !!s && s.id !== meId && !s.connected && !s.kicked;
+  const kick = async (s: SeatView) => {
+    if (!window.confirm(playing && s.inGame ? `Kích ${s.name}? Họ sẽ bị xử thua ván này (xếp Bét).` : `Kích ${s.name} khỏi phòng?`)) return;
+    await onKick(s.id);
+  };
+
   const seatProps = (s: SeatView | null) => ({
     seat: s,
     isTurn: !!s && playing && game?.turn === s.id,
@@ -185,11 +218,15 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, toast }: TableProp
         ? rankTitle(game.finished.indexOf(s.id), game.status === "ended" ? game.finished.length : Infinity)
         : null,
     gameEnded: game?.status === "ended",
+    reactions: reactionsFor(s?.id),
+    onKick: kickable(s) ? () => void kick(s!) : undefined,
   });
+
+  const freeSeat = seats.some((s) => s === null);
 
   return (
     <div
-      className="tl-root relative mx-auto flex min-h-[100dvh] w-full max-w-5xl flex-col px-3 pb-3 pt-16 sm:px-4"
+      className="tl-root relative mx-auto flex min-h-[100dvh] w-full max-w-5xl flex-col px-3 pb-3 pt-3 sm:px-4"
       style={
         {
           "--cw": "clamp(44px, 9.5vw, 78px)",
@@ -200,8 +237,13 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, toast }: TableProp
     >
       {/* Room bar */}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-emerald-100/60">Phòng</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/tien-len"
+            className="rounded-lg border border-emerald-200/20 bg-black/40 px-3 py-1.5 text-emerald-50 transition-colors hover:bg-black/60"
+          >
+            ← Sảnh
+          </Link>
           <span className="rounded-md bg-black/30 px-2 py-1 font-mono text-base font-bold tracking-[0.2em] text-amber-300">
             {view.code}
           </span>
@@ -211,61 +253,89 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, toast }: TableProp
           >
             {copied ? "Đã chép link ✓" : "Chép link mời"}
           </button>
+          <button
+            onClick={() => setShowScores(true)}
+            className="rounded-md border border-emerald-200/20 px-2 py-1 text-emerald-50 transition-colors hover:bg-white/10"
+          >
+            🏆 Bảng điểm
+          </button>
         </div>
-        {reconnecting && <span className="animate-pulse text-amber-300">Đang kết nối lại…</span>}
+        <div className="flex items-center gap-3">
+          {view.spectators.length > 0 && (
+            <span className="text-emerald-100/70" title={view.spectators.join(", ")}>
+              👀 {view.spectators.length} người xem
+            </span>
+          )}
+          {reconnecting && <span className="animate-pulse text-amber-300">Đang kết nối lại…</span>}
+        </div>
       </div>
 
-      {/* Felt table */}
-      <div className="relative grid flex-1 grid-cols-[auto_1fr_auto] grid-rows-[auto_1fr] gap-2 rounded-[2rem] border-[6px] border-[#5b3a1e] bg-[radial-gradient(ellipse_at_center,#1f7a4d_0%,#145c39_55%,#0d3f27_100%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.5),0_20px_40px_rgba(0,0,0,0.5)] sm:p-5">
-        <div className="col-span-3 flex justify-center">
-          <Opponent {...seatProps(at(2))} />
-        </div>
-        <div className="flex items-center">
-          <Opponent {...seatProps(at(3))} vertical />
-        </div>
-
-        {/* Center: last play / lobby */}
-        <div className="flex min-h-[180px] flex-col items-center justify-center gap-3 text-center">
-          {!game || game.status === "ended" ? (
-            <WaitingPanel view={view} me={me} onStart={onStart} nameOf={nameOf} />
-          ) : game.lastPlay ? (
-            <>
-              <div className="flex">
-                {game.lastPlay.combo.cards.map((c, i) => (
-                  <PlayingCard key={c} card={c} size="sm" style={i ? { marginLeft: "calc(var(--cw-sm) * -0.35)" } : undefined} />
-                ))}
-              </div>
-              <p className="text-sm text-emerald-50/90">
-                <b>{nameOf(game.lastPlay.playerId)}</b> · {comboName(game.lastPlay.combo)}
-                {game.lastPlay.chop && <span className="ml-2 font-black text-rose-400">CHẶT!</span>}
-              </p>
-            </>
-          ) : (
-            <p className="text-emerald-50/80">
-              {game.turn === meId ? "Bạn" : <b>{nameOf(game.turn ?? "")}</b>} mở vòng mới
-              {game.mustInclude != null && ` (phải có ${cardLabel(game.mustInclude)})`}
-            </p>
+      {spectator && (
+        <div className="mb-3 flex flex-wrap items-center justify-center gap-3 rounded-xl bg-black/30 px-3 py-2 text-sm text-emerald-100/80">
+          <span>👀 Bạn đang xem với tư cách khán giả</span>
+          {freeSeat && !playing && (
+            <Link href={`/tien-len/${view.code}`} className="rounded-md bg-amber-400 px-3 py-1 font-semibold text-black">
+              Vào chơi
+            </Link>
           )}
         </div>
+      )}
 
-        <div className="flex items-center justify-end">
-          <Opponent {...seatProps(at(1))} vertical />
+      {/* Felt table */}
+      <Shake fx={chopFx} className="relative flex flex-1">
+        <div className="relative grid flex-1 grid-cols-[auto_1fr_auto] grid-rows-[auto_1fr] gap-2 rounded-[2rem] border-[6px] border-[#5b3a1e] bg-[radial-gradient(ellipse_at_center,#1f7a4d_0%,#145c39_55%,#0d3f27_100%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.5),0_20px_40px_rgba(0,0,0,0.5)] sm:p-5">
+          <ChopOverlay fx={chopFx} />
+          <SpectatorReactions reactions={spectatorReactions} />
+          <div className="col-span-3 flex justify-center">
+            <Opponent {...seatProps(at(2))} />
+          </div>
+          <div className="flex items-center">
+            <Opponent {...seatProps(at(3))} vertical />
+          </div>
+
+          {/* Center: last play / lobby */}
+          <div className="flex min-h-[180px] flex-col items-center justify-center gap-3 text-center">
+            {!game || game.status === "ended" ? (
+              <WaitingPanel view={view} me={me} onStart={onStart} nameOf={nameOf} />
+            ) : game.lastPlay ? (
+              <>
+                <div className="flex">
+                  {game.lastPlay.combo.cards.map((c, i) => (
+                    <PlayingCard key={c} card={c} size="sm" style={i ? { marginLeft: "calc(var(--cw-sm) * -0.35)" } : undefined} />
+                  ))}
+                </div>
+                <p className="text-sm text-emerald-50/90">
+                  <b>{nameOf(game.lastPlay.playerId)}</b> · {comboName(game.lastPlay.combo)}
+                  {game.lastPlay.chop && <span className="ml-2 font-black text-rose-400">CHẶT!</span>}
+                </p>
+              </>
+            ) : (
+              <p className="text-emerald-50/80">
+                {game.turn === meId ? "Bạn" : <b>{nameOf(game.turn ?? "")}</b>} mở vòng mới
+                {game.mustInclude != null && ` (phải có ${cardLabel(game.mustInclude)})`}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center justify-end">
+            <Opponent {...seatProps(at(1))} vertical />
+          </div>
         </div>
-      </div>
+      </Shake>
 
-      {/* My area */}
+      {/* My area (or seat 0 for spectators) */}
       <div className="mt-3 flex flex-col items-center gap-3">
-        <div className="flex items-center gap-3 text-sm text-emerald-50">
-          <SeatBadge {...seatProps(me)} self />
+        <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-emerald-50">
+          {spectator ? <Opponent {...seatProps(at(0))} /> : <SeatBadge {...seatProps(me)} />}
           {myTurn && (
             <span className="font-semibold text-amber-300">
               Lượt của bạn{playError ? ` — ${playError}` : selectedCombo ? ` — ${comboName(selectedCombo)}` : ""}
             </span>
           )}
-          {playing && me && !me.inGame && <span className="text-emerald-100/60">Bạn sẽ vào ván sau</span>}
+          {!spectator && playing && me && !me.inGame && <span className="text-emerald-100/60">Bạn sẽ vào ván sau</span>}
         </div>
 
-        {hand.length > 0 && (
+        {!spectator && hand.length > 0 && (
           <div className="flex w-full justify-center overflow-visible pt-5">
             {hand.map((c, i) => (
               <PlayingCard
@@ -280,23 +350,28 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, toast }: TableProp
           </div>
         )}
 
-        {hand.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-2">
-            <ActionButton onClick={doPlay} disabled={!canPlay} primary>
-              Đánh
-            </ActionButton>
-            <ActionButton onClick={doPass} disabled={!canPass}>
-              Bỏ lượt
-            </ActionButton>
-            <ActionButton onClick={() => setSelected([])} disabled={!selected.length}>
-              Bỏ chọn
-            </ActionButton>
-            <ActionButton onClick={() => setSortMode((m) => (m === "rank" ? "suit" : "rank"))}>
-              Xếp: {sortMode === "rank" ? "số" : "chất"}
-            </ActionButton>
-          </div>
-        )}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {!spectator && hand.length > 0 && (
+            <>
+              <ActionButton onClick={doPlay} disabled={!canPlay} primary>
+                Đánh
+              </ActionButton>
+              <ActionButton onClick={doPass} disabled={!canPass}>
+                Bỏ lượt
+              </ActionButton>
+              <ActionButton onClick={() => setSelected([])} disabled={!selected.length}>
+                Bỏ chọn
+              </ActionButton>
+              <ActionButton onClick={() => setSortMode((m) => (m === "rank" ? "suit" : "rank"))}>
+                Xếp: {sortMode === "rank" ? "số" : "chất"}
+              </ActionButton>
+            </>
+          )}
+          <EmojiBar onSend={onEmoji} />
+        </div>
       </div>
+
+      {showScores && <ScoreboardModal view={view} onClose={() => setShowScores(false)} />}
 
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
@@ -340,6 +415,8 @@ interface SeatDisplayProps {
   deadline: number | null;
   rankLabel: string | null;
   gameEnded: boolean;
+  reactions: Reaction[];
+  onKick?: () => void;
 }
 
 function TurnRing({ deadline }: { deadline: number | null }) {
@@ -358,14 +435,15 @@ function TurnRing({ deadline }: { deadline: number | null }) {
   );
 }
 
-function Avatar({ seat, isTurn, deadline }: { seat: SeatView; isTurn: boolean; deadline: number | null }) {
+function Avatar({ seat, isTurn, deadline, reactions }: { seat: SeatView; isTurn: boolean; deadline: number | null; reactions: Reaction[] }) {
   return (
     <span className="relative inline-flex">
       {isTurn && <TurnRing deadline={deadline} />}
+      <SeatBubble reactions={reactions} />
       <span
         className={cn(
           "flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-200 to-amber-500 text-base font-bold text-black sm:h-12 sm:w-12",
-          !seat.connected && "grayscale opacity-50",
+          (!seat.connected || seat.kicked) && "grayscale opacity-50",
         )}
       >
         {seat.name.charAt(0).toUpperCase()}
@@ -374,19 +452,42 @@ function Avatar({ seat, isTurn, deadline }: { seat: SeatView; isTurn: boolean; d
   );
 }
 
-function StatusTags({ seat, rankLabel, gameEnded }: { seat: SeatView; rankLabel: string | null; gameEnded: boolean }) {
+function StatusTags({
+  seat,
+  rankLabel,
+  gameEnded,
+  onKick,
+}: {
+  seat: SeatView;
+  rankLabel: string | null;
+  gameEnded: boolean;
+  onKick?: () => void;
+}) {
   return (
     <span className="flex flex-wrap items-center justify-center gap-1 text-[11px]">
       {seat.isHost && <span title="Chủ phòng">👑</span>}
       {rankLabel && <span className="rounded bg-amber-400 px-1.5 font-bold text-black">{rankLabel}</span>}
       {!gameEnded && seat.passed && <span className="rounded bg-black/40 px-1.5 text-emerald-100/80">Bỏ lượt</span>}
-      {!seat.connected && <span className="rounded bg-rose-900/60 px-1.5 text-rose-200">Mất kết nối</span>}
-      {seat.wins > 0 && <span className="text-emerald-100/60">{seat.wins} thắng</span>}
+      {seat.kicked ? (
+        <span className="rounded bg-rose-900/60 px-1.5 text-rose-200">Đã bị kích</span>
+      ) : (
+        !seat.connected && <span className="rounded bg-rose-900/60 px-1.5 text-rose-200">Mất kết nối</span>
+      )}
+      {onKick && (
+        <button onClick={onKick} className="rounded bg-rose-600 px-1.5 font-semibold text-white hover:bg-rose-500">
+          Kích
+        </button>
+      )}
+      {seat.games > 0 && (
+        <span className={cn("font-mono", seat.points > 0 ? "text-emerald-300" : seat.points < 0 ? "text-rose-300" : "text-emerald-100/60")}>
+          {signed(seat.points)}đ
+        </span>
+      )}
     </span>
   );
 }
 
-function Opponent({ seat, isTurn, deadline, rankLabel, gameEnded, vertical }: SeatDisplayProps & { vertical?: boolean }) {
+function Opponent({ seat, isTurn, deadline, rankLabel, gameEnded, reactions, onKick, vertical }: SeatDisplayProps & { vertical?: boolean }) {
   if (!seat) {
     return (
       <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-emerald-100/20 text-xs text-emerald-100/40">
@@ -397,11 +498,11 @@ function Opponent({ seat, isTurn, deadline, rankLabel, gameEnded, vertical }: Se
   return (
     <div className={cn("flex items-center gap-2", vertical ? "flex-col" : "flex-row")}>
       <div className="flex flex-col items-center gap-1">
-        <Avatar seat={seat} isTurn={isTurn} deadline={deadline} />
+        <Avatar seat={seat} isTurn={isTurn} deadline={deadline} reactions={reactions} />
         <span className="max-w-[88px] truncate text-xs font-medium text-emerald-50 sm:text-sm">{seat.name}</span>
-        <StatusTags seat={seat} rankLabel={rankLabel} gameEnded={gameEnded} />
+        <StatusTags seat={seat} rankLabel={rankLabel} gameEnded={gameEnded} onKick={onKick} />
       </div>
-      {seat.inGame && seat.cardCount > 0 && (
+      {seat.inGame && seat.cardCount > 0 && !seat.kicked && (
         <div className="flex items-center gap-1">
           <div className="relative">
             <CardBack />
@@ -414,11 +515,11 @@ function Opponent({ seat, isTurn, deadline, rankLabel, gameEnded, vertical }: Se
   );
 }
 
-function SeatBadge({ seat, isTurn, deadline, rankLabel, gameEnded }: SeatDisplayProps & { self?: boolean }) {
+function SeatBadge({ seat, isTurn, deadline, rankLabel, gameEnded, reactions }: SeatDisplayProps) {
   if (!seat) return null;
   return (
     <span className="flex items-center gap-2">
-      <Avatar seat={seat} isTurn={isTurn} deadline={deadline} />
+      <Avatar seat={seat} isTurn={isTurn} deadline={deadline} reactions={reactions} />
       <span className="flex flex-col items-start">
         <span className="font-medium">{seat.name} (bạn)</span>
         <StatusTags seat={seat} rankLabel={rankLabel} gameEnded={gameEnded} />
@@ -441,6 +542,8 @@ function WaitingPanel({
   const { game } = view;
   const count = view.seats.filter(Boolean).length;
   const ended = game?.status === "ended";
+  const last = view.history[view.history.length - 1];
+  const deltaOf = (id: string) => last?.results.find((r) => r.id === id)?.delta;
 
   return (
     <div className="w-full max-w-xs rounded-2xl bg-black/35 p-4 backdrop-blur-sm">
@@ -452,26 +555,30 @@ function WaitingPanel({
               : "Kết quả ván"}
           </h2>
           <ol className="mb-3 space-y-1 text-left text-sm">
-            {game.finished.map((id, i) => (
-              <li key={id} className="flex justify-between gap-4 text-emerald-50">
-                <span>
-                  <b className="mr-2 text-amber-300">{rankTitle(i, game.finished.length)}</b>
-                  {nameOf(id)}
-                </span>
-                {id === view.meId && <span className="text-emerald-100/60">bạn</span>}
-              </li>
-            ))}
+            {game.finished.map((id, i) => {
+              const d = deltaOf(id);
+              return (
+                <li key={id} className="flex items-center justify-between gap-4 text-emerald-50">
+                  <span>
+                    <b className="mr-2 text-amber-300">{rankTitle(i, game.finished.length)}</b>
+                    {nameOf(id)}
+                    {id === view.meId && <span className="ml-1 text-emerald-100/60">(bạn)</span>}
+                  </span>
+                  {d !== undefined && <DeltaBadge delta={d} />}
+                </li>
+              );
+            })}
           </ol>
         </>
       ) : (
         <>
           <h2 className="mb-1 text-lg font-bold text-amber-300">Tiến Lên Miền Nam</h2>
-          <p className="mb-3 text-sm text-emerald-50/80">
-            {count}/4 người · gửi link mời để bạn bè vào phòng
-          </p>
+          <p className="mb-3 text-sm text-emerald-50/80">{count}/4 người · gửi link mời để bạn bè vào phòng</p>
         </>
       )}
-      {me?.isHost ? (
+      {view.role === "spectator" ? (
+        <p className="text-sm text-emerald-100/70">{ended ? "Chờ ván mới…" : "Chờ chủ phòng bắt đầu…"}</p>
+      ) : me?.isHost ? (
         <button
           onClick={onStart}
           disabled={count < 2}
