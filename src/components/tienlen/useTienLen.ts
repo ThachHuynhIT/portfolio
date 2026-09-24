@@ -15,12 +15,12 @@ const TOKEN_KEY = "tienlen:token";
 const NAME_KEY = "tienlen:name";
 
 /**
- * WebSocket endpoint. Same origin by default — the Vercel route handler and the
- * self-hosted server both serve it at WS_PATH. NEXT_PUBLIC_TIENLEN_SERVER_URL
- * points the page at a game server elsewhere.
+ * WebSocket endpoint of the be_game backend (a separate repo/Vercel project).
+ * Set NEXT_PUBLIC_TIENLEN_SERVER_URL to its URL, e.g. https://be-game.vercel.app;
+ * defaults to be_game's local dev server.
  */
 function wsUrl(): string {
-  const base = process.env.NEXT_PUBLIC_TIENLEN_SERVER_URL || window.location.origin;
+  const base = process.env.NEXT_PUBLIC_TIENLEN_SERVER_URL || "http://localhost:4000";
   return base.replace(/^http/, "ws").replace(/\/$/, "") + WS_PATH;
 }
 

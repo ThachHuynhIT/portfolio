@@ -1,11 +1,22 @@
 import type { Card } from "./cards";
-import type { LastPlay } from "./game";
+import type { Combo } from "./combos";
 import type { InstantWinReason } from "./rules";
+
+/**
+ * Client-side copy of the be_game protocol (github.com/ThachHuynhIT/be_game,
+ * src/game/protocol.ts). The server owns the game; keep the two in sync.
+ */
+
+export interface LastPlay {
+  playerId: string;
+  combo: Combo;
+  chop: boolean;
+}
 
 export const MAX_NAME_LENGTH = 16;
 export const TURN_SECONDS = 30;
-/** Path of the WebSocket endpoint, on Vercel and on the self-hosted server alike. */
-export const WS_PATH = "/api/tienlen/ws";
+/** Path of the WebSocket endpoint on the be_game server. */
+export const WS_PATH = "/api/ws";
 /** Clients ping this often; the ping doubles as the presence heartbeat. */
 export const PING_INTERVAL_MS = 10_000;
 

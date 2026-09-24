@@ -45,27 +45,17 @@ Vì dự án được xây dựng bằng Next.js 14, **Vercel** là nền tảng
 
 ---
 
-### 3.1. Game Tiến Lên (`/tien-len`) trên Vercel
+### 3.1. Game Tiến Lên (`/tien-len`)
 
-Game dùng **WebSocket trên Vercel Functions** (Beta), qua route `src/app/api/tienlen/ws/route.ts`. Luật chơi nằm trong `src/lib/tienlen/`, còn trạng thái phòng lưu trong **Redis**. Redis là bắt buộc: các người chơi trong cùng một phòng có thể kết nối vào những instance khác nhau.
+Portfolio chỉ chứa **giao diện** của game (`src/app/tien-len`, `src/components/tienlen`). Kèm theo đó là một bản sao luật bài thuần trong `src/lib/tienlen` để kiểm tra nước đi ngay phía client. Toàn bộ backend (phòng chơi, WebSocket, Redis) nằm ở repo riêng **[be_game](https://github.com/ThachHuynhIT/be_game)** và được deploy thành một project Vercel khác. Cách deploy xem README của repo đó.
 
-**Cấu hình một lần:**
-1. **Redis:** vào Vercel → *Storage / Marketplace* → thêm **Upstash for Redis** (gói Free là đủ) và gắn vào project `portfolio`. Chọn region **Singapore** cho gần function. Vercel sẽ tự thêm biến `REDIS_URL` (hoặc `KV_URL`); code đọc được cả hai tên.
-2. **Region:** `vercel.json` đã đặt `"regions": ["sin1"]`. Function chạy ở Singapore nên độ trễ từ Việt Nam thấp hơn nhiều so với `iad1` (Mỹ).
-3. **Fluid compute** phải bật: vào *Settings → Functions*. Project tạo từ 23/04/2025 trở đi được bật sẵn.
-4. Redeploy.
-
-**Giới hạn cần biết:**
-- Một kết nối WebSocket chỉ sống bằng thời gian tối đa của function: gói Hobby là **300 giây**. Khoảng 25 giây trước hạn, server gửi `reconnect`; client mở kết nối mới rồi mới đóng kết nối cũ, nên người chơi không bị văng.
-- Chưa gắn Redis thì server log lỗi `REDIS_URL is not set`, và phòng chỉ hoạt động khi mọi người tình cờ rơi vào cùng một instance.
-- Khi chạy local với `next dev` thì endpoint WebSocket không hoạt động. Hãy dùng chế độ tự host (bên dưới), hoặc `vc dev` (Vercel CLI ≥ 54.14.2).
-
-**Tự host trên máy của bạn** (web và game dùng chung **một cổng 3000**): xem [`TIENLEN_SELF_HOST.md`](./TIENLEN_SELF_HOST.md).
-```bash
-npm run tienlen:host              # build nếu chưa có, chạy trên 0.0.0.0:3000
-npm run tienlen:host -- --build   # build lại sau khi sửa code
-npm test                          # test luật chơi + hub (vitest)
+Sau khi deploy be_game, vào project portfolio trên Vercel → *Settings → Environment Variables* và thêm:
 ```
+NEXT_PUBLIC_TIENLEN_SERVER_URL=https://<be_game>.vercel.app
+```
+rồi redeploy. Biến này được gắn vào lúc build.
+
+Khi chạy local: chạy `npm run dev` trong be_game (cổng 4000) và `npm run dev` trong portfolio. Nếu không đặt biến thì client mặc định kết nối tới `http://localhost:4000`.
 
 ## 4. Triển Khai Bằng Docker
 
