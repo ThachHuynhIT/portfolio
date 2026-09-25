@@ -19,9 +19,10 @@ export default function TienLenLobbyPage() {
           <li>Bộ: rác, đôi, sám cô, sảnh (≥3 lá, không có 2), đôi thông (≥3 đôi), tứ quý.</li>
           <li>Chặn bằng bộ cùng loại, cùng số lá và lá cao nhất lớn hơn.</li>
           <li>3 đôi thông chặt heo; tứ quý chặt heo, đôi heo, 3 đôi thông; 4 đôi thông chặt tất cả những bộ đó.</li>
-          <li>Đã bỏ lượt thì không được đánh lại tới hết vòng. Không có bài nào chặn được thì tự động bỏ lượt.</li>
+          <li>Đã bỏ lượt thì không được đánh lại tới hết vòng. Không có bài nào chặn được thì tự động bỏ lượt (chủ phòng tắt được).</li>
+          <li>4 đôi thông chặt lúc nào cũng được — kể cả chưa tới lượt hay đã bỏ lượt.</li>
           <li>Tới trắng: tứ quý heo, sảnh rồng, 6 đôi, 5 đôi thông.</li>
-          <li>Điểm: Nhất +2, Nhì +1 — 4 người +2/+1/−1/−2 · 3 người +2/+1/−3 · 2 người +2/−2 · tới trắng (ăn trắng) gấp đôi: +4 từ mỗi người.</li>
+          <li>Điểm: chủ phòng chọn điểm Nhất và Nhì (mặc định +2/+1), các hạng khác tự tính để tổng bằng 0 — 4 người +Nhất/+Nhì/−Nhì/−Nhất · 3 người +Nhất/+Nhì/−(Nhất+Nhì) · 2 người +Nhất/−Nhất · tới trắng (ăn trắng) gấp đôi: 2 × Nhất từ mỗi người.</li>
           <li>Chết cháy: khi có người về Nhất mà bạn chưa đánh lá nào thì bị cháy — dừng chơi, xếp Bét và bị trừ gấp đôi (phần dư cộng cho người Nhất).</li>
           <li>Chặt heo: người bị chặt trả cho người chặt — heo đen (♠♣) 1 điểm, heo đỏ (♦♥) 2 điểm. Chặt chồng thì gấp đôi mỗi lần: heo đỏ 2 → 4 → 8… (chặt 3 đôi thông / tứ quý đánh thường: 2 điểm).</li>
         </ul>

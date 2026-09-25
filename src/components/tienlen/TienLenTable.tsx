@@ -7,14 +7,19 @@ import {
   type Reaction,
   type RoomView,
   type SeatView,
+  type TienLenSettings,
+  DEFAULT_TIENLEN_SETTINGS,
   INSTANT_WIN_NAMES,
+  MAX_RANK_POINTS,
   TURN_SECONDS,
   canBeat,
   cardLabel,
   comboName,
   detectCombo,
+  isChop,
   rankOf,
   suitOf,
+  tienlenRankPoints,
 } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { ChatBox } from "@/components/games/ChatBox";
@@ -42,7 +47,7 @@ function useCountdown(deadline: number | null) {
 }
 
 export default function TienLenTable({ code, name, watch }: { code: string; name: string; watch?: boolean }) {
-  const { view, status, error, play, pass, start, sendEmoji, kick, sendChat } = useTienLenRoom(code, name, watch ? "watch" : "play");
+  const { view, status, error, play, pass, start, sendEmoji, kick, sendChat, setSettings } = useTienLenRoom(code, name, watch ? "watch" : "play");
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -94,6 +99,7 @@ export default function TienLenTable({ code, name, watch }: { code: string; name
         onPlay={(cards) => act(play(cards))}
         onPass={() => act(pass())}
         onStart={() => act(start())}
+        onSettings={(s) => void act(setSettings(s))}
         onEmoji={(e) => void act(sendEmoji(e))}
         onKick={(id) => act(kick(id))}
         toast={toast}
@@ -113,12 +119,13 @@ interface TableProps {
   onPlay: (cards: Card[]) => Promise<boolean>;
   onPass: () => Promise<boolean>;
   onStart: () => Promise<boolean>;
+  onSettings: (s: Partial<TienLenSettings>) => void;
   onEmoji: (emoji: string) => void;
   onKick: (playerId: string) => Promise<boolean>;
   toast: string | null;
 }
 
-function Table({ view, reconnecting, onPlay, onPass, onStart, onEmoji, onKick, toast }: TableProps) {
+function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoji, onKick, toast }: TableProps) {
   const { seats, game, meId } = view;
   const spectator = view.role === "spectator";
   const me = seats.find((s) => s?.id === meId) ?? null;
@@ -155,6 +162,17 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onEmoji, onKick, t
   const lastCombo = game?.lastPlay?.combo ?? null;
 
   const selectedCombo = selected.length ? detectCombo(selected) : null;
+  // 4+ đôi thông may chop at any moment, even out of turn or after passing.
+  const anytimeChop =
+    !spectator &&
+    playing &&
+    !!me?.inGame &&
+    !!selectedCombo &&
+    !!lastCombo &&
+    game.lastPlay?.playerId !== meId &&
+    selectedCombo.type === "pairSeq" &&
+    selectedCombo.length >= 8 &&
+    isChop(lastCombo, selectedCombo);
   const playError = !selected.length
     ? null
     : !selectedCombo
@@ -164,7 +182,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onEmoji, onKick, t
         : !canBeat(lastCombo, selectedCombo)
           ? "Không chặn được"
           : null;
-  const canPlay = myTurn && !!selectedCombo && !playError && !busy;
+  const canPlay = (myTurn || anytimeChop) && !!selectedCombo && !playError && !busy;
   const canPass = myTurn && !!lastCombo && !busy;
 
   const toggle = (c: Card) => setSelected((s) => (s.includes(c) ? s.filter((x) => x !== c) : [...s, c]));
@@ -303,7 +321,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onEmoji, onKick, t
           {/* Center: last play / lobby */}
           <div className="flex min-h-[180px] flex-col items-center justify-center gap-3 text-center">
             {!game || game.status === "ended" ? (
-              <WaitingPanel view={view} me={me} onStart={onStart} nameOf={nameOf} />
+              <WaitingPanel view={view} me={me} onStart={onStart} onSettings={onSettings} nameOf={nameOf} />
             ) : game.lastPlay ? (
               <>
                 <div className="flex">
@@ -352,7 +370,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onEmoji, onKick, t
               Bỏ lượt
             </ActionButton>
             <ActionButton onClick={doPlay} disabled={!canPlay} primary big>
-              ĐÁNH 🃏
+              {anytimeChop && !myTurn ? "CHẶT! 💥" : "ĐÁNH 🃏"}
             </ActionButton>
             <ActionButton onClick={() => setSelected([])} disabled={!selected.length}>
               Bỏ chọn
@@ -381,7 +399,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onEmoji, onKick, t
         <EmojiBar onSend={onEmoji} />
       </div>
 
-      {showScores && <ScoreboardModal view={view} onClose={() => setShowScores(false)} />}
+      {showScores && <ScoreboardModal view={view} onClose={() => setShowScores(false)} note={scoreNote(view.settings ?? DEFAULT_TIENLEN_SETTINGS)} />}
 
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
@@ -553,11 +571,13 @@ function WaitingPanel({
   view,
   me,
   onStart,
+  onSettings,
   nameOf,
 }: {
   view: RoomView;
   me: SeatView | null;
   onStart: () => Promise<boolean>;
+  onSettings: (s: Partial<TienLenSettings>) => void;
   nameOf: (id: string) => string;
 }) {
   const { game } = view;
@@ -598,6 +618,12 @@ function WaitingPanel({
           <p className="mb-3 text-sm text-emerald-50/80">{count}/4 người · gửi link mời để bạn bè vào phòng</p>
         </>
       )}
+      <SettingsPanel
+        settings={view.settings ?? DEFAULT_TIENLEN_SETTINGS}
+        editable={view.role === "player" && !!me?.isHost}
+        players={count}
+        onChange={onSettings}
+      />
       {view.role === "spectator" ? (
         <p className="text-sm text-emerald-100/70">{ended ? "Chờ ván mới…" : "Chờ chủ phòng bắt đầu…"}</p>
       ) : me?.isHost ? (
@@ -611,6 +637,84 @@ function WaitingPanel({
       ) : (
         <p className="text-sm text-emerald-100/70">Chờ chủ phòng bắt đầu…</p>
       )}
+    </div>
+  );
+}
+
+const signedPoints = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : "0");
+
+function scoreNote(s: TienLenSettings) {
+  const rows = [4, 3, 2].map((n) => `${n} người ${tienlenRankPoints(n, s).map(signedPoints).join("/")}`).join(" · ");
+  return `Điểm mỗi ván: ${rows} · chết cháy thua gấp đôi · tới trắng +${s.first * 2} từ mỗi người · chặt heo đen +1, heo đỏ +2, mỗi lần chặt chồng gấp đôi (người bị chặt trả).`;
+}
+
+/** Host settings between games: auto-pass and Nhất / Nhì points (the rest is derived). */
+function SettingsPanel({
+  settings,
+  editable,
+  players,
+  onChange,
+}: {
+  settings: TienLenSettings;
+  editable: boolean;
+  players: number;
+  onChange: (s: Partial<TienLenSettings>) => void;
+}) {
+  const n = Math.min(Math.max(players, 2), 4);
+  const preview = tienlenRankPoints(n, settings);
+  const labels = ["Nhất", "Nhì", "Ba", "Bét"];
+  return (
+    <div className="mb-3 space-y-2 rounded-xl bg-black/25 p-2 text-left text-xs text-emerald-50">
+      <p className="font-semibold uppercase tracking-wide text-emerald-100/60">Luật bàn</p>
+      <label className={cn("flex items-center justify-between gap-2", editable && "cursor-pointer")}>
+        <span>Tự bỏ lượt khi không có bài chặn</span>
+        <input
+          type="checkbox"
+          checked={settings.autoPass}
+          disabled={!editable}
+          onChange={(e) => onChange({ autoPass: e.target.checked })}
+          className="h-4 w-4 accent-amber-400"
+        />
+      </label>
+      <div className="flex items-center justify-between gap-2">
+        <span>Điểm Nhất / Nhì</span>
+        <span className="flex items-center gap-1">
+          <select
+            value={settings.first}
+            disabled={!editable}
+            onChange={(e) => {
+              const first = Number(e.target.value);
+              onChange({ first, second: Math.min(settings.second, first) });
+            }}
+            className="rounded bg-black/40 px-1 py-0.5"
+            aria-label="Điểm Nhất"
+          >
+            {Array.from({ length: MAX_RANK_POINTS }, (_, i) => i + 1).map((v) => (
+              <option key={v} value={v}>
+                +{v}
+              </option>
+            ))}
+          </select>
+          <span className="text-emerald-100/50">/</span>
+          <select
+            value={settings.second}
+            disabled={!editable}
+            onChange={(e) => onChange({ second: Number(e.target.value) })}
+            className="rounded bg-black/40 px-1 py-0.5"
+            aria-label="Điểm Nhì"
+          >
+            {Array.from({ length: settings.first + 1 }, (_, i) => i).map((v) => (
+              <option key={v} value={v}>
+                {v ? `+${v}` : "0"}
+              </option>
+            ))}
+          </select>
+        </span>
+      </div>
+      <p className="text-emerald-100/70">
+        {n} người: {preview.map((p, i) => `${labels[n === 4 ? i : i === n - 1 ? 3 : i]} ${signedPoints(p)}`).join(" · ")} · tới trắng +{settings.first * 2}/người
+      </p>
+      {!editable && <p className="text-emerald-100/40">Chỉ chủ phòng đổi được luật.</p>}
     </div>
   );
 }

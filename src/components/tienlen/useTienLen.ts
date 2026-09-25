@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { type Card, type LeaderboardEntry, type RoomSummary, type RoomView, WS_PATH } from "@/lib/tienlen";
+import { type Card, type LeaderboardEntry, type RoomSummary, type RoomView, type TienLenSettings, WS_PATH } from "@/lib/tienlen";
 import { createGameRoom, useGameRoom } from "@/components/games/gameClient";
 
 export { fetchApi, getSavedName, getToken, saveName } from "@/components/games/gameClient";
@@ -32,6 +32,7 @@ export function useTienLenRoom(code: string, name: string | null, mode: "play" |
   const sendEmoji = useCallback((emoji: string) => call({ type: "emoji", emoji }), [call]);
   const kick = useCallback((playerId: string) => call({ type: "kick", playerId }), [call]);
   const sendChat = useCallback((text: string) => call({ type: "chat", text }), [call]);
+  const setSettings = useCallback((s: Partial<TienLenSettings>) => call({ type: "settings", ...s }), [call]);
 
-  return { view, status, error, play, pass, start, sendEmoji, kick, sendChat };
+  return { view, status, error, play, pass, start, sendEmoji, kick, sendChat, setSettings };
 }

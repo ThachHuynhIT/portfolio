@@ -63,6 +63,25 @@ export interface GameRecord {
 /** Free-text chat, shared by players and spectators. */
 export const CHAT_MAX_LENGTH = 200;
 
+export interface TienLenSettings {
+  /** Pass automatically when nothing in hand can beat the table. */
+  autoPass: boolean;
+  /** Points for Nhất / Nhì; the rest is derived so the game sums to zero. */
+  first: number;
+  second: number;
+}
+
+export const DEFAULT_TIENLEN_SETTINGS: TienLenSettings = { autoPass: true, first: 2, second: 1 };
+export const MAX_RANK_POINTS = 20;
+
+/** Points by finishing position, mirrored so the game sums to zero (same as be_game scoring.ts). */
+export function tienlenRankPoints(n: number, { first, second }: { first: number; second: number }): number[] {
+  if (n === 2) return [first, -first];
+  if (n === 3) return [first, second, -(first + second)];
+  if (n === 4) return [first, second, -second, -first];
+  return [];
+}
+
 export interface ChatMessage {
   id: string;
   at: number;
@@ -132,6 +151,8 @@ export interface RoomView {
   /** Emoji sent in the last few seconds. */
   reactions: Reaction[];
   chat?: ChatMessage[];
+  /** Host settings (missing from older servers). */
+  settings?: TienLenSettings;
 }
 
 export type AckResult<T = object> = ({ ok: true } & T) | { ok: false; error: string };
