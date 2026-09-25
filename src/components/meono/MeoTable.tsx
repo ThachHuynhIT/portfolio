@@ -173,6 +173,7 @@ function Board({
   const [focus, setFocus] = useState<CardType | null>(null);
   const [showGuide, setShowGuide] = useState(false);
   const [showScores, setShowScores] = useState(false);
+  const [showDiscard, setShowDiscard] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const hand = view.hand;
@@ -210,8 +211,22 @@ function Board({
   const now = useNow(!!pending || !!choice || playing);
 
   const opponents = view.seats.filter((s): s is MeoSeatView => !!s && s.id !== view.meId);
+  const canTarget = (s: MeoSeatView) =>
+    planOk?.kind === "zombie" ? s.inGame && s.out && !s.kicked : s.inGame && !s.out;
   const needTarget = !!planOk?.target;
   const needName = planOk?.named ?? null;
+  const actionLabel =
+    planOk?.kind === "pair"
+      ? "đánh đôi — rút trộm 1 lá"
+      : planOk?.kind === "triple"
+        ? "đánh bộ ba — gọi tên 1 lá"
+        : planOk?.kind === "five"
+          ? "đánh 5 lá khác nhau — nhặt 1 lá đã đánh"
+          : planOk?.kind === "blind"
+            ? "đánh lá úp (bị nguyền)"
+            : planOk
+              ? `đánh ${cardName(planOk.kind as CardType)}`
+              : "";
   // “Now” cards (Sửa tương lai ngay) can be played on anyone's turn.
   const nowPlay = meAlive && !!planOk && NOW_TYPES.includes(planOk.kind as CardType);
   const canPlay =
@@ -349,11 +364,7 @@ function Board({
                 deadline={g?.turn === s.id ? g.turnDeadline : null}
                 now={now}
                 reactions={reactionsFor(s.id)}
-                selectable={
-                  planOk?.kind === "zombie"
-                    ? myTurn && s.inGame && s.out && !s.kicked
-                    : (needTarget || cursed) && myTurn && s.inGame && !s.out
-                }
+                selectable={(needTarget || cursed) && myTurn && canTarget(s)}
                 selected={target === s.id}
                 onSelect={() => setTarget(s.id)}
                 onKick={me?.isHost && !s.connected && !s.kicked ? () => void kick(s) : undefined}
@@ -382,14 +393,26 @@ function Board({
                     </div>
                     <span className="text-xs text-orange-100/70">{canDraw ? "Bấm để rút" : "Chồng bài"}</span>
                   </button>
-                  <div className="flex flex-col items-center gap-1">
+                  <button
+                    onClick={() => setShowDiscard(true)}
+                    disabled={!g.discard.length}
+                    className="group flex flex-col items-center gap-1 disabled:cursor-default"
+                    aria-label="Xem các lá đã đánh"
+                  >
                     {g.discard.length ? (
-                      <MeoCard type={g.discard[g.discard.length - 1]} size="md" />
+                      <span className="relative">
+                        {g.discard.length > 1 && (
+                          <MeoCard type={g.discard[g.discard.length - 2]} size="md" tooltip={false} className="absolute left-1 top-1 -rotate-6 opacity-60" />
+                        )}
+                        <MeoCard type={g.discard[g.discard.length - 1]} size="md" tooltip={false} className="relative group-hover:-translate-y-1" />
+                      </span>
                     ) : (
                       <div className="aspect-[5/7] w-[4.6rem] rounded-xl border-2 border-dashed border-white/15 sm:w-20" />
                     )}
-                    <span className="text-xs text-orange-100/70">Đã đánh ({g.discard.length})</span>
-                  </div>
+                    <span className="text-xs text-orange-100/70">
+                      Đã đánh ({g.discard.length}){g.discard.length ? <span className="ml-1 text-amber-200 underline">👁️ xem</span> : null}
+                    </span>
+                  </button>
                 </div>
                 <div className="flex flex-wrap justify-center gap-2 text-xs">
                   <span className="rounded-full bg-black/40 px-2 py-0.5">Chiều: {g.dir === 1 ? "↻ xuôi" : "↺ ngược"}</span>
@@ -509,52 +532,85 @@ function Board({
               ↺ Xếp lại tự động
             </button>
           )}
-          <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
-            {myTurn && selected.length > 0 && (
-              <span className={cn("rounded-md px-2 py-1", planError ? "bg-rose-900/50 text-rose-200" : "bg-black/40 text-orange-100")}>
-                {planError ??
-                  (planOk?.kind === "pair"
-                    ? "Đôi: rút trộm 1 lá"
-                    : planOk?.kind === "triple"
-                      ? "Bộ ba: gọi tên lá muốn lấy"
-                      : planOk?.kind === "five"
-                        ? "5 lá khác nhau: nhặt 1 lá từ chồng đã đánh"
-                        : planOk
-                          ? cardName(planOk.kind as CardType)
-                          : "")}
-                {needTarget && (target ? ` → ${nameOf(target)}` : " — chọn người ở trên")}
-              </span>
-            )}
-            {myTurn && needName && (
-              <select
-                value={named}
-                onChange={(e) => setNamed(e.target.value as CardType)}
-                className="rounded-md border border-white/20 bg-black/50 px-2 py-1.5"
-                aria-label="Loại lá muốn lấy"
-              >
-                <option value="">— chọn lá —</option>
-                {(needName === "discard" ? [...new Set(g?.discard ?? [])] : NAMEABLE_TYPES).map((t) => (
-                  <option key={t} value={t}>
-                    {CARDS[t].emoji} {CARDS[t].name}
-                  </option>
+          {/* Target picker: shown right above the hand, no need to scroll up to the seats. */}
+          {(myTurn || nowPlay) && needTarget && (
+            <div className="w-full max-w-2xl rounded-2xl border border-rose-400/40 bg-rose-950/40 p-3">
+              <p className="mb-2 text-center text-sm font-semibold text-rose-100">
+                🎯 {planOk?.kind === "zombie" ? "Chọn người đã bị loại để hồi sinh" : `Chọn người để ${actionLabel}`}
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {opponents.filter(canTarget).length === 0 && <p className="text-sm text-rose-100/60">Không có ai phù hợp.</p>}
+                {opponents.filter(canTarget).map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => setTarget(s.id)}
+                    className={cn(
+                      "flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm transition-all",
+                      target === s.id
+                        ? "scale-105 border-rose-300 bg-rose-500 text-white shadow-[0_0_18px_rgba(244,63,94,0.5)]"
+                        : "border-white/15 bg-black/40 hover:border-rose-300/60 hover:bg-rose-500/20",
+                    )}
+                  >
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-orange-200 to-orange-500 font-bold text-black">
+                      {s.out ? "💀" : s.name.charAt(0).toUpperCase()}
+                    </span>
+                    <span>
+                      <b className="block leading-tight">{s.name}</b>
+                      <span className="text-xs opacity-75">{s.out ? "đã bị loại" : `🂠 ${s.cardCount} lá`}{!s.connected && " · mất kết nối"}</span>
+                    </span>
+                    {target === s.id && <span className="text-lg">🎯</span>}
+                  </button>
                 ))}
-              </select>
+              </div>
+            </div>
+          )}
+
+          {/* Action dock */}
+          <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-black/40 p-2 sm:p-3">
+            {(myTurn || nowPlay) && selected.length > 0 && (
+              <p className={cn("mb-2 rounded-lg px-3 py-1.5 text-center text-sm", planError ? "bg-rose-900/50 text-rose-200" : "bg-white/5 text-orange-100")}>
+                {planError ?? (
+                  <>
+                    <b>{actionLabel}</b>
+                    {needTarget && (target ? <> → 🎯 <b>{nameOf(target)}</b></> : " — hãy chọn mục tiêu")}
+                  </>
+                )}
+              </p>
             )}
-            <Btn primary onClick={doPlay} disabled={!canPlay}>
-              Đánh
-            </Btn>
-            <Btn onClick={() => void run({ type: "draw" })} disabled={!canDraw}>
-              Rút bài
-            </Btn>
-            <Btn onClick={() => (setSelected([]), setTarget(null), setNamed(""))} disabled={!selected.length}>
-              Bỏ chọn
-            </Btn>
-            {pending && meAlive && myNope && (
-              <Btn danger onClick={() => void run({ type: "nope", card: myNope.id })}>
-                🚫 Không!
-              </Btn>
+            {(myTurn || nowPlay) && needName && (
+              <div className="mb-2 flex justify-center">
+                <select
+                  value={named}
+                  onChange={(e) => setNamed(e.target.value as CardType)}
+                  className="rounded-lg border border-white/20 bg-black/60 px-3 py-2 text-sm"
+                  aria-label="Loại lá muốn lấy"
+                >
+                  <option value="">{needName === "discard" ? "— chọn lá muốn nhặt —" : "— gọi tên lá muốn lấy —"}</option>
+                  {(needName === "discard" ? [...new Set(g?.discard ?? [])] : NAMEABLE_TYPES).map((t) => (
+                    <option key={t} value={t}>
+                      {CARDS[t].emoji} {CARDS[t].name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
-            <EmojiBar onSend={(e) => void act({ type: "emoji", emoji: e })} />
+            <div className="flex flex-wrap items-stretch justify-center gap-2">
+              {pending && meAlive && myNope && (
+                <DockBtn tone="nope" onClick={() => void run({ type: "nope", card: myNope.id })}>
+                  🚫 KHÔNG!
+                </DockBtn>
+              )}
+              <DockBtn tone="play" onClick={doPlay} disabled={!canPlay}>
+                ▶ ĐÁNH{selected.length > 1 ? ` ${selected.length} LÁ` : ""}
+              </DockBtn>
+              <DockBtn tone="draw" onClick={() => void run({ type: "draw" })} disabled={!canDraw}>
+                🂠 RÚT BÀI
+              </DockBtn>
+              <DockBtn tone="ghost" onClick={() => (setSelected([]), setTarget(null), setNamed(""))} disabled={!selected.length}>
+                ✕ Bỏ chọn
+              </DockBtn>
+              <EmojiBar onSend={(e) => void act({ type: "emoji", emoji: e })} />
+            </div>
           </div>
         </div>
       )}
@@ -565,6 +621,7 @@ function Board({
       )}
 
       {showGuide && <CardGuide enabled={g?.expansions ?? view.expansions} onClose={() => setShowGuide(false)} />}
+      {showDiscard && g && <DiscardViewer discard={g.discard} log={g.log} onClose={() => setShowDiscard(false)} />}
       {showScores && <ScoreboardModal view={view} note={SCORE_NOTE} onClose={() => setShowScores(false)} />}
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white shadow-lg">{toast}</div>
@@ -573,20 +630,94 @@ function Board({
   );
 }
 
-function Btn({ children, onClick, disabled, primary, danger }: { children: React.ReactNode; onClick: () => void; disabled?: boolean; primary?: boolean; danger?: boolean }) {
+function DockBtn({
+  children,
+  onClick,
+  disabled,
+  tone,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  tone: "play" | "draw" | "nope" | "ghost";
+}) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "min-w-[80px] rounded-lg px-4 py-2 font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40",
-        primary && "bg-amber-400 text-black enabled:hover:bg-amber-300",
-        danger && "animate-pulse bg-red-600 text-white enabled:hover:bg-red-500",
-        !primary && !danger && "border border-white/25 bg-black/25 enabled:hover:bg-white/10",
+        "rounded-xl font-black tracking-wide transition-all enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-35",
+        tone === "play" &&
+          "min-w-[9rem] bg-gradient-to-b from-amber-300 to-orange-500 px-6 py-3 text-lg text-black shadow-[0_4px_0_#9a3412,0_0_24px_rgba(251,191,36,0.35)] enabled:hover:brightness-110",
+        tone === "draw" &&
+          "min-w-[8rem] bg-gradient-to-b from-emerald-400 to-emerald-700 px-5 py-3 text-lg text-white shadow-[0_4px_0_#064e3b] enabled:hover:brightness-110",
+        tone === "nope" &&
+          "min-w-[9rem] animate-pulse bg-gradient-to-b from-red-500 to-red-800 px-6 py-3 text-xl text-white shadow-[0_4px_0_#450a0a,0_0_28px_rgba(239,68,68,0.6)]",
+        tone === "ghost" && "border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold enabled:hover:bg-white/10",
       )}
     >
       {children}
     </button>
+  );
+}
+
+/** Every card played so far (newest first) with what it does. */
+function DiscardViewer({ discard, log, onClose }: { discard: CardType[]; log: { id: number; text: string }[]; onClose: () => void }) {
+  const [focus, setFocus] = useState<CardType | null>(discard[discard.length - 1] ?? null);
+  const newestFirst = discard.slice().reverse();
+  const counts = discard.reduce<Record<string, number>>((m, t) => ((m[t] = (m[t] ?? 0) + 1), m), {});
+  const info = focus ? CARDS[focus] : null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-3 backdrop-blur-sm" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-label="Các lá đã đánh"
+        className="flex max-h-[90dvh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-orange-200/15 bg-[#1c0f0a] text-orange-50 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+          <h2 className="text-lg font-black text-amber-300">🗂️ Các lá đã đánh ({discard.length})</h2>
+          <button onClick={onClose} className="rounded-md px-2 py-1 hover:bg-white/10" aria-label="Đóng">
+            ✕
+          </button>
+        </div>
+        {info && focus && (
+          <div className="flex items-start gap-3 border-b border-white/10 bg-black/30 px-4 py-3">
+            <MeoCard type={focus} size="md" tooltip={false} />
+            <div className="text-sm">
+              <p className="text-base font-bold text-amber-200">
+                {info.emoji} {info.name} <span className="text-xs font-normal text-orange-100/60">· đã đánh {counts[focus] ?? 0} lá</span>
+              </p>
+              <p className="mt-1 text-orange-100/70">
+                <b>Khi nào:</b> {info.how}
+              </p>
+              <p className="mt-1">{info.effect}</p>
+            </div>
+          </div>
+        )}
+        <div className="overflow-y-auto p-4">
+          <p className="mb-2 text-xs text-orange-100/60">Mới nhất ở đầu — bấm vào lá để xem chức năng.</p>
+          <div className="flex flex-wrap gap-2 pt-3">
+            {newestFirst.map((t, i) => (
+              <MeoCard key={i} type={t} size="sm" tooltip={false} selected={focus === t} onClick={() => setFocus(t)} />
+            ))}
+          </div>
+          {log.length > 0 && (
+            <>
+              <p className="mb-1 mt-4 text-xs font-semibold uppercase tracking-wide text-orange-100/60">Diễn biến gần đây</p>
+              <ul className="space-y-0.5 text-xs text-orange-100/80">
+                {log
+                  .slice()
+                  .reverse()
+                  .map((e) => (
+                    <li key={e.id}>{e.text}</li>
+                  ))}
+              </ul>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -625,11 +756,16 @@ function Seat({
     <Tag
       onClick={selectable ? onSelect : undefined}
       className={cn(
-        "relative flex min-w-[5.5rem] flex-col items-center gap-1 rounded-xl px-2 py-1.5 transition-colors",
-        selectable && "cursor-pointer bg-amber-400/10 ring-1 ring-amber-300/50 hover:bg-amber-400/20",
-        selected && "bg-amber-400/30 ring-2 ring-amber-300",
+        "relative flex min-w-[5.5rem] flex-col items-center gap-1 rounded-xl px-2 py-1.5 transition-all",
+        selectable && !selected && "cursor-pointer outline-dashed outline-2 outline-offset-2 outline-amber-300/70 hover:bg-amber-400/15 motion-safe:animate-pulse",
+        selected && "scale-105 bg-rose-500/25 outline outline-2 outline-offset-2 outline-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.45)]",
       )}
     >
+      {selected && (
+        <span className="pointer-events-none absolute -top-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-rose-500 px-2 text-xs font-bold text-white shadow">
+          🎯 Mục tiêu
+        </span>
+      )}
       <span className="relative inline-flex">
         {isTurn && (
           <span
