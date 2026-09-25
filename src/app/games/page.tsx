@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Games",
-  description: "Các game mình tự làm: Tiến Lên Miền Nam, Mèo Nổ và Cờ Tỷ Phú chơi online cùng bạn bè, cùng Contra phiên bản trình duyệt.",
+  description: "Các game mình tự làm: Tiến Lên Miền Nam, Mèo Nổ, Cờ Tỷ Phú và Đá Quý chơi online cùng bạn bè, cùng Contra phiên bản trình duyệt.",
 };
 
 interface GameCard {
@@ -39,6 +39,14 @@ const GAMES: GameCard[] = [
     tagline: "Mua đất Hạ Long, Hội An, Phú Quốc… xây nhà, thu tiền thuê, đổi đất với bạn bè. Chơi 2–6 người.",
     tags: ["Online", "2–6 người", "Địa danh Việt Nam"],
     gradient: "from-lime-500/30 via-teal-700/20 to-transparent",
+  },
+  {
+    href: "/splendor",
+    title: "Đá Quý (Splendor)",
+    emoji: "💎",
+    tagline: "Lấy đá, mua thẻ, thu hút quý tộc — ai đạt điểm uy tín trước thì thắng. Chơi 2–4 người.",
+    tags: ["Online", "2–4 người", "Chiến thuật"],
+    gradient: "from-fuchsia-500/30 via-violet-700/20 to-transparent",
   },
   {
     href: "/contra",

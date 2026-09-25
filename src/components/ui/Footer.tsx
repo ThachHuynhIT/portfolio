@@ -34,7 +34,8 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
     pathname?.startsWith("/contra") ||
     pathname?.startsWith("/tien-len") ||
     pathname?.startsWith("/meo-no") ||
-    pathname?.startsWith("/co-ty-phu")
+    pathname?.startsWith("/co-ty-phu") ||
+    pathname?.startsWith("/splendor")
   ) {
     return null;
   }

@@ -213,7 +213,8 @@ export default function Navigation({ navLinks }: NavigationProps) {
     pathname?.startsWith("/contra") ||
     pathname?.startsWith("/tien-len") ||
     pathname?.startsWith("/meo-no") ||
-    pathname?.startsWith("/co-ty-phu")
+    pathname?.startsWith("/co-ty-phu") ||
+    pathname?.startsWith("/splendor")
   ) {
     return null;
   }
