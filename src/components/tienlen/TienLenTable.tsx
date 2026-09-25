@@ -306,7 +306,11 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onEmoji, onKick, t
                 </div>
                 <p className="text-sm text-emerald-50/90">
                   <b>{nameOf(game.lastPlay.playerId)}</b> · {comboName(game.lastPlay.combo)}
-                  {game.lastPlay.chop && <span className="ml-2 font-black text-rose-400">CHẶT!</span>}
+                  {game.lastPlay.chop && (
+                    <span className="ml-2 font-black text-rose-400">
+                      CHẶT!{game.lastPlay.chopPoints ? ` +${game.lastPlay.chopPoints}đ` : ""}
+                    </span>
+                  )}
                 </p>
               </>
             ) : (
@@ -336,6 +340,23 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onEmoji, onKick, t
         </div>
 
         {!spectator && hand.length > 0 && (
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <ActionButton onClick={doPass} disabled={!canPass}>
+              Bỏ lượt
+            </ActionButton>
+            <ActionButton onClick={doPlay} disabled={!canPlay} primary big>
+              ĐÁNH 🃏
+            </ActionButton>
+            <ActionButton onClick={() => setSelected([])} disabled={!selected.length}>
+              Bỏ chọn
+            </ActionButton>
+            <ActionButton onClick={() => setSortMode((m) => (m === "rank" ? "suit" : "rank"))}>
+              Xếp: {sortMode === "rank" ? "số" : "chất"}
+            </ActionButton>
+          </div>
+        )}
+
+        {!spectator && hand.length > 0 && (
           <div className="flex w-full justify-center overflow-visible pt-5">
             {hand.map((c, i) => (
               <PlayingCard
@@ -350,25 +371,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onEmoji, onKick, t
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          {!spectator && hand.length > 0 && (
-            <>
-              <ActionButton onClick={doPlay} disabled={!canPlay} primary>
-                Đánh
-              </ActionButton>
-              <ActionButton onClick={doPass} disabled={!canPass}>
-                Bỏ lượt
-              </ActionButton>
-              <ActionButton onClick={() => setSelected([])} disabled={!selected.length}>
-                Bỏ chọn
-              </ActionButton>
-              <ActionButton onClick={() => setSortMode((m) => (m === "rank" ? "suit" : "rank"))}>
-                Xếp: {sortMode === "rank" ? "số" : "chất"}
-              </ActionButton>
-            </>
-          )}
-          <EmojiBar onSend={onEmoji} />
-        </div>
+        <EmojiBar onSend={onEmoji} />
       </div>
 
       {showScores && <ScoreboardModal view={view} onClose={() => setShowScores(false)} />}
@@ -387,11 +390,13 @@ function ActionButton({
   onClick,
   disabled,
   primary,
+  big,
 }: {
   children: React.ReactNode;
   onClick: () => void;
   disabled?: boolean;
   primary?: boolean;
+  big?: boolean;
 }) {
   return (
     <button
@@ -399,6 +404,7 @@ function ActionButton({
       disabled={disabled}
       className={cn(
         "min-w-[84px] rounded-lg px-4 py-2 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40",
+        big && "min-w-[150px] rounded-xl px-8 py-3 text-lg font-black tracking-wide sm:min-w-[180px] sm:text-xl",
         primary
           ? "bg-amber-400 text-black shadow-[0_0_20px_rgba(251,191,36,0.35)] enabled:hover:bg-amber-300"
           : "border border-emerald-200/25 bg-black/25 text-emerald-50 enabled:hover:bg-white/10",
@@ -467,7 +473,11 @@ function StatusTags({
     <span className="flex flex-wrap items-center justify-center gap-1 text-[11px]">
       {seat.isHost && <span title="Chủ phòng">👑</span>}
       {rankLabel && <span className="rounded bg-amber-400 px-1.5 font-bold text-black">{rankLabel}</span>}
-      {!gameEnded && seat.passed && <span className="rounded bg-black/40 px-1.5 text-emerald-100/80">Bỏ lượt</span>}
+      {!gameEnded && seat.passed && (
+        <span className="rounded bg-black/40 px-1.5 text-emerald-100/80" title={seat.autoPassed ? "Không có bài chặn được nên tự bỏ lượt" : undefined}>
+          {seat.autoPassed ? "Tự bỏ (không chặn được)" : "Bỏ lượt"}
+        </span>
+      )}
       {seat.kicked ? (
         <span className="rounded bg-rose-900/60 px-1.5 text-rose-200">Đã bị kích</span>
       ) : (

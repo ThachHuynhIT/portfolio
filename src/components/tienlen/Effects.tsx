@@ -9,6 +9,9 @@ export interface ChopFx {
   key: string;
   heo: boolean;
   by: string;
+  /** Points moved by this chop, and who paid them. */
+  points: number;
+  victim: string | null;
 }
 
 /**
@@ -27,7 +30,13 @@ export function useChopEffect(lastPlay: LastPlay | null, nameOf: (id: string) =>
     // Don't replay a chop that was already on the table when we connected.
     if (first || !lastPlay.chop) return;
     const heo = !!lastPlay.chopped && rankOf(lastPlay.chopped.top) === RANK_TWO;
-    setFx({ key, heo, by: nameOf(lastPlay.playerId) });
+    setFx({
+      key,
+      heo,
+      by: nameOf(lastPlay.playerId),
+      points: lastPlay.chopPoints ?? 0,
+      victim: lastPlay.choppedPlayer ? nameOf(lastPlay.choppedPlayer) : null,
+    });
     const id = setTimeout(() => setFx((cur) => (cur?.key === key ? null : cur)), heo ? 2200 : 1400);
     return () => clearTimeout(id);
   }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -71,8 +80,18 @@ export function ChopOverlay({ fx }: { fx: ChopFx | null }) {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            {fx.by} chặt!
+            {fx.by} chặt{fx.victim ? ` ${fx.victim}` : ""}!
           </motion.p>
+          {fx.points > 0 && (
+            <motion.p
+              className="relative mt-2 rounded-full bg-amber-400 px-4 py-1 text-lg font-black text-black shadow-lg"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: [0, 1.3, 1], opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.4 }}
+            >
+              +{fx.points} điểm
+            </motion.p>
+          )}
           {fx.heo &&
             Array.from({ length: 10 }, (_, i) => (
               <motion.span

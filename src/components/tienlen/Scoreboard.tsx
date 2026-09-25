@@ -30,7 +30,8 @@ export interface ScoreboardData {
   history: GameRecord[];
 }
 
-const TIENLEN_NOTE = "Điểm mỗi ván: 4 người +3/+1/−1/−3 · 3 người +2/0/−2 · 2 người +1/−1 · tới trắng +2 từ mỗi người.";
+const TIENLEN_NOTE =
+  "Điểm mỗi ván: Nhất +2, Nhì +1 (4 người +2/+1/−1/−2 · 3 người +2/+1/−3 · 2 người +2/−2) · tới trắng +2 từ mỗi người · chặt heo đen +1, heo đỏ +2, chặt chồng +2 (người bị chặt trả).";
 
 export function ScoreboardModal({ view, onClose, note = TIENLEN_NOTE }: { view: ScoreboardData; onClose: () => void; note?: string }) {
   const players = view.seats.filter((s): s is NonNullable<typeof s> => !!s).sort((a, b) => b.points - a.points);

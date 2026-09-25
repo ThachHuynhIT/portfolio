@@ -184,6 +184,21 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
     return () => clearTimeout(t);
   }, [cardFx]);
 
+  // "Just built" banner, driven by the 🏠 lines in the log.
+  const [buildFx, setBuildFx] = useState<{ id: number; text: string; hotel: boolean } | null>(null);
+  const lastBuildId = useRef(g?.log.filter((e) => e.text.startsWith("🏠")).at(-1)?.id ?? 0);
+  const latestBuild = g?.log.filter((e) => e.text.startsWith("🏠")).at(-1);
+  useEffect(() => {
+    if (!latestBuild || latestBuild.id <= lastBuildId.current) return;
+    lastBuildId.current = latestBuild.id;
+    setBuildFx({ id: latestBuild.id, text: latestBuild.text.replace(/^🏠\s*/, ""), hotel: latestBuild.text.includes("khách sạn") });
+  }, [latestBuild?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!buildFx) return;
+    const t = setTimeout(() => setBuildFx(null), 2200);
+    return () => clearTimeout(t);
+  }, [buildFx]);
+
   const live = useLiveReactions(view.reactions);
   const reactionsFor = (id: string): Reaction[] => live.filter((r) => r.playerId === id);
 
@@ -267,6 +282,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
             {/* Centre */}
             <div className="relative flex flex-col items-center justify-center gap-2 overflow-hidden bg-[radial-gradient(ellipse_at_center,#d9f2e3_0%,#a7d7b8_100%)] p-2 text-emerald-950 sm:p-4" style={{ gridColumn: "2 / 11", gridRow: "2 / 11" }}>
               <CardOverlay card={cardFx} nameOf={nameOf} onClose={() => setCardFx(null)} />
+              <BuildOverlay fx={buildFx} />
               {!g || g.status === "ended" ? (
                 <Waiting view={view} me={me} act={act} nameOf={nameOf} />
               ) : (
@@ -402,6 +418,46 @@ const formatClock = (ms: number) => {
 
 // ─── Board cells ────────────────────────────────────────────────────
 
+/** A little house (green) or hotel (red) drawn in SVG so it stays crisp at any board size. */
+function Building({ hotel, className }: { hotel?: boolean; className?: string }) {
+  return hotel ? (
+    <svg viewBox="0 0 20 12" className={className} aria-hidden>
+      <path d="M1 4 L10 0.8 L19 4 V11.5 H1 Z" fill="#dc2626" stroke="#fff" strokeWidth="1" strokeLinejoin="round" />
+      <rect x="4" y="6" width="3" height="3" fill="#fde68a" />
+      <rect x="8.5" y="6" width="3" height="5.5" fill="#fde68a" />
+      <rect x="13" y="6" width="3" height="3" fill="#fde68a" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 12 12" className={className} aria-hidden>
+      <path d="M6 0.8 L11.3 5.6 H9.8 V11.4 H2.2 V5.6 H0.7 Z" fill="#16a34a" stroke="#fff" strokeWidth="1" strokeLinejoin="round" />
+      <rect x="5" y="7.6" width="2" height="3.8" fill="#fef3c7" />
+    </svg>
+  );
+}
+
+/** Houses on a colour band; the newest one pops in when built. */
+function Buildings({ count, vertical }: { count: number; vertical: boolean }) {
+  // Only buildings added after the page opened get the pop-in.
+  const initialCount = useRef(count);
+  if (count <= 0) return null;
+  const hotel = count === MAX_HOUSES;
+  return (
+    <span className={cn("flex h-full w-full items-center justify-center gap-[1px] p-[1px]", vertical && "flex-col")}>
+      {(hotel ? [0] : Array.from({ length: count }, (_, i) => i)).map((i) => (
+        <motion.span
+          key={`${hotel ? "hotel" : "house"}-${i}`}
+          initial={i < initialCount.current && (!hotel || initialCount.current === MAX_HOUSES) ? false : { scale: 0, y: -8 }}
+          animate={{ scale: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 420, damping: 14 }}
+          className={cn("flex items-center justify-center drop-shadow", vertical ? "w-full" : "h-full", hotel ? (vertical ? "h-[70%]" : "w-[70%]") : vertical ? "h-[30%]" : "w-[30%]")}
+        >
+          <Building hotel={hotel} className="h-full w-full" />
+        </motion.span>
+      ))}
+    </span>
+  );
+}
+
 function Cell({
   index,
   sq,
@@ -423,35 +479,44 @@ function Cell({
   const band = sq.kind === "prop" ? GROUP_COLORS[sq.group] : null;
   const owner = deed ? tokenOf(deed.owner) : null;
   const bandSide = side === "bottom" ? "top" : side === "top" ? "bottom" : side === "left" ? "right" : side === "right" ? "left" : null;
+  const houses = deed?.houses ?? 0;
+  // Owners already there when the page opened don't replay the badge animation.
+  const initialOwner = useRef(deed?.owner);
+  // Owner badge sits on the outer edge, away from the colour band.
+  const badgePos =
+    side === "bottom" ? "bottom-[1px] right-[1px]" : side === "top" ? "top-[1px] left-[1px]" : side === "left" ? "left-[1px] top-[1px]" : "right-[1px] bottom-[1px]";
 
   return (
     <button
       onClick={onClick}
-      style={{ gridRow: row, gridColumn: col, boxShadow: owner ? `inset 0 0 0 2px ${owner.color}` : undefined }}
+      style={{
+        gridRow: row,
+        gridColumn: col,
+        // Tint in the owner's colour, layered over the cream card colour.
+        backgroundImage: owner ? `linear-gradient(135deg, ${owner.color}66, ${owner.color}26 65%, transparent)` : undefined,
+        boxShadow: owner ? `inset 0 0 0 3px ${owner.color}` : undefined,
+      }}
       className={cn(
-        "relative flex min-h-0 min-w-0 flex-col items-center justify-center overflow-hidden bg-[#f4efe1] p-[1px] text-center leading-tight text-emerald-950 transition-colors hover:bg-white",
+        "relative flex min-h-0 min-w-0 flex-col items-center justify-center overflow-hidden bg-[#f4efe1] p-[1px] text-center leading-tight text-emerald-950 transition-colors hover:brightness-105",
         side === "corner" && "bg-[#e6f4ea]",
-        highlight && "bg-amber-100",
-        deed?.mortgaged && "opacity-60",
+        highlight && "ring-2 ring-inset ring-amber-400",
+        deed?.mortgaged && "opacity-60 grayscale-[40%]",
       )}
-      title={sq.name}
+      title={deed ? `${sq.name} — chủ ${owner?.emoji}` : sq.name}
     >
       {band && bandSide && (
         <span
           className={cn(
             "absolute",
-            bandSide === "top" && "inset-x-0 top-0 h-[22%]",
-            bandSide === "bottom" && "inset-x-0 bottom-0 h-[22%]",
-            bandSide === "left" && "inset-y-0 left-0 w-[22%]",
-            bandSide === "right" && "inset-y-0 right-0 w-[22%]",
+            bandSide === "top" && "inset-x-0 top-0",
+            bandSide === "bottom" && "inset-x-0 bottom-0",
+            bandSide === "left" && "inset-y-0 left-0",
+            bandSide === "right" && "inset-y-0 right-0",
+            bandSide === "top" || bandSide === "bottom" ? (houses ? "h-[40%]" : "h-[22%]") : houses ? "w-[40%]" : "w-[22%]",
           )}
           style={{ background: band }}
         >
-          {deed && deed.houses > 0 && (
-            <span className="flex h-full w-full items-center justify-center text-[7px] sm:text-[10px]">
-              {deed.houses === MAX_HOUSES ? "🏨" : "🏠".repeat(deed.houses)}
-            </span>
-          )}
+          <Buildings count={houses} vertical={bandSide === "left" || bandSide === "right"} />
         </span>
       )}
       <span className="pointer-events-none flex flex-col items-center px-[2px]">
@@ -463,6 +528,21 @@ function Cell({
         {isOwnable(sq) && !deed && <span className="hidden text-[8px] text-emerald-900/70 sm:block">{money(sq.price)}</span>}
         {deed?.mortgaged && <span className="text-[6px] font-bold text-rose-700 sm:text-[8px]">THẾ CHẤP</span>}
       </span>
+      {owner && deed && (
+        <motion.span
+          key={deed.owner}
+          initial={deed.owner === initialOwner.current ? false : { scale: 3, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 15 }}
+          className={cn(
+            "pointer-events-none absolute flex aspect-square h-[30%] min-h-[10px] items-center justify-center rounded-full border border-white text-[6px] shadow sm:text-[10px]",
+            badgePos,
+          )}
+          style={{ background: owner.color }}
+        >
+          {owner.emoji}
+        </motion.span>
+      )}
       {here.length > 0 && (
         <span className="absolute inset-0 flex flex-wrap items-center justify-center gap-[1px] p-[2px]">
           {here.map((p) => (
@@ -638,6 +718,32 @@ function CBtn({ children, onClick, disabled, primary, danger }: { children: Reac
   );
 }
 
+function BuildOverlay({ fx }: { fx: { id: number; text: string; hotel: boolean } | null }) {
+  return (
+    <AnimatePresence>
+      {fx && (
+        <motion.div
+          key={fx.id}
+          className="pointer-events-none absolute inset-x-0 top-[12%] z-20 flex flex-col items-center"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+        >
+          <motion.div
+            initial={{ scale: 0, rotate: -15 }}
+            animate={{ scale: [0, 1.3, 1], rotate: 0 }}
+            transition={{ duration: 0.5 }}
+            className="h-14 drop-shadow-lg sm:h-20"
+          >
+            <Building hotel={fx.hotel} className="h-full" />
+          </motion.div>
+          <p className="mt-1 rounded-full bg-emerald-800 px-3 py-1 text-xs font-semibold text-white shadow sm:text-sm">{fx.text}</p>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 function CardOverlay({ card, nameOf, onClose }: { card: TPGameView["lastCard"]; nameOf: (id: string) => string; onClose: () => void }) {
   return (
     <AnimatePresence>
@@ -800,6 +906,15 @@ function SquareModal({
               {deed.houses > 0 && <> · {deed.houses === MAX_HOUSES ? "1 khách sạn" : `${deed.houses} nhà`}</>}
               {deed.mortgaged && <b className="text-rose-700"> · đang thế chấp</b>}
             </p>
+          )}
+          {deed && deed.houses > 0 && (
+            <div className="flex h-10 items-end justify-center gap-1 rounded bg-emerald-900/10 p-1">
+              {deed.houses === MAX_HOUSES ? (
+                <Building hotel className="h-full" />
+              ) : (
+                Array.from({ length: deed.houses }, (_, i) => <Building key={i} className="h-full" />)
+              )}
+            </div>
           )}
           {g && g.players.some((p) => p.pos === pos && !p.bankrupt) && (
             <p className="text-xs text-emerald-900/70">Đang đứng ở đây: {g.players.filter((p) => p.pos === pos && !p.bankrupt).map((p) => nameOf(p.id)).join(", ")}</p>

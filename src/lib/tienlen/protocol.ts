@@ -13,6 +13,10 @@ export interface LastPlay {
   chop: boolean;
   /** The combo this play chopped (chặt), e.g. a single 2 — null for a normal beat. */
   chopped?: Combo | null;
+  /** Points the chopper takes from the chopped player (chặt heo). */
+  chopPoints?: number;
+  /** Who got chopped. */
+  choppedPlayer?: string;
 }
 
 export const MAX_NAME_LENGTH = 16;
@@ -37,6 +41,8 @@ export interface SeatView {
   inGame: boolean;
   cardCount: number;
   passed: boolean;
+  /** The server passed for them: nothing in hand could beat the table. */
+  autoPassed?: boolean;
   wins: number;
   /** Cumulative points in this room. */
   points: number;
