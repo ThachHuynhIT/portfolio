@@ -11,6 +11,7 @@ import {
   AIR_RENT,
   BOARD,
   GROUP_COLORS,
+  type Group,
   JAIL_FINE,
   MAX_HOUSES,
   type Ownable,
@@ -621,6 +622,9 @@ function Centre({
   const secs = secondsLeft(g.deadline);
   // Re-run the dice animation on every new roll (each roll writes a "🎲" log line).
   const rollId = [...g.log].reverse().find((e) => e.text.startsWith("🎲"))?.id ?? 0;
+  const [showBuild, setShowBuild] = useState(false);
+  const fullGroups = mine ? ownedFullGroups(g, mine.id) : [];
+  const housesOwned = mine ? Object.values(g.deeds).filter((d) => d.owner === mine.id && d.houses > 0).length : 0;
 
   return (
     <div className="flex w-full max-w-sm flex-col items-center gap-2 text-center">
@@ -676,6 +680,16 @@ function Centre({
               Kết thúc lượt ➜
             </CBtn>
           )}
+          {g.phase !== "debt" && (
+            <CBtn build onClick={() => setShowBuild(true)} disabled={busy || !fullGroups.length} title={fullGroups.length ? undefined : "Cần sở hữu đủ cả một nhóm màu"}>
+              🏠 Xây nhà{fullGroups.length ? ` (${fullGroups.length} nhóm)` : ""}
+            </CBtn>
+          )}
+          {g.phase === "debt" && housesOwned > 0 && (
+            <CBtn build onClick={() => setShowBuild(true)} disabled={busy}>
+              🏚️ Bán nhà
+            </CBtn>
+          )}
           {g.phase === "debt" && g.debt && (
             <div className="flex flex-col items-center gap-2 rounded-xl bg-rose-100 p-2 text-rose-900">
               <p className="text-xs sm:text-sm">
@@ -708,20 +722,161 @@ function Centre({
       {mine?.jail ? <p className="text-xs text-zinc-700">🚔 Bạn đang ở tù — tung đôi, nộp phạt hoặc dùng thẻ để ra.</p> : null}
       {view.role === "player" && mine && !mine.bankrupt && <p className="text-[11px] text-emerald-900/60">Bấm vào một ô để xem chi tiết, xây nhà hoặc thế chấp.</p>}
       {mine?.bankrupt && <p className="text-sm font-semibold text-rose-700">💸 Bạn đã phá sản — xem mọi người chơi tiếp nhé.</p>}
+      {showBuild && mine && <BuildPanel g={g} mine={mine} busy={busy} run={run} onClose={() => setShowBuild(false)} />}
     </div>
   );
 }
 
-function CBtn({ children, onClick, disabled, primary, danger }: { children: React.ReactNode; onClick: () => void; disabled?: boolean; primary?: boolean; danger?: boolean }) {
+const GROUP_NAMES: Record<Group, string> = {
+  brown: "Nâu",
+  lightblue: "Xanh nhạt",
+  pink: "Hồng",
+  orange: "Cam",
+  red: "Đỏ",
+  yellow: "Vàng",
+  green: "Xanh lá",
+  darkblue: "Xanh đậm",
+};
+const ALL_GROUPS = Object.keys(GROUP_NAMES) as Group[];
+
+/** Colour groups where `id` owns every city (the ones you can build on). */
+function ownedFullGroups(g: TPGameView, id: string): Group[] {
+  return ALL_GROUPS.filter((grp) => groupPositions(grp).every((p) => g.deeds[p]?.owner === id));
+}
+
+/** Build / sell houses on every group you own, without hunting for the squares on the board. */
+function BuildPanel({ g, mine, busy, run, onClose }: { g: TPGameView; mine: TPPlayerView; busy: boolean; run: Act; onClose: () => void }) {
+  const full = ownedFullGroups(g, mine.id);
+  const partial = ALL_GROUPS.filter((grp) => !full.includes(grp) && groupPositions(grp).some((p) => g.deeds[p]?.owner === mine.id));
+  const inDebt = g.phase === "debt";
+  return (
+    <Modal onClose={onClose} dark>
+      <div className="text-left">
+      <h2 className="mb-1 text-lg font-bold text-amber-300">{inDebt ? "🏚️ Bán nhà" : "🏠 Xây nhà"}</h2>
+      <p className="mb-3 text-xs text-sky-100/70">
+        Tiền mặt: <b className="text-emerald-300">{money(mine.cash)}</b> · Xây đều từng ô trong nhóm; 4 nhà rồi lên khách sạn. Bán nhà được nửa giá.
+      </p>
+      {full.length === 0 && <p className="text-sm text-sky-100/70">Bạn chưa sở hữu đủ nhóm màu nào.</p>}
+      <div className="space-y-3">
+        {full.map((grp) => {
+          const cells = groupPositions(grp);
+          const houses = cells.map((p) => g.deeds[p].houses);
+          const anyMortgaged = cells.some((p) => g.deeds[p].mortgaged);
+          return (
+            <div key={grp} className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
+              <div className="flex items-center justify-between px-3 py-1.5 text-sm font-bold text-black" style={{ background: GROUP_COLORS[grp] }}>
+                <span>Nhóm {GROUP_NAMES[grp]}</span>
+                {anyMortgaged && <span className="rounded bg-black/30 px-1.5 text-[11px] text-white">có ô đang thế chấp</span>}
+              </div>
+              <ul className="divide-y divide-white/5">
+                {cells.map((pos) => {
+                  const sq = BOARD[pos] as Extract<Square, { kind: "prop" }>;
+                  const d = g.deeds[pos];
+                  const canBuild =
+                    !inDebt && !anyMortgaged && d.houses < MAX_HOUSES && d.houses === Math.min(...houses) && mine.cash >= sq.house;
+                  const canSell = d.houses > 0 && d.houses === Math.max(...houses);
+                  const why = inDebt
+                    ? "Đang nợ — chỉ bán được"
+                    : anyMortgaged
+                      ? "Chuộc hết đất trong nhóm trước"
+                      : d.houses >= MAX_HOUSES
+                        ? "Đã có khách sạn"
+                        : d.houses !== Math.min(...houses)
+                          ? "Xây đều: ô khác trong nhóm trước"
+                          : mine.cash < sq.house
+                            ? `Cần ${money(sq.house)}`
+                            : "";
+                  return (
+                    <li key={pos} className="flex items-center gap-2 px-3 py-2 text-sm">
+                      <span className="min-w-0 flex-1">
+                        <b className="block truncate">{sq.name}</b>
+                        <span className="flex h-5 items-end gap-0.5">
+                          {d.houses === 0 && <span className="text-[11px] text-sky-100/50">Đất trống · thuê {money(sq.rent[0] * 2)}</span>}
+                          {d.houses === MAX_HOUSES ? (
+                            <Building hotel className="h-4" />
+                          ) : (
+                            Array.from({ length: d.houses }, (_, i) => <Building key={i} className="h-4" />)
+                          )}
+                          {d.houses > 0 && <span className="ml-1 text-[11px] text-sky-100/60">thuê {money(sq.rent[d.houses])}</span>}
+                        </span>
+                      </span>
+                      <button
+                        onClick={() => void run({ type: "sell", pos })}
+                        disabled={busy || !canSell}
+                        className="rounded-lg border border-white/20 px-2 py-1 text-xs font-semibold enabled:hover:bg-white/10 disabled:opacity-30"
+                        title={`Bán 1 nhà, nhận ${money(sq.house / 2)}`}
+                      >
+                        − Bán
+                      </button>
+                      {!inDebt && (
+                        <button
+                          onClick={() => void run({ type: "build", pos })}
+                          disabled={busy || !canBuild}
+                          title={why || undefined}
+                          className="rounded-lg bg-emerald-500 px-3 py-1 text-xs font-bold text-black enabled:hover:bg-emerald-400 disabled:opacity-30"
+                        >
+                          + {d.houses === MAX_HOUSES - 1 ? "Khách sạn" : "Nhà"} · {money(sq.house)}
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+      {!inDebt && partial.length > 0 && (
+        <div className="mt-4">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-sky-100/50">Còn thiếu để xây</p>
+          <ul className="space-y-1 text-xs text-sky-100/70">
+            {partial.map((grp) => (
+              <li key={grp} className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-sm" style={{ background: GROUP_COLORS[grp] }} />
+                Nhóm {GROUP_NAMES[grp]}: còn thiếu{" "}
+                {groupPositions(grp)
+                  .filter((p) => g.deeds[p]?.owner !== mine.id)
+                  .map((p) => BOARD[p].name)
+                  .join(", ")}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      </div>
+    </Modal>
+  );
+}
+
+function CBtn({
+  children,
+  onClick,
+  disabled,
+  primary,
+  danger,
+  build,
+  title,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  primary?: boolean;
+  danger?: boolean;
+  /** The house-building button: stands out next to the main action. */
+  build?: boolean;
+  title?: string;
+}) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
+      title={title}
       className={cn(
         "rounded-lg px-3 py-1.5 text-xs font-semibold shadow transition-all disabled:cursor-not-allowed disabled:opacity-40 sm:text-sm",
         primary && "bg-emerald-700 text-white enabled:hover:bg-emerald-600",
         danger && "bg-rose-600 text-white enabled:hover:bg-rose-500",
-        !primary && !danger && "border border-emerald-800/30 bg-white/70 enabled:hover:bg-white",
+        build && "bg-gradient-to-b from-amber-300 to-orange-500 text-black shadow-[0_3px_0_#9a3412] enabled:hover:brightness-110 enabled:active:translate-y-0.5",
+        !primary && !danger && !build && "border border-emerald-800/30 bg-white/70 enabled:hover:bg-white",
       )}
     >
       {children}
