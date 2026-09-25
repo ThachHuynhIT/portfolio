@@ -24,6 +24,7 @@ import {
   mortgageValue,
   unmortgageCost,
 } from "@/lib/typhu/board";
+import { SettingsTabs } from "@/components/games/SettingsTabs";
 import { RankPointsPicker } from "@/components/games/RankPointsPicker";
 import { STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TradeSide } from "@/lib/typhu/protocol";
 import type { Reaction } from "@/lib/tienlen";
@@ -84,6 +85,65 @@ function useNow(active: boolean, every = 500) {
 }
 
 /** Grid cell (1-based row/col) of a board position on the 11×11 board, Khởi hành bottom-right. */
+const BOARD_SIZE = 40;
+const GO_TO_JAIL_POS = 30;
+
+/**
+ * The squares a token visits between two positions: forward one square at a time, or a few
+ * squares back for "lùi 3 ô" cards. Entering jail walks to the Vào tù square first when the
+ * dice put the player there, then jumps to the jail.
+ */
+function walkPath(from: number, to: number, enteredJail: boolean, dice: [number, number] | null): number[] {
+  const forward = (a: number, b: number) => {
+    const steps: number[] = [];
+    for (let p = a; p !== b; ) steps.push((p = (p + 1) % BOARD_SIZE));
+    return steps;
+  };
+  if (enteredJail) {
+    const landed = dice ? (from + dice[0] + dice[1]) % BOARD_SIZE : -1;
+    return landed === GO_TO_JAIL_POS ? [...forward(from, GO_TO_JAIL_POS), to] : [to];
+  }
+  const ahead = (to - from + BOARD_SIZE) % BOARD_SIZE;
+  if (BOARD_SIZE - ahead <= 3) return Array.from({ length: BOARD_SIZE - ahead }, (_, i) => (from - i - 1 + BOARD_SIZE) % BOARD_SIZE);
+  return forward(from, to);
+}
+
+/**
+ * Where each token is drawn. The server jumps a player straight to their new square; here the
+ * token walks there square by square (faster for long card moves) so everyone can follow it.
+ */
+function useWalkingTokens(g: TPGameView | null) {
+  const players = g?.players ?? [];
+  const [shown, setShown] = useState<Record<string, number>>(() => Object.fromEntries(players.map((p) => [p.id, p.pos])));
+  const shownRef = useRef(shown);
+  shownRef.current = shown;
+  const jailRef = useRef<Record<string, number>>(Object.fromEntries(players.map((p) => [p.id, p.jail])));
+  const dice = g?.dice ?? null;
+  const key = players.map((p) => `${p.id}:${p.pos}:${p.jail}`).join("|");
+
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    // A new game puts everyone back on Khởi hành: no walk.
+    const reset = players.length > 0 && players.every((p) => p.pos === 0) && players.some((p) => (shownRef.current[p.id] ?? 0) !== 0);
+    for (const p of players) {
+      const from = shownRef.current[p.id];
+      const wasJailed = (jailRef.current[p.id] ?? 0) > 0;
+      jailRef.current[p.id] = p.jail;
+      if (from === p.pos) continue;
+      if (from === undefined || reset) {
+        setShown((m) => ({ ...m, [p.id]: p.pos }));
+        continue;
+      }
+      const path = walkPath(from, p.pos, !wasJailed && p.jail > 0, dice);
+      const step = Math.max(60, Math.min(220, 2600 / path.length));
+      path.forEach((pos, i) => timers.push(setTimeout(() => setShown((m) => ({ ...m, [p.id]: pos })), step * (i + 1))));
+    }
+    return () => timers.forEach(clearTimeout);
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (id: string, fallback: number) => shown[id] ?? fallback;
+}
+
 function cellOf(i: number): { row: number; col: number; side: "bottom" | "left" | "top" | "right" | "corner" } {
   if (i % 10 === 0) {
     const corners = [
@@ -162,6 +222,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
     seatOf(id)?.name ?? view.history.flatMap((h) => h.results).find((r) => r.id === id)?.name ?? "?";
   const tokenOf = (id: string) => TOKENS[(seatOf(id)?.color ?? g?.players.findIndex((p) => p.id === id) ?? 0) % TOKENS.length];
 
+  const shownPos = useWalkingTokens(g);
   const [openSquare, setOpenSquare] = useState<number | null>(null);
   const [showTrade, setShowTrade] = useState(false);
   const [showScores, setShowScores] = useState(false);
@@ -241,14 +302,15 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
             ← Sảnh
           </Link>
           <span className="rounded-md bg-black/30 px-2 py-1 font-mono text-base font-bold tracking-[0.2em] text-amber-300">{view.code}</span>
-          <button onClick={copyInvite} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10">
-            {copied ? "Đã chép link ✓" : "Chép link mời"}
+          <button onClick={copyInvite} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Chép link mời">
+            {copied ? "✓" : "🔗"}
+            <span className="hidden sm:inline"> {copied ? "Đã chép link" : "Chép link mời"}</span>
           </button>
-          <button onClick={() => setShowScores(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10">
-            🏆 Bảng điểm
+          <button onClick={() => setShowScores(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Bảng điểm">
+            🏆<span className="hidden sm:inline"> Bảng điểm</span>
           </button>
-          <button onClick={() => setShowRules(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10">
-            📖 Luật chơi
+          <button onClick={() => setShowRules(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Luật chơi">
+            📖<span className="hidden sm:inline"> Luật chơi</span>
           </button>
         </div>
         <div className="flex items-center gap-3 text-sky-100/70">
@@ -284,7 +346,8 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
                 sq={sq}
                 game={g}
                 tokenOf={tokenOf}
-                highlight={g?.players.some((p) => p.id === g.turn && p.pos === i) ?? false}
+                shownPos={shownPos}
+                highlight={g?.players.some((p) => p.id === g.turn && shownPos(p.id, p.pos) === i) ?? false}
                 onClick={() => setOpenSquare(i)}
               />
             ))}
@@ -314,7 +377,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
         <aside className="flex flex-col gap-3">
           <div className="rounded-2xl bg-black/35 p-3">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-100/60">Người chơi</p>
-            <ul className="space-y-2">
+            <ul className="grid grid-cols-2 gap-2 lg:grid-cols-1">
               {view.seats
                 .filter((s): s is TPSeatView => !!s)
                 .map((s) => {
@@ -472,6 +535,7 @@ function Cell({
   sq,
   game,
   tokenOf,
+  shownPos,
   highlight,
   onClick,
 }: {
@@ -479,12 +543,13 @@ function Cell({
   sq: Square;
   game: TPGameView | null;
   tokenOf: (id: string) => { emoji: string; color: string };
+  shownPos: (id: string, fallback: number) => number;
   highlight: boolean;
   onClick: () => void;
 }) {
   const { row, col, side } = cellOf(index);
   const deed = game?.deeds[index];
-  const here = game?.players.filter((p) => !p.bankrupt && p.pos === index) ?? [];
+  const here = game?.players.filter((p) => !p.bankrupt && shownPos(p.id, p.pos) === index) ?? [];
   const band = sq.kind === "prop" ? GROUP_COLORS[sq.group] : null;
   const owner = deed ? tokenOf(deed.owner) : null;
   const bandSide = side === "bottom" ? "top" : side === "top" ? "bottom" : side === "left" ? "right" : side === "right" ? "left" : null;
@@ -561,7 +626,8 @@ function Cell({
             <motion.span
               key={p.id}
               layoutId={`token-${p.id}`}
-              transition={{ type: "spring", stiffness: 220, damping: 22 }}
+              // Short tween per square: the walk itself is the square-by-square steps.
+              transition={{ layout: { type: "tween", ease: "easeOut", duration: 0.16 } }}
               className={cn(
                 "flex h-[42%] min-h-[12px] w-auto aspect-square items-center justify-center rounded-full border border-white text-[8px] shadow-md sm:text-sm",
                 game?.turn === p.id && "ring-2 ring-amber-400",
@@ -628,12 +694,13 @@ function Centre({
 
   return (
     <div className="flex w-full max-w-sm flex-col items-center gap-2 text-center">
-      <p className="text-lg font-black tracking-tight text-emerald-900 sm:text-3xl">CỜ TỶ PHÚ</p>
+      <p className="hidden font-black tracking-tight text-emerald-900 sm:block sm:text-3xl">CỜ TỶ PHÚ</p>
       <div className="flex items-center gap-2">
         {g.dice ? (
           <>
             <Die value={g.dice[0]} rolling={rollId} />
             <Die value={g.dice[1]} rolling={rollId + 0.5} />
+            <span className="ml-1 font-mono text-lg font-black text-emerald-900 sm:text-2xl">= {g.dice[0] + g.dice[1]}</span>
           </>
         ) : (
           <span className="text-3xl sm:text-5xl">🎲</span>
@@ -673,6 +740,7 @@ function Centre({
               <CBtn onClick={() => void run({ type: "skip" })} disabled={busy}>
                 Bỏ qua
               </CBtn>
+              <BuyHint g={g} sq={here} meId={mine.id} />
             </>
           )}
           {g.phase === "end" && (
@@ -719,12 +787,47 @@ function Centre({
           {turnName} đang xoay {money(g.debt.amount)} để trả nợ…
         </p>
       )}
+      {g.log.length > 0 && (
+        <ul className="w-full space-y-0.5 text-[11px] text-emerald-950/80 lg:hidden">
+          {g.log.slice(g.phase === "buy" && myTurn ? -1 : -2).map((e) => (
+            <li key={e.id} className="truncate rounded bg-white/50 px-2 py-0.5">
+              {e.text}
+            </li>
+          ))}
+        </ul>
+      )}
       {mine?.jail ? <p className="text-xs text-zinc-700">🚔 Bạn đang ở tù — tung đôi, nộp phạt hoặc dùng thẻ để ra.</p> : null}
-      {view.role === "player" && mine && !mine.bankrupt && <p className="text-[11px] text-emerald-900/60">Bấm vào một ô để xem chi tiết, xây nhà hoặc thế chấp.</p>}
+      {view.role === "player" && mine && !mine.bankrupt && (
+        <p className="hidden text-[11px] text-emerald-900/60 sm:block">Bấm vào một ô để xem chi tiết, xây nhà hoặc thế chấp.</p>
+      )}
       {mine?.bankrupt && <p className="text-sm font-semibold text-rose-700">💸 Bạn đã phá sản — xem mọi người chơi tiếp nhé.</p>}
       {showBuild && mine && <BuildPanel g={g} mine={mine} busy={busy} run={run} onClose={() => setShowBuild(false)} />}
     </div>
   );
+}
+
+/** One line under the Mua button: the rent you'd earn and how close you are to the full group. */
+function BuyHint({ g, sq, meId }: { g: TPGameView; sq: Ownable; meId: string }) {
+  let text: React.ReactNode;
+  if (sq.kind === "prop") {
+    const cells = groupPositions(sq.group);
+    const have = cells.filter((p) => g.deeds[p]?.owner === meId).length;
+    const others = cells.filter((p) => g.deeds[p] && g.deeds[p].owner !== meId).length;
+    text = (
+      <>
+        <span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm align-middle" style={{ background: GROUP_COLORS[sq.group] }} />
+        Thuê {money(sq.rent[0])} · khách sạn {money(sq.rent[5])} · nhóm {GROUP_NAMES[sq.group]}: bạn có {have}/{cells.length}
+        {have + 1 === cells.length && others === 0 && <b className="text-emerald-700"> — mua là đủ nhóm!</b>}
+        {others > 0 && <span className="text-rose-700"> (người khác đã giữ {others})</span>}
+      </>
+    );
+  } else if (sq.kind === "air") {
+    const have = Object.entries(g.deeds).filter(([pos, d]) => d.owner === meId && BOARD[Number(pos)].kind === "air").length;
+    text = <>Thuê {AIR_RENT.map((r) => money(r)).join(" → ")} theo số sân bay · bạn có {have}/4</>;
+  } else {
+    text = <>Thuê = xúc xắc × {UTIL_MULT[0]} (có cả hai: × {UTIL_MULT[1]})</>;
+  }
+  return <p className="w-full rounded-lg bg-white/60 px-2 py-1 text-[11px] text-emerald-950 sm:text-xs">{text}</p>;
 }
 
 const GROUP_NAMES: Record<Group, string> = {
@@ -1379,85 +1482,100 @@ function Waiting({ view, me, act, nameOf }: { view: TPRoomView; me: TPSeatView |
         </>
       )}
 
-      <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
-        <label className="flex flex-col gap-1">
-          <span className="font-semibold text-emerald-900/70">Tiền khởi đầu</span>
-          <select
-            value={view.settings.startCash}
-            disabled={!isHost}
-            onChange={(e) => void act({ type: "settings", startCash: Number(e.target.value) })}
-            className="rounded-md border border-emerald-900/20 bg-white px-2 py-1"
-          >
-            {START_CASH_OPTIONS.map((v) => (
-              <option key={v} value={v}>
-                {money(v)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="font-semibold text-emerald-900/70">Giới hạn thời gian</span>
-          <select
-            value={view.settings.timeLimit}
-            disabled={!isHost}
-            onChange={(e) => void act({ type: "settings", timeLimit: Number(e.target.value) })}
-            className="rounded-md border border-emerald-900/20 bg-white px-2 py-1"
-          >
-            {TIME_LIMIT_OPTIONS.map((v) => (
-              <option key={v} value={v}>
-                {v ? `${v} phút` : "Đến khi còn 1 người"}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <div className="mb-3 space-y-2 rounded-lg bg-emerald-900/10 p-2 text-xs text-emerald-950">
-        <label className="flex items-center justify-between gap-2">
-          <span>Thời gian mỗi bước</span>
-          <select
-            value={view.settings.stepSeconds ?? 30}
-            disabled={!isHost}
-            onChange={(e) => void act({ type: "settings", stepSeconds: Number(e.target.value) })}
-            className="rounded-md border border-emerald-900/20 bg-white px-2 py-0.5"
-          >
-            {STEP_SECONDS_OPTIONS.map((v) => (
-              <option key={v} value={v}>
-                {v} giây
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={cn("flex items-center justify-between gap-2", isHost && "cursor-pointer")}>
-          <span>Dừng đúng Khởi hành nhận gấp đôi (400tr)</span>
-          <input
-            type="checkbox"
-            checked={!!view.settings.doubleGo}
-            disabled={!isHost}
-            onChange={(e) => void act({ type: "settings", doubleGo: e.target.checked })}
-            className="h-4 w-4 accent-emerald-700"
-          />
-        </label>
-        <label className={cn("flex items-center justify-between gap-2", isHost && "cursor-pointer")}>
-          <span>Quỹ Nghỉ chân: thuế &amp; tiền phạt dồn vào ô ☕, ai dừng đó hốt hết</span>
-          <input
-            type="checkbox"
-            checked={!!view.settings.parkingPot}
-            disabled={!isHost}
-            onChange={(e) => void act({ type: "settings", parkingPot: e.target.checked })}
-            className="h-4 w-4 accent-emerald-700"
-          />
-        </label>
-        <RankPointsPicker
-          first={view.settings.first ?? 2}
-          second={view.settings.second ?? 1}
-          players={count}
-          editable={isHost}
-          onChange={(v) => void act({ type: "settings", ...v })}
-          className="[&_select]:bg-white [&_select]:text-emerald-950"
-        />
-        {!isHost && <p className="text-emerald-900/50">Chỉ chủ bàn đổi được luật.</p>}
-      </div>
+      <SettingsTabs
+        light
+        className="mb-3 text-emerald-950"
+        tabs={[
+          {
+            id: "money",
+            label: "💰 Tiền",
+            content: (
+              <div className="space-y-2">
+                <label className="flex items-center justify-between gap-2">
+                  <span>Tiền khởi đầu</span>
+                  <select
+                    value={view.settings.startCash}
+                    disabled={!isHost}
+                    onChange={(e) => void act({ type: "settings", startCash: Number(e.target.value) })}
+                    className="rounded-md border border-emerald-900/20 bg-white px-2 py-0.5"
+                  >
+                    {START_CASH_OPTIONS.map((v) => (
+                      <option key={v} value={v}>
+                        {money(v)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <Toggle
+                  label="Dừng đúng Khởi hành nhận gấp đôi (400tr)"
+                  checked={!!view.settings.doubleGo}
+                  disabled={!isHost}
+                  onChange={(v) => void act({ type: "settings", doubleGo: v })}
+                />
+                <Toggle
+                  label="Quỹ Nghỉ chân ☕: thuế & tiền phạt dồn vào, ai dừng đó hốt hết"
+                  checked={!!view.settings.parkingPot}
+                  disabled={!isHost}
+                  onChange={(v) => void act({ type: "settings", parkingPot: v })}
+                />
+              </div>
+            ),
+          },
+          {
+            id: "time",
+            label: "⏱️ Thời gian",
+            content: (
+              <div className="space-y-2">
+                <label className="flex items-center justify-between gap-2">
+                  <span>Giới hạn ván</span>
+                  <select
+                    value={view.settings.timeLimit}
+                    disabled={!isHost}
+                    onChange={(e) => void act({ type: "settings", timeLimit: Number(e.target.value) })}
+                    className="rounded-md border border-emerald-900/20 bg-white px-2 py-0.5"
+                  >
+                    {TIME_LIMIT_OPTIONS.map((v) => (
+                      <option key={v} value={v}>
+                        {v ? `${v} phút` : "Đến khi còn 1 người"}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex items-center justify-between gap-2">
+                  <span>Thời gian mỗi bước</span>
+                  <select
+                    value={view.settings.stepSeconds ?? 30}
+                    disabled={!isHost}
+                    onChange={(e) => void act({ type: "settings", stepSeconds: Number(e.target.value) })}
+                    className="rounded-md border border-emerald-900/20 bg-white px-2 py-0.5"
+                  >
+                    {STEP_SECONDS_OPTIONS.map((v) => (
+                      <option key={v} value={v}>
+                        {v} giây
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            ),
+          },
+          {
+            id: "points",
+            label: "🏆 Điểm",
+            content: (
+              <RankPointsPicker
+                first={view.settings.first ?? 2}
+                second={view.settings.second ?? 1}
+                players={count}
+                editable={isHost}
+                onChange={(v) => void act({ type: "settings", ...v })}
+                className="[&_select]:bg-white [&_select]:text-emerald-950"
+              />
+            ),
+          },
+        ]}
+      />
+      {!isHost && <p className="-mt-2 mb-2 text-xs text-emerald-900/50">Chỉ chủ bàn đổi được luật.</p>}
 
       {isHost ? (
         <button
@@ -1471,6 +1589,15 @@ function Waiting({ view, me, act, nameOf }: { view: TPRoomView; me: TPSeatView |
         <p className="text-xs text-emerald-900/70">{view.role === "spectator" ? "Chờ ván mới…" : "Chờ chủ bàn bắt đầu…"}</p>
       )}
     </div>
+  );
+}
+
+function Toggle({ label, checked, disabled, onChange }: { label: string; checked: boolean; disabled: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className={cn("flex items-center justify-between gap-2", !disabled && "cursor-pointer")}>
+      <span>{label}</span>
+      <input type="checkbox" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} className="h-4 w-4 shrink-0 accent-emerald-700" />
+    </label>
   );
 }
 

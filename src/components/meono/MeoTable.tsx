@@ -28,17 +28,20 @@ import {
 import {
   DEFAULT_MEO_SETTINGS,
   MEONO_WS_PATH,
+  type MeoPlay,
   type MeoRoomView,
   type MeoSeatView,
   NOPE_SECONDS_OPTIONS,
   TURN_SECONDS_OPTIONS,
   insertRange,
 } from "@/lib/meono/protocol";
+import { SettingsTabs } from "@/components/games/SettingsTabs";
 import { RankPointsPicker } from "@/components/games/RankPointsPicker";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { CardGuide } from "./CardGuide";
 import { MeoCard } from "./MeoCard";
+import { PlayHistory } from "./PlayHistory";
 
 const SCORE_NOTE =
   "Điểm theo thứ hạng: người sống sót cuối cùng Nhất, ai bị loại trước xếp sau. Chủ bàn chọn điểm Nhất / Nhì, các hạng cuối trừ tương ứng, tổng mỗi ván luôn bằng 0.";
@@ -172,6 +175,7 @@ function Board({
   const [named, setNamed] = useState<CardType | "">("");
   const [focus, setFocus] = useState<CardType | null>(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [sideTab, setSideTab] = useState<"plays" | "log">("plays");
   const [showScores, setShowScores] = useState(false);
   const [showDiscard, setShowDiscard] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -480,27 +484,46 @@ function Board({
           )}
         </div>
 
-        {/* Side: log */}
-        <aside className="flex max-h-[420px] flex-col rounded-2xl border border-white/10 bg-black/30 p-3 lg:max-h-none">
-          <h3 className="mb-2 text-sm font-bold text-amber-200">Diễn biến</h3>
-          <ol className="flex-1 space-y-1 overflow-y-auto text-sm">
-            {(g?.log ?? []).slice().reverse().map((e) => (
-              <li
-                key={e.id}
-                className={cn(
-                  "rounded-md px-2 py-1",
-                  e.tone === "boom" && "bg-rose-600/30 text-rose-100",
-                  e.tone === "defuse" && "bg-emerald-600/25 text-emerald-100",
-                  e.tone === "nope" && "bg-red-900/40 text-red-100",
-                  e.tone === "steal" && "bg-amber-600/20 text-amber-100",
-                  (!e.tone || e.tone === "info") && "text-orange-50/80",
-                )}
+        {/* Side: card history + log */}
+        <aside className="flex max-h-[460px] min-h-0 flex-col rounded-2xl border border-white/10 bg-black/30 p-3 lg:max-h-[calc(100dvh-8rem)]">
+          <div className="mb-2 flex gap-1 rounded-lg bg-black/30 p-1 text-xs font-semibold">
+            {(
+              [
+                ["plays", `🃏 Lịch sử bài${g?.plays?.length ? ` · ${g.plays.length}` : ""}`],
+                ["log", "📜 Diễn biến"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                onClick={() => setSideTab(id)}
+                className={cn("flex-1 whitespace-nowrap rounded-md px-2 py-1.5", sideTab === id ? "bg-amber-400 text-black" : "text-orange-100/70 hover:bg-white/10")}
               >
-                {e.text}
-              </li>
+                {label}
+              </button>
             ))}
-            {!g?.log.length && <li className="text-orange-100/50">Chưa có gì xảy ra.</li>}
-          </ol>
+          </div>
+          {sideTab === "plays" ? (
+            <PlayHistory plays={g?.plays ?? []} nameOf={nameOf} meId={view.meId} className="flex-1" />
+          ) : (
+            <ol className="flex-1 space-y-1 overflow-y-auto text-sm">
+              {(g?.log ?? []).slice().reverse().map((e) => (
+                <li
+                  key={e.id}
+                  className={cn(
+                    "rounded-md px-2 py-1",
+                    e.tone === "boom" && "bg-rose-600/30 text-rose-100",
+                    e.tone === "defuse" && "bg-emerald-600/25 text-emerald-100",
+                    e.tone === "nope" && "bg-red-900/40 text-red-100",
+                    e.tone === "steal" && "bg-amber-600/20 text-amber-100",
+                    (!e.tone || e.tone === "info") && "text-orange-50/80",
+                  )}
+                >
+                  {e.text}
+                </li>
+              ))}
+              {!g?.log.length && <li className="text-orange-100/50">Chưa có gì xảy ra.</li>}
+            </ol>
+          )}
         </aside>
       </div>
 
@@ -621,7 +644,7 @@ function Board({
       )}
 
       {showGuide && <CardGuide enabled={g?.expansions ?? view.expansions} onClose={() => setShowGuide(false)} />}
-      {showDiscard && g && <DiscardViewer discard={g.discard} log={g.log} onClose={() => setShowDiscard(false)} />}
+      {showDiscard && g && <DiscardViewer discard={g.discard} plays={g.plays ?? []} nameOf={nameOf} meId={view.meId} onClose={() => setShowDiscard(false)} />}
       {showScores && <ScoreboardModal view={view} note={SCORE_NOTE} onClose={() => setShowScores(false)} />}
       {toast && (
         <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white shadow-lg">{toast}</div>
@@ -662,7 +685,20 @@ function DockBtn({
 }
 
 /** Every card played so far (newest first) with what it does. */
-function DiscardViewer({ discard, log, onClose }: { discard: CardType[]; log: { id: number; text: string }[]; onClose: () => void }) {
+function DiscardViewer({
+  discard,
+  plays,
+  nameOf,
+  meId,
+  onClose,
+}: {
+  discard: CardType[];
+  plays: MeoPlay[];
+  nameOf: (id: string) => string;
+  meId: string;
+  onClose: () => void;
+}) {
+  const [tab, setTab] = useState<"pile" | "plays">("pile");
   const [focus, setFocus] = useState<CardType | null>(discard[discard.length - 1] ?? null);
   const newestFirst = discard.slice().reverse();
   const counts = discard.reduce<Record<string, number>>((m, t) => ((m[t] = (m[t] ?? 0) + 1), m), {});
@@ -695,27 +731,34 @@ function DiscardViewer({ discard, log, onClose }: { discard: CardType[]; log: { 
             </div>
           </div>
         )}
-        <div className="overflow-y-auto p-4">
-          <p className="mb-2 text-xs text-orange-100/60">Mới nhất ở đầu — bấm vào lá để xem chức năng.</p>
-          <div className="flex flex-wrap gap-2 pt-3">
-            {newestFirst.map((t, i) => (
-              <MeoCard key={i} type={t} size="sm" tooltip={false} selected={focus === t} onClick={() => setFocus(t)} />
-            ))}
-          </div>
-          {log.length > 0 && (
-            <>
-              <p className="mb-1 mt-4 text-xs font-semibold uppercase tracking-wide text-orange-100/60">Diễn biến gần đây</p>
-              <ul className="space-y-0.5 text-xs text-orange-100/80">
-                {log
-                  .slice()
-                  .reverse()
-                  .map((e) => (
-                    <li key={e.id}>{e.text}</li>
-                  ))}
-              </ul>
-            </>
-          )}
+        <div className="flex gap-1 border-b border-white/10 px-4 pt-2 text-xs font-semibold">
+          {(
+            [
+              ["pile", `🗂️ Chồng bài (${discard.length})`],
+              ["plays", `🃏 Ai đánh gì (${plays.length})`],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              className={cn("rounded-t-md px-3 py-1.5", tab === id ? "bg-amber-400 text-black" : "text-orange-100/70 hover:bg-white/10")}
+            >
+              {label}
+            </button>
+          ))}
         </div>
+        {tab === "pile" ? (
+          <div className="overflow-y-auto p-4">
+            <p className="mb-2 text-xs text-orange-100/60">Mới nhất ở đầu — bấm vào lá để xem chức năng.</p>
+            <div className="flex flex-wrap gap-2 pt-3">
+              {newestFirst.map((t, i) => (
+                <MeoCard key={i} type={t} size="sm" tooltip={false} selected={focus === t} onClick={() => setFocus(t)} />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <PlayHistory plays={plays} nameOf={nameOf} meId={meId} className="min-h-0 flex-1 overflow-hidden p-4" />
+        )}
       </div>
     </div>
   );
@@ -1123,6 +1166,8 @@ function Waiting({
   const isHost = !!me?.isHost && view.role === "player";
   const settings = view.settings ?? DEFAULT_MEO_SETTINGS;
   const preset = settings.preset ?? "classic";
+  const currentPreset = PRESETS.find((p) => p.id === preset);
+  const [group, setGroup] = useState<string>(currentPreset?.group ?? "custom");
   const minP = view.minPlayers ?? 2;
   const toggle = (e: Expansion) =>
     void act({ type: "settings", expansions: view.expansions.includes(e) ? view.expansions.filter((x) => x !== e) : [...view.expansions, e] });
@@ -1155,117 +1200,164 @@ function Waiting({
         </>
       )}
 
-      <div className="mb-3 space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-orange-100/60">Chế độ chơi</p>
-        {PRESET_GROUPS.map((grp) => (
-          <div key={grp.id}>
-            <p className="mb-1 text-[11px] text-orange-100/50">{grp.name}</p>
-            <div className="grid grid-cols-2 gap-1.5">
-              {PRESETS.filter((p) => p.group === grp.id).map((p) => {
-                const on = preset === p.id;
-                const fits = count >= p.minPlayers && count <= p.maxPlayers;
-                return (
-                  <button
-                    key={p.id}
-                    disabled={!isHost}
-                    onClick={() => void act({ type: "settings", preset: p.id })}
-                    title={p.packs.length ? p.packs.map((x) => PACKS[x].name).join(" + ") : "Bộ cơ bản, không gói mở rộng"}
-                    className={cn(
-                      "flex flex-col items-start rounded-lg px-2 py-1.5 text-left text-xs transition-colors",
-                      on ? "bg-amber-400 text-black" : "bg-white/5 text-orange-50",
-                      isHost && !on && "hover:bg-white/10",
-                      !fits && !on && "opacity-50",
+      <div className="mb-2 flex items-center justify-between gap-2 rounded-lg bg-amber-400/10 px-2 py-1.5 text-xs">
+        <span>
+          Chế độ: <b className="text-amber-200">{currentPreset ? `${currentPreset.emoji} ${currentPreset.name}` : "🧩 Tuỳ chỉnh"}</b>
+        </span>
+        <span className="text-orange-100/60">
+          {minP}–{view.maxPlayers} người · ⏱ {settings.turnSeconds}s
+        </span>
+      </div>
+      <SettingsTabs
+        className="mb-3"
+        tabs={[
+          {
+            id: "mode",
+            label: "🎮 Chế độ",
+            content: (
+              <div className="space-y-2">
+                <div className="flex gap-1">
+                  {[...PRESET_GROUPS, { id: "custom", name: "Tuỳ chỉnh" }].map((grp) => (
+                    <button
+                      key={grp.id}
+                      onClick={() => setGroup(grp.id)}
+                      className={cn(
+                        "flex-1 rounded-full px-2 py-1 text-[11px] font-semibold",
+                        group === grp.id ? "bg-orange-200 text-black" : "bg-black/30 text-orange-100/70 hover:bg-black/50",
+                      )}
+                    >
+                      {grp.name}
+                    </button>
+                  ))}
+                </div>
+                {group !== "custom" ? (
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {PRESETS.filter((p) => p.group === group).map((p) => {
+                      const on = preset === p.id;
+                      const fits = count >= p.minPlayers && count <= p.maxPlayers;
+                      return (
+                        <button
+                          key={p.id}
+                          disabled={!isHost}
+                          onClick={() => void act({ type: "settings", preset: p.id })}
+                          title={p.packs.length ? p.packs.map((x) => PACKS[x].name).join(" + ") : "Bộ cơ bản, không gói mở rộng"}
+                          className={cn(
+                            "flex flex-col items-start rounded-lg px-2 py-1.5 text-left text-xs transition-colors",
+                            on ? "bg-amber-400 text-black" : "bg-white/5 text-orange-50",
+                            isHost && !on && "hover:bg-white/10",
+                            !fits && !on && "opacity-50",
+                          )}
+                        >
+                          <span className="font-semibold">
+                            {p.emoji} {p.name}
+                          </span>
+                          <span className={cn("text-[10px]", on ? "text-black/70" : "text-orange-100/60")}>
+                            {p.packs.length ? p.packs.map((x) => PACKS[x].emoji).join(" ") : "Cơ bản"} · {p.minPlayers}–{p.maxPlayers} người
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {preset !== "custom" && (
+                      <button
+                        disabled={!isHost}
+                        onClick={() => void act({ type: "settings", preset: "custom" })}
+                        className="w-full rounded-lg bg-white/5 px-2 py-1.5 text-xs font-semibold hover:bg-white/10 disabled:opacity-50"
+                      >
+                        🧩 Dùng chế độ tuỳ chỉnh
+                      </button>
                     )}
-                  >
-                    <span className="font-semibold">
-                      {p.emoji} {p.name}
-                    </span>
-                    <span className={cn("text-[10px]", on ? "text-black/70" : "text-orange-100/60")}>
-                      {p.packs.length ? p.packs.map((x) => PACKS[x].emoji).join(" ") : "Không gói mở rộng"} · {p.minPlayers}–{p.maxPlayers} người
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-        <button
-          disabled={!isHost}
-          onClick={() => void act({ type: "settings", preset: "custom" })}
-          className={cn("w-full rounded-lg px-2 py-1.5 text-xs font-semibold", preset === "custom" ? "bg-amber-400 text-black" : "bg-white/5 text-orange-50 hover:bg-white/10")}
-        >
-          🧩 Tuỳ chỉnh — tự chọn gói
-        </button>
-        {preset === "custom" &&
-          SELECTABLE_PACKS.map((e) => {
-            const on = view.expansions.includes(e);
-            return (
-              <label
-                key={e}
-                className={cn(
-                  "flex items-start gap-2 rounded-lg p-2 text-sm",
-                  on ? "bg-amber-400/15 ring-1 ring-amber-300/50" : "bg-white/5",
-                  isHost ? "cursor-pointer" : "cursor-default",
+                    {SELECTABLE_PACKS.map((e) => {
+                      const on = preset === "custom" && view.expansions.includes(e);
+                      return (
+                        <label
+                          key={e}
+                          title={PACKS[e].blurb}
+                          className={cn(
+                            "flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs",
+                            on ? "bg-amber-400/15 ring-1 ring-amber-300/50" : "bg-white/5",
+                            isHost && preset === "custom" ? "cursor-pointer" : "cursor-default opacity-60",
+                          )}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={on}
+                            disabled={!isHost || preset !== "custom"}
+                            onChange={() => toggle(e)}
+                            className="accent-amber-400"
+                          />
+                          <b>
+                            {PACKS[e].emoji} {PACKS[e].name}
+                          </b>
+                        </label>
+                      );
+                    })}
+                  </div>
                 )}
-              >
-                <input type="checkbox" checked={on} disabled={!isHost} onChange={() => toggle(e)} className="mt-1 accent-amber-400" />
-                <span>
-                  <b>
-                    {PACKS[e].emoji} {PACKS[e].name}
-                  </b>
-                  <span className="block text-xs text-orange-100/60">{PACKS[e].blurb}</span>
-                </span>
-              </label>
-            );
-          })}
-        {(count < minP || count > view.maxPlayers) && (
-          <p className="rounded bg-rose-500/20 px-2 py-1 text-xs text-rose-100">
-            Chế độ này dành cho {minP}–{view.maxPlayers} người (đang có {count}).
-          </p>
-        )}
-        {!isHost && <p className="text-xs text-orange-100/50">Chỉ chủ bàn chọn được chế độ.</p>}
-      </div>
-
-      <div className="mb-3 space-y-2 rounded-lg bg-white/5 p-2 text-xs">
-        <p className="font-semibold uppercase tracking-wide text-orange-100/60">Luật bàn</p>
-        <label className="flex items-center justify-between gap-2">
-          <span>Thời gian mỗi lượt</span>
-          <select
-            value={settings.turnSeconds}
-            disabled={!isHost}
-            onChange={(e) => void act({ type: "settings", turnSeconds: Number(e.target.value) })}
-            className="rounded bg-black/40 px-1 py-0.5"
-          >
-            {TURN_SECONDS_OPTIONS.map((v) => (
-              <option key={v} value={v}>
-                {v} giây
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex items-center justify-between gap-2">
-          <span>Thời gian bấm “Không!”</span>
-          <select
-            value={settings.nopeSeconds}
-            disabled={!isHost}
-            onChange={(e) => void act({ type: "settings", nopeSeconds: Number(e.target.value) })}
-            className="rounded bg-black/40 px-1 py-0.5"
-          >
-            {NOPE_SECONDS_OPTIONS.map((v) => (
-              <option key={v} value={v}>
-                {String(v).replace(".", ",")} giây
-              </option>
-            ))}
-          </select>
-        </label>
-        <RankPointsPicker
-          first={settings.first}
-          second={settings.second}
-          players={count}
-          editable={isHost}
-          onChange={(v) => void act({ type: "settings", ...v })}
-        />
-      </div>
+              </div>
+            ),
+          },
+          {
+            id: "time",
+            label: "⏱️ Thời gian",
+            content: (
+              <div className="space-y-2">
+                <label className="flex items-center justify-between gap-2">
+                  <span>Thời gian mỗi lượt</span>
+                  <select
+                    value={settings.turnSeconds}
+                    disabled={!isHost}
+                    onChange={(e) => void act({ type: "settings", turnSeconds: Number(e.target.value) })}
+                    className="rounded bg-black/40 px-1 py-0.5"
+                  >
+                    {TURN_SECONDS_OPTIONS.map((v) => (
+                      <option key={v} value={v}>
+                        {v} giây
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex items-center justify-between gap-2">
+                  <span>Thời gian bấm “Không!”</span>
+                  <select
+                    value={settings.nopeSeconds}
+                    disabled={!isHost}
+                    onChange={(e) => void act({ type: "settings", nopeSeconds: Number(e.target.value) })}
+                    className="rounded bg-black/40 px-1 py-0.5"
+                  >
+                    {NOPE_SECONDS_OPTIONS.map((v) => (
+                      <option key={v} value={v}>
+                        {String(v).replace(".", ",")} giây
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            ),
+          },
+          {
+            id: "points",
+            label: "🏆 Điểm",
+            content: (
+              <RankPointsPicker
+                first={settings.first}
+                second={settings.second}
+                players={count}
+                editable={isHost}
+                onChange={(v) => void act({ type: "settings", ...v })}
+              />
+            ),
+          },
+        ]}
+      />
+      {(count < minP || count > view.maxPlayers) && (
+        <p className="mb-2 rounded bg-rose-500/20 px-2 py-1 text-xs text-rose-100">
+          Chế độ này dành cho {minP}–{view.maxPlayers} người (đang có {count}).
+        </p>
+      )}
+      {!isHost && <p className="mb-2 text-xs text-orange-100/50">Chỉ chủ bàn đổi được cài đặt.</p>}
 
       {isHost ? (
         <button

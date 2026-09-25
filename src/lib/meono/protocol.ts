@@ -86,6 +86,22 @@ export interface MeoGameView {
   shuffleLocked?: boolean;
   finished: string[];
   log: { id: number; at: number; text: string; tone?: string }[];
+  /** Card history, oldest first (missing from older servers). */
+  plays?: MeoPlay[];
+}
+
+export interface MeoPlay {
+  id: number;
+  at: number;
+  by: string;
+  /** Card type, or "pair" / "triple" / "five" for cat combos. */
+  kind: string;
+  cards: CardType[];
+  target: string | null;
+  named: CardType | null;
+  /** Who answered with Không!, in order. */
+  nopes: string[];
+  result: "pending" | "done" | "blocked";
 }
 
 export interface MeoRoomView {
