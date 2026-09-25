@@ -116,6 +116,62 @@ export function ChopOverlay({ fx }: { fx: ChopFx | null }) {
   );
 }
 
+/** Fires once when players get burned (chết cháy) — not for burns already on the table when we connected. */
+export function useBurnEffect(burned: string[] | undefined, nameOf: (id: string) => string): string | null {
+  const [fx, setFx] = useState<string | null>(null);
+  const key = (burned ?? []).join(",");
+  const seen = useRef(key);
+  useEffect(() => {
+    if (key === seen.current) return;
+    seen.current = key;
+    if (key) setFx((burned ?? []).map(nameOf).join(", "));
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!fx) return;
+    const id = setTimeout(() => setFx(null), 2600);
+    return () => clearTimeout(id);
+  }, [fx]);
+  return fx;
+}
+
+export function BurnOverlay({ names }: { names: string | null }) {
+  return (
+    <AnimatePresence>
+      {names && (
+        <motion.div
+          key={names}
+          className="pointer-events-none absolute inset-0 z-30 flex flex-col items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            className="absolute inset-0 rounded-[2rem] bg-[radial-gradient(circle,rgba(249,115,22,0.6)_0%,rgba(220,38,38,0.25)_45%,transparent_75%)]"
+            animate={{ opacity: [0, 1, 0.5, 1, 0] }}
+            transition={{ duration: 2 }}
+          />
+          <motion.div
+            className="relative text-5xl font-black text-orange-400 drop-shadow-[0_4px_20px_rgba(0,0,0,0.7)] sm:text-7xl"
+            initial={{ scale: 3, opacity: 0 }}
+            animate={{ scale: [3, 0.9, 1.1, 1], opacity: 1 }}
+            transition={{ duration: 0.55 }}
+          >
+            🔥 CHÁY! 🔥
+          </motion.div>
+          <motion.p
+            className="relative mt-2 rounded-full bg-black/60 px-3 py-1 text-sm font-semibold text-white"
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            {names} chết cháy — thua gấp đôi!
+          </motion.p>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 /** Screen-shake wrapper, keyed by the chop so it replays per chop. */
 export function Shake({ fx, children, className }: { fx: ChopFx | null; children: React.ReactNode; className?: string }) {
   return (

@@ -17,7 +17,7 @@ import {
   suitOf,
 } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
-import { ChopOverlay, EmojiBar, SeatBubble, Shake, SpectatorReactions, useChopEffect, useLiveReactions } from "./Effects";
+import { BurnOverlay, ChopOverlay, EmojiBar, SeatBubble, Shake, SpectatorReactions, useBurnEffect, useChopEffect, useLiveReactions } from "./Effects";
 import { CardBack, PlayingCard } from "./PlayingCard";
 import { DeltaBadge, ScoreboardModal, rankTitle, signed } from "./Scoreboard";
 import { inviteLink, useTienLenRoom } from "./useTienLen";
@@ -134,6 +134,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onEmoji, onKick, t
   const [showScores, setShowScores] = useState(false);
 
   const chopFx = useChopEffect(game?.status === "playing" ? game.lastPlay : null, nameOf);
+  const burnFx = useBurnEffect(game?.burned, nameOf);
   const live = useLiveReactions(view.reactions);
   const reactionsFor = (id: string | undefined): Reaction[] => (id ? live.filter((r) => r.playerId === id) : []);
   const spectatorReactions = live.filter((r) => !r.playerId);
@@ -218,6 +219,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onEmoji, onKick, t
         ? rankTitle(game.finished.indexOf(s.id), game.status === "ended" ? game.finished.length : Infinity)
         : null,
     gameEnded: game?.status === "ended",
+    burned: !!s && !!game?.burned?.includes(s.id),
     reactions: reactionsFor(s?.id),
     onKick: kickable(s) ? () => void kick(s!) : undefined,
   });
@@ -285,6 +287,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onEmoji, onKick, t
       <Shake fx={chopFx} className="relative flex flex-1">
         <div className="relative grid flex-1 grid-cols-[auto_1fr_auto] grid-rows-[auto_1fr] gap-2 rounded-[2rem] border-[6px] border-[#5b3a1e] bg-[radial-gradient(ellipse_at_center,#1f7a4d_0%,#145c39_55%,#0d3f27_100%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.5),0_20px_40px_rgba(0,0,0,0.5)] sm:p-5">
           <ChopOverlay fx={chopFx} />
+          <BurnOverlay names={burnFx} />
           <SpectatorReactions reactions={spectatorReactions} />
           <div className="col-span-3 flex justify-center">
             <Opponent {...seatProps(at(2))} />
@@ -421,6 +424,7 @@ interface SeatDisplayProps {
   deadline: number | null;
   rankLabel: string | null;
   gameEnded: boolean;
+  burned: boolean;
   reactions: Reaction[];
   onKick?: () => void;
 }
@@ -462,17 +466,20 @@ function StatusTags({
   seat,
   rankLabel,
   gameEnded,
+  burned,
   onKick,
 }: {
   seat: SeatView;
   rankLabel: string | null;
   gameEnded: boolean;
+  burned?: boolean;
   onKick?: () => void;
 }) {
   return (
     <span className="flex flex-wrap items-center justify-center gap-1 text-[11px]">
       {seat.isHost && <span title="Chủ phòng">👑</span>}
       {rankLabel && <span className="rounded bg-amber-400 px-1.5 font-bold text-black">{rankLabel}</span>}
+      {burned && <span className="rounded bg-orange-600 px-1.5 font-bold text-white" title="Chết cháy: chưa đánh lá nào khi có người về Nhất — thua gấp đôi">🔥 Cháy</span>}
       {!gameEnded && seat.passed && (
         <span className="rounded bg-black/40 px-1.5 text-emerald-100/80" title={seat.autoPassed ? "Không có bài chặn được nên tự bỏ lượt" : undefined}>
           {seat.autoPassed ? "Tự bỏ (không chặn được)" : "Bỏ lượt"}
@@ -497,7 +504,7 @@ function StatusTags({
   );
 }
 
-function Opponent({ seat, isTurn, deadline, rankLabel, gameEnded, reactions, onKick, vertical }: SeatDisplayProps & { vertical?: boolean }) {
+function Opponent({ seat, isTurn, deadline, rankLabel, gameEnded, burned, reactions, onKick, vertical }: SeatDisplayProps & { vertical?: boolean }) {
   if (!seat) {
     return (
       <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-emerald-100/20 text-xs text-emerald-100/40">
@@ -510,7 +517,7 @@ function Opponent({ seat, isTurn, deadline, rankLabel, gameEnded, reactions, onK
       <div className="flex flex-col items-center gap-1">
         <Avatar seat={seat} isTurn={isTurn} deadline={deadline} reactions={reactions} />
         <span className="max-w-[88px] truncate text-xs font-medium text-emerald-50 sm:text-sm">{seat.name}</span>
-        <StatusTags seat={seat} rankLabel={rankLabel} gameEnded={gameEnded} onKick={onKick} />
+        <StatusTags seat={seat} rankLabel={rankLabel} gameEnded={gameEnded} burned={burned} onKick={onKick} />
       </div>
       {seat.inGame && seat.cardCount > 0 && !seat.kicked && (
         <div className="flex items-center gap-1">
@@ -525,14 +532,14 @@ function Opponent({ seat, isTurn, deadline, rankLabel, gameEnded, reactions, onK
   );
 }
 
-function SeatBadge({ seat, isTurn, deadline, rankLabel, gameEnded, reactions }: SeatDisplayProps) {
+function SeatBadge({ seat, isTurn, deadline, rankLabel, gameEnded, burned, reactions }: SeatDisplayProps) {
   if (!seat) return null;
   return (
     <span className="flex items-center gap-2">
       <Avatar seat={seat} isTurn={isTurn} deadline={deadline} reactions={reactions} />
       <span className="flex flex-col items-start">
         <span className="font-medium">{seat.name} (bạn)</span>
-        <StatusTags seat={seat} rankLabel={rankLabel} gameEnded={gameEnded} />
+        <StatusTags seat={seat} rankLabel={rankLabel} gameEnded={gameEnded} burned={burned} />
       </span>
     </span>
   );
@@ -573,6 +580,7 @@ function WaitingPanel({
                     <b className="mr-2 text-amber-300">{rankTitle(i, game.finished.length)}</b>
                     {nameOf(id)}
                     {id === view.meId && <span className="ml-1 text-emerald-100/60">(bạn)</span>}
+                    {game.burned?.includes(id) && <span className="ml-1 rounded bg-orange-600 px-1 text-xs font-bold text-white">🔥 cháy ×2</span>}
                   </span>
                   {d !== undefined && <DeltaBadge delta={d} />}
                 </li>

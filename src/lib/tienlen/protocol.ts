@@ -56,7 +56,8 @@ export interface GameRecord {
   id: string;
   at: number;
   instantWin: InstantWinReason | null;
-  results: { id: string; name: string; rank: number; delta: number }[];
+  /** `burned` = chết cháy (lost double). */
+  results: { id: string; name: string; rank: number; delta: number; burned?: boolean }[];
 }
 
 export interface Reaction {
@@ -96,6 +97,8 @@ export interface GameView {
   finished: string[];
   mustInclude: Card | null;
   instantWin: { playerId: string; reason: InstantWinReason } | null;
+  /** Chết cháy players (still holding all 13 cards when the first player finished). */
+  burned?: string[];
 }
 
 /** The full snapshot sent to one client after every change. */
