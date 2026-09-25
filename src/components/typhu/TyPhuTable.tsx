@@ -170,14 +170,19 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
   const [cardFx, setCardFx] = useState<TPGameView["lastCard"]>(null);
   // Start from the card already on the table when the page opens, so only new draws pop up.
   const lastCardAt = useRef(g?.lastCard?.at ?? 0);
+  const drawnAt = g?.lastCard?.at;
   useEffect(() => {
     const c = g?.lastCard;
     if (!c || c.at === lastCardAt.current) return;
     lastCardAt.current = c.at;
     setCardFx(c);
-    const t = setTimeout(() => setCardFx((cur) => (cur?.at === c.at ? null : cur)), 3500);
+  }, [drawnAt]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Auto-hide on its own timer, so later state updates don't cancel it.
+  useEffect(() => {
+    if (!cardFx) return;
+    const t = setTimeout(() => setCardFx(null), 3500);
     return () => clearTimeout(t);
-  }, [g?.lastCard]);
+  }, [cardFx]);
 
   const live = useLiveReactions(view.reactions);
   const reactionsFor = (id: string): Reaction[] => live.filter((r) => r.playerId === id);
@@ -261,7 +266,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
             ))}
             {/* Centre */}
             <div className="relative flex flex-col items-center justify-center gap-2 overflow-hidden bg-[radial-gradient(ellipse_at_center,#d9f2e3_0%,#a7d7b8_100%)] p-2 text-emerald-950 sm:p-4" style={{ gridColumn: "2 / 11", gridRow: "2 / 11" }}>
-              <CardOverlay card={cardFx} nameOf={nameOf} />
+              <CardOverlay card={cardFx} nameOf={nameOf} onClose={() => setCardFx(null)} />
               {!g || g.status === "ended" ? (
                 <Waiting view={view} me={me} act={act} nameOf={nameOf} />
               ) : (
@@ -633,16 +638,18 @@ function CBtn({ children, onClick, disabled, primary, danger }: { children: Reac
   );
 }
 
-function CardOverlay({ card, nameOf }: { card: TPGameView["lastCard"]; nameOf: (id: string) => string }) {
+function CardOverlay({ card, nameOf, onClose }: { card: TPGameView["lastCard"]; nameOf: (id: string) => string; onClose: () => void }) {
   return (
     <AnimatePresence>
       {card && (
         <motion.div
           key={card.at}
-          className="absolute inset-0 z-20 flex items-center justify-center bg-black/25 p-4"
+          onClick={onClose}
+          className="absolute inset-0 z-20 flex cursor-pointer items-center justify-center bg-black/25 p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          // Let clicks through as soon as it starts fading, so it never blocks the roll button.
+          exit={{ opacity: 0, pointerEvents: "none", transition: { duration: 0.2 } }}
         >
           <motion.div
             initial={{ rotateY: 180, scale: 0.6 }}
@@ -657,6 +664,7 @@ function CardOverlay({ card, nameOf }: { card: TPGameView["lastCard"]; nameOf: (
             <p className="text-sm font-black uppercase tracking-wide">{card.deck === "chance" ? "Cơ hội" : "Khí vận"}</p>
             <p className="mt-2 text-sm">{card.text}</p>
             <p className="mt-2 text-xs text-black/50">— {nameOf(card.player)}</p>
+            <p className="mt-2 text-[11px] text-black/40">Chạm để đóng</p>
           </motion.div>
         </motion.div>
       )}
