@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
+import { DraggableRow, useHandOrder } from "@/components/games/DraggableHand";
 import { useGameRoom } from "@/components/games/gameClient";
 import { EmojiBar, SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
@@ -186,6 +187,13 @@ function Board({
     () => (cursed ? hand : hand.slice().sort((a, b) => a.type.localeCompare(b.type) || a.id - b.id)),
     [hand, cursed],
   );
+  // Drag cards to arrange your hand (not while cursed: those ids are blind positions).
+  const handOrder = useHandOrder(
+    sortedHand.map((c) => c.id),
+    !spectator && view.meId && !cursed ? `meono:order:${view.code}:${view.meId}` : null,
+  );
+  const handById = new Map(hand.map((c) => [c.id, c]));
+  const orderedIds = cursed ? sortedHand.map((c) => c.id) : handOrder.ordered;
   const selectedTypes = selected.map((id) => hand.find((c) => c.id === id)?.type).filter((t): t is CardType => !!t);
   const plan = cursed
     ? selected.length
@@ -481,14 +489,26 @@ function Board({
               <b className="text-amber-200">{focusInfo.emoji} {focusInfo.name}:</b> {focusInfo.effect}
             </p>
           )}
-          <div className="flex w-full flex-wrap justify-center gap-1.5 pt-4">
-            {sortedHand.map((c) => (
-              <span key={c.id} className="relative" title={c.annoyed ? "Nổi cáu: lá này bị vô hiệu tới hết lượt tới của bạn" : undefined}>
-                <MeoCard type={c.type} selected={selected.includes(c.id)} onClick={() => toggle(c)} className={cn(c.annoyed && "opacity-50 grayscale")} />
-                {c.annoyed && <span className="pointer-events-none absolute -right-1 -top-1 rounded-full bg-amber-500 px-1 text-xs">😾</span>}
-              </span>
-            ))}
-          </div>
+          <DraggableRow
+            items={orderedIds}
+            onMove={handOrder.move}
+            disabled={cursed}
+            className="w-full flex-wrap justify-center gap-1.5 pt-4"
+            renderItem={(id) => {
+              const c = handById.get(id)!;
+              return (
+                <span className="relative block" title={c.annoyed ? "Nổi cáu: lá này bị vô hiệu tới hết lượt tới của bạn" : undefined}>
+                  <MeoCard type={c.type} selected={selected.includes(c.id)} onClick={() => toggle(c)} className={cn(c.annoyed && "opacity-50 grayscale")} />
+                  {c.annoyed && <span className="pointer-events-none absolute -right-1 -top-1 rounded-full bg-amber-500 px-1 text-xs">😾</span>}
+                </span>
+              );
+            }}
+          />
+          {handOrder.isCustom && !cursed && (
+            <button onClick={handOrder.reset} className="text-xs text-orange-100/60 underline hover:text-orange-50">
+              ↺ Xếp lại tự động
+            </button>
+          )}
           <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
             {myTurn && selected.length > 0 && (
               <span className={cn("rounded-md px-2 py-1", planError ? "bg-rose-900/50 text-rose-200" : "bg-black/40 text-orange-100")}>

@@ -23,6 +23,7 @@ import {
 } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { ChatBox } from "@/components/games/ChatBox";
+import { DraggableRow, useHandOrder } from "@/components/games/DraggableHand";
 import { BurnOverlay, ChopOverlay, EmojiBar, SeatBubble, Shake, SpectatorReactions, useBurnEffect, useChopEffect, useLiveReactions } from "./Effects";
 import { CardBack, PlayingCard } from "./PlayingCard";
 import { DeltaBadge, ScoreboardModal, rankTitle, signed } from "./Scoreboard";
@@ -156,7 +157,10 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
     setSelected((sel) => sel.filter((c) => view.hand.includes(c)));
   }, [handKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const hand = useMemo(() => sortHand(view.hand, sortMode), [view.hand, sortMode]);
+  const sortedHand = useMemo(() => sortHand(view.hand, sortMode), [view.hand, sortMode]);
+  // Drag cards to arrange them yourself; picking a sort mode goes back to automatic order.
+  const handOrder = useHandOrder(sortedHand, !spectator && meId ? `tienlen:order:${view.code}:${meId}` : null);
+  const hand = handOrder.ordered;
   const playing = game?.status === "playing";
   const myTurn = !spectator && playing && game.turn === meId;
   const lastCombo = game?.lastPlay?.combo ?? null;
@@ -375,24 +379,26 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
             <ActionButton onClick={() => setSelected([])} disabled={!selected.length}>
               Bỏ chọn
             </ActionButton>
-            <ActionButton onClick={() => setSortMode((m) => (m === "rank" ? "suit" : "rank"))}>
-              Xếp: {sortMode === "rank" ? "số" : "chất"}
+            <ActionButton
+              onClick={() => {
+                if (handOrder.isCustom) handOrder.reset();
+                else setSortMode((m) => (m === "rank" ? "suit" : "rank"));
+              }}
+            >
+              Xếp: {handOrder.isCustom ? "tự do ✋" : sortMode === "rank" ? "số" : "chất"}
             </ActionButton>
           </div>
         )}
 
         {!spectator && hand.length > 0 && (
           <div className="flex w-full justify-center overflow-visible pt-5">
-            {hand.map((c, i) => (
-              <PlayingCard
-                key={c}
-                card={c}
-                selected={selected.includes(c)}
-                onClick={() => toggle(c)}
-                style={i ? { marginLeft: "calc(var(--cw) * var(--overlap))" } : undefined}
-                className="[--overlap:-0.42] sm:[--overlap:-0.3]"
-              />
-            ))}
+            <DraggableRow
+              items={hand}
+              onMove={handOrder.move}
+              className="[--overlap:-0.42] sm:[--overlap:-0.3]"
+              itemStyle={(i) => (i ? { marginLeft: "calc(var(--cw) * var(--overlap))" } : undefined)}
+              renderItem={(c) => <PlayingCard card={c} selected={selected.includes(c)} onClick={() => toggle(c)} />}
+            />
           </div>
         )}
 

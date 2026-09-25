@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
+import { DraggableRow, useHandOrder } from "@/components/games/DraggableHand";
 import { RankPointsPicker } from "@/components/games/RankPointsPicker";
 import { useGameRoom } from "@/components/games/gameClient";
 import { EmojiBar, SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
@@ -277,6 +278,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
                   target={g.target}
                   reactions={reactionsFor(p.id)}
                   onReserved={(c) => setFocus({ card: c, reserved: true })}
+                  orderKey={p.id === view.meId ? `splendor:order:${view.code}:${view.meId}` : null}
                   onKick={me?.isHost && seat && !seat.connected && !seat.kicked ? () => void kick(seat) : undefined}
                 />
               );
@@ -345,6 +347,7 @@ function PlayerPanel({
   reactions,
   onReserved,
   onKick,
+  orderKey,
 }: {
   p: SPPlayerView;
   name: string;
@@ -355,7 +358,11 @@ function PlayerPanel({
   reactions: Reaction[];
   onReserved: (card: number) => void;
   onKick?: () => void;
+  /** Your own panel: drag to arrange your reserved cards. */
+  orderKey?: string | null;
 }) {
+  const mineReserved = p.reserved.filter((c): c is number => c !== null);
+  const reservedOrder = useHandOrder(mineReserved, orderKey ?? null);
   const tokenTotal = Object.values(p.tokens).reduce((a, b) => a + b, 0);
   return (
     <div className={cn("relative rounded-2xl p-3", isTurn ? "bg-amber-400/15 ring-1 ring-amber-300/60" : "bg-black/35")}>
@@ -402,7 +409,15 @@ function PlayerPanel({
       </div>
       {(p.reserved.length > 0 || p.nobles.length > 0) && (
         <div className="mt-2 flex flex-wrap items-center gap-1">
-          {p.reserved.map((c, i) =>
+          {self && mineReserved.length > 0 && (
+            <DraggableRow
+              items={reservedOrder.ordered}
+              onMove={reservedOrder.move}
+              className="gap-1"
+              renderItem={(c) => <DevCardView id={c} size="sm" onClick={() => onReserved(c)} />}
+            />
+          )}
+          {!self && p.reserved.map((c, i) =>
             c === null ? (
               <span key={i} className="flex h-8 w-6 items-center justify-center rounded bg-stone-700 text-[10px]" title="Thẻ đang giữ (úp)">
                 📌
