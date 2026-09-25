@@ -1,9 +1,32 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- small static game sprites; next/image adds nothing here */
 
-import { CARD_BY_ID, GEMS, GEM_NAMES, type Gem, NOBLE_BY_ID, type Token } from "@/lib/splendor/cards";
+import { CARDS, CARD_BY_ID, GEMS, GEM_NAMES, type Gem, NOBLE_BY_ID, type Token } from "@/lib/splendor/cards";
 import { cn } from "@/lib/utils";
 
-/** Original artwork: every piece is drawn here in SVG / CSS (no third-party card scans). */
+/**
+ * Card art: the owner's own illustrations (public/games/splendor), cut into
+ *   cards/<colour>-<tier>-<1..3>.webp, nobles/n<1..10>.webp, gems/<token>.webp.
+ */
+const ASSETS = "/games/splendor";
+export const gemSrc = (t: Token) => `${ASSETS}/gems/${t}.webp`;
+const nobleSrc = (id: number) => `${ASSETS}/nobles/n${id}.webp`;
+
+/** Each colour/tier has 3 scenes; cards of that colour and tier take turns using them. */
+const VARIANT: Record<number, number> = (() => {
+  const seen: Record<string, number> = {};
+  return Object.fromEntries(
+    CARDS.map((c) => {
+      const key = `${c.bonus}-${c.tier}`;
+      seen[key] = (seen[key] ?? 0) + 1;
+      return [c.id, ((seen[key] - 1) % 3) + 1];
+    }),
+  );
+})();
+const cardArt = (id: number) => {
+  const c = CARD_BY_ID[id];
+  return `${ASSETS}/cards/${c.bonus}-${c.tier}-${VARIANT[id]}.webp`;
+};
 
 export const GEM_STYLE: Record<Token, { base: string; light: string; dark: string; text: string }> = {
   white: { base: "#e5e7eb", light: "#ffffff", dark: "#9ca3af", text: "#111827" },
@@ -14,37 +37,31 @@ export const GEM_STYLE: Record<Token, { base: string; light: string; dark: strin
   gold: { base: "#f59e0b", light: "#fde68a", dark: "#92400e", text: "#1c1917" },
 };
 
-/** A faceted gem. */
+/** Card frame per bonus colour: gilded edge + the gem's colour. */
+const FRAME: Record<Gem, string> = {
+  white: "linear-gradient(145deg,#fff7e0,#d8d2c4 40%,#a8a29e 60%,#f5f5f4)",
+  blue: "linear-gradient(145deg,#fde68a,#1d4ed8 35%,#1e3a8a 65%,#fbbf24)",
+  green: "linear-gradient(145deg,#fde68a,#15803d 35%,#14532d 65%,#fbbf24)",
+  red: "linear-gradient(145deg,#fde68a,#b91c1c 35%,#7f1d1d 65%,#fbbf24)",
+  black: "linear-gradient(145deg,#fde68a,#27272a 35%,#09090b 65%,#fbbf24)",
+};
+
+/** The gem artwork (round gilded coin). */
 export function GemIcon({ gem, className }: { gem: Token; className?: string }) {
-  const c = GEM_STYLE[gem];
-  const id = `gem-${gem}`;
+  return <img src={gemSrc(gem)} alt={GEM_NAMES[gem]} className={cn("select-none object-contain drop-shadow", className)} draggable={false} />;
+}
+
+/** A gem with a number on it — used for costs and requirements. */
+function GemCount({ gem, n, className }: { gem: Gem; n: number; className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} aria-label={GEM_NAMES[gem]} role="img">
-      <defs>
-        <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor={c.light} />
-          <stop offset="0.55" stopColor={c.base} />
-          <stop offset="1" stopColor={c.dark} />
-        </linearGradient>
-      </defs>
-      {gem === "gold" ? (
-        <>
-          <circle cx="12" cy="12" r="10" fill={`url(#${id})`} stroke={c.dark} strokeWidth="1" />
-          <circle cx="12" cy="12" r="6.5" fill="none" stroke={c.light} strokeWidth="1.2" opacity="0.8" />
-          <path d="M12 7.5 L13.3 10.6 L16.5 10.8 L14 12.9 L14.8 16 L12 14.3 L9.2 16 L10 12.9 L7.5 10.8 L10.7 10.6 Z" fill={c.light} />
-        </>
-      ) : (
-        <>
-          <path d="M6 3 H18 L22 9 L12 21 L2 9 Z" fill={`url(#${id})`} stroke={c.dark} strokeWidth="0.8" strokeLinejoin="round" />
-          <path d="M2 9 H22 M6 3 L9 9 L12 21 L15 9 L18 3 M9 9 L12 3 L15 9" fill="none" stroke={c.light} strokeWidth="0.7" opacity="0.7" />
-          <path d="M6 3 L9 9 L2 9 Z" fill="#fff" opacity="0.35" />
-        </>
-      )}
-    </svg>
+    <span className={cn("relative inline-flex shrink-0 items-center justify-center", className)} title={`${n} ${GEM_NAMES[gem]}`}>
+      <GemIcon gem={gem} className="absolute inset-0 h-full w-full" />
+      <span className="relative text-[0.8em] font-black text-white [text-shadow:0_0_3px_#000,0_0_2px_#000,0_1px_1px_#000]">{n}</span>
+    </span>
   );
 }
 
-/** A poker-chip style token. */
+/** A token in the bank or a player's hand. */
 export function TokenChip({
   gem,
   count,
@@ -62,27 +79,17 @@ export function TokenChip({
   onClick?: () => void;
   title?: string;
 }) {
-  const c = GEM_STYLE[gem];
-  const px = size === "lg" ? "h-14 w-14" : size === "md" ? "h-11 w-11" : "h-8 w-8";
+  const px = size === "lg" ? "h-14 w-14 sm:h-16 sm:w-16" : size === "md" ? "h-11 w-11" : "h-8 w-8";
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
       onClick={onClick}
       title={title ?? GEM_NAMES[gem]}
-      className={cn("relative shrink-0 transition-transform", onClick && "hover:-translate-y-0.5 active:scale-95", dimmed && "opacity-35")}
+      className={cn("relative shrink-0 rounded-full transition-transform", onClick && "hover:-translate-y-0.5 active:scale-95", dimmed && "opacity-35 grayscale", !!selected && "ring-4 ring-amber-300")}
     >
-      <span
-        className={cn("flex items-center justify-center rounded-full shadow-md", px)}
-        style={{
-          background: `radial-gradient(circle at 35% 30%, ${c.light}, ${c.base} 55%, ${c.dark})`,
-          border: `3px dashed ${c.light}`,
-          outline: `2px solid ${c.dark}`,
-        }}
-      >
-        <GemIcon gem={gem} className="h-3/5 w-3/5 drop-shadow" />
-      </span>
+      <GemIcon gem={gem} className={px} />
       {count !== undefined && (
-        <span className="absolute -bottom-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-black/80 px-1 text-[11px] font-bold text-white ring-1 ring-white/30">
+        <span className="absolute -bottom-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-black/85 px-1 text-[11px] font-bold text-white ring-1 ring-amber-200/40">
           {count}
         </span>
       )}
@@ -95,36 +102,9 @@ export function TokenChip({
   );
 }
 
-/** Scenery per tier: mine (1), caravan road (2), palace (3) — simple silhouettes. */
-function TierScene({ tier, color }: { tier: 1 | 2 | 3; color: string }) {
-  return (
-    <svg viewBox="0 0 50 40" className="absolute inset-x-0 bottom-0 h-3/5 w-full" preserveAspectRatio="none" aria-hidden>
-      {tier === 1 && (
-        <>
-          <path d="M0 40 L0 26 L10 16 L18 24 L28 12 L38 22 L50 14 L50 40 Z" fill={color} opacity="0.35" />
-          <path d="M20 40 L20 30 Q25 24 30 30 L30 40 Z" fill="#000" opacity="0.35" />
-        </>
-      )}
-      {tier === 2 && (
-        <>
-          <path d="M0 40 L0 30 Q12 22 25 28 T50 26 L50 40 Z" fill={color} opacity="0.35" />
-          <path d="M8 30 h8 v-5 h-8 z M30 29 h10 v-6 h-10 z" fill="#000" opacity="0.25" />
-          <circle cx="40" cy="10" r="4" fill="#fff" opacity="0.3" />
-        </>
-      )}
-      {tier === 3 && (
-        <>
-          <path d="M0 40 L0 30 L50 30 L50 40 Z" fill={color} opacity="0.35" />
-          <path d="M12 30 V18 L16 13 L20 18 V30 M22 30 V14 L25 8 L28 14 V30 M30 30 V18 L34 13 L38 18 V30" fill="#000" opacity="0.3" />
-        </>
-      )}
-    </svg>
-  );
-}
+const TIER_MARK = { 1: "I", 2: "II", 3: "III" } as const;
 
-const TIER_FRAME = { 1: "#65a30d", 2: "#d97706", 3: "#2563eb" } as const;
-
-/** A development card face. */
+/** A development card: illustration, colour frame, points + bonus on top, cost in gems at the bottom. */
 export function DevCardView({
   id,
   size = "md",
@@ -134,117 +114,131 @@ export function DevCardView({
   className,
 }: {
   id: number;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
   onClick?: () => void;
   affordable?: boolean;
   highlight?: boolean;
   className?: string;
 }) {
   const card = CARD_BY_ID[id];
-  const c = GEM_STYLE[card.bonus];
   const Tag = onClick ? "button" : "div";
-  const w = size === "md" ? "w-[4.6rem] sm:w-24" : "w-14";
+  const w = size === "lg" ? "w-44" : size === "md" ? "w-[4.8rem] sm:w-[6.5rem]" : "w-14";
+  const costs = GEMS.filter((g) => card.cost[g]);
+  const gemSize = size === "lg" ? "h-9 w-9 text-lg" : size === "md" ? "h-[1.15rem] w-[1.15rem] text-[11px] sm:h-6 sm:w-6 sm:text-sm" : "h-3 w-3 text-[7px]";
   return (
     <Tag
       onClick={onClick}
       className={cn(
-        "relative aspect-[5/7] shrink-0 overflow-hidden rounded-lg text-left shadow-lg transition-transform",
+        "relative aspect-[5/7] shrink-0 rounded-lg p-[3px] text-left shadow-lg transition-transform",
         w,
         onClick && "hover:-translate-y-1 hover:shadow-xl",
-        affordable && "ring-2 ring-emerald-400 ring-offset-1 ring-offset-transparent",
-        highlight && "ring-2 ring-amber-300",
+        affordable && "outline outline-2 outline-offset-1 outline-emerald-400",
+        highlight && "outline outline-2 outline-offset-1 outline-amber-300",
         className,
       )}
-      style={{
-        background: `linear-gradient(160deg, ${c.light} 0%, ${c.base} 45%, ${c.dark} 100%)`,
-        border: `2px solid ${TIER_FRAME[card.tier]}`,
-      }}
-      title={`Thẻ ${GEM_NAMES[card.bonus]} · ${card.points} điểm · giá ${GEMS.filter((g) => card.cost[g]).map((g) => `${card.cost[g]} ${GEM_NAMES[g]}`).join(", ")}`}
+      style={{ background: FRAME[card.bonus] }}
+      title={`Thẻ ${GEM_NAMES[card.bonus]} · ${card.points} điểm · giá ${costs.map((g) => `${card.cost[g]} ${GEM_NAMES[g]}`).join(", ")}`}
     >
-      <TierScene tier={card.tier} color={c.dark} />
-      <div className="relative flex items-center justify-between bg-white/75 px-1 py-0.5">
-        <span className="text-base font-black leading-none text-stone-900 sm:text-xl">{card.points || ""}</span>
-        <GemIcon gem={card.bonus} className="h-4 w-4 sm:h-6 sm:w-6" />
-      </div>
-      <div className="absolute bottom-0.5 left-0.5 grid grid-flow-col grid-rows-2 gap-[2px]">
-        {GEMS.filter((g) => card.cost[g]).map((g) => (
+      <div className="relative h-full w-full overflow-hidden rounded-[5px]">
+        <img src={cardArt(id)} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" draggable={false} />
+        {/* Top: points and the bonus gem. */}
+        <div className="absolute inset-x-0 top-0 flex items-start justify-between bg-gradient-to-b from-black/70 via-black/35 to-transparent px-1 pb-3 pt-0.5">
           <span
-            key={g}
-            className="flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black shadow sm:h-5 sm:w-5 sm:text-[11px]"
-            style={{ background: GEM_STYLE[g].base, color: GEM_STYLE[g].text, border: `1px solid ${GEM_STYLE[g].light}` }}
+            className={cn(
+              "font-black leading-none text-white [text-shadow:0_2px_3px_#000]",
+              size === "lg" ? "text-4xl" : size === "md" ? "text-lg sm:text-2xl" : "text-xs",
+            )}
           >
-            {card.cost[g]}
+            {card.points || ""}
           </span>
-        ))}
+          <GemIcon gem={card.bonus} className={size === "lg" ? "h-11 w-11" : size === "md" ? "h-6 w-6 sm:h-8 sm:w-8" : "h-4 w-4"} />
+        </div>
+        {/* Bottom: the cost, as gems. */}
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/75 via-black/40 to-transparent px-0.5 pb-0.5 pt-3">
+          <div className="flex flex-wrap gap-[1px]">
+            {costs.map((g) => (
+              <GemCount key={g} gem={g} n={card.cost[g]!} className={gemSize} />
+            ))}
+          </div>
+          <span className="pr-0.5 text-[8px] font-bold text-amber-200/80">{TIER_MARK[card.tier]}</span>
+        </div>
       </div>
-      <span className="absolute bottom-0.5 right-1 text-[8px] font-bold text-white/70">{"I".repeat(card.tier)}</span>
     </Tag>
   );
 }
 
+const BACKS: Record<1 | 2 | 3, { art: string; color: string }> = {
+  1: { art: `${ASSETS}/cards/green-1-1.webp`, color: "#65a30d" },
+  2: { art: `${ASSETS}/cards/blue-2-3.webp`, color: "#d97706" },
+  3: { art: `${ASSETS}/cards/red-3-2.webp`, color: "#2563eb" },
+};
+
+/** A deck of one tier (card back). */
 export function CardBack({ tier, count, onClick, size = "md" }: { tier: 1 | 2 | 3; count?: number; onClick?: () => void; size?: "sm" | "md" }) {
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
       onClick={onClick}
       className={cn(
-        "relative flex aspect-[5/7] shrink-0 flex-col items-center justify-center rounded-lg shadow-lg",
-        size === "md" ? "w-[4.6rem] sm:w-24" : "w-14",
+        "relative aspect-[5/7] shrink-0 rounded-lg p-[3px] shadow-lg",
+        size === "md" ? "w-[4.8rem] sm:w-[6.5rem]" : "w-14",
         onClick && "hover:-translate-y-1",
       )}
-      style={{
-        background: `repeating-linear-gradient(45deg, ${TIER_FRAME[tier]}, ${TIER_FRAME[tier]} 6px, #0000 6px, #0000 12px), #1c1917`,
-        border: `2px solid ${TIER_FRAME[tier]}`,
-      }}
+      style={{ background: `linear-gradient(145deg,#fde68a,${BACKS[tier].color} 40%,#1c1917 70%,#fbbf24)` }}
       title={`Chồng thẻ cấp ${tier}`}
     >
-      <span className="rounded-full bg-black/60 px-2 py-0.5 text-sm font-black text-white">{"I".repeat(tier)}</span>
-      {count !== undefined && <span className="mt-1 rounded bg-black/60 px-1.5 text-[10px] text-white/80">{count} thẻ</span>}
+      <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[5px]">
+        <img src={BACKS[tier].art} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40 blur-[1px] sepia" draggable={false} />
+        <div className="absolute inset-2 rounded border border-amber-300/60" />
+        <span className="relative rounded-full bg-black/70 px-2 py-0.5 font-serif text-base font-black text-amber-200">{TIER_MARK[tier]}</span>
+        {count !== undefined && <span className="relative mt-1 rounded bg-black/70 px-1.5 text-[10px] text-amber-100/90">{count} thẻ</span>}
+      </div>
     </Tag>
   );
 }
 
-/** Noble tile: 3 points, required bonuses. */
+/** Noble tile: portrait (transparent), 3 points, required card bonuses as gems. */
 export function NobleTile({ id, size = "md", dim }: { id: number; size?: "sm" | "md"; dim?: boolean }) {
   const n = NOBLE_BY_ID[id];
+  const req = GEMS.filter((g) => n.req[g]);
   return (
     <div
       className={cn(
-        "relative aspect-square shrink-0 overflow-hidden rounded-lg shadow-lg",
-        size === "md" ? "w-16 sm:w-20" : "w-10",
+        "relative aspect-square shrink-0 overflow-hidden rounded-lg p-[2px] shadow-lg",
+        size === "md" ? "w-[4.5rem] sm:w-24" : "w-10",
         dim && "opacity-40",
       )}
-      style={{ background: "linear-gradient(145deg,#fef3c7,#d6b370 60%,#8a6a2f)" }}
-      title={`Quý tộc · ${n.points} điểm · cần ${GEMS.filter((g) => n.req[g]).map((g) => `${n.req[g]} thẻ ${GEM_NAMES[g]}`).join(", ")}`}
+      style={{ background: "linear-gradient(145deg,#fef3c7,#b8893a 45%,#7c5a1f 70%,#fde68a)" }}
+      title={`Quý tộc · ${n.points} điểm · cần ${req.map((g) => `${n.req[g]} thẻ ${GEM_NAMES[g]}`).join(", ")}`}
     >
-      <svg viewBox="0 0 40 40" className="absolute bottom-0 right-0 h-3/4 w-3/4 opacity-30" aria-hidden>
-        <path d="M8 34 L10 18 L16 24 L20 12 L24 24 L30 18 L32 34 Z" fill="#78350f" />
-      </svg>
-      <span className={cn("absolute left-1 top-0.5 font-black text-stone-900", size === "md" ? "text-lg" : "text-xs")}>{n.points}</span>
-      <div className="absolute bottom-1 left-1 flex flex-col gap-[2px]">
-        {GEMS.filter((g) => n.req[g]).map((g) => (
-          <span
-            key={g}
-            className={cn("flex items-center justify-center rounded-sm font-black shadow", size === "md" ? "h-4 w-3.5 text-[10px]" : "h-2.5 w-2 text-[7px]")}
-            style={{ background: GEM_STYLE[g].base, color: GEM_STYLE[g].text }}
-          >
-            {n.req[g]}
-          </span>
-        ))}
+      <div className="relative h-full w-full overflow-hidden rounded-[6px] bg-[radial-gradient(circle_at_60%_40%,#fff7e6,#e9dcc0)]">
+        <img src={nobleSrc(id)} alt="Quý tộc" className="absolute bottom-0 right-0 h-[92%] w-[80%] object-contain object-bottom" draggable={false} />
+        <span
+          className={cn("absolute left-1 top-0.5 font-black text-stone-900 [text-shadow:0_1px_0_#fff]", size === "md" ? "text-lg sm:text-2xl" : "text-xs")}
+        >
+          {n.points}
+        </span>
+        <div className="absolute bottom-0.5 left-0.5 flex flex-col gap-[1px]">
+          {req.map((g) => (
+            <span
+              key={g}
+              className={cn("flex items-center justify-center rounded-sm border border-amber-100/70 font-black shadow", size === "md" ? "h-4 w-4 text-[10px] sm:h-5 sm:w-5 sm:text-xs" : "h-2.5 w-2.5 text-[7px]")}
+              style={{ background: GEM_STYLE[g].base, color: GEM_STYLE[g].text }}
+            >
+              {n.req[g]}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-/** Small colour square for a bonus count. */
+/** Owned-card count per colour (the permanent discount). */
 export function BonusPip({ gem, n }: { gem: Gem; n: number }) {
   return (
-    <span
-      className="flex h-5 min-w-5 items-center justify-center rounded px-1 text-[11px] font-black shadow"
-      style={{ background: GEM_STYLE[gem].base, color: GEM_STYLE[gem].text, opacity: n ? 1 : 0.3 }}
-      title={`${n} thẻ ${GEM_NAMES[gem]}`}
-    >
-      {n}
+    <span className={cn("relative flex h-7 w-6 items-center justify-center rounded border border-amber-200/30 shadow", !n && "opacity-35")} style={{ background: FRAME[gem] }} title={`${n} thẻ ${GEM_NAMES[gem]}`}>
+      <span className="text-[12px] font-black text-white [text-shadow:0_0_3px_#000]">{n}</span>
     </span>
   );
 }

@@ -193,7 +193,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
       ) : (
         <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_19rem]">
           {/* Market */}
-          <div className="relative flex flex-col gap-3 rounded-3xl border border-amber-200/10 bg-[radial-gradient(ellipse_at_top,#3b1d5c_0%,#1a0f2b_70%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.5)] sm:p-4">
+          <div className="relative flex min-w-0 flex-col gap-3 rounded-3xl border border-amber-200/10 bg-[radial-gradient(ellipse_at_top,#3b1d5c_0%,#1a0f2b_70%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.5)] sm:p-4">
             <SpectatorReactions reactions={live.filter((r) => !r.playerId)} />
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex gap-2">
@@ -217,7 +217,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
                 />
                 {g.board[tier - 1].map((c, i) =>
                   c === null ? (
-                    <div key={`e${i}`} className="aspect-[5/7] w-[4.6rem] shrink-0 rounded-lg border border-dashed border-white/15 sm:w-24" />
+                    <div key={`e${i}`} className="aspect-[5/7] w-[4.8rem] shrink-0 rounded-lg border border-dashed border-white/15 sm:w-[6.5rem]" />
                   ) : (
                     <motion.div key={c} initial={{ scale: 0.6, opacity: 0, rotateY: 90 }} animate={{ scale: 1, opacity: 1, rotateY: 0 }}>
                       <DevCardView id={c} onClick={() => setFocus({ card: c })} affordable={myTurn && canAfford(c)} highlight={g.last?.card === c} />
@@ -445,7 +445,7 @@ function CardModal({
   return (
     <Modal onClose={onClose}>
       <div className="flex flex-col items-center gap-3">
-        {focus.card !== undefined ? <DevCardView id={focus.card} className="!w-40" /> : <CardBack tier={focus.tier!} count={g.deckCounts[focus.tier! - 1]} />}
+        {focus.card !== undefined ? <DevCardView id={focus.card} size="lg" /> : <CardBack tier={focus.tier!} count={g.deckCounts[focus.tier! - 1]} />}
         {focus.card !== undefined && (
           <p className="text-center text-sm text-white/80">
             Thẻ <b>{GEM_NAMES[CARD_BY_ID[focus.card].bonus]}</b> · {CARD_BY_ID[focus.card].points} điểm · giảm vĩnh viễn 1 {GEM_NAMES[CARD_BY_ID[focus.card].bonus]} cho các lần mua sau
