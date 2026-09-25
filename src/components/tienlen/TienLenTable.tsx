@@ -17,6 +17,7 @@ import {
   suitOf,
 } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
+import { ChatBox } from "@/components/games/ChatBox";
 import { BurnOverlay, ChopOverlay, EmojiBar, SeatBubble, Shake, SpectatorReactions, useBurnEffect, useChopEffect, useLiveReactions } from "./Effects";
 import { CardBack, PlayingCard } from "./PlayingCard";
 import { DeltaBadge, ScoreboardModal, rankTitle, signed } from "./Scoreboard";
@@ -41,7 +42,7 @@ function useCountdown(deadline: number | null) {
 }
 
 export default function TienLenTable({ code, name, watch }: { code: string; name: string; watch?: boolean }) {
-  const { view, status, error, play, pass, start, sendEmoji, kick } = useTienLenRoom(code, name, watch ? "watch" : "play");
+  const { view, status, error, play, pass, start, sendEmoji, kick, sendChat } = useTienLenRoom(code, name, watch ? "watch" : "play");
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -86,16 +87,19 @@ export default function TienLenTable({ code, name, watch }: { code: string; name
   };
 
   return (
-    <Table
-      view={view}
-      reconnecting={status === "reconnecting"}
-      onPlay={(cards) => act(play(cards))}
-      onPass={() => act(pass())}
-      onStart={() => act(start())}
-      onEmoji={(e) => void act(sendEmoji(e))}
-      onKick={(id) => act(kick(id))}
-      toast={toast}
-    />
+    <>
+      <Table
+        view={view}
+        reconnecting={status === "reconnecting"}
+        onPlay={(cards) => act(play(cards))}
+        onPass={() => act(pass())}
+        onStart={() => act(start())}
+        onEmoji={(e) => void act(sendEmoji(e))}
+        onKick={(id) => act(kick(id))}
+        toast={toast}
+      />
+      <ChatBox messages={view.chat} meId={view.meId} myName={name} onSend={(text) => act(sendChat(text))} />
+    </>
   );
 }
 

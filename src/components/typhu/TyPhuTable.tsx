@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
+import { ChatBox } from "@/components/games/ChatBox";
 import { useGameRoom } from "@/components/games/gameClient";
 import { EmojiBar, SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
@@ -136,7 +137,12 @@ export default function TyPhuTable({ code, name, watch }: { code: string; name: 
   if (!view) {
     return <p className="flex min-h-[70vh] animate-pulse items-center justify-center text-sky-100/80">Đang kết nối bàn {code}…</p>;
   }
-  return <Table view={view} reconnecting={status === "reconnecting"} act={act} toast={toast} />;
+  return (
+    <>
+      <Table view={view} reconnecting={status === "reconnecting"} act={act} toast={toast} />
+      <ChatBox messages={view.chat} meId={view.meId} myName={name} onSend={(text) => act({ type: "chat", text })} />
+    </>
+  );
 }
 
 function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnecting: boolean; act: Act; toast: string | null }) {

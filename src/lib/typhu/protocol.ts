@@ -2,9 +2,9 @@
  * Client-side copy of the be_game Cờ Tỷ Phú protocol (github.com/ThachHuynhIT/be_game,
  * src/typhu/protocol.ts + the shared types from src/typhu/game.ts). Keep them in sync.
  */
-import type { GameRecord, LeaderboardEntry, Reaction } from "@/lib/tienlen";
+import type { ChatMessage, GameRecord, LeaderboardEntry, Reaction } from "@/lib/tienlen";
 
-export type { GameRecord, LeaderboardEntry, Reaction };
+export type { ChatMessage, GameRecord, LeaderboardEntry, Reaction };
 
 export type Phase = "roll" | "buy" | "debt" | "end";
 
@@ -89,6 +89,7 @@ export interface TPRoomView {
   history: GameRecord[];
   spectators: string[];
   reactions: Reaction[];
+  chat?: ChatMessage[];
 }
 
 export interface TPRoomSummary {

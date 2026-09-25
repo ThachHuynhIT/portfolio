@@ -31,6 +31,7 @@ export function useTienLenRoom(code: string, name: string | null, mode: "play" |
   const start = useCallback(() => call({ type: "start" }), [call]);
   const sendEmoji = useCallback((emoji: string) => call({ type: "emoji", emoji }), [call]);
   const kick = useCallback((playerId: string) => call({ type: "kick", playerId }), [call]);
+  const sendChat = useCallback((text: string) => call({ type: "chat", text }), [call]);
 
-  return { view, status, error, play, pass, start, sendEmoji, kick };
+  return { view, status, error, play, pass, start, sendEmoji, kick, sendChat };
 }

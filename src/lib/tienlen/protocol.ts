@@ -24,7 +24,7 @@ export const TURN_SECONDS = 30;
 /** Path of the WebSocket endpoint (Vercel function `api/ws.ts`, and the local dev server). */
 export const WS_PATH = "/api/ws";
 /** Emoji anyone in a room (players and spectators) can send. */
-export const EMOJIS = ["👍", "😂", "😮", "😭", "😡", "🔥", "👏", "🤔", "😎", "💩", "🐷", "🎉"] as const;
+export const EMOJIS = ["👍", "😂", "😮", "😭", "😡", "🔥", "👏", "🤔", "😎", "💩", "🐷", "🐔", "🎉"] as const;
 /** Minimum gap between two emoji from one connection. */
 export const EMOJI_COOLDOWN_MS = 1_200;
 
@@ -58,6 +58,18 @@ export interface GameRecord {
   instantWin: InstantWinReason | null;
   /** `burned` = chết cháy (lost double). */
   results: { id: string; name: string; rank: number; delta: number; burned?: boolean }[];
+}
+
+/** Free-text chat, shared by players and spectators. */
+export const CHAT_MAX_LENGTH = 200;
+
+export interface ChatMessage {
+  id: string;
+  at: number;
+  name: string;
+  /** Seat id when a player sent it; null for spectators. */
+  playerId: string | null;
+  text: string;
 }
 
 export interface Reaction {
@@ -119,6 +131,7 @@ export interface RoomView {
   spectators: string[];
   /** Emoji sent in the last few seconds. */
   reactions: Reaction[];
+  chat?: ChatMessage[];
 }
 
 export type AckResult<T = object> = ({ ok: true } & T) | { ok: false; error: string };

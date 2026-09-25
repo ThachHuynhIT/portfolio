@@ -3,9 +3,9 @@
  * src/meono/protocol.ts). Keep the two in sync.
  */
 import type { CardType, Expansion, MCard } from "./cards";
-import type { GameRecord, LeaderboardEntry, Reaction } from "@/lib/tienlen";
+import type { ChatMessage, GameRecord, LeaderboardEntry, Reaction } from "@/lib/tienlen";
 
-export type { CardType, Expansion, MCard, GameRecord, LeaderboardEntry, Reaction };
+export type { ChatMessage, CardType, Expansion, MCard, GameRecord, LeaderboardEntry, Reaction };
 
 /** WebSocket endpoint for Mèo Nổ. */
 export const MEONO_WS_PATH = "/api/meono/ws";
@@ -75,6 +75,7 @@ export interface MeoRoomView {
   history: GameRecord[];
   spectators: string[];
   reactions: Reaction[];
+  chat?: ChatMessage[];
 }
 
 export interface MeoRoomSummary {
