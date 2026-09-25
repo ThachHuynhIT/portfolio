@@ -43,10 +43,18 @@ export type CardType =
   | "clone"
   | "grave"
   | "deadattack"
-  | "clairvoyance";
+  | "clairvoyance"
+  | "slap"
+  | "annoy"
+  | "steal"
+  | "rollcall"
+  | "corn";
 
-export type Expansion = "imploding" | "streaking" | "barking" | "zombie";
-export const EXPANSIONS: Expansion[] = ["imploding", "streaking", "barking", "zombie"];
+export type Expansion = "imploding" | "streaking" | "barking" | "attacking" | "defending" | "zombie";
+/** Every card group (for the guide). */
+export const EXPANSIONS: Expansion[] = ["imploding", "streaking", "barking", "attacking", "defending", "zombie"];
+/** Packs the host can tick in the "custom" preset. */
+export const SELECTABLE_PACKS: Expansion[] = ["imploding", "streaking", "barking", "attacking", "defending", "zombie"];
 
 export interface MCard {
   id: number;
@@ -54,6 +62,8 @@ export interface MCard {
   faceUp?: boolean;
   /** Đánh dấu: shown to everyone. */
   marked?: boolean;
+  /** Nổi cáu: unusable until the end of your next turn. */
+  annoyed?: boolean;
 }
 
 export const CAT_TYPES: CardType[] = ["taco", "melon", "potato", "beard", "rainbow"];
@@ -88,9 +98,14 @@ export const ACTION_TYPES: CardType[] = [
   "clone",
   "grave",
   "deadattack",
+  "slap",
+  "annoy",
+  "steal",
+  "rollcall",
+  "corn",
 ];
 /** Cards that need a target player when played alone (Mèo Xác Sống targets an exploded player). */
-export const TARGETED_TYPES: CardType[] = ["favor", "targeted", "mark", "curse", "ilt", "zombie"];
+export const TARGETED_TYPES: CardType[] = ["favor", "targeted", "mark", "curse", "ilt", "zombie", "annoy", "steal"];
 /** “Now” cards: playable at any time, even on someone else's turn. */
 export const NOW_TYPES: CardType[] = ["alternow"];
 
@@ -124,7 +139,17 @@ export const PACKS: Record<Pack, { name: string; emoji: string; blurb: string }>
   zombie: {
     name: "Gói Mèo Xác Sống",
     emoji: "🧟",
-    blurb: "Phỏng theo Zombie Kittens: hồi sinh người đã nổ, đào sâu, nhân bản, đào mộ, thấu thị chỗ giấu bom…",
+    blurb: "Phỏng theo Zombie Kittens: hồi sinh người đã nổ, đào sâu, nhân bản, đào mộ, thấu thị chỗ giấu bom… Chơi riêng ở chế độ Zombie Apocalypse.",
+  },
+  attacking: {
+    name: "Gói Mèo Tấn Công",
+    emoji: "⚔️",
+    blurb: "Phỏng theo Attacking Kittens: Tát, Cướp bài, Nổi cáu, thêm Sửa tương lai, Gỡ bom và 2 Mèo Nổ. Chơi tới 7 người.",
+  },
+  defending: {
+    name: "Gói Mèo Phòng Thủ",
+    emoji: "🛡️",
+    blurb: "Phỏng theo Defending Kittens: nhiều lá xem / sửa tương lai, đảo chiều, xáo bài, Điểm danh mèo và Lời nguyền ngô pha lê.",
   },
   barking: {
     name: "Gói Mèo Sủa",
@@ -498,6 +523,51 @@ export const CARDS: Record<CardType, CardInfo> = {
     how: "Đánh trong lượt của bạn.",
     effect: "Như Tấn công, nhưng người kế tiếp phải chơi thêm 1 lượt cho MỖI người đã bị loại. Càng nhiều người chết càng đau!",
   },
+  slap: {
+    name: "Tát",
+    emoji: "👋",
+    color: "from-orange-300 to-red-700",
+    pack: "attacking",
+    count: 4,
+    how: "Đánh trong lượt của bạn.",
+    effect: "Kết thúc lượt mà không rút bài — người kế tiếp phải rút hộ bạn 1 lá rồi mới chơi lượt của họ (chơi 2 lượt). Tát thật thì tuỳ bạn 😄",
+  },
+  annoy: {
+    name: "Nổi cáu",
+    emoji: "😾",
+    color: "from-yellow-400 to-amber-700",
+    pack: "attacking",
+    count: 4,
+    how: "Đánh trong lượt của bạn, chọn một người.",
+    effect: "Một lá (ngẫu nhiên) trên tay người đó bị vô hiệu tới hết lượt kế tiếp của họ — kể cả Gỡ bom hay “Không!”. Có 3 lá ở gói Tấn Công và 1 lá ở gói Phòng Thủ.",
+  },
+  steal: {
+    name: "Cướp bài",
+    emoji: "🦝",
+    color: "from-neutral-400 to-neutral-800",
+    pack: "attacking",
+    count: 4,
+    how: "Đánh trong lượt của bạn, chọn một người.",
+    effect: "Cướp ngẫu nhiên 1 lá trên tay người đó.",
+  },
+  rollcall: {
+    name: "Điểm danh mèo",
+    emoji: "📋",
+    color: "from-red-500 to-rose-900",
+    pack: "defending",
+    count: 1,
+    how: "Đánh trong lượt của bạn.",
+    effect: "Đưa tất cả Mèo Nổ còn lại lên đầu chồng bài rồi kết thúc lượt. Người kế tiếp không được Xáo bài — phải Bỏ lượt, Tấn công… hoặc cầu nguyện.",
+  },
+  corn: {
+    name: "Lời nguyền ngô pha lê",
+    emoji: "🌽",
+    color: "from-yellow-300 to-lime-700",
+    pack: "defending",
+    count: 1,
+    how: "Đánh trong lượt của bạn.",
+    effect: "Không ai được đánh Xáo bài cho tới hết lượt của người chơi kế tiếp.",
+  },
   clairvoyance: {
     name: "Thấu thị",
     emoji: "👁️",
@@ -519,3 +589,40 @@ export const NAMEABLE_TYPES = Object.keys(CARDS).filter((t) => t !== "exploding"
  * Old rooms may still send "chaos" (the Streaking cards were called Gói Hỗn Loạn).
  */
 export const packOf = (e: string): Expansion | null => (e === "chaos" ? "streaking" : (EXPANSIONS as string[]).includes(e) ? (e as Expansion) : null);
+
+/** Ready-made pack combinations the host picks from, each with the player counts it suits. */
+export interface Preset {
+  id: string;
+  name: string;
+  emoji: string;
+  group: "basic" | "advanced" | "chaos";
+  packs: Expansion[];
+  minPlayers: number;
+  maxPlayers: number;
+}
+
+export const PRESETS: Preset[] = [
+  { id: "classic", name: "Classic", emoji: "🐱", group: "basic", packs: [], minPlayers: 2, maxPlayers: 5 },
+  { id: "runaway", name: "Runaway Cats", emoji: "🏃", group: "basic", packs: ["streaking"], minPlayers: 2, maxPlayers: 5 },
+  { id: "implosion", name: "Implosion", emoji: "🌀", group: "basic", packs: ["imploding"], minPlayers: 2, maxPlayers: 6 },
+  { id: "zombie", name: "Zombie Apocalypse", emoji: "🧟", group: "basic", packs: ["zombie"], minPlayers: 2, maxPlayers: 5 },
+  { id: "war", name: "War of Cats", emoji: "⚔️🛡️", group: "basic", packs: ["attacking", "defending"], minPlayers: 3, maxPlayers: 7 },
+  { id: "catchaos", name: "Cat Chaos", emoji: "🏃🌀", group: "basic", packs: ["streaking", "imploding"], minPlayers: 3, maxPlayers: 6 },
+  { id: "ultimatechaos", name: "Ultimate Chaos", emoji: "🔥", group: "basic", packs: ["streaking", "imploding", "barking"], minPlayers: 3, maxPlayers: 6 },
+  { id: "aggressive", name: "Aggressive Cats", emoji: "⚔️🏃", group: "advanced", packs: ["attacking", "streaking"], minPlayers: 3, maxPlayers: 7 },
+  { id: "defchaos", name: "Defensive Chaos", emoji: "🛡️🌀", group: "advanced", packs: ["defending", "imploding"], minPlayers: 2, maxPlayers: 6 },
+  { id: "catfight", name: "Cat Fight", emoji: "🐶⚔️", group: "advanced", packs: ["barking", "attacking"], minPlayers: 3, maxPlayers: 7 },
+  { id: "zombiewar", name: "Zombie War", emoji: "🧟⚔️", group: "advanced", packs: ["zombie", "attacking"], minPlayers: 3, maxPlayers: 7 },
+  { id: "undead", name: "Undead Defense", emoji: "🧟🛡️", group: "advanced", packs: ["zombie", "defending"], minPlayers: 2, maxPlayers: 6 },
+  { id: "zombierun", name: "Zombie Run", emoji: "🧟🏃", group: "advanced", packs: ["zombie", "streaking"], minPlayers: 3, maxPlayers: 6 },
+  { id: "ultimatewar", name: "Ultimate War", emoji: "🔥", group: "chaos", packs: ["attacking", "defending", "streaking", "imploding"], minPlayers: 4, maxPlayers: 7 },
+  { id: "zombiechaos", name: "Zombie Apocalypse Chaos", emoji: "☠️", group: "chaos", packs: ["zombie", "streaking", "imploding", "barking"], minPlayers: 4, maxPlayers: 7 },
+  { id: "everything", name: "Everything", emoji: "💀", group: "chaos", packs: ["streaking", "imploding", "barking", "attacking", "zombie", "defending"], minPlayers: 4, maxPlayers: 7 },
+];
+export const PRESET_BY_ID: Record<string, Preset> = Object.fromEntries(PRESETS.map((p) => [p.id, p]));
+
+export const PRESET_GROUPS: { id: Preset["group"]; name: string }[] = [
+  { id: "basic", name: "Cơ bản" },
+  { id: "advanced", name: "Nâng cao" },
+  { id: "chaos", name: "Hỗn loạn" },
+];

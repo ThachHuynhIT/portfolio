@@ -14,10 +14,12 @@ import {
   type CardType,
   type Expansion,
   type MCard,
-  EXPANSIONS,
   NAMEABLE_TYPES,
   NOW_TYPES,
   PACKS,
+  PRESETS,
+  PRESET_GROUPS,
+  SELECTABLE_PACKS,
   TARGETED_TYPES,
   WILD_CAT,
   cardName,
@@ -190,8 +192,9 @@ function Board({
       ? ({ kind: "blind", target: false, named: null } as const)
       : null
     : classify(selectedTypes);
-  const planError = plan && "error" in plan ? plan.error : null;
-  const planOk = plan && !("error" in plan) ? plan : null;
+  const annoyedPick = selected.some((id) => hand.find((c) => c.id === id)?.annoyed);
+  const planError = annoyedPick ? "Lá bị Nổi cáu — chưa dùng được" : plan && "error" in plan ? plan.error : null;
+  const planOk = plan && !("error" in plan) && !annoyedPick ? plan : null;
 
   const g2 = g;
   const pending = g2?.pending ?? null;
@@ -410,6 +413,7 @@ function Board({
                   />
                 )}
                 {choice && <ChoicePanel view={view} choice={choice} nameOf={nameOf} secondsLeft={secondsLeft(choice.deadline) ?? 0} run={run} selected={selected} />}
+                {g.shuffleLocked && <p className="rounded-full bg-lime-600/30 px-3 py-0.5 text-xs text-lime-100">🌽 Đang khoá Xáo bài</p>}
                 {view.vision && <p className="rounded-xl bg-indigo-500/20 px-3 py-2 text-center text-sm text-indigo-100">{view.vision}</p>}
                 {view.future && (
                   <div className="rounded-xl bg-black/40 p-2 text-center">
@@ -479,7 +483,10 @@ function Board({
           )}
           <div className="flex w-full flex-wrap justify-center gap-1.5 pt-4">
             {sortedHand.map((c) => (
-              <MeoCard key={c.id} type={c.type} selected={selected.includes(c.id)} onClick={() => toggle(c)} />
+              <span key={c.id} className="relative" title={c.annoyed ? "Nổi cáu: lá này bị vô hiệu tới hết lượt tới của bạn" : undefined}>
+                <MeoCard type={c.type} selected={selected.includes(c.id)} onClick={() => toggle(c)} className={cn(c.annoyed && "opacity-50 grayscale")} />
+                {c.annoyed && <span className="pointer-events-none absolute -right-1 -top-1 rounded-full bg-amber-500 px-1 text-xs">😾</span>}
+              </span>
             ))}
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
@@ -959,6 +966,8 @@ function Waiting({
   const last = view.history[view.history.length - 1];
   const isHost = !!me?.isHost && view.role === "player";
   const settings = view.settings ?? DEFAULT_MEO_SETTINGS;
+  const preset = settings.preset ?? "classic";
+  const minP = view.minPlayers ?? 2;
   const toggle = (e: Expansion) =>
     void act({ type: "settings", expansions: view.expansions.includes(e) ? view.expansions.filter((x) => x !== e) : [...view.expansions, e] });
 
@@ -991,29 +1000,74 @@ function Waiting({
       )}
 
       <div className="mb-3 space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-orange-100/60">Gói mở rộng</p>
-        {EXPANSIONS.map((e) => {
-          const on = view.expansions.includes(e);
-          return (
-            <label
-              key={e}
-              className={cn(
-                "flex items-start gap-2 rounded-lg p-2 text-sm",
-                on ? "bg-amber-400/15 ring-1 ring-amber-300/50" : "bg-white/5",
-                isHost ? "cursor-pointer" : "cursor-default",
-              )}
-            >
-              <input type="checkbox" checked={on} disabled={!isHost} onChange={() => toggle(e)} className="mt-1 accent-amber-400" />
-              <span>
-                <b>
-                  {PACKS[e].emoji} {PACKS[e].name}
-                </b>
-                <span className="block text-xs text-orange-100/60">{PACKS[e].blurb}</span>
-              </span>
-            </label>
-          );
-        })}
-        {!isHost && <p className="text-xs text-orange-100/50">Chỉ chủ bàn chọn được gói mở rộng.</p>}
+        <p className="text-xs font-semibold uppercase tracking-wide text-orange-100/60">Chế độ chơi</p>
+        {PRESET_GROUPS.map((grp) => (
+          <div key={grp.id}>
+            <p className="mb-1 text-[11px] text-orange-100/50">{grp.name}</p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {PRESETS.filter((p) => p.group === grp.id).map((p) => {
+                const on = preset === p.id;
+                const fits = count >= p.minPlayers && count <= p.maxPlayers;
+                return (
+                  <button
+                    key={p.id}
+                    disabled={!isHost}
+                    onClick={() => void act({ type: "settings", preset: p.id })}
+                    title={p.packs.length ? p.packs.map((x) => PACKS[x].name).join(" + ") : "Bộ cơ bản, không gói mở rộng"}
+                    className={cn(
+                      "flex flex-col items-start rounded-lg px-2 py-1.5 text-left text-xs transition-colors",
+                      on ? "bg-amber-400 text-black" : "bg-white/5 text-orange-50",
+                      isHost && !on && "hover:bg-white/10",
+                      !fits && !on && "opacity-50",
+                    )}
+                  >
+                    <span className="font-semibold">
+                      {p.emoji} {p.name}
+                    </span>
+                    <span className={cn("text-[10px]", on ? "text-black/70" : "text-orange-100/60")}>
+                      {p.packs.length ? p.packs.map((x) => PACKS[x].emoji).join(" ") : "Không gói mở rộng"} · {p.minPlayers}–{p.maxPlayers} người
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        <button
+          disabled={!isHost}
+          onClick={() => void act({ type: "settings", preset: "custom" })}
+          className={cn("w-full rounded-lg px-2 py-1.5 text-xs font-semibold", preset === "custom" ? "bg-amber-400 text-black" : "bg-white/5 text-orange-50 hover:bg-white/10")}
+        >
+          🧩 Tuỳ chỉnh — tự chọn gói
+        </button>
+        {preset === "custom" &&
+          SELECTABLE_PACKS.map((e) => {
+            const on = view.expansions.includes(e);
+            return (
+              <label
+                key={e}
+                className={cn(
+                  "flex items-start gap-2 rounded-lg p-2 text-sm",
+                  on ? "bg-amber-400/15 ring-1 ring-amber-300/50" : "bg-white/5",
+                  isHost ? "cursor-pointer" : "cursor-default",
+                )}
+              >
+                <input type="checkbox" checked={on} disabled={!isHost} onChange={() => toggle(e)} className="mt-1 accent-amber-400" />
+                <span>
+                  <b>
+                    {PACKS[e].emoji} {PACKS[e].name}
+                  </b>
+                  <span className="block text-xs text-orange-100/60">{PACKS[e].blurb}</span>
+                </span>
+              </label>
+            );
+          })}
+        {(count < minP || count > view.maxPlayers) && (
+          <p className="rounded bg-rose-500/20 px-2 py-1 text-xs text-rose-100">
+            Chế độ này dành cho {minP}–{view.maxPlayers} người (đang có {count}).
+          </p>
+        )}
+        {!isHost && <p className="text-xs text-orange-100/50">Chỉ chủ bàn chọn được chế độ.</p>}
       </div>
 
       <div className="mb-3 space-y-2 rounded-lg bg-white/5 p-2 text-xs">
@@ -1060,10 +1114,10 @@ function Waiting({
       {isHost ? (
         <button
           onClick={() => void act({ type: "start" })}
-          disabled={count < 2}
+          disabled={count < minP || count > view.maxPlayers}
           className="w-full rounded-lg bg-amber-400 px-4 py-2 font-semibold text-black transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {count < 2 ? "Cần ít nhất 2 người" : ended ? "Ván mới" : "Bắt đầu"}
+          {count < minP ? `Cần ít nhất ${minP} người` : count > view.maxPlayers ? `Tối đa ${view.maxPlayers} người` : ended ? "Ván mới" : "Bắt đầu"}
         </button>
       ) : (
         <p className="text-sm text-orange-100/70">{view.role === "spectator" ? "Chờ ván mới…" : "Chờ chủ bàn bắt đầu…"}</p>

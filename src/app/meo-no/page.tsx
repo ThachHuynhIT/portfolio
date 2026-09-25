@@ -17,7 +17,7 @@ export default function MeoNoLobbyPage() {
         basePath="/meo-no"
         wsPath={MEONO_WS_PATH}
         apiPrefix="/meono"
-        maxPlayers={6}
+        maxPlayers={7}
         rules={<MeoRules />}
         extra={
           <button

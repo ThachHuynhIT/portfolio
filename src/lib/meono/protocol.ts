@@ -8,12 +8,14 @@ import type { ChatMessage, GameRecord, LeaderboardEntry, Reaction } from "@/lib/
 export type { ChatMessage, CardType, Expansion, MCard, GameRecord, LeaderboardEntry, Reaction };
 
 export interface MeoSettings {
+  /** A PRESETS id, or "custom" for the ticked packs. */
+  preset?: string;
   turnSeconds: number;
   nopeSeconds: number;
   first: number;
   second: number;
 }
-export const DEFAULT_MEO_SETTINGS: MeoSettings = { turnSeconds: 30, nopeSeconds: 7, first: 2, second: 1 };
+export const DEFAULT_MEO_SETTINGS: MeoSettings = { preset: "classic", turnSeconds: 30, nopeSeconds: 7, first: 2, second: 1 };
 export const TURN_SECONDS_OPTIONS = [15, 20, 30, 45, 60];
 export const NOPE_SECONDS_OPTIONS = [3.5, 5, 7, 10];
 
@@ -80,6 +82,8 @@ export interface MeoGameView {
     | null;
   /** Để đó cho tui: whose next draw goes to whom. */
   claims?: { victim: string; by: string }[];
+  /** Xáo bài can't be played right now. */
+  shuffleLocked?: boolean;
   finished: string[];
   log: { id: number; at: number; text: string; tone?: string }[];
 }
@@ -95,6 +99,8 @@ export interface MeoRoomView {
   /** Other host settings (missing from older servers). */
   settings?: MeoSettings;
   maxPlayers: number;
+  /** Fewest players the chosen preset allows (missing from older servers). */
+  minPlayers?: number;
   seats: (MeoSeatView | null)[];
   current: MeoGameView | null;
   hand: MCard[];
