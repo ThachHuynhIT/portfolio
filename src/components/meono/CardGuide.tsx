@@ -14,9 +14,10 @@ export function MeoRules() {
         Đến lượt: đánh <b>bao nhiêu lá tuỳ thích</b> (hoặc không đánh), rồi <b>rút 1 lá</b> để kết thúc lượt.
       </li>
       <li>Rút phải Mèo Nổ mà không có Gỡ bom là bị loại. Người cuối cùng còn sống thắng.</li>
-      <li>Sau mỗi lá hành động, mọi người có vài giây để đánh “Không!” chặn lại.</li>
+      <li>Gỡ bom xong thì bí mật nhét Mèo Nổ lại vào chồng bài — nhưng không được nhét vào 10% lá trên cùng hay dưới cùng (chồng bài ít quá thì nhét đâu cũng được).</li>
+      <li>Sau mỗi lá hành động, mọi người có vài giây (mặc định 7 giây, chủ bàn chỉnh được) để đánh “Không!” chặn lại.</li>
       <li>Lá mèo đánh theo đôi (cướp ngẫu nhiên 1 lá) hoặc bộ ba (gọi tên lá muốn lấy). 5 lá khác loại: nhặt 1 lá tuỳ chọn từ chồng đã đánh.</li>
-      <li>Hết 30 giây mà chưa rút, hệ thống tự rút giúp bạn.</li>
+      <li>Hết giờ lượt (mặc định 30 giây) mà chưa rút, hệ thống tự rút giúp bạn.</li>
       <li>Điểm theo thứ hạng (ai bị loại trước xếp sau): chủ bàn chọn điểm Nhất / Nhì (mặc định +2/+1), người cuối và áp chót bị trừ tương ứng, các hạng giữa 0 điểm — tổng luôn bằng 0.</li>
     </ul>
   );

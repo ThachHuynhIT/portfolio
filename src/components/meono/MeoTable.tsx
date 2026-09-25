@@ -27,6 +27,7 @@ import {
   type MeoSeatView,
   NOPE_SECONDS_OPTIONS,
   TURN_SECONDS_OPTIONS,
+  insertRange,
 } from "@/lib/meono/protocol";
 import { RankPointsPicker } from "@/components/games/RankPointsPicker";
 import type { Reaction } from "@/lib/tienlen";
@@ -218,6 +219,7 @@ function Board({
   // Explosion / defuse effects from the log.
   const [fx, setFx] = useState<BoomFx | null>(null);
   const lastLog = useRef<number | null>(null);
+  const latestLogId = g?.log.at(-1)?.id ?? 0;
   useEffect(() => {
     const log = g?.log ?? [];
     const latest = log[log.length - 1];
@@ -229,11 +231,14 @@ function Board({
     const fresh = log.filter((e) => e.id > (lastLog.current ?? 0));
     lastLog.current = latest.id;
     const big = fresh.reverse().find((e) => e.tone === "boom" || e.tone === "defuse" || e.tone === "nope");
-    if (!big) return;
-    setFx({ id: latest.id, tone: big.tone!, text: big.text });
-    const t = setTimeout(() => setFx((cur) => (cur?.id === latest.id ? null : cur)), big.tone === "boom" ? 2400 : 1500);
+    if (big) setFx({ id: latest.id, tone: big.tone!, text: big.text });
+  }, [latestLogId]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Hide on its own timer so later state updates can't cancel it (that left the overlay stuck).
+  useEffect(() => {
+    if (!fx) return;
+    const t = setTimeout(() => setFx(null), fx.tone === "boom" ? 2400 : 1500);
     return () => clearTimeout(t);
-  }, [g?.log]);
+  }, [fx]);
 
   const live = useLiveReactions(view.reactions);
   const reactionsFor = (id: string): Reaction[] => live.filter((r) => r.playerId === id);
@@ -691,7 +696,10 @@ function ChoicePanel({
   selected: number[];
 }) {
   const deckCount = view.current?.deckCount ?? 0;
-  const [pos, setPos] = useState(0);
+  // Not in the top / bottom 10% of the deck (anywhere if the deck is tiny).
+  const [minPos, maxPos] = insertRange(deckCount);
+  const [pos, setPos] = useState(minPos);
+  const safePos = Math.min(maxPos, Math.max(minPos, pos));
   const [order, setOrder] = useState<MCard[]>(view.alter ?? []);
   useEffect(() => setOrder(view.alter ?? []), [view.alter?.map((c) => c.id).join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -768,26 +776,45 @@ function ChoicePanel({
 
   // Hide a kitten: defuse (secret) or imploding (face up).
   const label = (i: number) => (i === 0 ? "Trên cùng" : i === deckCount ? "Dưới cùng" : `Lá thứ ${i + 1}`);
+  const limited = minPos > 0;
   return (
     <div className="w-full max-w-md rounded-xl border border-emerald-300/40 bg-black/50 p-3 text-center text-sm">
       <p>
         {choice.kind === "implode" ? "🌀 Đặt Mèo Tự Huỷ (ngửa, ai cũng thấy) vào đâu?" : "🧯 Gỡ bom thành công! Bí mật nhét Mèo Nổ vào đâu?"}
         {timer}
       </p>
-      <input type="range" min={0} max={deckCount} value={pos} onChange={(e) => setPos(Number(e.target.value))} className="mt-2 w-full accent-amber-400" aria-label="Vị trí" />
-      <p className="text-amber-200">{label(pos)}</p>
+      <input
+        type="range"
+        min={minPos}
+        max={maxPos}
+        value={safePos}
+        onChange={(e) => setPos(Number(e.target.value))}
+        className="mt-2 w-full accent-amber-400"
+        aria-label="Vị trí"
+      />
+      <p className="text-amber-200">
+        {label(safePos)} <span className="text-xs text-orange-100/50">/ {deckCount} lá</span>
+      </p>
+      {limited && (
+        <p className="text-xs text-orange-100/60">
+          Không được nhét vào 10% trên cùng / dưới cùng — chọn từ lá thứ {minPos + 1} đến lá thứ {maxPos + 1}.
+        </p>
+      )}
       <div className="mt-2 flex flex-wrap justify-center gap-2">
-        <button onClick={() => void run({ type: "insert", position: 0 })} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10">
-          Trên cùng
+        <button onClick={() => void run({ type: "insert", position: minPos })} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10">
+          {limited ? "Cao nhất" : "Trên cùng"}
         </button>
-        <button onClick={() => void run({ type: "insert", position: Math.floor(Math.random() * (deckCount + 1)) })} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10">
+        <button
+          onClick={() => void run({ type: "insert", position: minPos + Math.floor(Math.random() * (maxPos - minPos + 1)) })}
+          className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10"
+        >
           Ngẫu nhiên
         </button>
-        <button onClick={() => void run({ type: "insert", position: deckCount })} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10">
-          Dưới cùng
+        <button onClick={() => void run({ type: "insert", position: maxPos })} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10">
+          {limited ? "Thấp nhất" : "Dưới cùng"}
         </button>
-        <button onClick={() => void run({ type: "insert", position: pos })} className="rounded-md bg-amber-400 px-3 py-1 font-semibold text-black">
-          Nhét vào {label(pos).toLowerCase()}
+        <button onClick={() => void run({ type: "insert", position: safePos })} className="rounded-md bg-amber-400 px-3 py-1 font-semibold text-black">
+          Nhét vào {label(safePos).toLowerCase()}
         </button>
       </div>
     </div>

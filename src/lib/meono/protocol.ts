@@ -13,9 +13,18 @@ export interface MeoSettings {
   first: number;
   second: number;
 }
-export const DEFAULT_MEO_SETTINGS: MeoSettings = { turnSeconds: 30, nopeSeconds: 3.5, first: 2, second: 1 };
+export const DEFAULT_MEO_SETTINGS: MeoSettings = { turnSeconds: 30, nopeSeconds: 7, first: 2, second: 1 };
 export const TURN_SECONDS_OPTIONS = [15, 20, 30, 45, 60];
-export const NOPE_SECONDS_OPTIONS = [2, 3.5, 5, 7];
+export const NOPE_SECONDS_OPTIONS = [3.5, 5, 7, 10];
+
+/**
+ * Where a kitten may be hidden (0 = top, deckLength = bottom): not in the top or bottom 10%;
+ * anywhere when the deck is too small (same as be_game insertRange).
+ */
+export function insertRange(deckLength: number): [number, number] {
+  const margin = Math.floor(deckLength * 0.1);
+  return margin < 1 ? [0, deckLength] : [margin, deckLength - margin];
+}
 
 /** WebSocket endpoint for Mèo Nổ. */
 export const MEONO_WS_PATH = "/api/meono/ws";
