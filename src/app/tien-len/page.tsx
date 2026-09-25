@@ -22,7 +22,7 @@ export default function TienLenLobbyPage() {
           <li>Đã bỏ lượt thì không được đánh lại tới hết vòng. Không có bài nào chặn được thì tự động bỏ lượt.</li>
           <li>Tới trắng: tứ quý heo, sảnh rồng, 6 đôi, 5 đôi thông.</li>
           <li>Điểm: Nhất +2, Nhì +1 — 4 người +2/+1/−1/−2 · 3 người +2/+1/−3 · 2 người +2/−2 · tới trắng +2 từ mỗi người.</li>
-          <li>Chặt heo: người bị chặt trả cho người chặt — heo đen (♠♣) 1 điểm, heo đỏ (♦♥) 2 điểm, chặt chồng (chặt 3 đôi thông / tứ quý) 2 điểm.</li>
+          <li>Chặt heo: người bị chặt trả cho người chặt — heo đen (♠♣) 1 điểm, heo đỏ (♦♥) 2 điểm. Chặt chồng thì gấp đôi mỗi lần: heo đỏ 2 → 4 → 8… (chặt 3 đôi thông / tứ quý đánh thường: 2 điểm).</li>
         </ul>
       }
     />
