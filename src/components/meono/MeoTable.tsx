@@ -20,13 +20,22 @@ import {
   WILD_CAT,
   cardName,
 } from "@/lib/meono/cards";
-import { MEONO_WS_PATH, type MeoRoomView, type MeoSeatView } from "@/lib/meono/protocol";
+import {
+  DEFAULT_MEO_SETTINGS,
+  MEONO_WS_PATH,
+  type MeoRoomView,
+  type MeoSeatView,
+  NOPE_SECONDS_OPTIONS,
+  TURN_SECONDS_OPTIONS,
+} from "@/lib/meono/protocol";
+import { RankPointsPicker } from "@/components/games/RankPointsPicker";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { CardGuide } from "./CardGuide";
 import { MeoCard } from "./MeoCard";
 
-const SCORE_NOTE = "Điểm theo thứ hạng: người sống sót cuối cùng Nhất, ai bị loại trước xếp sau. Tổng điểm mỗi ván luôn bằng 0.";
+const SCORE_NOTE =
+  "Điểm theo thứ hạng: người sống sót cuối cùng Nhất, ai bị loại trước xếp sau. Chủ bàn chọn điểm Nhất / Nhì, các hạng cuối trừ tương ứng, tổng mỗi ván luôn bằng 0.";
 
 /** Shift server-clock deadlines onto the local clock. */
 function localize(view: MeoRoomView): MeoRoomView {
@@ -312,6 +321,7 @@ function Board({
                 selected={target === s.id}
                 onSelect={() => setTarget(s.id)}
                 onKick={me?.isHost && !s.connected && !s.kicked ? () => void kick(s) : undefined}
+                turnMs={(view.settings?.turnSeconds ?? 30) * 1000}
               />
             ))}
           </div>
@@ -536,6 +546,7 @@ function Seat({
   selected,
   onSelect,
   onKick,
+  turnMs = 30_000,
 }: {
   seat: MeoSeatView;
   self?: boolean;
@@ -548,8 +559,9 @@ function Seat({
   selected?: boolean;
   onSelect?: () => void;
   onKick?: () => void;
+  turnMs?: number;
 }) {
-  const left = deadline ? Math.max(0, (deadline - now) / 30_000) : 0;
+  const left = deadline ? Math.min(1, Math.max(0, (deadline - now) / turnMs)) : 0;
   const Tag = selectable ? "button" : "div";
   return (
     <Tag
@@ -798,6 +810,7 @@ function Waiting({
   const ended = g?.status === "ended";
   const last = view.history[view.history.length - 1];
   const isHost = !!me?.isHost && view.role === "player";
+  const settings = view.settings ?? DEFAULT_MEO_SETTINGS;
   const toggle = (e: Expansion) =>
     void act({ type: "settings", expansions: view.expansions.includes(e) ? view.expansions.filter((x) => x !== e) : [...view.expansions, e] });
 
@@ -853,6 +866,47 @@ function Waiting({
           );
         })}
         {!isHost && <p className="text-xs text-orange-100/50">Chỉ chủ bàn chọn được gói mở rộng.</p>}
+      </div>
+
+      <div className="mb-3 space-y-2 rounded-lg bg-white/5 p-2 text-xs">
+        <p className="font-semibold uppercase tracking-wide text-orange-100/60">Luật bàn</p>
+        <label className="flex items-center justify-between gap-2">
+          <span>Thời gian mỗi lượt</span>
+          <select
+            value={settings.turnSeconds}
+            disabled={!isHost}
+            onChange={(e) => void act({ type: "settings", turnSeconds: Number(e.target.value) })}
+            className="rounded bg-black/40 px-1 py-0.5"
+          >
+            {TURN_SECONDS_OPTIONS.map((v) => (
+              <option key={v} value={v}>
+                {v} giây
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-center justify-between gap-2">
+          <span>Thời gian bấm “Không!”</span>
+          <select
+            value={settings.nopeSeconds}
+            disabled={!isHost}
+            onChange={(e) => void act({ type: "settings", nopeSeconds: Number(e.target.value) })}
+            className="rounded bg-black/40 px-1 py-0.5"
+          >
+            {NOPE_SECONDS_OPTIONS.map((v) => (
+              <option key={v} value={v}>
+                {String(v).replace(".", ",")} giây
+              </option>
+            ))}
+          </select>
+        </label>
+        <RankPointsPicker
+          first={settings.first}
+          second={settings.second}
+          players={count}
+          editable={isHost}
+          onChange={(v) => void act({ type: "settings", ...v })}
+        />
       </div>
 
       {isHost ? (

@@ -17,7 +17,7 @@ export function MeoRules() {
       <li>Sau mỗi lá hành động, mọi người có vài giây để đánh “Không!” chặn lại.</li>
       <li>Lá mèo đánh theo đôi (cướp ngẫu nhiên 1 lá) hoặc bộ ba (gọi tên lá muốn lấy). 5 lá khác loại: nhặt 1 lá tuỳ chọn từ chồng đã đánh.</li>
       <li>Hết 30 giây mà chưa rút, hệ thống tự rút giúp bạn.</li>
-      <li>Điểm theo thứ hạng (ai bị loại trước xếp sau): 2 người +1/−1 · 3 người +2/0/−2 · 4 người +3/+1/−1/−3 · 5–6 người tương tự, tổng luôn bằng 0.</li>
+      <li>Điểm theo thứ hạng (ai bị loại trước xếp sau): chủ bàn chọn điểm Nhất / Nhì (mặc định +2/+1), người cuối và áp chót bị trừ tương ứng, các hạng giữa 0 điểm — tổng luôn bằng 0.</li>
     </ul>
   );
 }

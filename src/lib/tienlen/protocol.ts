@@ -74,13 +74,18 @@ export interface TienLenSettings {
 export const DEFAULT_TIENLEN_SETTINGS: TienLenSettings = { autoPass: true, first: 2, second: 1 };
 export const MAX_RANK_POINTS = 20;
 
-/** Points by finishing position, mirrored so the game sums to zero (same as be_game scoring.ts). */
-export function tienlenRankPoints(n: number, { first, second }: { first: number; second: number }): number[] {
+/**
+ * Nhất / Nhì points mirrored onto the last places so a game sums to zero; places in between score 0
+ * (same as be_game scoring.ts). 3 players: +f +s −(f+s).
+ */
+export function mirroredRankPoints(n: number, { first, second }: { first: number; second: number }): number[] {
+  if (n < 2) return n === 1 ? [0] : [];
   if (n === 2) return [first, -first];
   if (n === 3) return [first, second, -(first + second)];
-  if (n === 4) return [first, second, -second, -first];
-  return [];
+  return [first, second, ...Array.from({ length: n - 4 }, () => 0), -second, -first];
 }
+
+export const tienlenRankPoints = mirroredRankPoints;
 
 export interface ChatMessage {
   id: string;

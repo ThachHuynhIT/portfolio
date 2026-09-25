@@ -34,7 +34,17 @@ export interface TPSettings {
   startCash: number;
   /** Minutes, 0 = no limit. */
   timeLimit: number;
+  /** Seconds per step (missing from older servers). */
+  stepSeconds?: number;
+  /** Landing exactly on Khởi hành pays double. */
+  doubleGo?: boolean;
+  /** Taxes and fines pile up on Nghỉ chân. */
+  parkingPot?: boolean;
+  first?: number;
+  second?: number;
 }
+
+export const STEP_SECONDS_OPTIONS = [15, 20, 30, 45, 60];
 
 export interface TPSeatView {
   id: string;
@@ -74,6 +84,8 @@ export interface TPGameView {
   lastCard: { deck: "chance" | "chest"; text: string; player: string; at: number } | null;
   finished: string[];
   endsAt: number | null;
+  /** Nghỉ chân pot (null when the rule is off). */
+  pot?: number | null;
   log: LogEntry[];
 }
 
@@ -111,7 +123,7 @@ export interface TPRoomSummary {
  */
 export type TPCommand =
   | { type: "start" }
-  | { type: "settings"; startCash?: number; timeLimit?: number }
+  | { type: "settings"; startCash?: number; timeLimit?: number; stepSeconds?: number; doubleGo?: boolean; parkingPot?: boolean; first?: number; second?: number }
   | { type: "kick"; playerId: string }
   | { type: "roll" | "buy" | "skip" | "end" | "payjail" | "jailcard" | "paydebt" | "bankrupt" }
   | { type: "build" | "sell" | "mortgage" | "unmortgage"; pos: number }

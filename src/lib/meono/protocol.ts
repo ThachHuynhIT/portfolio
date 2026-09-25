@@ -7,6 +7,16 @@ import type { ChatMessage, GameRecord, LeaderboardEntry, Reaction } from "@/lib/
 
 export type { ChatMessage, CardType, Expansion, MCard, GameRecord, LeaderboardEntry, Reaction };
 
+export interface MeoSettings {
+  turnSeconds: number;
+  nopeSeconds: number;
+  first: number;
+  second: number;
+}
+export const DEFAULT_MEO_SETTINGS: MeoSettings = { turnSeconds: 30, nopeSeconds: 3.5, first: 2, second: 1 };
+export const TURN_SECONDS_OPTIONS = [15, 20, 30, 45, 60];
+export const NOPE_SECONDS_OPTIONS = [2, 3.5, 5, 7];
+
 /** WebSocket endpoint for Mèo Nổ. */
 export const MEONO_WS_PATH = "/api/meono/ws";
 
@@ -64,6 +74,8 @@ export interface MeoRoomView {
   serverTime: number;
   /** Packs enabled for the next game (host setting). */
   expansions: Expansion[];
+  /** Other host settings (missing from older servers). */
+  settings?: MeoSettings;
   maxPlayers: number;
   seats: (MeoSeatView | null)[];
   current: MeoGameView | null;
@@ -108,5 +120,5 @@ export type MeoCommand =
   | { type: "insert"; position: number }
   | { type: "give"; card: number }
   | { type: "alter"; order: number[] }
-  | { type: "settings"; expansions: Expansion[] }
+  | { type: "settings"; expansions?: Expansion[]; turnSeconds?: number; nopeSeconds?: number; first?: number; second?: number }
   | { type: "kick"; playerId: string };

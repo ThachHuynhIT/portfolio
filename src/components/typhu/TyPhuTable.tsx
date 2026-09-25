@@ -23,11 +23,13 @@ import {
   mortgageValue,
   unmortgageCost,
 } from "@/lib/typhu/board";
-import { TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TradeSide } from "@/lib/typhu/protocol";
+import { RankPointsPicker } from "@/components/games/RankPointsPicker";
+import { STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TradeSide } from "@/lib/typhu/protocol";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 
-const SCORE_NOTE = "Điểm theo thứ hạng: người còn trụ lại (hoặc giàu nhất khi hết giờ) Nhất, ai phá sản trước xếp sau. Tổng điểm mỗi ván luôn bằng 0.";
+const SCORE_NOTE =
+  "Điểm theo thứ hạng: người còn trụ lại (hoặc giàu nhất khi hết giờ) Nhất, ai phá sản trước xếp sau. Chủ bàn chọn điểm Nhất / Nhì, các hạng cuối trừ tương ứng, tổng mỗi ván luôn bằng 0.";
 
 export const TOKENS = [
   { emoji: "🛵", color: "#ef4444" },
@@ -533,6 +535,9 @@ function Cell({
         </span>
         {isOwnable(sq) && !deed && <span className="hidden text-[8px] text-emerald-900/70 sm:block">{money(sq.price)}</span>}
         {deed?.mortgaged && <span className="text-[6px] font-bold text-rose-700 sm:text-[8px]">THẾ CHẤP</span>}
+        {sq.kind === "parking" && !!game?.pot && (
+          <span className="rounded bg-amber-300 px-1 text-[7px] font-bold text-amber-950 sm:text-[10px]">💰 {money(game.pot)}</span>
+        )}
       </span>
       {owner && deed && (
         <motion.span
@@ -1250,6 +1255,53 @@ function Waiting({ view, me, act, nameOf }: { view: TPRoomView; me: TPSeatView |
             ))}
           </select>
         </label>
+      </div>
+
+      <div className="mb-3 space-y-2 rounded-lg bg-emerald-900/10 p-2 text-xs text-emerald-950">
+        <label className="flex items-center justify-between gap-2">
+          <span>Thời gian mỗi bước</span>
+          <select
+            value={view.settings.stepSeconds ?? 30}
+            disabled={!isHost}
+            onChange={(e) => void act({ type: "settings", stepSeconds: Number(e.target.value) })}
+            className="rounded-md border border-emerald-900/20 bg-white px-2 py-0.5"
+          >
+            {STEP_SECONDS_OPTIONS.map((v) => (
+              <option key={v} value={v}>
+                {v} giây
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={cn("flex items-center justify-between gap-2", isHost && "cursor-pointer")}>
+          <span>Dừng đúng Khởi hành nhận gấp đôi (400tr)</span>
+          <input
+            type="checkbox"
+            checked={!!view.settings.doubleGo}
+            disabled={!isHost}
+            onChange={(e) => void act({ type: "settings", doubleGo: e.target.checked })}
+            className="h-4 w-4 accent-emerald-700"
+          />
+        </label>
+        <label className={cn("flex items-center justify-between gap-2", isHost && "cursor-pointer")}>
+          <span>Quỹ Nghỉ chân: thuế &amp; tiền phạt dồn vào ô ☕, ai dừng đó hốt hết</span>
+          <input
+            type="checkbox"
+            checked={!!view.settings.parkingPot}
+            disabled={!isHost}
+            onChange={(e) => void act({ type: "settings", parkingPot: e.target.checked })}
+            className="h-4 w-4 accent-emerald-700"
+          />
+        </label>
+        <RankPointsPicker
+          first={view.settings.first ?? 2}
+          second={view.settings.second ?? 1}
+          players={count}
+          editable={isHost}
+          onChange={(v) => void act({ type: "settings", ...v })}
+          className="[&_select]:bg-white [&_select]:text-emerald-950"
+        />
+        {!isHost && <p className="text-emerald-900/50">Chỉ chủ bàn đổi được luật.</p>}
       </div>
 
       {isHost ? (
