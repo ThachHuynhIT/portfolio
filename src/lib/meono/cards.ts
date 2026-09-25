@@ -36,10 +36,17 @@ export type CardType =
   | "alternow"
   | "bury"
   | "personal"
-  | "share";
+  | "share"
+  | "zombie"
+  | "feed"
+  | "dig"
+  | "clone"
+  | "grave"
+  | "deadattack"
+  | "clairvoyance";
 
-export type Expansion = "imploding" | "streaking" | "barking";
-export const EXPANSIONS: Expansion[] = ["imploding", "streaking", "barking"];
+export type Expansion = "imploding" | "streaking" | "barking" | "zombie";
+export const EXPANSIONS: Expansion[] = ["imploding", "streaking", "barking", "zombie"];
 
 export interface MCard {
   id: number;
@@ -75,9 +82,15 @@ export const ACTION_TYPES: CardType[] = [
   "bury",
   "personal",
   "share",
+  "zombie",
+  "feed",
+  "dig",
+  "clone",
+  "grave",
+  "deadattack",
 ];
-/** Cards that need a target player when played alone. */
-export const TARGETED_TYPES: CardType[] = ["favor", "targeted", "mark", "curse", "ilt"];
+/** Cards that need a target player when played alone (Mèo Xác Sống targets an exploded player). */
+export const TARGETED_TYPES: CardType[] = ["favor", "targeted", "mark", "curse", "ilt", "zombie"];
 /** “Now” cards: playable at any time, even on someone else's turn. */
 export const NOW_TYPES: CardType[] = ["alternow"];
 
@@ -108,6 +121,11 @@ export const PACKS: Record<Pack, { name: string; emoji: string; blurb: string }>
     emoji: "🏃",
     blurb: "Phỏng theo Streaking Kittens: giữ Mèo Nổ trong tay, đánh dấu, lời nguyền, dọn rác, bom nguyên tử… Thêm 1 Mèo Nổ.",
   },
+  zombie: {
+    name: "Gói Mèo Xác Sống",
+    emoji: "🧟",
+    blurb: "Phỏng theo Zombie Kittens: hồi sinh người đã nổ, đào sâu, nhân bản, đào mộ, thấu thị chỗ giấu bom…",
+  },
   barking: {
     name: "Gói Mèo Sủa",
     emoji: "🐶",
@@ -132,7 +150,7 @@ export const CARDS: Record<CardType, CardInfo> = {
     pack: "base",
     count: 6,
     how: "Tự động dùng khi bạn rút phải Mèo Nổ.",
-    effect: "Cứu bạn khỏi Mèo Nổ. Sau đó bạn bí mật nhét quả bom vào bất kỳ vị trí nào trong chồng bài.",
+    effect: "Cứu bạn khỏi Mèo Nổ. Sau đó bạn bí mật nhét quả bom lại vào chồng bài — ở đâu cũng được, trừ 10% lá trên cùng và dưới cùng.",
   },
   attack: {
     name: "Tấn công",
@@ -425,6 +443,69 @@ export const CARDS: Record<CardType, CardInfo> = {
     count: 2,
     how: "Đánh trong lượt của bạn.",
     effect: "Xem và xếp lại 3 lá trên cùng, rồi cho người chơi kế tiếp xem đúng 3 lá đó.",
+  },
+  zombie: {
+    name: "Mèo Xác Sống",
+    emoji: "🧟",
+    color: "from-lime-500 to-green-900",
+    pack: "zombie",
+    count: 4,
+    how: "Đánh trong lượt của bạn, chọn một người ĐÃ BỊ LOẠI.",
+    effect: "Hồi sinh người đó: họ quay lại bàn với 2 lá nhặt ngẫu nhiên từ chồng bài đã đánh (không có Mèo Nổ) và chơi tiếp như bình thường.",
+  },
+  feed: {
+    name: "Nuôi xác sống",
+    emoji: "🍖",
+    color: "from-rose-500 to-red-900",
+    pack: "zombie",
+    count: 3,
+    how: "Đánh trong lượt của bạn.",
+    effect: "Lần lượt từ bạn, mỗi người còn sống chọn 1 lá trên tay bỏ vào chồng bài đã đánh — cho xác sống ăn.",
+  },
+  dig: {
+    name: "Đào sâu",
+    emoji: "⛏️",
+    color: "from-amber-600 to-yellow-900",
+    pack: "zombie",
+    count: 4,
+    how: "Đánh trong lượt của bạn, thay cho việc rút bài.",
+    effect: "Bí mật xem lá trên cùng: giữ nó (như rút bài bình thường), hoặc để nguyên đó và bắt buộc lấy lá ngay bên dưới. Lượt của bạn kết thúc.",
+  },
+  clone: {
+    name: "Nhân bản",
+    emoji: "🧬",
+    color: "from-cyan-400 to-teal-800",
+    pack: "zombie",
+    count: 3,
+    how: "Đánh trong lượt của bạn, ngay sau một lá hành động.",
+    effect: "Chơi lại y hệt hiệu ứng của lá hành động nằm trên cùng chồng bài đã đánh (chỉ những lá không cần nhắm người).",
+  },
+  grave: {
+    name: "Đào mộ",
+    emoji: "🪦",
+    color: "from-slate-400 to-slate-800",
+    pack: "zombie",
+    count: 2,
+    how: "Đánh trong lượt của bạn.",
+    effect: "Lần lượt từ bạn, mỗi người còn sống nhặt ngẫu nhiên 1 lá từ chồng bài đã đánh (không bao giờ là Mèo Nổ).",
+  },
+  deadattack: {
+    name: "Xác sống tấn công",
+    emoji: "🧟‍♂️",
+    color: "from-green-600 to-emerald-950",
+    pack: "zombie",
+    count: 2,
+    how: "Đánh trong lượt của bạn.",
+    effect: "Như Tấn công, nhưng người kế tiếp phải chơi thêm 1 lượt cho MỖI người đã bị loại. Càng nhiều người chết càng đau!",
+  },
+  clairvoyance: {
+    name: "Thấu thị",
+    emoji: "👁️",
+    color: "from-indigo-400 to-violet-900",
+    pack: "zombie",
+    count: 2,
+    how: "Đánh khi một người khác vừa gỡ bom và đang nhét Mèo Nổ lại.",
+    effect: "Bạn được bí mật biết họ nhét Mèo Nổ ở vị trí nào trong chồng bài.",
   },
 };
 

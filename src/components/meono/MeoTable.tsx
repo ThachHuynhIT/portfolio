@@ -76,6 +76,7 @@ function classify(types: CardType[]): { kind: string; target: boolean; named: "h
     if (t === "nope") return { error: "“Không!” chỉ dùng để chặn người khác" };
     if (t === "exploding") return { error: "Mèo Nổ đang được Mèo Chạy Rông che chở — không đánh ra được" };
     if (t === "streaking") return { error: "Mèo Chạy Rông chỉ cần giữ trong tay" };
+    if (t === "clairvoyance") return { error: "Thấu thị dùng khi người khác đang nhét Mèo Nổ" };
     if (t === "defuse") return { error: "Gỡ bom tự dùng khi rút phải Mèo Nổ" };
     return { error: "Lá mèo phải đánh theo đôi hoặc bộ ba" };
   }
@@ -337,7 +338,11 @@ function Board({
                 deadline={g?.turn === s.id ? g.turnDeadline : null}
                 now={now}
                 reactions={reactionsFor(s.id)}
-                selectable={(needTarget || cursed) && myTurn && s.inGame && !s.out}
+                selectable={
+                  planOk?.kind === "zombie"
+                    ? myTurn && s.inGame && s.out && !s.kicked
+                    : (needTarget || cursed) && myTurn && s.inGame && !s.out
+                }
                 selected={target === s.id}
                 onSelect={() => setTarget(s.id)}
                 onKick={me?.isHost && !s.connected && !s.kicked ? () => void kick(s) : undefined}
@@ -405,6 +410,7 @@ function Board({
                   />
                 )}
                 {choice && <ChoicePanel view={view} choice={choice} nameOf={nameOf} secondsLeft={secondsLeft(choice.deadline) ?? 0} run={run} selected={selected} />}
+                {view.vision && <p className="rounded-xl bg-indigo-500/20 px-3 py-2 text-center text-sm text-indigo-100">{view.vision}</p>}
                 {view.future && (
                   <div className="rounded-xl bg-black/40 p-2 text-center">
                     <p className="mb-1 text-xs text-fuchsia-200">
@@ -748,10 +754,14 @@ function ChoicePanel({
     const what =
       choice.kind === "favor"
         ? `đang chọn 1 lá để đưa cho ${nameOf(choice.to)}`
+        : choice.kind === "dig"
+          ? "đang đào bài ⛏️"
         : choice.kind === "offer"
           ? choice.mode === "potluck"
             ? "đang chọn 1 lá góp lên đầu chồng bài"
-            : "đang chọn 1 lá bỏ vào chồng bài"
+            : choice.mode === "feed"
+              ? "đang chọn 1 lá cho xác sống ăn"
+              : "đang chọn 1 lá bỏ vào chồng bài"
           : choice.kind === "bury"
             ? "đang chôn lá trên cùng vào chồng bài"
         : choice.kind === "alter"
@@ -759,10 +769,18 @@ function ChoicePanel({
           : choice.kind === "implode"
             ? "đang đặt Mèo Tự Huỷ (ngửa) vào chồng bài"
             : "đang bí mật nhét Mèo Nổ vào chồng bài";
+    const seer = choice.kind === "defuse" ? view.hand.find((c) => c.type === "clairvoyance") : undefined;
     return (
-      <p className="rounded-xl bg-black/40 px-3 py-2 text-sm">
-        <b>{nameOf(who)}</b> {what}…{timer}
-      </p>
+      <div className="flex flex-col items-center gap-2">
+        <p className="rounded-xl bg-black/40 px-3 py-2 text-sm">
+          <b>{nameOf(who)}</b> {what}…{timer}
+        </p>
+        {seer && (
+          <button onClick={() => void run({ type: "see", card: seer.id })} className="rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-400">
+            👁️ Dùng Thấu thị — xem họ nhét ở đâu
+          </button>
+        )}
+      </div>
     );
   }
 
@@ -787,7 +805,11 @@ function ChoicePanel({
     return (
       <div className="rounded-xl border border-amber-300/40 bg-black/50 p-3 text-center text-sm">
         <p>
-          {choice.mode === "potluck" ? "🍲 Góp nồi — chọn 1 lá đặt lên đầu chồng bài" : "🗑️ Dọn rác — chọn 1 lá bỏ vào chồng bài (sẽ được xáo)"}
+          {choice.mode === "potluck"
+            ? "🍲 Góp nồi — chọn 1 lá đặt lên đầu chồng bài"
+            : choice.mode === "feed"
+              ? "🍖 Nuôi xác sống — chọn 1 lá bỏ vào chồng bài đã đánh"
+              : "🗑️ Dọn rác — chọn 1 lá bỏ vào chồng bài (sẽ được xáo)"}
           {timer}
         </p>
         <button
@@ -797,6 +819,23 @@ function ChoicePanel({
         >
           {choice.mode === "potluck" ? "Góp lá đã chọn" : "Bỏ lá đã chọn"}
         </button>
+      </div>
+    );
+  }
+
+  if (choice.kind === "dig") {
+    return (
+      <div className="flex flex-col items-center gap-2 rounded-xl border border-amber-500/40 bg-black/50 p-3 text-center text-sm">
+        <p>⛏️ Lá trên cùng là (chỉ bạn thấy):{timer}</p>
+        {view.dig && <MeoCard type={view.dig} size="md" />}
+        <div className="flex flex-wrap justify-center gap-2">
+          <button onClick={() => void run({ type: "dig", keep: true })} className="rounded-md bg-amber-400 px-3 py-1 font-semibold text-black">
+            Giữ lá này
+          </button>
+          <button onClick={() => void run({ type: "dig", keep: false })} className="rounded-md border border-white/20 px-3 py-1 hover:bg-white/10">
+            Bỏ qua, lấy lá bên dưới
+          </button>
+        </div>
       </div>
     );
   }
