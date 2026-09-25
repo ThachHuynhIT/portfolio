@@ -24,14 +24,29 @@ export type CardType =
   | "targeted"
   | "superskip"
   | "swap"
-  | "catomic";
+  | "catomic"
+  | "streaking"
+  | "future5"
+  | "garbage"
+  | "mark"
+  | "curse"
+  | "barking"
+  | "potluck"
+  | "ilt"
+  | "alternow"
+  | "bury"
+  | "personal"
+  | "share";
 
-export type Expansion = "imploding" | "chaos";
+export type Expansion = "imploding" | "streaking" | "barking";
+export const EXPANSIONS: Expansion[] = ["imploding", "streaking", "barking"];
 
 export interface MCard {
   id: number;
   type: CardType;
   faceUp?: boolean;
+  /** Đánh dấu: shown to everyone. */
+  marked?: boolean;
 }
 
 export const CAT_TYPES: CardType[] = ["taco", "melon", "potato", "beard", "rainbow"];
@@ -49,9 +64,22 @@ export const ACTION_TYPES: CardType[] = [
   "superskip",
   "swap",
   "catomic",
+  "future5",
+  "garbage",
+  "mark",
+  "curse",
+  "barking",
+  "potluck",
+  "ilt",
+  "alternow",
+  "bury",
+  "personal",
+  "share",
 ];
 /** Cards that need a target player when played alone. */
-export const TARGETED_TYPES: CardType[] = ["favor", "targeted"];
+export const TARGETED_TYPES: CardType[] = ["favor", "targeted", "mark", "curse", "ilt"];
+/** “Now” cards: playable at any time, even on someone else's turn. */
+export const NOW_TYPES: CardType[] = ["alternow"];
 
 export type Pack = "base" | Expansion;
 
@@ -75,7 +103,16 @@ export const PACKS: Record<Pack, { name: string; emoji: string; blurb: string }>
     emoji: "🌀",
     blurb: "Thêm Mèo Tự Huỷ không thể gỡ, đảo chiều, rút từ đáy, mèo hoang… Chơi tới 6 người.",
   },
-  chaos: { name: "Gói Hỗn Loạn", emoji: "☢️", blurb: "Siêu bỏ lượt, đổi đầu đuôi chồng bài và Bom Mèo Nguyên Tử." },
+  streaking: {
+    name: "Gói Mèo Chạy Rông",
+    emoji: "🏃",
+    blurb: "Phỏng theo Streaking Kittens: giữ Mèo Nổ trong tay, đánh dấu, lời nguyền, dọn rác, bom nguyên tử… Thêm 1 Mèo Nổ.",
+  },
+  barking: {
+    name: "Gói Mèo Sủa",
+    emoji: "🐶",
+    blurb: "Phỏng theo Barking Kittens: Mèo Sủa đôi, góp nồi, “để đó cho tui”, chôn bài, tự tấn công, chia sẻ tương lai.",
+  },
 };
 
 export const CARDS: Record<CardType, CardInfo> = {
@@ -257,8 +294,8 @@ export const CARDS: Record<CardType, CardInfo> = {
     name: "Siêu bỏ lượt",
     emoji: "⏩",
     color: "from-blue-500 to-indigo-800",
-    pack: "chaos",
-    count: 2,
+    pack: "streaking",
+    count: 1,
     how: "Đánh trong lượt của bạn.",
     effect: "Kết thúc TẤT CẢ các lượt bạn đang phải chơi (kể cả khi bị tấn công nhiều lượt).",
   },
@@ -266,7 +303,7 @@ export const CARDS: Record<CardType, CardInfo> = {
     name: "Đổi đầu đuôi",
     emoji: "🔃",
     color: "from-emerald-500 to-teal-800",
-    pack: "chaos",
+    pack: "streaking",
     count: 3,
     how: "Đánh trong lượt của bạn.",
     effect: "Đổi chỗ lá trên cùng và lá dưới cùng của chồng bài.",
@@ -275,10 +312,119 @@ export const CARDS: Record<CardType, CardInfo> = {
     name: "Bom Mèo Nguyên Tử",
     emoji: "☢️",
     color: "from-yellow-400 to-lime-700",
-    pack: "chaos",
+    pack: "streaking",
     count: 1,
     how: "Đánh trong lượt của bạn.",
     effect: "Gom mọi Mèo Nổ trong chồng bài đặt lên trên cùng, xáo phần còn lại, rồi kết thúc lượt của bạn. Người kế tiếp coi chừng!",
+  },
+  streaking: {
+    name: "Mèo Chạy Rông",
+    emoji: "🏃",
+    color: "from-pink-400 to-fuchsia-700",
+    pack: "streaking",
+    count: 1,
+    how: "Không đánh ra — chỉ cần giữ trong tay.",
+    effect:
+      "Khi đang giữ lá này mà rút phải Mèo Nổ, bạn được lặng lẽ giữ Mèo Nổ trong tay (mỗi Mèo Chạy Rông che được 1 quả). Nếu mất lá này (bị trộm, phải đưa…), bạn phải Gỡ bom ngay, không có thì nổ. Ai cướp được Mèo Nổ từ tay bạn cũng phải xử lý nó như vậy.",
+  },
+  future5: {
+    name: "Xem tương lai ×5",
+    emoji: "🔭",
+    color: "from-violet-400 to-purple-800",
+    pack: "streaking",
+    count: 1,
+    how: "Đánh trong lượt của bạn.",
+    effect: "Bí mật xem 5 lá trên cùng của chồng bài.",
+  },
+  garbage: {
+    name: "Dọn rác",
+    emoji: "🗑️",
+    color: "from-stone-400 to-stone-700",
+    pack: "streaking",
+    count: 1,
+    how: "Đánh trong lượt của bạn.",
+    effect: "Lần lượt từ bạn, mỗi người chọn 1 lá trên tay bỏ vào chồng bài, sau đó chồng bài được xáo lại.",
+  },
+  mark: {
+    name: "Đánh dấu",
+    emoji: "🔖",
+    color: "from-amber-300 to-orange-600",
+    pack: "streaking",
+    count: 3,
+    how: "Đánh trong lượt của bạn, chọn một người.",
+    effect: "Lật ngửa ngẫu nhiên 1 lá trên tay người đó — cả bàn nhìn thấy lá này cho tới khi nó rời tay họ.",
+  },
+  curse: {
+    name: "Lời nguyền mông mèo",
+    emoji: "🍑",
+    color: "from-rose-300 to-rose-700",
+    pack: "streaking",
+    count: 2,
+    how: "Đánh trong lượt của bạn, chọn một người.",
+    effect: "Người đó phải chơi “mù”: bài trên tay bị úp và xáo thứ tự, họ chọn lá theo vị trí mà không biết là lá gì — cho tới khi hết lượt kế tiếp của họ.",
+  },
+  barking: {
+    name: "Mèo Sủa",
+    emoji: "🐶",
+    color: "from-yellow-600 to-amber-900",
+    pack: "barking",
+    count: 2,
+    how: "Đánh trong lượt của bạn (hoặc đánh cả đôi như một cặp mèo).",
+    effect: "Chỉ có 2 lá Mèo Sủa. Nếu một người khác đang giữ lá còn lại, họ phải bỏ lá đó kèm 1 Gỡ bom — không có Gỡ bom thì nổ tung! Không ai giữ thì chẳng có gì xảy ra.",
+  },
+  potluck: {
+    name: "Góp nồi",
+    emoji: "🍲",
+    color: "from-orange-400 to-red-700",
+    pack: "barking",
+    count: 2,
+    how: "Đánh trong lượt của bạn.",
+    effect: "Lần lượt từ bạn, mỗi người chọn 1 lá trên tay đặt úp lên đầu chồng bài. Ai rút tiếp theo sẽ ăn “món góp” đầu tiên.",
+  },
+  ilt: {
+    name: "Để đó cho tui",
+    emoji: "🫳",
+    color: "from-teal-400 to-cyan-800",
+    pack: "barking",
+    count: 3,
+    how: "Đánh trong lượt của bạn, chọn một người.",
+    effect: "Lá tiếp theo người đó rút sẽ về tay bạn (lượt của họ vẫn kết thúc). Nếu lá đó là Mèo Nổ thì họ vẫn phải tự lo.",
+  },
+  alternow: {
+    name: "Sửa tương lai ngay",
+    emoji: "⚡",
+    color: "from-fuchsia-400 to-violet-800",
+    pack: "barking",
+    count: 2,
+    how: "Đánh BẤT CỨ LÚC NÀO, kể cả trong lượt người khác.",
+    effect: "Xem 3 lá trên cùng và xếp lại theo ý bạn.",
+  },
+  bury: {
+    name: "Chôn bài",
+    emoji: "⚰️",
+    color: "from-zinc-500 to-zinc-800",
+    pack: "barking",
+    count: 2,
+    how: "Đánh trong lượt của bạn, thay cho việc rút bài.",
+    effect: "Lấy lá trên cùng (không ai được xem, kể cả bạn) và chôn nó vào chồng bài ở vị trí bạn chọn. Lượt của bạn kết thúc.",
+  },
+  personal: {
+    name: "Tự tấn công",
+    emoji: "🥊",
+    color: "from-red-400 to-rose-800",
+    pack: "barking",
+    count: 3,
+    how: "Đánh trong lượt của bạn.",
+    effect: "Bạn phải chơi thêm 2 lượt liền (tổng cộng 3 lượt). Hữu ích khi bạn biết lá tới an toàn.",
+  },
+  share: {
+    name: "Chia sẻ tương lai",
+    emoji: "🤝",
+    color: "from-sky-400 to-blue-800",
+    pack: "barking",
+    count: 2,
+    how: "Đánh trong lượt của bạn.",
+    effect: "Xem và xếp lại 3 lá trên cùng, rồi cho người chơi kế tiếp xem đúng 3 lá đó.",
   },
 };
 
@@ -286,3 +432,9 @@ export const cardName = (t: CardType) => CARDS[t]?.name ?? t;
 
 /** Types the triple / five-card combos can ask for. */
 export const NAMEABLE_TYPES = Object.keys(CARDS).filter((t) => t !== "exploding" && t !== "imploding") as CardType[];
+
+/**
+ * Where a kitten may be hidden again is in protocol.ts (insertRange).
+ * Old rooms may still send "chaos" (the Streaking cards were called Gói Hỗn Loạn).
+ */
+export const packOf = (e: string): Expansion | null => (e === "chaos" ? "streaking" : (EXPANSIONS as string[]).includes(e) ? (e as Expansion) : null);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CARDS, type CardType, type Expansion, PACKS, type Pack } from "@/lib/meono/cards";
+import { CARDS, type CardType, EXPANSIONS, type Expansion, PACKS, type Pack } from "@/lib/meono/cards";
 import { cn } from "@/lib/utils";
 import { MeoCard } from "./MeoCard";
 
@@ -26,7 +26,7 @@ export function MeoRules() {
 /** Card-by-card guide, grouped by pack. `enabled` highlights the packs in play. */
 export function CardGuide({ enabled, onClose }: { enabled?: Expansion[]; onClose: () => void }) {
   const [focus, setFocus] = useState<CardType | null>(null);
-  const packs: Pack[] = ["base", "imploding", "chaos"];
+  const packs: Pack[] = ["base", ...EXPANSIONS];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-3 backdrop-blur-sm" onClick={onClose}>

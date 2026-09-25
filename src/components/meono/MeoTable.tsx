@@ -14,7 +14,9 @@ import {
   type CardType,
   type Expansion,
   type MCard,
+  EXPANSIONS,
   NAMEABLE_TYPES,
+  NOW_TYPES,
   PACKS,
   TARGETED_TYPES,
   WILD_CAT,
@@ -72,6 +74,8 @@ function classify(types: CardType[]): { kind: string; target: boolean; named: "h
     const t = types[0];
     if (ACTION_TYPES.includes(t)) return { kind: t, target: TARGETED_TYPES.includes(t), named: null };
     if (t === "nope") return { error: "“Không!” chỉ dùng để chặn người khác" };
+    if (t === "exploding") return { error: "Mèo Nổ đang được Mèo Chạy Rông che chở — không đánh ra được" };
+    if (t === "streaking") return { error: "Mèo Chạy Rông chỉ cần giữ trong tay" };
     if (t === "defuse") return { error: "Gỡ bom tự dùng khi rút phải Mèo Nổ" };
     return { error: "Lá mèo phải đánh theo đôi hoặc bộ ba" };
   }
@@ -173,9 +177,18 @@ function Board({
     setSelected((sel) => sel.filter((id) => hand.some((c) => c.id === id)));
   }, [handKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const sortedHand = useMemo(() => hand.slice().sort((a, b) => a.type.localeCompare(b.type) || a.id - b.id), [hand]);
+  // Lời nguyền mông mèo: the hand arrives face down, in blind order — keep that order.
+  const cursed = !!me?.cursed;
+  const sortedHand = useMemo(
+    () => (cursed ? hand : hand.slice().sort((a, b) => a.type.localeCompare(b.type) || a.id - b.id)),
+    [hand, cursed],
+  );
   const selectedTypes = selected.map((id) => hand.find((c) => c.id === id)?.type).filter((t): t is CardType => !!t);
-  const plan = classify(selectedTypes);
+  const plan = cursed
+    ? selected.length
+      ? ({ kind: "blind", target: false, named: null } as const)
+      : null
+    : classify(selectedTypes);
   const planError = plan && "error" in plan ? plan.error : null;
   const planOk = plan && !("error" in plan) ? plan : null;
 
@@ -187,15 +200,17 @@ function Board({
   const opponents = view.seats.filter((s): s is MeoSeatView => !!s && s.id !== view.meId);
   const needTarget = !!planOk?.target;
   const needName = planOk?.named ?? null;
+  // “Now” cards (Sửa tương lai ngay) can be played on anyone's turn.
+  const nowPlay = meAlive && !!planOk && NOW_TYPES.includes(planOk.kind as CardType);
   const canPlay =
-    myTurn && !pending && !choice && !!planOk && (!needTarget || !!target) && (!needName || !!named) && !busy;
+    (myTurn || nowPlay) && !pending && !choice && !!planOk && (!needTarget || !!target) && (!needName || !!named) && !busy;
   const canDraw = myTurn && !pending && !choice && !busy;
   const myNope = hand.find((c) => c.type === "nope");
 
   const toggle = (c: MCard) => {
     setFocus(c.type);
     // Answering a Favor: pick exactly one card.
-    if (choice?.kind === "favor" && choice.from === view.meId) {
+    if ((choice?.kind === "favor" && choice.from === view.meId) || (choice?.kind === "offer" && choice.player === view.meId)) {
       setSelected([c.id]);
       return;
     }
@@ -322,11 +337,12 @@ function Board({
                 deadline={g?.turn === s.id ? g.turnDeadline : null}
                 now={now}
                 reactions={reactionsFor(s.id)}
-                selectable={needTarget && myTurn && s.inGame && !s.out}
+                selectable={(needTarget || cursed) && myTurn && s.inGame && !s.out}
                 selected={target === s.id}
                 onSelect={() => setTarget(s.id)}
                 onKick={me?.isHost && !s.connected && !s.kicked ? () => void kick(s) : undefined}
                 turnMs={(view.settings?.turnSeconds ?? 30) * 1000}
+                claimedBy={(g?.claims ?? []).filter((c) => c.victim === s.id).map((c) => nameOf(c.by))}
               />
             ))}
           </div>
@@ -391,7 +407,9 @@ function Board({
                 {choice && <ChoicePanel view={view} choice={choice} nameOf={nameOf} secondsLeft={secondsLeft(choice.deadline) ?? 0} run={run} selected={selected} />}
                 {view.future && (
                   <div className="rounded-xl bg-black/40 p-2 text-center">
-                    <p className="mb-1 text-xs text-fuchsia-200">🔮 Tương lai (chỉ bạn thấy) — trái là lá trên cùng</p>
+                    <p className="mb-1 text-xs text-fuchsia-200">
+                      {view.sharedBy ? "🤝 Được chia sẻ tương lai — trái là lá trên cùng" : "🔮 Tương lai (chỉ bạn thấy) — trái là lá trên cùng"}
+                    </p>
                     <div className="flex gap-2">
                       {view.future.map((t, i) => (
                         <MeoCard key={i} type={t} size="sm" />
@@ -552,6 +570,7 @@ function Seat({
   onSelect,
   onKick,
   turnMs = 30_000,
+  claimedBy = [],
 }: {
   seat: MeoSeatView;
   self?: boolean;
@@ -565,6 +584,7 @@ function Seat({
   onSelect?: () => void;
   onKick?: () => void;
   turnMs?: number;
+  claimedBy?: string[];
 }) {
   const left = deadline ? Math.min(1, Math.max(0, (deadline - now) / turnMs)) : 0;
   const Tag = selectable ? "button" : "div";
@@ -610,8 +630,25 @@ function Seat({
         {seat.out && <span className="rounded bg-zinc-700 px-1.5">Đã nổ</span>}
         {!seat.connected && !seat.kicked && <span className="rounded bg-rose-900/60 px-1.5 text-rose-200">Mất kết nối</span>}
         {seat.kicked && <span className="rounded bg-rose-900/60 px-1.5 text-rose-200">Bị kích</span>}
+        {seat.cursed && (
+          <span className="rounded bg-rose-500/40 px-1.5" title="Lời nguyền mông mèo: đang chơi bài úp">
+            🍑 Bị nguyền
+          </span>
+        )}
+        {claimedBy.map((n) => (
+          <span key={n} className="rounded bg-teal-600/50 px-1.5" title={`Lá tiếp theo người này rút sẽ về tay ${n}`}>
+            🫳 {n}
+          </span>
+        ))}
         {seat.games > 0 && <span className={cn("font-mono", seat.points > 0 ? "text-emerald-300" : seat.points < 0 ? "text-rose-300" : "")}>{signed(seat.points)}đ</span>}
       </span>
+      {!!seat.marked?.length && (
+        <span className="flex gap-0.5" title="Lá bị Đánh dấu — ai cũng thấy">
+          {seat.marked.map((t, i) => (
+            <MeoCard key={i} type={t} size="sm" className="!w-7" tooltip={false} />
+          ))}
+        </span>
+      )}
       {onKick && (
         <span
           role="button"
@@ -711,6 +748,12 @@ function ChoicePanel({
     const what =
       choice.kind === "favor"
         ? `đang chọn 1 lá để đưa cho ${nameOf(choice.to)}`
+        : choice.kind === "offer"
+          ? choice.mode === "potluck"
+            ? "đang chọn 1 lá góp lên đầu chồng bài"
+            : "đang chọn 1 lá bỏ vào chồng bài"
+          : choice.kind === "bury"
+            ? "đang chôn lá trên cùng vào chồng bài"
         : choice.kind === "alter"
           ? "đang sắp xếp lại tương lai"
           : choice.kind === "implode"
@@ -740,6 +783,42 @@ function ChoicePanel({
     );
   }
 
+  if (choice.kind === "offer") {
+    return (
+      <div className="rounded-xl border border-amber-300/40 bg-black/50 p-3 text-center text-sm">
+        <p>
+          {choice.mode === "potluck" ? "🍲 Góp nồi — chọn 1 lá đặt lên đầu chồng bài" : "🗑️ Dọn rác — chọn 1 lá bỏ vào chồng bài (sẽ được xáo)"}
+          {timer}
+        </p>
+        <button
+          disabled={selected.length !== 1}
+          onClick={() => void run({ type: "give", card: selected[0] })}
+          className="mt-2 rounded-lg bg-amber-400 px-4 py-1.5 font-semibold text-black disabled:opacity-40"
+        >
+          {choice.mode === "potluck" ? "Góp lá đã chọn" : "Bỏ lá đã chọn"}
+        </button>
+      </div>
+    );
+  }
+
+  if (choice.kind === "bury") {
+    const buryPos = Math.min(deckCount, Math.max(0, pos));
+    return (
+      <div className="w-full max-w-md rounded-xl border border-zinc-300/40 bg-black/50 p-3 text-center text-sm">
+        <p>
+          ⚰️ Chôn lá trên cùng (không ai biết là lá gì) vào đâu?{timer}
+        </p>
+        <input type="range" min={0} max={deckCount} value={buryPos} onChange={(e) => setPos(Number(e.target.value))} className="mt-2 w-full accent-amber-400" aria-label="Vị trí chôn" />
+        <p className="text-amber-200">
+          {buryPos === 0 ? "Trên cùng" : buryPos === deckCount ? "Dưới cùng" : `Lá thứ ${buryPos + 1}`} <span className="text-xs text-orange-100/50">/ {deckCount + 1} lá</span>
+        </p>
+        <button onClick={() => void run({ type: "insert", position: buryPos })} className="mt-2 rounded-md bg-amber-400 px-3 py-1 font-semibold text-black">
+          Chôn ở đây
+        </button>
+      </div>
+    );
+  }
+
   if (choice.kind === "alter") {
     const move = (i: number, d: number) =>
       setOrder((o) => {
@@ -751,7 +830,10 @@ function ChoicePanel({
       });
     return (
       <div className="rounded-xl border border-purple-300/40 bg-black/50 p-3 text-center text-sm">
-        <p className="mb-2">🪄 Sắp xếp lại tương lai (trái = lá trên cùng){timer}</p>
+        <p className="mb-2">
+          🪄 Sắp xếp lại tương lai (trái = lá trên cùng){"share" in choice && choice.share ? " — người kế tiếp sẽ được xem" : ""}
+          {timer}
+        </p>
         <div className="flex justify-center gap-3">
           {order.map((c, i) => (
             <div key={c.id} className="flex flex-col items-center gap-1">
@@ -871,7 +953,7 @@ function Waiting({
 
       <div className="mb-3 space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-orange-100/60">Gói mở rộng</p>
-        {(["imploding", "chaos"] as Expansion[]).map((e) => {
+        {EXPANSIONS.map((e) => {
           const on = view.expansions.includes(e);
           return (
             <label

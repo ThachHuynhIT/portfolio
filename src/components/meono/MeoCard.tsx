@@ -1,6 +1,6 @@
 "use client";
 
-import { CARDS, type CardType } from "@/lib/meono/cards";
+import { CARDS, type CardType, PACKS } from "@/lib/meono/cards";
 import { cn } from "@/lib/utils";
 
 interface MeoCardProps {
@@ -24,17 +24,21 @@ const SIZES = {
 export function MeoCard({ type, selected, onClick, size = "md", faceDown, className, tooltip = true }: MeoCardProps) {
   const info = CARDS[type];
   const Tag = onClick ? "button" : "div";
-  if (faceDown) {
+  // "hidden": a card of a cursed hand (Lời nguyền mông mèo) — you pick it blind.
+  if (faceDown || !info) {
     return (
-      <div
+      <Tag
+        onClick={onClick}
         className={cn(
-          "aspect-[5/7] shrink-0 rounded-xl border-2 border-white/20 bg-[repeating-linear-gradient(135deg,#7c2d12_0_6px,#9a3412_6px_12px)] shadow-md",
+          "aspect-[5/7] shrink-0 rounded-xl border-2 border-white/20 bg-[repeating-linear-gradient(135deg,#7c2d12_0_6px,#9a3412_6px_12px)] shadow-md transition-transform",
           SIZES[size],
+          onClick && "hover:-translate-y-1",
+          selected && "-translate-y-3 ring-2 ring-amber-300",
           className,
         )}
       >
-        <div className="flex h-full items-center justify-center text-[length:var(--emoji)] opacity-80">🐱</div>
-      </div>
+        <div className="flex h-full items-center justify-center text-[length:var(--emoji)] opacity-80">{info ? "🐱" : "🍑"}</div>
+      </Tag>
     );
   }
   return (
@@ -56,7 +60,7 @@ export function MeoCard({ type, selected, onClick, size = "md", faceDown, classN
     >
       <span className="w-full truncate text-left leading-tight drop-shadow">{info.name}</span>
       <span className="text-[length:var(--emoji)] leading-none drop-shadow-lg">{info.emoji}</span>
-      <span className="w-full text-right opacity-70">{info.pack !== "base" ? (info.pack === "imploding" ? "🌀" : "☢️") : ""}</span>
+      <span className="w-full text-right opacity-70">{info.pack !== "base" ? PACKS[info.pack].emoji : ""}</span>
     </Tag>
   );
 }
