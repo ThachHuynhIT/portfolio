@@ -78,7 +78,7 @@ import GlobalBackground from "@/components/layout/GlobalBackground";
 // src/context/ThemeContext.tsx — runs before hydration to set data-theme
 // on <html> pre-paint, avoiding a flash of the wrong theme.
 const THEME_INIT_SCRIPT = `(function(){try{
-  var excluded=["/admin","/contra","/couple","/music","/tien-len","/meo-no","/games"];
+  var excluded=["/admin","/contra","/couple","/music","/tien-len","/meo-no","/co-ty-phu","/games"];
   var path=window.location.pathname;
   if(excluded.some(function(p){return path.indexOf(p)===0})){
     document.documentElement.setAttribute("data-theme","dark");

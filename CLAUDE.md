@@ -48,6 +48,8 @@ Path alias `@/*` maps to `./src/*`.
 - **`/blog` & `/blog/[slug]`**: Server-side MDX blog engine. Content lives as `.mdx` files in `content/blog/` (outside `src/`). Files are read at build/request time via server-only functions in `src/lib/blog.ts` using Node `fs`.
 - **`/contra` (`page.tsx`)**: Fullscreen 2D Contra arcade canvas game (`src/components/game/ContraGame.tsx`, ~1800 lines). Loaded dynamically with `{ ssr: false }` and `mounted` state protection to prevent hydration mismatches.
 - **`/tien-len` & `/tien-len/[room]`**: UI for the online Tiến Lên Miền Nam game (`src/components/tienlen/`). The backend (rooms, WebSocket, Redis) lives in the separate **be_game** repo/Vercel project; the client connects to `NEXT_PUBLIC_TIENLEN_SERVER_URL` + `/api/ws` (default `http://localhost:4000`). `src/lib/tienlen/` is a client-side copy of be_game's pure rules + protocol for move validation — keep it in sync with be_game `src/game/`.
+- **`/meo-no`, `/co-ty-phu` (+ `/[room]`)**: Mèo Nổ and Cờ Tỷ Phú (Monopoly with Vietnamese places) on the same be_game backend (`/api/meono/*`, `/api/typhu/*`), sharing `src/components/games/` (lobby + WebSocket hook). `src/lib/meono/` and `src/lib/typhu/` are client copies of be_game's card/board data and protocol.
+- **`/games`**: hub page listing every game.
 - **`/tools/json-validator` (`page.tsx`)**: Utility for batch-validating parameter matching across `tb_def_exception_parameter_*.json` and `tb_def_parameter_*.json` files.
 - **`/couple` (`page.tsx`)**: Isolated anniversary countdown and romantic memory page with its own CSS module (`couple.module.css`). Keep its config (`COUPLE_CONFIG`) isolated within the page component.
 
