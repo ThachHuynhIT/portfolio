@@ -45,6 +45,18 @@ Vì dự án được xây dựng bằng Next.js 14, **Vercel** là nền tảng
 
 ---
 
+### 3.1. Game Tiến Lên (`/tien-len`)
+
+Portfolio chỉ chứa **giao diện** của game (`src/app/tien-len`, `src/components/tienlen`). Kèm theo đó là một bản sao luật bài thuần trong `src/lib/tienlen` để kiểm tra nước đi ngay phía client. Toàn bộ backend (phòng chơi, WebSocket, Redis) nằm ở repo riêng **[be_game](https://github.com/ThachHuynhIT/be_game)** và được deploy thành một project Vercel khác. Cách deploy xem README của repo đó.
+
+Sau khi deploy be_game, vào project portfolio trên Vercel → *Settings → Environment Variables* và thêm:
+```
+NEXT_PUBLIC_TIENLEN_SERVER_URL=https://<be_game>.vercel.app
+```
+rồi redeploy. Biến này được gắn vào lúc build.
+
+Khi chạy local: chạy `npm run dev` trong be_game (cổng 4000) và `npm run dev` trong portfolio. Nếu không đặt biến thì client mặc định kết nối tới `http://localhost:4000`.
+
 ## 4. Triển Khai Bằng Docker
 
 Nếu bạn muốn deploy ứng dụng lên VPS hoặc Kubernetes:

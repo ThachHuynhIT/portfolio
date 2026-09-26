@@ -25,7 +25,7 @@ npm run start    # Run the production build locally
 npm run lint     # ESLint (flat config via FlatCompat, extends next/core-web-vitals + next/typescript)
 ```
 
-> **Note on Testing & Types**: There is no standalone unit test runner configured. Type checking and syntax validation happen via `npm run lint` and `npm run build`.
+> **Note on Testing & Types**: There is no standalone unit test runner configured. Type checking and syntax validation happen via `npm run lint` and `npm run build`. (Tiến Lên game tests live in the be_game repo.)
 
 ---
 
@@ -47,6 +47,9 @@ Path alias `@/*` maps to `./src/*`.
 - **`/` (`page.tsx`)**: One-page portfolio composing sections in order: `HeroSection` ➔ `AboutSection` ➔ `SkillsSection` ➔ `ProjectsSection` ➔ `ContactSection`.
 - **`/blog` & `/blog/[slug]`**: Server-side MDX blog engine. Content lives as `.mdx` files in `content/blog/` (outside `src/`). Files are read at build/request time via server-only functions in `src/lib/blog.ts` using Node `fs`.
 - **`/contra` (`page.tsx`)**: Fullscreen 2D Contra arcade canvas game (`src/components/game/ContraGame.tsx`, ~1800 lines). Loaded dynamically with `{ ssr: false }` and `mounted` state protection to prevent hydration mismatches.
+- **`/tien-len` & `/tien-len/[room]`**: UI for the online Tiến Lên Miền Nam game (`src/components/tienlen/`). The backend (rooms, WebSocket, Redis) lives in the separate **be_game** repo/Vercel project; the client connects to `NEXT_PUBLIC_TIENLEN_SERVER_URL` + `/api/ws` (default `http://localhost:4000`). `src/lib/tienlen/` is a client-side copy of be_game's pure rules + protocol for move validation — keep it in sync with be_game `src/game/`.
+- **`/meo-no`, `/co-ty-phu`, `/splendor`, `/bang` (+ `/[room]`)**: Mèo Nổ, Cờ Tỷ Phú (Monopoly with Vietnamese places), Đá Quý (Splendor-style, original SVG artwork) and Đấu Súng (Bang!-style, 3–8 players, 7 expansions; `src/components/bang/`) on the same be_game backend (`/api/meono/*`, `/api/typhu/*`, `/api/splendor/*`, `/api/bang/*`), sharing `src/components/games/` (lobby, WebSocket hook, chat, rank-points picker). `src/lib/meono/`, `src/lib/typhu/`, `src/lib/splendor/`, `src/lib/bang/` are client copies of be_game's data and protocol — keep them in sync (be_game `src/<game>/cards.ts` + `protocol.ts`).
+- **`/games`**: hub page listing every game.
 - **`/tools/json-validator` (`page.tsx`)**: Utility for batch-validating parameter matching across `tb_def_exception_parameter_*.json` and `tb_def_parameter_*.json` files.
 - **`/couple` (`page.tsx`)**: Isolated anniversary countdown and romantic memory page with its own CSS module (`couple.module.css`). Keep its config (`COUPLE_CONFIG`) isolated within the page component.
 

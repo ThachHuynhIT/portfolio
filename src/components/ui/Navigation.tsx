@@ -210,7 +210,12 @@ export default function Navigation({ navLinks }: NavigationProps) {
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/music") ||
     pathname?.startsWith("/couple") ||
-    pathname?.startsWith("/contra")
+    pathname?.startsWith("/contra") ||
+    pathname?.startsWith("/tien-len") ||
+    pathname?.startsWith("/meo-no") ||
+    pathname?.startsWith("/co-ty-phu") ||
+    pathname?.startsWith("/splendor") ||
+    pathname?.startsWith("/bang")
   ) {
     return null;
   }
