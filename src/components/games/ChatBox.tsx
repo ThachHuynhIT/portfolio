@@ -70,14 +70,14 @@ export function ChatBox({
   const time = (at: number) => new Date(at).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
 
   return (
-    <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2">
+    <div className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] right-[max(0.75rem,env(safe-area-inset-right))] z-40 flex flex-col items-end gap-2 sm:bottom-4 sm:right-4">
       <AnimatePresence>
         {open && (
           <motion.div
             initial={{ opacity: 0, y: 12, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.96, pointerEvents: "none" }}
-            className="flex h-[min(26rem,65dvh)] w-[min(20rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#0d1712]/95 text-sm text-white shadow-2xl backdrop-blur"
+            className="flex h-[min(26rem,65dvh)] w-[min(20rem,calc(100vw-1.5rem))] short:h-[calc(100dvh-4.5rem)] flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#0d1712]/95 text-sm text-white shadow-2xl backdrop-blur"
           >
             <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
               <b>💬 Trò chuyện</b>
@@ -137,7 +137,7 @@ export function ChatBox({
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, pointerEvents: "none" }}
-            className="max-w-[16rem] truncate rounded-2xl rounded-br-sm bg-white px-3 py-1.5 text-left text-sm text-black shadow-lg"
+            className="max-w-[min(16rem,calc(100vw-1.5rem))] truncate rounded-2xl rounded-br-sm bg-white px-3 py-1.5 text-left text-sm text-black shadow-lg"
           >
             <b>{preview.name}:</b> {preview.text}
           </motion.button>
@@ -146,7 +146,7 @@ export function ChatBox({
 
       <button
         onClick={() => setOpen((o) => !o)}
-        className="relative flex h-12 w-12 items-center justify-center rounded-full bg-amber-400 text-2xl text-black shadow-lg transition-transform hover:scale-105"
+        className="relative flex h-11 w-11 items-center justify-center rounded-full bg-amber-400 text-xl text-black shadow-lg transition-transform hover:scale-105 sm:h-12 sm:w-12 sm:text-2xl"
         aria-label={open ? "Đóng chat" : "Mở chat"}
         aria-expanded={open}
       >

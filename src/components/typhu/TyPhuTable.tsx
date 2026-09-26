@@ -294,7 +294,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
   const outgoingTrade = g?.trade && g.trade.from === view.meId ? g.trade : null;
 
   return (
-    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-4 pt-3 sm:px-4">
+    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-4 short:gap-2 short:pt-1.5">
       {/* Top bar */}
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
         <div className="flex flex-wrap items-center gap-2">
@@ -331,9 +331,10 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
         </div>
       )}
 
-      <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      {/* Sideways phone: board as tall as the screen allows on the left, the side panel scrolling on the right. */}
+      <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_20rem] short:grid-cols-[auto_minmax(0,1fr)] short:items-start short:gap-2">
         {/* Board */}
-        <div className="relative mx-auto w-full max-w-[min(100%,calc(100dvh-7rem))]">
+        <div className="relative mx-auto w-full max-w-[min(100%,calc(100dvh-7rem))] short:w-[calc(100dvh-3.75rem)] short:max-w-none">
           <SpectatorReactions reactions={live.filter((r) => !r.playerId)} />
           <div
             className="grid aspect-square w-full gap-[2px] rounded-xl border-4 border-[#1e3a2f] bg-[#1e3a2f] shadow-2xl"
@@ -352,7 +353,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
               />
             ))}
             {/* Centre */}
-            <div className="relative flex flex-col items-center justify-center gap-2 overflow-hidden bg-[radial-gradient(ellipse_at_center,#d9f2e3_0%,#a7d7b8_100%)] p-2 text-emerald-950 sm:p-4" style={{ gridColumn: "2 / 11", gridRow: "2 / 11" }}>
+            <div className="relative flex flex-col items-center justify-center-safe gap-2 overflow-hidden bg-[radial-gradient(ellipse_at_center,#d9f2e3_0%,#a7d7b8_100%)] p-2 text-emerald-950 sm:p-4 short:gap-1 short:overflow-y-auto short:p-1.5" style={{ gridColumn: "2 / 11", gridRow: "2 / 11" }}>
               <CardOverlay card={cardFx} nameOf={nameOf} onClose={() => setCardFx(null)} />
               <BuildOverlay fx={buildFx} />
               {!g || g.status === "ended" ? (
@@ -374,8 +375,8 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
         </div>
 
         {/* Side panel */}
-        <aside className="flex flex-col gap-3">
-          <div className="rounded-2xl bg-black/35 p-3">
+        <aside className="flex flex-col gap-3 short:max-h-[calc(100dvh-3.75rem)] short:gap-2 short:overflow-y-auto">
+          <div className="rounded-2xl bg-black/35 p-3 short:p-2">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-100/60">Người chơi</p>
             <ul className="grid grid-cols-2 gap-2 lg:grid-cols-1">
               {view.seats

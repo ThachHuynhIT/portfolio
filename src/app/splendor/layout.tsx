@@ -6,5 +6,5 @@ export const metadata: Metadata = {
 };
 
 export default function SplendorLayout({ children }: { children: React.ReactNode }) {
-  return <div className="relative z-10 min-h-[100dvh] bg-[radial-gradient(ellipse_at_top,#2a1540_0%,#0c0714_70%)] text-violet-50">{children}</div>;
+  return <div className="game-shell relative z-10 min-h-[100dvh] bg-[radial-gradient(ellipse_at_top,#2a1540_0%,#0c0714_70%)] text-violet-50">{children}</div>;
 }

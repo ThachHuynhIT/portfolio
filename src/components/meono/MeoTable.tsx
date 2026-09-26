@@ -310,7 +310,7 @@ function Board({
   const focusInfo = focus ? CARDS[focus] : null;
 
   return (
-    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col gap-3 px-3 pb-4 pt-3 sm:px-4">
+    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col gap-3 px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-4 short:gap-2 short:pt-1.5">
       {/* Top bar */}
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
         <div className="flex flex-wrap items-center gap-2">
@@ -318,20 +318,22 @@ function Board({
             ← Sảnh
           </Link>
           <span className="rounded-md bg-black/30 px-2 py-1 font-mono text-base font-bold tracking-[0.2em] text-amber-300">{view.code}</span>
-          <button onClick={copyInvite} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10">
-            {copied ? "Đã chép link ✓" : "Chép link mời"}
+          <button onClick={copyInvite} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Chép link mời" aria-label="Chép link mời">
+            {copied ? "✓" : "🔗"}
+            <span className="hidden sm:inline"> {copied ? "Đã chép link" : "Chép link mời"}</span>
           </button>
-          <button onClick={() => setShowScores(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10">
-            🏆 Bảng điểm
+          <button onClick={() => setShowScores(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Bảng điểm" aria-label="Bảng điểm">
+            🏆<span className="hidden sm:inline"> Bảng điểm</span>
           </button>
-          <button onClick={() => setShowGuide(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10">
-            📖 Lá bài
+          <button onClick={() => setShowGuide(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Lá bài" aria-label="Lá bài">
+            📖<span className="hidden sm:inline"> Lá bài</span>
           </button>
         </div>
         <div className="flex items-center gap-3 text-orange-100/70">
           {(g?.expansions ?? view.expansions).map((e) => (
             <span key={e} title={PACKS[e].name}>
-              {PACKS[e].emoji} {PACKS[e].name.replace("Gói ", "")}
+              {PACKS[e].emoji}
+              <span className="hidden sm:inline"> {PACKS[e].name.replace("Gói ", "")}</span>
             </span>
           ))}
           {view.spectators.length > 0 && <span title={view.spectators.join(", ")}>👀 {view.spectators.length}</span>}
@@ -350,9 +352,10 @@ function Board({
         </div>
       )}
 
-      <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_17rem]">
+      {/* Below lg the grid dissolves (`contents`) so phones get table → hand → history instead of history in between. */}
+      <div className="contents flex-1 gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] short:grid short:grid-cols-[minmax(0,1fr)_14rem] short:gap-2">
         {/* Table */}
-        <div className="relative flex min-h-[340px] flex-col rounded-[2rem] border-[6px] border-[#4a2412] bg-[radial-gradient(ellipse_at_center,#7c2d12_0%,#431407_60%,#26100a_100%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.55)] sm:p-4">
+        <div className="relative order-1 flex min-h-[300px] flex-col rounded-[2rem] border-[6px] border-[#4a2412] bg-[radial-gradient(ellipse_at_center,#7c2d12_0%,#431407_60%,#26100a_100%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.55)] sm:min-h-[340px] sm:p-4 short:min-h-0 short:rounded-3xl short:border-4 short:p-2">
           <SpectatorReactions reactions={live.filter((r) => !r.playerId)} />
           <BoomOverlay fx={fx} />
 
@@ -379,7 +382,7 @@ function Board({
           </div>
 
           {/* Center */}
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 py-3">
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 py-3 short:gap-1.5 short:py-1.5">
             {!g || g.status === "ended" ? (
               <Waiting view={view} me={me} act={act} nameOf={nameOf} />
             ) : (
@@ -392,7 +395,7 @@ function Board({
                     aria-label="Rút bài"
                   >
                     <div className="relative">
-                      <MeoCard type="exploding" faceDown size="md" className={cn(canDraw && "ring-2 ring-amber-300 group-hover:-translate-y-1")} />
+                      <MeoCard type="exploding" faceDown size="md" className={cn("short:w-14", canDraw && "ring-2 ring-amber-300 group-hover:-translate-y-1")} />
                       <span className="absolute -right-2 -top-2 rounded-full bg-black/70 px-2 py-0.5 font-mono text-xs text-amber-200">{g.deckCount}</span>
                     </div>
                     <span className="text-xs text-orange-100/70">{canDraw ? "Bấm để rút" : "Chồng bài"}</span>
@@ -406,12 +409,12 @@ function Board({
                     {g.discard.length ? (
                       <span className="relative">
                         {g.discard.length > 1 && (
-                          <MeoCard type={g.discard[g.discard.length - 2]} size="md" tooltip={false} className="absolute left-1 top-1 -rotate-6 opacity-60" />
+                          <MeoCard type={g.discard[g.discard.length - 2]} size="md" tooltip={false} className="absolute left-1 top-1 -rotate-6 opacity-60 short:w-14" />
                         )}
-                        <MeoCard type={g.discard[g.discard.length - 1]} size="md" tooltip={false} className="relative group-hover:-translate-y-1" />
+                        <MeoCard type={g.discard[g.discard.length - 1]} size="md" tooltip={false} className="relative group-hover:-translate-y-1 short:w-14" />
                       </span>
                     ) : (
-                      <div className="aspect-[5/7] w-[4.6rem] rounded-xl border-2 border-dashed border-white/15 sm:w-20" />
+                      <div className="aspect-[5/7] w-[4.6rem] rounded-xl border-2 border-dashed border-white/15 sm:w-20 short:w-14" />
                     )}
                     <span className="text-xs text-orange-100/70">
                       Đã đánh ({g.discard.length}){g.discard.length ? <span className="ml-1 text-amber-200 underline">👁️ xem</span> : null}
@@ -485,7 +488,7 @@ function Board({
         </div>
 
         {/* Side: card history + log */}
-        <aside className="flex max-h-[460px] min-h-0 flex-col rounded-2xl border border-white/10 bg-black/30 p-3 lg:max-h-[calc(100dvh-8rem)]">
+        <aside className="order-3 flex max-h-72 min-h-0 flex-col rounded-2xl border border-white/10 bg-black/30 p-3 sm:max-h-[460px] lg:order-none lg:max-h-[calc(100dvh-8rem)] short:max-h-[calc(100dvh-4rem)] short:p-2">
           <div className="mb-2 flex gap-1 rounded-lg bg-black/30 p-1 text-xs font-semibold">
             {(
               [
@@ -529,7 +532,7 @@ function Board({
 
       {/* Hand + actions */}
       {!spectator && hand.length > 0 && (
-        <div className="flex flex-col items-center gap-2">
+        <div className="order-2 flex flex-col items-center gap-2 lg:order-none">
           {focusInfo && (
             <p className="max-w-2xl rounded-lg bg-black/40 px-3 py-1.5 text-center text-sm text-orange-50/90">
               <b className="text-amber-200">{focusInfo.emoji} {focusInfo.name}:</b> {focusInfo.effect}
@@ -539,12 +542,18 @@ function Board({
             items={orderedIds}
             onMove={handOrder.move}
             disabled={cursed}
-            className="w-full flex-wrap justify-center gap-1.5 pt-4"
+            className="w-full flex-wrap justify-center gap-1.5 pt-4 short:pt-3"
             renderItem={(id) => {
               const c = handById.get(id)!;
               return (
                 <span className="relative block" title={c.annoyed ? "Nổi cáu: lá này bị vô hiệu tới hết lượt tới của bạn" : undefined}>
-                  <MeoCard type={c.type} selected={selected.includes(c.id)} onClick={() => toggle(c)} className={cn(c.annoyed && "opacity-50 grayscale")} />
+                  <MeoCard
+                    type={c.type}
+                    selected={selected.includes(c.id)}
+                    onClick={() => toggle(c)}
+                    // Five to a row on a phone instead of four, so a big hand stays two rows.
+                    className={cn("max-sm:w-[3.9rem] max-sm:[--emoji:1.55rem] short:w-16 short:[--emoji:1.6rem]", c.annoyed && "opacity-50 grayscale")}
+                  />
                   {c.annoyed && <span className="pointer-events-none absolute -right-1 -top-1 rounded-full bg-amber-500 px-1 text-xs">😾</span>}
                 </span>
               );
@@ -588,8 +597,8 @@ function Board({
             </div>
           )}
 
-          {/* Action dock */}
-          <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-black/40 p-2 sm:p-3">
+          {/* Action dock — sticks to the bottom on phones so Đánh / Rút stay reachable; the right padding clears the chat button. */}
+          <div className="sticky bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-30 w-full max-w-2xl rounded-2xl border border-white/10 bg-[#1f0d07]/90 p-2 pr-14 backdrop-blur sm:p-3 sm:pr-14 lg:static lg:bg-black/40 lg:p-3">
             {(myTurn || nowPlay) && selected.length > 0 && (
               <p className={cn("mb-2 rounded-lg px-3 py-1.5 text-center text-sm", planError ? "bg-rose-900/50 text-rose-200" : "bg-white/5 text-orange-100")}>
                 {planError ?? (
@@ -638,7 +647,7 @@ function Board({
         </div>
       )}
       {(spectator || hand.length === 0) && (
-        <div className="flex justify-center">
+        <div className="order-2 flex justify-center lg:order-none">
           <EmojiBar onSend={(e) => void act({ type: "emoji", emoji: e })} />
         </div>
       )}
@@ -671,12 +680,12 @@ function DockBtn({
       className={cn(
         "rounded-xl font-black tracking-wide transition-all enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-35",
         tone === "play" &&
-          "min-w-[9rem] bg-gradient-to-b from-amber-300 to-orange-500 px-6 py-3 text-lg text-black shadow-[0_4px_0_#9a3412,0_0_24px_rgba(251,191,36,0.35)] enabled:hover:brightness-110",
+          "min-w-[7.5rem] bg-gradient-to-b from-amber-300 to-orange-500 px-4 py-2.5 text-base sm:min-w-[9rem] sm:px-6 sm:py-3 sm:text-lg text-black shadow-[0_4px_0_#9a3412,0_0_24px_rgba(251,191,36,0.35)] enabled:hover:brightness-110",
         tone === "draw" &&
-          "min-w-[8rem] bg-gradient-to-b from-emerald-400 to-emerald-700 px-5 py-3 text-lg text-white shadow-[0_4px_0_#064e3b] enabled:hover:brightness-110",
+          "min-w-[7rem] bg-gradient-to-b from-emerald-400 to-emerald-700 px-4 py-2.5 text-base sm:min-w-[8rem] sm:px-5 sm:py-3 sm:text-lg text-white shadow-[0_4px_0_#064e3b] enabled:hover:brightness-110",
         tone === "nope" &&
-          "min-w-[9rem] animate-pulse bg-gradient-to-b from-red-500 to-red-800 px-6 py-3 text-xl text-white shadow-[0_4px_0_#450a0a,0_0_28px_rgba(239,68,68,0.6)]",
-        tone === "ghost" && "border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold enabled:hover:bg-white/10",
+          "min-w-[7.5rem] animate-pulse bg-gradient-to-b from-red-500 to-red-800 px-4 py-2.5 text-lg sm:min-w-[9rem] sm:px-6 sm:py-3 sm:text-xl text-white shadow-[0_4px_0_#450a0a,0_0_28px_rgba(239,68,68,0.6)]",
+        tone === "ghost" && "border border-white/20 bg-white/5 px-3 py-2 text-sm sm:px-4 font-semibold enabled:hover:bg-white/10",
       )}
     >
       {children}

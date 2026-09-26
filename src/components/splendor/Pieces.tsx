@@ -79,7 +79,8 @@ export function TokenChip({
   onClick?: () => void;
   title?: string;
 }) {
-  const px = size === "lg" ? "h-14 w-14 sm:h-16 sm:w-16" : size === "md" ? "h-11 w-11" : "h-8 w-8";
+  // The bank row (6 lg chips) has to fit a 360px-wide phone on one line.
+  const px = size === "lg" ? "h-11 w-11 min-[400px]:h-14 min-[400px]:w-14 sm:h-16 sm:w-16 short:h-12 short:w-12" : size === "md" ? "h-11 w-11" : "h-8 w-8";
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
@@ -103,6 +104,8 @@ export function TokenChip({
 }
 
 const TIER_MARK = { 1: "I", 2: "II", 3: "III" } as const;
+/** Width of an md market card / deck: 5 per row on any phone (page + market padding ≈ 4.75rem). */
+const MD_CARD_W = "w-[min(4.8rem,calc((100vw-4.75rem)/5))] sm:w-[6.5rem] short:w-[4.4rem]";
 
 /** A development card: illustration, colour frame, points + bonus on top, cost in gems at the bottom. */
 export function DevCardView({
@@ -122,7 +125,8 @@ export function DevCardView({
 }) {
   const card = CARD_BY_ID[id];
   const Tag = onClick ? "button" : "div";
-  const w = size === "lg" ? "w-44" : size === "md" ? "w-[4.8rem] sm:w-[6.5rem]" : "w-14";
+  // md: a market row (deck + 4 cards) always fits the phone width; smaller when the phone is sideways.
+  const w = size === "lg" ? "w-44" : size === "md" ? MD_CARD_W : "w-14";
   const costs = GEMS.filter((g) => card.cost[g]);
   const gemSize = size === "lg" ? "h-9 w-9 text-lg" : size === "md" ? "h-[1.15rem] w-[1.15rem] text-[11px] sm:h-6 sm:w-6 sm:text-sm" : "h-3 w-3 text-[7px]";
   return (
@@ -181,7 +185,7 @@ export function CardBack({ tier, count, onClick, size = "md" }: { tier: 1 | 2 | 
       onClick={onClick}
       className={cn(
         "relative aspect-[5/7] shrink-0 rounded-lg p-[3px] shadow-lg",
-        size === "md" ? "w-[4.8rem] sm:w-[6.5rem]" : "w-14",
+        size === "md" ? MD_CARD_W : "w-14",
         onClick && "hover:-translate-y-1",
       )}
       style={{ background: `linear-gradient(145deg,#fde68a,${BACKS[tier].color} 40%,#1c1917 70%,#fbbf24)` }}
@@ -205,7 +209,7 @@ export function NobleTile({ id, size = "md", dim }: { id: number; size?: "sm" | 
     <div
       className={cn(
         "relative aspect-square shrink-0 overflow-hidden rounded-lg p-[2px] shadow-lg",
-        size === "md" ? "w-[4.5rem] sm:w-24" : "w-10",
+        size === "md" ? "w-[min(4.5rem,calc((100vw-4.75rem)/5))] sm:w-24 short:w-16" : "w-10",
         dim && "opacity-40",
       )}
       style={{ background: "linear-gradient(145deg,#fef3c7,#b8893a 45%,#7c5a1f 70%,#fde68a)" }}

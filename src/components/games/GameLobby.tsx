@@ -170,7 +170,7 @@ export function GameLobby({ title, tagline, icons, basePath, wsPath, apiPrefix, 
                 {rooms.map((r) => {
                   const full = r.players.length >= maxPlayers;
                   return (
-                    <li key={r.code} className="flex flex-wrap items-center gap-3 rounded-xl bg-black/25 p-3">
+                    <li key={r.code} className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-black/25 p-3">
                       <span className="font-mono font-bold tracking-[0.15em] text-amber-300">{r.code}</span>
                       <span
                         className={cn(
@@ -181,8 +181,11 @@ export function GameLobby({ title, tagline, icons, basePath, wsPath, apiPrefix, 
                         {r.status === "playing" ? "Đang chơi" : "Đang chờ"}
                       </span>
                       {roomBadges?.(r as LobbyRoom & Record<string, unknown>)}
-                      <span className="min-w-0 flex-1 truncate text-sm text-white/90">{r.players.map((p) => p.name).join(", ") || "—"}</span>
-                      <span className="text-xs text-white/60">
+                      {/* Phones: names get their own line under the code / buttons instead of being truncated to "Th…". */}
+                      <span className="order-last w-full truncate text-sm text-white/90 sm:order-none sm:w-auto sm:min-w-0 sm:flex-1">
+                        {r.players.map((p) => p.name).join(", ") || "—"}
+                      </span>
+                      <span className="ml-auto text-xs text-white/60 sm:ml-0">
                         {r.players.length}/{maxPlayers}
                         {r.spectators > 0 && ` · 👀 ${r.spectators}`}
                       </span>

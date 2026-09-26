@@ -32,7 +32,10 @@ export function NameForm({
         value={name}
         onChange={(e) => setName(e.target.value)}
         maxLength={MAX_NAME_LENGTH}
-        autoFocus
+        // Only when there is no saved name: on phones autofocus pops the keyboard over the lobby.
+        autoFocus={!initial}
+        autoComplete="nickname"
+        enterKeyHint="go"
         placeholder="VD: Thạch"
         className="rounded-lg border border-emerald-200/20 bg-black/30 px-3 py-2 text-white outline-none placeholder:text-emerald-100/30 focus:border-amber-400"
       />

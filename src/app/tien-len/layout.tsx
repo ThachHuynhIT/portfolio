@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function TienLenLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative z-10 min-h-[100dvh] bg-[radial-gradient(ellipse_at_top,#0f2e22_0%,#07130e_70%)] text-white">
+    <div className="game-shell relative z-10 min-h-[100dvh] bg-[radial-gradient(ellipse_at_top,#0f2e22_0%,#07130e_70%)] text-white">
       {children}
     </div>
   );

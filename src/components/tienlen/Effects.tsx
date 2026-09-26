@@ -277,7 +277,8 @@ export function EmojiBar({ onSend, disabled }: { onSend: (emoji: string) => void
         😀
       </button>
       {open && (
-        <div className="absolute bottom-full left-1/2 z-40 mb-2 grid w-max -translate-x-1/2 grid-cols-7 gap-1 rounded-xl border border-emerald-200/20 bg-[#0b2a1c]/95 p-2 shadow-xl backdrop-blur">
+        // Phones: a strip pinned above the bottom edge — anchored to the button it would spill off-screen wherever the button sits.
+        <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+4.25rem)] z-40 mx-auto grid max-w-sm grid-cols-7 justify-items-center gap-1 rounded-xl border border-emerald-200/20 bg-[#0b2a1c]/95 p-2 shadow-xl backdrop-blur sm:absolute sm:inset-x-auto sm:bottom-full sm:left-1/2 sm:mb-2 sm:w-max sm:max-w-none sm:-translate-x-1/2">
           {EMOJIS.map((e) => (
             <button
               key={e}

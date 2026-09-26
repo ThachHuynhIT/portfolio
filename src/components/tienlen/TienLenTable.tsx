@@ -254,17 +254,18 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
 
   return (
     <div
-      className="tl-root relative mx-auto flex min-h-[100dvh] w-full max-w-5xl flex-col px-3 pb-3 pt-3 sm:px-4"
+      className="tl-root relative mx-auto flex min-h-[100dvh] w-full max-w-5xl flex-col px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-4 short:py-1.5"
       style={
         {
-          "--cw": "clamp(44px, 9.5vw, 78px)",
-          "--cw-sm": "clamp(30px, 6vw, 48px)",
-          "--cw-back": "clamp(16px, 3.2vw, 26px)",
+          // Sized by the short side too, so a sideways phone keeps the whole table on screen.
+          "--cw": "clamp(44px, min(9.5vw, 13dvh), 78px)",
+          "--cw-sm": "clamp(30px, min(6vw, 9dvh), 48px)",
+          "--cw-back": "clamp(14px, min(3.2vw, 5dvh), 26px)",
         } as React.CSSProperties
       }
     >
       {/* Room bar */}
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm short:mb-1.5">
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/tien-len"
@@ -278,20 +279,26 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
           <button
             onClick={copyInvite}
             className="rounded-md border border-emerald-200/20 px-2 py-1 text-emerald-50 transition-colors hover:bg-white/10"
+            title="Chép link mời"
+            aria-label="Chép link mời"
           >
-            {copied ? "Đã chép link ✓" : "Chép link mời"}
+            {copied ? "✓" : "🔗"}
+            <span className="hidden sm:inline"> {copied ? "Đã chép link" : "Chép link mời"}</span>
           </button>
           <button
             onClick={() => setShowScores(true)}
             className="rounded-md border border-emerald-200/20 px-2 py-1 text-emerald-50 transition-colors hover:bg-white/10"
+            title="Bảng điểm"
+            aria-label="Bảng điểm"
           >
-            🏆 Bảng điểm
+            🏆<span className="hidden sm:inline"> Bảng điểm</span>
           </button>
         </div>
         <div className="flex items-center gap-3">
           {view.spectators.length > 0 && (
             <span className="text-emerald-100/70" title={view.spectators.join(", ")}>
-              👀 {view.spectators.length} người xem
+              👀 {view.spectators.length}
+              <span className="hidden sm:inline"> người xem</span>
             </span>
           )}
           {reconnecting && <span className="animate-pulse text-amber-300">Đang kết nối lại…</span>}
@@ -311,7 +318,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
 
       {/* Felt table */}
       <Shake fx={chopFx} className="relative flex flex-1">
-        <div className="relative grid flex-1 grid-cols-[auto_1fr_auto] grid-rows-[auto_1fr] gap-2 rounded-[2rem] border-[6px] border-[#5b3a1e] bg-[radial-gradient(ellipse_at_center,#1f7a4d_0%,#145c39_55%,#0d3f27_100%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.5),0_20px_40px_rgba(0,0,0,0.5)] sm:p-5">
+        <div className="relative grid flex-1 grid-cols-[auto_1fr_auto] grid-rows-[auto_1fr] gap-2 rounded-[2rem] border-[6px] border-[#5b3a1e] bg-[radial-gradient(ellipse_at_center,#1f7a4d_0%,#145c39_55%,#0d3f27_100%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.5),0_20px_40px_rgba(0,0,0,0.5)] sm:p-5 short:gap-1 short:rounded-3xl short:border-4 short:p-2">
           <ChopOverlay fx={chopFx} />
           <BurnOverlay names={burnFx} />
           <SpectatorReactions reactions={spectatorReactions} />
@@ -323,7 +330,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
           </div>
 
           {/* Center: last play / lobby */}
-          <div className="flex min-h-[180px] flex-col items-center justify-center gap-3 text-center">
+          <div className="flex min-h-[150px] flex-col items-center justify-center gap-3 text-center sm:min-h-[180px] short:min-h-0 short:gap-1.5">
             {!game || game.status === "ended" ? (
               <WaitingPanel view={view} me={me} onStart={onStart} onSettings={onSettings} nameOf={nameOf} />
             ) : game.lastPlay ? (
@@ -357,41 +364,37 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
       </Shake>
 
       {/* My area (or seat 0 for spectators) */}
-      <div className="mt-3 flex flex-col items-center gap-3">
-        <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-emerald-50">
-          {spectator ? <Opponent {...seatProps(at(0))} /> : <SeatBadge {...seatProps(me)} />}
-          {myTurn && (
-            <span className="font-semibold text-amber-300">
-              Lượt của bạn{playError ? ` — ${playError}` : selectedCombo ? ` — ${comboName(selectedCombo)}` : ""}
-            </span>
+      <div className="mt-3 flex flex-col items-center gap-3 short:mt-1.5 short:grid short:grid-cols-[auto_auto] short:justify-center short:gap-x-3 short:gap-y-0">
+        <div className="flex flex-col items-center gap-3 short:flex-row short:flex-wrap short:justify-center short:gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-emerald-50">
+            {spectator ? <Opponent {...seatProps(at(0))} /> : <SeatBadge {...seatProps(me)} />}
+            {myTurn && (
+              <span className="font-semibold text-amber-300 short:max-w-[9rem] short:text-xs">
+                {/* Sideways the turn ring already says whose turn it is; keep only the hint. */}
+                <span className="short:hidden">Lượt của bạn{(playError || selectedCombo) && " — "}</span>
+                {playError ?? (selectedCombo ? comboName(selectedCombo) : "")}
+              </span>
+            )}
+            {!spectator && playing && me && !me.inGame && <span className="text-emerald-100/60">Bạn sẽ vào ván sau</span>}
+          </div>
+
+          {!spectator && hand.length > 0 && (
+            <div className="flex items-center justify-center gap-2">
+              <ActionButton onClick={doPass} disabled={!canPass}>
+                Bỏ lượt
+              </ActionButton>
+              <ActionButton onClick={doPlay} disabled={!canPlay} primary big>
+                {anytimeChop && !myTurn ? "CHẶT! 💥" : "ĐÁNH 🃏"}
+              </ActionButton>
+              <ActionButton onClick={() => setSelected([])} disabled={!selected.length}>
+                Bỏ chọn
+              </ActionButton>
+            </div>
           )}
-          {!spectator && playing && me && !me.inGame && <span className="text-emerald-100/60">Bạn sẽ vào ván sau</span>}
         </div>
 
         {!spectator && hand.length > 0 && (
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <ActionButton onClick={doPass} disabled={!canPass}>
-              Bỏ lượt
-            </ActionButton>
-            <ActionButton onClick={doPlay} disabled={!canPlay} primary big>
-              {anytimeChop && !myTurn ? "CHẶT! 💥" : "ĐÁNH 🃏"}
-            </ActionButton>
-            <ActionButton onClick={() => setSelected([])} disabled={!selected.length}>
-              Bỏ chọn
-            </ActionButton>
-            <ActionButton
-              onClick={() => {
-                if (handOrder.isCustom) handOrder.reset();
-                else setSortMode((m) => (m === "rank" ? "suit" : "rank"));
-              }}
-            >
-              Xếp: {handOrder.isCustom ? "tự do ✋" : sortMode === "rank" ? "số" : "chất"}
-            </ActionButton>
-          </div>
-        )}
-
-        {!spectator && hand.length > 0 && (
-          <div className="flex w-full justify-center overflow-visible pt-5">
+          <div className="flex w-full justify-center overflow-visible pt-5 short:order-last short:col-span-2 short:pt-3">
             <DraggableRow
               items={hand}
               onMove={handOrder.move}
@@ -402,7 +405,20 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
           </div>
         )}
 
-        <EmojiBar onSend={onEmoji} />
+        {/* Kept narrow and centred so the floating chat button never covers it or the hand. */}
+        <div className="flex items-center justify-center gap-2">
+          <EmojiBar onSend={onEmoji} />
+          {!spectator && hand.length > 0 && (
+            <ActionButton
+              onClick={() => {
+                if (handOrder.isCustom) handOrder.reset();
+                else setSortMode((m) => (m === "rank" ? "suit" : "rank"));
+              }}
+            >
+              Xếp: {handOrder.isCustom ? "tự do ✋" : sortMode === "rank" ? "số" : "chất"}
+            </ActionButton>
+          )}
+        </div>
       </div>
 
       {showScores && <ScoreboardModal view={view} onClose={() => setShowScores(false)} note={scoreNote(view.settings ?? DEFAULT_TIENLEN_SETTINGS)} />}
@@ -434,8 +450,8 @@ function ActionButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "min-w-[84px] rounded-lg px-4 py-2 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40",
-        big && "min-w-[150px] rounded-xl px-8 py-3 text-lg font-black tracking-wide sm:min-w-[180px] sm:text-xl",
+        "min-w-[72px] rounded-lg px-3 py-2 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40 sm:min-w-[84px] sm:px-4",
+        big && "min-w-[120px] rounded-xl px-5 py-2.5 text-base font-black tracking-wide sm:min-w-[180px] sm:px-8 sm:py-3 sm:text-xl short:min-w-[100px] short:px-4 short:py-2 short:text-base",
         primary
           ? "bg-amber-400 text-black shadow-[0_0_20px_rgba(251,191,36,0.35)] enabled:hover:bg-amber-300"
           : "border border-emerald-200/25 bg-black/25 text-emerald-50 enabled:hover:bg-white/10",
@@ -480,7 +496,7 @@ function Avatar({ seat, isTurn, deadline, reactions }: { seat: SeatView; isTurn:
       <SeatBubble reactions={reactions} />
       <span
         className={cn(
-          "flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-200 to-amber-500 text-base font-bold text-black sm:h-12 sm:w-12",
+          "flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-200 to-amber-500 text-base font-bold text-black sm:h-12 sm:w-12 short:h-8 short:w-8 short:text-sm",
           (!seat.connected || seat.kicked) && "grayscale opacity-50",
         )}
       >
@@ -535,16 +551,16 @@ function StatusTags({
 function Opponent({ seat, isTurn, deadline, rankLabel, gameEnded, burned, reactions, onKick, vertical }: SeatDisplayProps & { vertical?: boolean }) {
   if (!seat) {
     return (
-      <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-emerald-100/20 text-xs text-emerald-100/40">
+      <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-emerald-100/20 text-xs text-emerald-100/40 short:h-10 short:w-10 short:text-[10px]">
         Trống
       </div>
     );
   }
   return (
-    <div className={cn("flex items-center gap-2", vertical ? "flex-col" : "flex-row")}>
+    <div className={cn("flex items-center gap-2", vertical ? "flex-col short:flex-row" : "flex-row")}>
       <div className="flex flex-col items-center gap-1">
         <Avatar seat={seat} isTurn={isTurn} deadline={deadline} reactions={reactions} />
-        <span className="max-w-[88px] truncate text-xs font-medium text-emerald-50 sm:text-sm">{seat.name}</span>
+        <span className="max-w-[88px] truncate text-xs font-medium text-emerald-50 sm:text-sm short:text-xs">{seat.name}</span>
         <StatusTags seat={seat} rankLabel={rankLabel} gameEnded={gameEnded} burned={burned} onKick={onKick} />
       </div>
       {seat.inGame && seat.cardCount > 0 && !seat.kicked && (
@@ -566,7 +582,10 @@ function SeatBadge({ seat, isTurn, deadline, rankLabel, gameEnded, burned, react
     <span className="flex items-center gap-2">
       <Avatar seat={seat} isTurn={isTurn} deadline={deadline} reactions={reactions} />
       <span className="flex flex-col items-start">
-        <span className="font-medium">{seat.name} (bạn)</span>
+        <span className="font-medium">
+          {seat.name}
+          <span className="short:hidden"> (bạn)</span>
+        </span>
         <StatusTags seat={seat} rankLabel={rankLabel} gameEnded={gameEnded} burned={burned} />
       </span>
     </span>
@@ -593,7 +612,7 @@ function WaitingPanel({
   const deltaOf = (id: string) => last?.results.find((r) => r.id === id)?.delta;
 
   return (
-    <div className="w-full max-w-xs rounded-2xl bg-black/35 p-4 backdrop-blur-sm">
+    <div className="w-full max-w-xs rounded-2xl bg-black/35 p-4 backdrop-blur-sm short:max-h-[62dvh] short:max-w-sm short:overflow-y-auto short:p-3">
       {ended && game ? (
         <>
           <h2 className="mb-2 text-lg font-bold text-amber-300">

@@ -163,21 +163,22 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
   const secondsLeft = g?.deadline ? Math.max(0, Math.ceil((g.deadline - now) / 1000)) : null;
 
   return (
-    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-24 pt-3 sm:px-4">
+    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-24 pt-3 sm:px-4 short:gap-2 short:pt-1.5">
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
         <div className="flex flex-wrap items-center gap-2">
           <Link href="/splendor" className="rounded-lg border border-white/20 bg-black/40 px-3 py-1.5 hover:bg-black/60">
             ← Sảnh
           </Link>
           <span className="rounded-md bg-black/30 px-2 py-1 font-mono text-base font-bold tracking-[0.2em] text-amber-300">{view.code}</span>
-          <button onClick={copyInvite} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10">
-            {copied ? "Đã chép link ✓" : "Chép link mời"}
+          <button onClick={copyInvite} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Chép link mời" aria-label="Chép link mời">
+            {copied ? "✓" : "🔗"}
+            <span className="hidden sm:inline"> {copied ? "Đã chép link" : "Chép link mời"}</span>
           </button>
-          <button onClick={() => setShowScores(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10">
-            🏆 Bảng điểm
+          <button onClick={() => setShowScores(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Bảng điểm" aria-label="Bảng điểm">
+            🏆<span className="hidden sm:inline"> Bảng điểm</span>
           </button>
-          <button onClick={() => setShowRules(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10">
-            📖 Luật chơi
+          <button onClick={() => setShowRules(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Luật chơi" aria-label="Luật chơi">
+            📖<span className="hidden sm:inline"> Luật chơi</span>
           </button>
         </div>
         <div className="flex items-center gap-3 text-violet-100/70">
@@ -192,9 +193,9 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
           <Waiting view={view} me={me} act={act} nameOf={nameOf} />
         </div>
       ) : (
-        <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_19rem]">
+        <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_19rem] short:grid-cols-[minmax(0,1fr)_15rem] short:gap-2">
           {/* Market */}
-          <div className="relative flex min-w-0 flex-col gap-3 rounded-3xl border border-amber-200/10 bg-[radial-gradient(ellipse_at_top,#3b1d5c_0%,#1a0f2b_70%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.5)] sm:p-4">
+          <div className="relative flex min-w-0 flex-col gap-3 rounded-3xl border border-amber-200/10 bg-[radial-gradient(ellipse_at_top,#3b1d5c_0%,#1a0f2b_70%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.5)] sm:p-4 short:gap-2 short:self-start short:p-2">
             <SpectatorReactions reactions={live.filter((r) => !r.playerId)} />
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex gap-2">
@@ -210,7 +211,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
             </div>
 
             {[3, 2, 1].map((tier) => (
-              <div key={tier} className="flex items-center gap-2 overflow-x-auto pb-1">
+              <div key={tier} className="flex items-center gap-2 overflow-x-auto pb-1 short:pb-0">
                 <CardBack
                   tier={tier as 1 | 2 | 3}
                   count={g.deckCounts[tier - 1]}
@@ -218,7 +219,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
                 />
                 {g.board[tier - 1].map((c, i) =>
                   c === null ? (
-                    <div key={`e${i}`} className="aspect-[5/7] w-[4.8rem] shrink-0 rounded-lg border border-dashed border-white/15 sm:w-[6.5rem]" />
+                    <div key={`e${i}`} className="aspect-[5/7] w-[min(4.8rem,calc((100vw-4.75rem)/5))] shrink-0 rounded-lg border border-dashed border-white/15 sm:w-[6.5rem] short:w-[4.4rem]" />
                   ) : (
                     <motion.div key={c} initial={{ scale: 0.6, opacity: 0, rotateY: 90 }} animate={{ scale: 1, opacity: 1, rotateY: 0 }}>
                       <DevCardView id={c} onClick={() => setFocus({ card: c })} affordable={myTurn && canAfford(c)} highlight={g.last?.card === c} />
@@ -229,7 +230,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
             ))}
 
             {/* Bank */}
-            <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-black/30 p-2">
+            <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-black/30 p-2 min-[400px]:gap-3">
               {TOKENS.map((t) => (
                 <TokenChip
                   key={t}
@@ -264,7 +265,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
           </div>
 
           {/* Players */}
-          <aside className="flex flex-col gap-3">
+          <aside className="grid content-start gap-3 sm:grid-cols-2 lg:flex lg:flex-col short:grid-cols-1 short:gap-2">
             {g.players.map((p) => {
               const seat = view.seats.find((s) => s?.id === p.id);
               return (
@@ -283,7 +284,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
                 />
               );
             })}
-            <div className="rounded-2xl bg-black/35 p-3">
+            <div className="rounded-2xl bg-black/35 p-3 sm:col-span-2 short:col-span-1">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-100/60">Diễn biến</p>
               <ul className="flex max-h-56 flex-col-reverse gap-1 overflow-y-auto text-xs">
                 {g.log
@@ -296,7 +297,9 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
                   ))}
               </ul>
             </div>
-            <EmojiBar onSend={(emoji) => void act({ type: "emoji", emoji })} />
+            <div className="sm:col-span-2 short:col-span-1">
+              <EmojiBar onSend={(emoji) => void act({ type: "emoji", emoji })} />
+            </div>
           </aside>
         </div>
       )}
@@ -365,7 +368,7 @@ function PlayerPanel({
   const reservedOrder = useHandOrder(mineReserved, orderKey ?? null);
   const tokenTotal = Object.values(p.tokens).reduce((a, b) => a + b, 0);
   return (
-    <div className={cn("relative rounded-2xl p-3", isTurn ? "bg-amber-400/15 ring-1 ring-amber-300/60" : "bg-black/35")}>
+    <div className={cn("relative rounded-2xl p-3 short:p-2", isTurn ? "bg-amber-400/15 ring-1 ring-amber-300/60" : "bg-black/35", self && "max-lg:order-first")}>
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="relative flex min-w-0 items-center gap-2">
           <SeatBubble reactions={reactions} />
