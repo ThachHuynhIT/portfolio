@@ -1,11 +1,13 @@
-# Mèo Nổ — bộ prompt vẽ tranh lá bài
+# Mèo Nổ — bộ prompt vẽ tranh lá bài (theo cụm)
 
-Mỗi lá bài Mèo Nổ có thể có một tranh riêng. Lá nào chưa có tranh vẫn hiện mặt vẽ bằng màu + emoji như cũ, nên bạn thêm dần từng lá cũng được.
+Thay vì vẽ từng lá, mỗi prompt tạo **một ảnh lưới 3 cột × 2 hàng = 6 lá**. 47 lá (46 mặt trước + mặt sau) gói gọn trong **8 ảnh**. Script tự cắt ảnh lưới ra thành từng lá. Tạo cả cụm một lúc còn giúp các lá cùng cụm đồng bộ nét vẽ và màu hơn so với tạo lẻ.
+
+Lá nào chưa có tranh vẫn hiện mặt vẽ bằng màu + emoji như cũ, nên bạn làm dần từng cụm cũng được.
 
 ## Cách dùng
 
-1. Vẽ hoặc tạo tranh bằng công cụ AI tạo ảnh (Midjourney, DALL·E / ChatGPT, Ideogram, Stable Diffusion, Gemini…). Với mỗi lá: dán **đoạn phong cách chung** ở dưới, rồi thêm **prompt riêng** của lá đó.
-2. Lưu file vào `art/meono/` và **đặt tên theo mã lá**, ví dụ `art/meono/defuse.png`, `art/meono/nope.jpg`. Mặt sau lá bài là `back.png`. Nhận `.png`, `.jpg`, `.jpeg`, `.webp`, `.avif`.
+1. Mở công cụ tạo ảnh (ChatGPT/DALL·E, Midjourney, Ideogram, Gemini, Stable Diffusion…), dán **đoạn phong cách chung**, rồi dán prompt của **một cụm**.
+2. Lưu ảnh vào `art/meono/` với tên **`sheet1.png` … `sheet8.png`** (đúng số cụm).
 3. Chạy:
 
    ```bash
@@ -13,113 +15,157 @@ Mỗi lá bài Mèo Nổ có thể có một tranh riêng. Lá nào chưa có tr
    npm run art:meono
    ```
 
-   Script sẽ cắt tranh về tỉ lệ 5:7 (giữ phần “đáng chú ý” nhất), thu về 400×560, lưu thành `public/games/meono/cards/<mã>.webp` và cập nhật `src/lib/meono/art.ts`. Nó cũng in ra lá nào còn thiếu tranh.
-4. Commit `public/games/meono/cards/*.webp` và `src/lib/meono/art.ts`. (Thư mục `art/` chứa ảnh gốc, nặng, nên đã nằm trong `.gitignore`.)
+   Script bỏ lề ngoài, chia ảnh thành 6 ô (trái → phải, hàng trên trước), gọt khe giữa các ô, cắt mỗi ô về tỉ lệ 5:7, thu về 400×560, rồi lưu `public/games/meono/cards/<mã>.webp` và cập nhật `src/lib/meono/art.ts`. Cuối cùng nó in ra lá nào còn thiếu.
+4. Commit `public/games/meono/cards/*.webp` và `src/lib/meono/art.ts`. Thư mục `art/` chứa ảnh gốc, nặng, nên đã nằm trong `.gitignore`.
 
-Muốn thay tranh thì ghi đè file trong `art/meono/` rồi chạy lại. Muốn bỏ tranh của một lá thì xoá file `.webp` của lá đó rồi chạy lại.
+**Làm lại một lá bị xấu:** tạo riêng lá đó (dùng mô tả ô tương ứng trong cụm, bỏ phần “grid”), lưu thành `art/meono/<mã>.png` (ví dụ `nope.png`) rồi chạy lại. Ảnh lẻ luôn **thắng** ô cùng tên trong ảnh lưới.
 
-### Mẹo để bộ bài đồng bộ
+**Ảnh bị cắt lệch** (công cụ không vẽ đúng 3×2, ô to nhỏ không đều): tạo lại, hoặc tự cắt ô đó ra thành ảnh lẻ như trên.
 
-- **Đừng để chữ trong tranh.** Game tự in tên lá ở dải trên cùng và biểu tượng gói ở góc dưới phải, nên chừa **khoảng 15% phía trên** và **góc dưới phải** tương đối trống/đơn giản.
-- Tạo tranh ở tỉ lệ **5:7** (hoặc 2:3 / dọc). Midjourney: thêm `--ar 5:7`. Công cụ nào không chọn được tỉ lệ thì cứ tạo ảnh dọc, script sẽ tự cắt.
-- Chọn **một** nhân vật mèo chủ đạo mà bạn thích nhất ở vài lá đầu, rồi dùng lại tranh đó làm ảnh tham chiếu (Midjourney `--cref` / `--sref`, ChatGPT “giữ đúng phong cách của ảnh này”…) cho các lá sau.
-- Giữ nguyên seed/phong cách cho cả bộ; mỗi lá chỉ đổi phần “prompt riêng” và **màu chủ đạo** (màu đã khớp với màu lá hiện tại trong game để người chơi vẫn nhận ra lá).
+### Mẹo để ảnh lưới cắt chuẩn
+
+- Yêu cầu **đúng 3 cột × 2 hàng, 6 ô bằng nhau**, có **khe và lề màu kem trơn** giữa các ô. Script dựa vào màu lề (lấy ở góc ảnh) để gọt khe.
+- Tỉ lệ ảnh: gần vuông là đẹp nhất (6 lá 5:7 xếp 3×2 ≈ 15:14). Midjourney: `--ar 15:14`. ChatGPT/DALL·E: chọn ảnh vuông 1024×1024.
+- **Không để chữ trong tranh.** Game tự in tên lá ở dải trên cùng và biểu tượng gói ở góc dưới phải, nên trong mỗi ô hãy chừa **khoảng 15% phía trên** và **góc dưới phải** đơn giản.
+- Khi đã ưng một cụm, dùng ảnh đó làm **ảnh tham chiếu phong cách** cho các cụm sau (Midjourney `--sref <link>`; ChatGPT: đính kèm ảnh và nói “same art style as this image”).
 - Tranh do bạn tự vẽ hoặc tự tạo. Không dùng tranh của bộ bài thương mại (Exploding Kittens…) vì đó là tác phẩm có bản quyền và repo/web này công khai.
 
-## Đoạn phong cách chung (dán trước mỗi prompt)
+## Đoạn phong cách chung (dán trước mỗi cụm)
 
 ```
-Original illustration for a party card game about cats and bombs. Vertical playing-card artwork, 5:7 portrait.
-Cute, funny cartoon style: chunky round cats with big expressive eyes, thick clean outlines, flat colours with soft cel shading,
-simple bold shapes that read clearly at small size. One clear subject in the centre, plain softly-lit gradient background.
-Leave the top 15% and the bottom-right corner simple and uncluttered. No text, no letters, no numbers, no logos, no border, no frame.
+A single image laid out as a sprite sheet: exactly 3 columns × 2 rows of six equal-size vertical playing-card illustrations (each 5:7 portrait),
+separated by even gutters and an outer margin of plain flat cream colour (#f5f0e6). Each panel is a separate, complete illustration with
+its own softly-lit gradient background filling the panel edge to edge, no card borders or frames.
+Original artwork for a party card game about cats and bombs. Cute, funny cartoon style: chunky round cats with big expressive eyes,
+thick clean outlines, flat colours with soft cel shading, simple bold shapes that read clearly at small size. One clear subject per panel,
+centred. Leave the top 15% and the bottom-right corner of every panel simple and uncluttered. The same art style and the same line weight
+in all six panels. No text, no letters, no numbers, no captions, no logos anywhere.
 Original character designs, not imitating any existing card game or artist.
 ```
 
-Không cần thêm gì nữa nếu công cụ cho phép chọn tỉ lệ. Với Midjourney thêm `--ar 5:7 --style raw` vào cuối.
+Midjourney: thêm `--ar 15:14 --style raw` vào cuối cả prompt.
 
-## Prompt từng lá
+## Prompt từng cụm
 
-Cột **Màu** là màu chủ đạo nên dùng cho nền/không khí của lá.
+Thứ tự ô là **trái → phải, hàng trên trước**. Đừng đổi thứ tự, vì script cắt theo đúng thứ tự này (danh sách nằm trong `SHEETS` của `scripts/meono-art.mjs`).
 
-### Bộ cơ bản
+### Cụm 1 → `sheet1.png`: bộ cơ bản (1)
 
-| Mã (tên file) | Lá | Màu | Prompt riêng |
-|---|---|---|---|
-| `exploding` | 💣 Mèo Nổ | đen than → đỏ rượu | A startled cat sitting on top of a big round cartoon bomb with a lit, sparkling fuse, fur standing on end, tiny explosion sparks around; dark charcoal-to-crimson background, dramatic rim light. Funny, not gory. |
-| `defuse` | 🧯 Gỡ bom | xanh chanh → xanh ngọc | A calm, confident cat in a tiny bomb-squad helmet cutting a wire on a bomb with little scissors, or holding a laser pointer that distracts the bomb; relieved sparkle; fresh lime-to-emerald background. |
-| `attack` | ⚔️ Tấn công | cam → đỏ | A fierce little cat warrior leaping forward with a plastic sword and a saucepan helmet, battle cry face, motion lines; hot orange-to-red background. |
-| `skip` | ⏭️ Bỏ lượt | xanh trời → xanh dương | A cat casually tiptoeing away past a sleeping bomb, whistling, holding a tiny "leaving" suitcase; sky-blue-to-blue background. |
-| `favor` | 🙏 Xin xỏ | xám → xám đậm | A cat with huge pleading puppy eyes and paws pressed together, begging another off-screen cat for a card, sad sparkles; muted grey background. |
-| `shuffle` | 🔀 Xáo bài | nâu hổ phách → vàng đậm | A cat spinning in a whirlwind of flying playing cards like a tornado, dizzy happy expression; amber-to-dark-gold background. |
-| `future` | 🔮 Xem tương lai | hồng tím → hồng đậm | A mystic fortune-teller cat in a starry shawl gazing into a glowing crystal ball that shows three small blank cards; magenta-to-deep-pink background with sparkles. |
-| `nope` | 🚫 Không! | đỏ → đỏ hồng | A very unimpressed cat raising one paw in a firm "stop" gesture, eyes half closed, big red forbidden-circle shape glowing behind it; red-to-rose background. |
-| `taco` | 🌮 Mèo Taco | vàng → cam | A happy cat whose body is tucked inside a giant crunchy taco shell like a blanket, lettuce and tomato as decorations; sunny yellow-to-orange background. |
-| `melon` | 🍉 Mèo Dưa Hấu | xanh lá → hồng | A round cat that is half watermelon — green striped rind back, pink juicy belly with seeds — sitting proudly; green-to-pink background. |
-| `potato` | 🥔 Mèo Khoai Tây | vàng nhạt → vàng đất | A lumpy, potato-shaped cat with little sprouts on its head, sitting in a small pile of potatoes, content smile; pale-to-earthy-yellow background. |
-| `beard` | 🧔 Mèo Râu | xám đá nhạt → xám đá | A dignified cat with an enormous, magnificent bushy beard that reaches the floor, holding a tiny comb; light stone-grey background. |
-| `rainbow` | 🌈 Mèo Cầu Vồng | tím → xanh trời → xanh lá | A joyful cat sliding down a rainbow, leaving a sparkling rainbow trail from its tail; pastel violet-sky-green gradient background. |
+```
+Top row, left to right:
+1. A startled cat sitting on a big round cartoon bomb with a lit sparkling fuse, fur standing on end; charcoal-to-crimson background.
+2. A calm cat in a tiny bomb-squad helmet snipping a wire on a bomb with little scissors, relieved sparkle; lime-to-emerald background.
+3. A fierce little cat warrior leaping forward with a plastic sword and a saucepan helmet, motion lines; orange-to-red background.
+Bottom row, left to right:
+4. A cat casually tiptoeing away past a sleeping bomb, whistling, holding a tiny suitcase; sky-blue-to-blue background.
+5. A cat with huge pleading eyes and paws pressed together, begging for something; muted grey background.
+6. A dizzy happy cat spinning inside a tornado of flying playing cards; amber-to-dark-gold background.
+```
 
-### Gói Mèo Tự Huỷ (imploding)
+Ô: `exploding` Mèo Nổ · `defuse` Gỡ bom · `attack` Tấn công · `skip` Bỏ lượt · `favor` Xin xỏ · `shuffle` Xáo bài
 
-| Mã | Lá | Màu | Prompt riêng |
-|---|---|---|---|
-| `imploding` | 🌀 Mèo Tự Huỷ | chàm → tím | A cat being sucked into a small swirling black hole / vortex that it made itself, stretched and spiralling, surprised face; deep indigo-to-violet cosmic background. |
-| `reverse` | 🔁 Đảo chiều | xanh ngọc → xanh lơ | A cat doing a U-turn on a little scooter, tyre skid marks forming a circular arrow; teal-to-cyan background. |
-| `bottom` | ⤵️ Rút từ đáy | xám xanh nhạt → xám xanh | A cat upside-down under a tall stack of cards, sneakily pulling the bottom card out with its paw, tongue out in concentration; slate background. |
-| `feral` | 🐾 Mèo Hoang | xám đen → đen | A scruffy wild alley cat with a torn ear, glowing eyes and a mischievous grin, crouched on a trash can lid at night; near-black background with faint moonlight. |
-| `alter` | 🪄 Sửa tương lai | tím → chàm | A wizard cat with a pointy hat rearranging three floating glowing cards with a magic wand; purple-to-indigo background with stars. |
-| `targeted` | 🎯 Tấn công chỉ định | đỏ → cam đậm | A cat archer aiming a suction-cup arrow at a big target, one eye closed, very focused; red-to-dark-orange background. |
+### Cụm 2 → `sheet2.png`: bộ cơ bản (2) + mèo ghép bộ
 
-### Gói Mèo Chạy Rông (streaking)
+```
+Top row, left to right:
+1. A fortune-teller cat in a starry shawl gazing into a glowing crystal ball showing three small blank cards; magenta-to-pink background.
+2. A very unimpressed cat raising one paw in a firm "stop" gesture, a big glowing red forbidden-circle shape behind it; red-to-rose background.
+3. A happy cat tucked inside a giant crunchy taco shell like a blanket, lettuce and tomato around it; yellow-to-orange background.
+Bottom row, left to right:
+4. A round cat that is half watermelon (green striped rind back, pink belly with seeds), sitting proudly; green-to-pink background.
+5. A lumpy potato-shaped cat with little sprouts on its head, sitting in a pile of potatoes; pale-to-earthy-yellow background.
+6. A dignified cat with an enormous bushy beard reaching the floor, holding a tiny comb; light stone-grey background.
+```
 
-| Mã | Lá | Màu | Prompt riêng |
-|---|---|---|---|
-| `superskip` | ⏩ Siêu bỏ lượt | xanh dương → chàm | A cat in a superhero cape blasting off like a rocket, leaving a speed trail, zooming past everything; blue-to-indigo background. |
-| `swap` | 🔃 Đổi đầu đuôi | xanh lục bảo → xanh ngọc đậm | Two cats juggling, tossing one card from the top of a stack to the bottom and another back up in a circle; emerald-to-deep-teal background. |
-| `catomic` | ☢️ Bom Mèo Nguyên Tử | vàng → xanh rêu | A cat in a comically oversized hazmat suit carrying a glowing green bomb with a big mushroom-shaped puff cloud behind it (cartoonish, harmless-looking); yellow-to-moss-green background. |
-| `streaking` | 🏃 Mèo Chạy Rông | hồng → tím hồng | A gleeful cat running at full speed carrying a bomb in its arms like a football, wind in its fur; pink-to-fuchsia background. |
-| `future5` | 🔭 Xem tương lai ×5 | tím nhạt → tím đậm | A cat astronomer peering through a large brass telescope, five small cards glowing in the starry sky like constellations; violet-to-dark-purple background. |
-| `garbage` | 🗑️ Dọn rác | xám đá → xám đá đậm | A cat happily diving head-first into a trash can full of crumpled cards and fish bones, tail sticking out; stone-grey background. |
-| `mark` | 🔖 Đánh dấu | vàng nhạt → cam | A detective cat with a magnifying glass sticking a big bookmark ribbon onto a card; warm amber-to-orange background. |
-| `curse` | 🍑 Lời nguyền mông mèo | hồng nhạt → hồng đậm | A cat under a spooky purple curse cloud, blindfolded and fumbling with a fan of cards, the cloud shaped like a cat's rear end (cute, not rude); rose background. |
+Ô: `future` Xem tương lai · `nope` Không! · `taco` Mèo Taco · `melon` Mèo Dưa Hấu · `potato` Mèo Khoai Tây · `beard` Mèo Râu
 
-### Gói Mèo Sủa (barking)
+### Cụm 3 → `sheet3.png`: mèo cầu vồng + gói Mèo Tự Huỷ (1)
 
-| Mã | Lá | Màu | Prompt riêng |
-|---|---|---|---|
-| `barking` | 🐶 Mèo Sủa | vàng đậm → nâu hổ phách | A confused cat barking loudly like a dog, floppy dog-ear headband on, "woof" shock lines (no text); dark-gold-to-amber background. |
-| `potluck` | 🍲 Góp nồi | cam → đỏ đậm | Several cat paws dropping mystery cards into a big bubbling stew pot, a cat chef stirring with a ladle; orange-to-dark-red background. |
-| `ilt` | 🫳 Để đó cho tui | xanh ngọc → xanh lơ đậm | A sly cat reaching out a long paw to snatch a card out of the air just before another cat catches it; teal-to-dark-cyan background. |
-| `alternow` | ⚡ Sửa tương lai ngay | hồng tím → tím đậm | A cat with crackling lightning paws rapidly rearranging three floating cards, electric sparks; fuchsia-to-deep-violet background. |
-| `bury` | ⚰️ Chôn bài | xám → xám đậm | A cat gravedigger with a small shovel burying a face-down card in a pile of cards, solemn tiny candle; grey background. |
-| `personal` | 🥊 Tự tấn công | đỏ nhạt → đỏ hồng đậm | A cat in boxing gloves accidentally punching itself, dizzy stars around its head, still smiling; red-to-deep-rose background. |
-| `share` | 🤝 Chia sẻ tương lai | xanh trời → xanh dương đậm | Two cats sharing a pair of binoculars / looking together at three glowing cards, friendly vibe; sky-blue-to-navy background. |
+```
+Top row, left to right:
+1. A joyful cat sliding down a rainbow, leaving a sparkling rainbow trail from its tail; pastel violet-sky-green background.
+2. A surprised cat being sucked into a small swirling vortex, stretched and spiralling; deep indigo-to-violet cosmic background.
+3. A cat doing a U-turn on a little scooter, skid marks forming a circular arrow; teal-to-cyan background.
+Bottom row, left to right:
+4. A cat upside-down under a tall stack of cards, sneakily pulling out the bottom card, tongue out; slate-grey background.
+5. A scruffy wild alley cat with a torn ear and glowing eyes, mischievous grin, crouched on a trash can lid at night; near-black background.
+6. A wizard cat in a pointy hat rearranging three floating glowing cards with a magic wand; purple-to-indigo starry background.
+```
 
-### Gói Mèo Xác Sống (zombie)
+Ô: `rainbow` Mèo Cầu Vồng · `imploding` Mèo Tự Huỷ · `reverse` Đảo chiều · `bottom` Rút từ đáy · `feral` Mèo Hoang · `alter` Sửa tương lai
 
-| Mã | Lá | Màu | Prompt riêng |
-|---|---|---|---|
-| `zombie` | 🧟 Mèo Xác Sống | xanh chanh → xanh lá đậm | A cute zombie cat with stitches and a bandage, arms stretched forward, rising from a small grave mound, goofy not scary; lime-to-dark-green background. |
-| `feed` | 🍖 Nuôi xác sống | đỏ hồng → đỏ đậm | Cats nervously tossing cards like snacks to a hungry cartoon zombie cat holding a bib; rose-to-dark-red background. |
-| `dig` | ⛏️ Đào sâu | nâu hổ phách → vàng đất đậm | A miner cat with a headlamp and pickaxe digging down through layers of stacked cards; amber-to-dark-ochre background. |
-| `clone` | 🧬 Nhân bản | xanh lơ → xanh ngọc đậm | A scientist cat stepping out of a glowing capsule next to an identical copy of itself, both surprised; cyan-to-dark-teal background. |
-| `grave` | 🪦 Đào mộ | xám xanh → xám xanh đậm | A cat with a lantern digging up an old card from a tombstone-marked mound at night; slate background, soft moonlight. |
-| `deadattack` | 🧟‍♂️ Xác sống tấn công | xanh lá → lục bảo rất đậm | A small horde of silly zombie cats charging forward together, arms out, one with a tiny flag; green-to-very-dark-emerald background. |
-| `clairvoyance` | 👁️ Thấu thị | chàm nhạt → tím đậm | A cat with a glowing third eye on its forehead, seeing through a stack of cards to a tiny bomb hidden inside; indigo-to-deep-violet background. |
+### Cụm 4 → `sheet4.png`: gói Mèo Tự Huỷ (2) + Mèo Chạy Rông (1)
 
-### Gói Tấn Công (attacking) và Phòng Thủ (defending)
+```
+Top row, left to right:
+1. A focused cat archer aiming a suction-cup arrow at a big target, one eye closed; red-to-dark-orange background.
+2. A cat in a superhero cape blasting off like a rocket with a speed trail; blue-to-indigo background.
+3. Two cats juggling cards in a circle between the top and the bottom of a card stack; emerald-to-deep-teal background.
+Bottom row, left to right:
+4. A cat in an oversized hazmat suit carrying a glowing green cartoon bomb, a harmless puffy cloud behind; yellow-to-moss-green background.
+5. A gleeful cat sprinting while carrying a bomb in its arms like a football, wind in its fur; pink-to-fuchsia background.
+6. A cat astronomer peering through a brass telescope, five small glowing cards in the sky like constellations; violet-to-dark-purple background.
+```
 
-| Mã | Lá | Màu | Prompt riêng |
-|---|---|---|---|
-| `slap` | 👋 Tát | cam nhạt → đỏ | A cat mid-slap with a big fluffy paw, the other cat's cheek squished, comic impact star (no text); orange-to-red background. |
-| `annoy` | 😾 Nổi cáu | vàng → vàng hổ phách | An extremely grumpy cat with puffed fur, crossed arms and a tiny storm cloud above its head; yellow-to-amber background. |
-| `steal` | 🦝 Cướp bài | xám nhạt → xám đậm | A masked bandit cat (raccoon-style eye mask) tiptoeing away with a card in a sack; light-to-dark grey background. |
-| `rollcall` | 📋 Điểm danh mèo | đỏ → đỏ hồng rất đậm | A strict teacher cat with a clipboard and glasses, a line of round bombs standing in a row like students; red-to-very-dark-rose background. |
-| `corn` | 🌽 Lời nguyền ngô pha lê | vàng nhạt → xanh rêu | A cat staring at a glowing, sparkling crystal corn cob that casts a mysterious curse aura; pale-yellow-to-moss-green background. |
+Ô: `targeted` Tấn công chỉ định · `superskip` Siêu bỏ lượt · `swap` Đổi đầu đuôi · `catomic` Bom Mèo Nguyên Tử · `streaking` Mèo Chạy Rông · `future5` Xem tương lai ×5
 
-### Mặt sau
+### Cụm 5 → `sheet5.png`: gói Mèo Chạy Rông (2) + Mèo Sủa (1)
 
-| Mã | Lá | Màu | Prompt riêng |
-|---|---|---|---|
-| `back` | Mặt sau lá bài | nâu cam đỏ đậm | Card back design: a symmetrical pattern of a cute cat face and a small bomb in the centre, surrounded by repeating diagonal stripes and paw prints; rich burnt-orange and dark rust colours. Perfectly centred, decorative, symmetrical, works when tiled. |
+```
+Top row, left to right:
+1. A cat happily diving head-first into a trash can full of crumpled cards and fish bones, tail sticking out; stone-grey background.
+2. A detective cat with a magnifying glass sticking a big bookmark ribbon onto a card; amber-to-orange background.
+3. A blindfolded cat fumbling with a fan of cards under a spooky purple curse cloud shaped like a cat's rear (cute, not rude); rose background.
+Bottom row, left to right:
+4. A confused cat barking loudly like a dog, wearing a floppy dog-ear headband, shock lines; dark-gold-to-amber background.
+5. Cat paws dropping mystery cards into a big bubbling stew pot while a cat chef stirs with a ladle; orange-to-dark-red background.
+6. A sly cat stretching a long paw to snatch a card out of the air before another cat catches it; teal-to-dark-cyan background.
+```
+
+Ô: `garbage` Dọn rác · `mark` Đánh dấu · `curse` Lời nguyền mông mèo · `barking` Mèo Sủa · `potluck` Góp nồi · `ilt` Để đó cho tui
+
+### Cụm 6 → `sheet6.png`: gói Mèo Sủa (2) + Tấn Công (1)
+
+```
+Top row, left to right:
+1. A cat with crackling lightning paws rapidly rearranging three floating cards, electric sparks; fuchsia-to-deep-violet background.
+2. A solemn cat gravedigger with a small shovel burying a face-down card in a pile of cards, a tiny candle; grey background.
+3. A cat in boxing gloves accidentally punching itself, dizzy stars around its head, still smiling; red-to-deep-rose background.
+Bottom row, left to right:
+4. Two friendly cats sharing one pair of binoculars, looking at three glowing cards; sky-blue-to-navy background.
+5. A cat mid-slap with a big fluffy paw, another cat's cheek squished, a comic impact star; orange-to-red background.
+6. An extremely grumpy cat with puffed-up fur, crossed arms and a tiny storm cloud above its head; yellow-to-amber background.
+```
+
+Ô: `alternow` Sửa tương lai ngay · `bury` Chôn bài · `personal` Tự tấn công · `share` Chia sẻ tương lai · `slap` Tát · `annoy` Nổi cáu
+
+### Cụm 7 → `sheet7.png`: gói Mèo Xác Sống
+
+```
+Top row, left to right:
+1. A cute goofy zombie cat with stitches and a bandage, arms stretched forward, rising from a small grave mound; lime-to-dark-green background.
+2. Nervous cats tossing cards like snacks to a hungry cartoon zombie cat wearing a bib; rose-to-dark-red background.
+3. A miner cat with a headlamp and pickaxe digging down through layers of stacked cards; amber-to-dark-ochre background.
+Bottom row, left to right:
+4. A scientist cat stepping out of a glowing capsule next to an identical copy of itself, both surprised; cyan-to-dark-teal background.
+5. A cat with a lantern digging up an old card from a mound with a small tombstone, soft moonlight; slate background.
+6. A small horde of silly zombie cats charging forward together, arms out, one waving a tiny flag; green-to-very-dark-emerald background.
+```
+
+Ô: `zombie` Mèo Xác Sống · `feed` Nuôi xác sống · `dig` Đào sâu · `clone` Nhân bản · `grave` Đào mộ · `deadattack` Xác sống tấn công
+
+### Cụm 8 → `sheet8.png`: phần còn lại + mặt sau (5 ô)
+
+```
+Top row, left to right:
+1. A cat with a glowing third eye on its forehead, seeing through a stack of cards to a tiny bomb hidden inside; indigo-to-deep-violet background.
+2. A masked bandit cat (raccoon-style eye mask) tiptoeing away with a card in a sack; light-to-dark grey background.
+3. A strict teacher cat with a clipboard and glasses, a row of round bombs standing in line like students; red-to-very-dark-rose background.
+Bottom row, left to right:
+4. A cat staring at a glowing, sparkling crystal corn cob that casts a mysterious curse aura; pale-yellow-to-moss-green background.
+5. A card-back design: a perfectly symmetrical pattern with a cute cat face and a small bomb in the centre, surrounded by repeating
+   diagonal stripes and paw prints, rich burnt-orange and dark rust colours, decorative and centred.
+6. Leave this panel empty: plain cream, the same colour as the gutters.
+```
+
+Ô: `clairvoyance` Thấu thị · `steal` Cướp bài · `rollcall` Điểm danh mèo · `corn` Lời nguyền ngô pha lê · `back` Mặt sau · (ô 6 bỏ trống)
