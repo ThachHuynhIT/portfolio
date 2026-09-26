@@ -214,7 +214,8 @@ export default function Navigation({ navLinks }: NavigationProps) {
     pathname?.startsWith("/tien-len") ||
     pathname?.startsWith("/meo-no") ||
     pathname?.startsWith("/co-ty-phu") ||
-    pathname?.startsWith("/splendor")
+    pathname?.startsWith("/splendor") ||
+    pathname?.startsWith("/bang")
   ) {
     return null;
   }
