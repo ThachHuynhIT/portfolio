@@ -172,13 +172,13 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
           <span className="rounded-md bg-black/30 px-2 py-1 font-mono text-base font-bold tracking-[0.2em] text-amber-300">{view.code}</span>
           <button onClick={copyInvite} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Chép link mời" aria-label="Chép link mời">
             {copied ? "✓" : "🔗"}
-            <span className="hidden sm:inline"> {copied ? "Đã chép link" : "Chép link mời"}</span>
+            <span className="hidden sm:inline short:hidden"> {copied ? "Đã chép link" : "Chép link mời"}</span>
           </button>
           <button onClick={() => setShowScores(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Bảng điểm" aria-label="Bảng điểm">
-            🏆<span className="hidden sm:inline"> Bảng điểm</span>
+            🏆<span className="hidden sm:inline short:hidden"> Bảng điểm</span>
           </button>
           <button onClick={() => setShowRules(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Luật chơi" aria-label="Luật chơi">
-            📖<span className="hidden sm:inline"> Luật chơi</span>
+            📖<span className="hidden sm:inline short:hidden"> Luật chơi</span>
           </button>
         </div>
         <div className="flex items-center gap-3 text-violet-100/70">
@@ -193,7 +193,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
           <Waiting view={view} me={me} act={act} nameOf={nameOf} />
         </div>
       ) : (
-        <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_19rem] short:grid-cols-[minmax(0,1fr)_15rem] short:gap-2">
+        <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_19rem] short:grid-cols-2 short:gap-2">
           {/* Market */}
           <div className="relative flex min-w-0 flex-col gap-3 rounded-3xl border border-amber-200/10 bg-[radial-gradient(ellipse_at_top,#3b1d5c_0%,#1a0f2b_70%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.5)] sm:p-4 short:gap-2 short:self-start short:p-2">
             <SpectatorReactions reactions={live.filter((r) => !r.playerId)} />
@@ -211,7 +211,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
             </div>
 
             {[3, 2, 1].map((tier) => (
-              <div key={tier} className="flex items-center gap-2 overflow-x-auto pb-1 short:pb-0">
+              <div key={tier} className="flex items-center gap-2 overflow-x-auto pb-1 short:gap-1.5 short:pb-0">
                 <CardBack
                   tier={tier as 1 | 2 | 3}
                   count={g.deckCounts[tier - 1]}
@@ -219,7 +219,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
                 />
                 {g.board[tier - 1].map((c, i) =>
                   c === null ? (
-                    <div key={`e${i}`} className="aspect-[5/7] w-[min(4.8rem,calc((100vw-4.75rem)/5))] shrink-0 rounded-lg border border-dashed border-white/15 sm:w-[6.5rem] short:w-[4.4rem]" />
+                    <div key={`e${i}`} className="aspect-[5/7] w-[min(4.8rem,calc((100vw-4.75rem)/5))] shrink-0 rounded-lg border border-dashed border-white/15 sm:w-[6.5rem] short:w-[min(4.4rem,calc((50vw-4.75rem)/5))]" />
                   ) : (
                     <motion.div key={c} initial={{ scale: 0.6, opacity: 0, rotateY: 90 }} animate={{ scale: 1, opacity: 1, rotateY: 0 }}>
                       <DevCardView id={c} onClick={() => setFocus({ card: c })} affordable={myTurn && canAfford(c)} highlight={g.last?.card === c} />
@@ -368,11 +368,11 @@ function PlayerPanel({
   const reservedOrder = useHandOrder(mineReserved, orderKey ?? null);
   const tokenTotal = Object.values(p.tokens).reduce((a, b) => a + b, 0);
   return (
-    <div className={cn("relative rounded-2xl p-3 short:p-2", isTurn ? "bg-amber-400/15 ring-1 ring-amber-300/60" : "bg-black/35", self && "max-lg:order-first")}>
-      <div className="mb-2 flex items-center justify-between gap-2">
+    <div className={cn("relative rounded-2xl p-2.5 sm:p-3 short:p-2", isTurn ? "bg-amber-400/15 ring-1 ring-amber-300/60" : "bg-black/35", self && "max-lg:order-first")}>
+      <div className="mb-1.5 flex items-center justify-between gap-2 sm:mb-2 short:mb-1">
         <span className="relative flex min-w-0 items-center gap-2">
           <SeatBubble reactions={reactions} />
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-300 to-fuchsia-600 font-bold text-black">
+          <span className="flex h-8 w-8 shrink-0 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-300 to-fuchsia-600 font-bold text-black">
             {name.charAt(0).toUpperCase()}
           </span>
           <span className="min-w-0">
@@ -389,8 +389,8 @@ function PlayerPanel({
           </span>
         </span>
         <span className="text-right">
-          <span className="block text-2xl font-black leading-none text-amber-300">{p.prestige}</span>
-          <span className="text-[10px] text-white/50">/ {target} điểm</span>
+          <span className="text-xl font-black leading-none text-amber-300 sm:block sm:text-2xl short:inline short:text-xl">{p.prestige}</span>
+          <span className="text-[10px] text-white/50"> / {target} điểm</span>
         </span>
         {onKick && (
           <button onClick={onKick} className="absolute right-2 top-2 rounded bg-rose-600 px-1.5 text-[11px] font-semibold text-white">
@@ -398,19 +398,39 @@ function PlayerPanel({
           </button>
         )}
       </div>
-      <div className="flex items-center gap-1" title="Thẻ đã mua (giảm giá vĩnh viễn)">
-        <span className="w-10 text-[10px] text-white/50">Thẻ</span>
-        {GEMS.map((gem) => (
-          <BonusPip key={gem} gem={gem} n={p.bonuses[gem]} />
-        ))}
+      {/* Card bonuses and gems share one line when there is room (phones: one short panel per player). */}
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 sm:gap-x-3">
+        <div className="flex items-center gap-1" title="Thẻ đã mua (giảm giá vĩnh viễn)">
+          <span className="text-[10px] text-white/50 max-sm:hidden">Thẻ</span>
+          {GEMS.map((gem) => (
+            <BonusPip key={gem} gem={gem} n={p.bonuses[gem]} />
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-1">
+          <span className="text-[10px] text-white/50">Đá {tokenTotal}/10</span>
+          {TOKENS.filter((t) => p.tokens[t]).map((t) => (
+            <TokenChip key={t} gem={t} count={p.tokens[t]} size="sm" />
+          ))}
+        </div>
+        {/* Other players' reserved cards and nobles stay on the same line. */}
+        {!self && (p.reserved.length > 0 || p.nobles.length > 0) && (
+          <div className="flex flex-wrap items-center gap-1">
+            {p.reserved.map((c, i) =>
+              c === null ? (
+                <span key={i} className="flex h-7 w-5 items-center justify-center rounded bg-stone-700 text-[10px]" title="Thẻ đang giữ (úp)">
+                  📌
+                </span>
+              ) : (
+                <DevCardView key={c} id={c} size="sm" />
+              ),
+            )}
+            {p.nobles.map((n) => (
+              <NobleTile key={n} id={n} size="sm" />
+            ))}
+          </div>
+        )}
       </div>
-      <div className="mt-1 flex flex-wrap items-center gap-1">
-        <span className="w-10 text-[10px] text-white/50">Đá {tokenTotal}/10</span>
-        {TOKENS.filter((t) => p.tokens[t]).map((t) => (
-          <TokenChip key={t} gem={t} count={p.tokens[t]} size="sm" />
-        ))}
-      </div>
-      {(p.reserved.length > 0 || p.nobles.length > 0) && (
+      {self && (p.reserved.length > 0 || p.nobles.length > 0) && (
         <div className="mt-2 flex flex-wrap items-center gap-1">
           {self && mineReserved.length > 0 && (
             <DraggableRow
@@ -419,15 +439,6 @@ function PlayerPanel({
               className="gap-1"
               renderItem={(c) => <DevCardView id={c} size="sm" onClick={() => onReserved(c)} />}
             />
-          )}
-          {!self && p.reserved.map((c, i) =>
-            c === null ? (
-              <span key={i} className="flex h-8 w-6 items-center justify-center rounded bg-stone-700 text-[10px]" title="Thẻ đang giữ (úp)">
-                📌
-              </span>
-            ) : (
-              <DevCardView key={c} id={c} size="sm" onClick={self ? () => onReserved(c) : undefined} />
-            ),
           )}
           {p.nobles.map((n) => (
             <NobleTile key={n} id={n} size="sm" />

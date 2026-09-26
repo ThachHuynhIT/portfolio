@@ -80,7 +80,7 @@ export function TokenChip({
   title?: string;
 }) {
   // The bank row (6 lg chips) has to fit a 360px-wide phone on one line.
-  const px = size === "lg" ? "h-11 w-11 min-[400px]:h-14 min-[400px]:w-14 sm:h-16 sm:w-16 short:h-12 short:w-12" : size === "md" ? "h-11 w-11" : "h-8 w-8";
+  const px = size === "lg" ? "h-11 w-11 min-[400px]:h-14 min-[400px]:w-14 sm:h-16 sm:w-16 short:h-12 short:w-12" : size === "md" ? "h-11 w-11" : "h-7 w-7 sm:h-8 sm:w-8";
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
@@ -105,7 +105,7 @@ export function TokenChip({
 
 const TIER_MARK = { 1: "I", 2: "II", 3: "III" } as const;
 /** Width of an md market card / deck: 5 per row on any phone (page + market padding ≈ 4.75rem). */
-const MD_CARD_W = "w-[min(4.8rem,calc((100vw-4.75rem)/5))] sm:w-[6.5rem] short:w-[4.4rem]";
+const MD_CARD_W = "w-[min(4.8rem,calc((100vw-4.75rem)/5))] sm:w-[6.5rem] short:w-[min(4.4rem,calc((50vw-4.75rem)/5))]";
 
 /** A development card: illustration, colour frame, points + bonus on top, cost in gems at the bottom. */
 export function DevCardView({
@@ -209,7 +209,7 @@ export function NobleTile({ id, size = "md", dim }: { id: number; size?: "sm" | 
     <div
       className={cn(
         "relative aspect-square shrink-0 overflow-hidden rounded-lg p-[2px] shadow-lg",
-        size === "md" ? "w-[min(4.5rem,calc((100vw-4.75rem)/5))] sm:w-24 short:w-16" : "w-10",
+        size === "md" ? "w-[min(4.5rem,calc((100vw-4.75rem)/5))] sm:w-24 short:w-[min(4rem,calc((50vw-4rem)/5))]" : "w-10",
         dim && "opacity-40",
       )}
       style={{ background: "linear-gradient(145deg,#fef3c7,#b8893a 45%,#7c5a1f 70%,#fde68a)" }}
@@ -241,7 +241,7 @@ export function NobleTile({ id, size = "md", dim }: { id: number; size?: "sm" | 
 /** Owned-card count per colour (the permanent discount). */
 export function BonusPip({ gem, n }: { gem: Gem; n: number }) {
   return (
-    <span className={cn("relative flex h-7 w-6 items-center justify-center rounded border border-amber-200/30 shadow", !n && "opacity-35")} style={{ background: FRAME[gem] }} title={`${n} thẻ ${GEM_NAMES[gem]}`}>
+    <span className={cn("relative flex h-6 w-5 items-center justify-center rounded border sm:h-7 sm:w-6 border-amber-200/30 shadow", !n && "opacity-35")} style={{ background: FRAME[gem] }} title={`${n} thẻ ${GEM_NAMES[gem]}`}>
       <span className="text-[12px] font-black text-white [text-shadow:0_0_3px_#000]">{n}</span>
     </span>
   );

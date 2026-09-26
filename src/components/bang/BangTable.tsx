@@ -134,18 +134,19 @@ function Table({ view, reconnecting, act }: { view: BangRoomView; reconnecting: 
           <span className="rounded-md bg-black/30 px-2 py-1 font-mono text-base font-bold tracking-[0.2em] text-amber-300">{view.code}</span>
           <button onClick={copyInvite} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Chép link mời" aria-label="Chép link mời">
             {copied ? "✓" : "🔗"}
-            <span className="hidden sm:inline"> {copied ? "Đã chép link" : "Chép link mời"}</span>
+            <span className="hidden sm:inline short:hidden"> {copied ? "Đã chép link" : "Chép link mời"}</span>
           </button>
           <button onClick={() => setShowScores(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Bảng điểm" aria-label="Bảng điểm">
-            🏆<span className="hidden sm:inline"> Bảng điểm</span>
+            🏆<span className="hidden sm:inline short:hidden"> Bảng điểm</span>
           </button>
           <button onClick={() => setShowGuide(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Hướng dẫn" aria-label="Hướng dẫn">
-            📖<span className="hidden sm:inline"> Hướng dẫn</span>
+            📖<span className="hidden sm:inline short:hidden"> Hướng dẫn</span>
           </button>
         </div>
         <div className="flex items-center gap-2 text-amber-100/70">
           {packs.map((p) => (
-            <span key={p} title={PACKS[p].name}>
+            // Packs are listed in the guide; on a phone the room bar keeps to one line.
+            <span key={p} title={PACKS[p].name} className="max-sm:hidden">
               {PACKS[p].emoji}
             </span>
           ))}
@@ -667,12 +668,14 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
   const handCards = me?.hand ?? [];
 
   return (
-    <div className="grid flex-1 gap-2 sm:gap-3 lg:grid-cols-[minmax(0,1fr)_18rem] short:grid-cols-[minmax(0,1fr)_15rem]">
-      <div className="flex min-w-0 flex-col gap-2 sm:gap-3">
+    <div className="grid flex-1 gap-2 sm:gap-3 lg:grid-cols-[minmax(0,1fr)_18rem] short:grid-cols-1">
+      {/* Sideways phones: the table on the left, you / actions / hand on the right. */}
+      <div className="flex min-w-0 flex-col gap-2 sm:gap-3 short:grid short:grid-cols-2 short:items-start">
+        <div className="contents short:flex short:min-w-0 short:flex-col short:gap-2">
         {g.event && <EventBanner event={g.event} left={g.eventsLeft} onClick={() => setInfo({ kind: "event" })} />}
 
         {/* Other players, clockwise from you */}
-        <ul className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 sm:gap-2 xl:grid-cols-4">
+        <ul className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 sm:gap-2 xl:grid-cols-4 short:grid-cols-2 short:gap-1.5">
           {others
             .filter((p) => p.id !== me?.id)
             .map((p) => (
@@ -731,6 +734,9 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
         </div>
 
         {showLog && <LogList g={g} className="max-h-48 lg:hidden" />}
+        </div>
+
+        <div className="contents short:flex short:min-w-0 short:flex-col short:gap-2">
 
         {/* You */}
         {me && (
@@ -807,7 +813,7 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
 
         {/* Your hand */}
         {handCards.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-1.5 pt-2" data-testid="hand">
+          <div className="flex flex-wrap justify-center gap-1.5 pt-2 short:pr-12" data-testid="hand">
             {handCards.map((c) => (
               <CardFace key={c} id={c} onClick={() => tapHand(c)} selected={sel.includes(c) || mainCard === c} dim={!!needs.cards?.test && mode?.kind !== "play" && !needs.cards.test(c)} />
             ))}
@@ -817,9 +823,10 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
         <div className="flex justify-center pr-12 sm:pr-0">
           <EmojiBar onSend={(emoji) => void act({ type: "emoji", emoji })} />
         </div>
+        </div>
       </div>
 
-      <aside className="hidden min-h-0 flex-col gap-2 lg:flex short:flex">
+      <aside className="hidden min-h-0 flex-col gap-2 lg:flex short:hidden">
         <LogList g={g} className="max-h-[calc(100dvh-8rem)] flex-1" />
       </aside>
 
@@ -986,10 +993,10 @@ function PlayerTile({
       {(p.play.length > 0 || p.gear.length > 0) && (
         <div className={cn("mt-1 flex flex-wrap gap-0.5 rounded", pickable && p.play.length > 0 && "ring-1 ring-amber-300/70")} onClick={(e) => e.stopPropagation()}>
           {p.play.map((c) => (
-            <PlayChip key={c.id} id={c.id} cubes={c.cubes} fresh={c.fresh} active={pickedCard === c.id} onClick={() => onChip(c.id)} />
+            <PlayChip key={c.id} id={c.id} cubes={c.cubes} fresh={c.fresh} active={pickedCard === c.id} onClick={() => onChip(c.id)} compact />
           ))}
           {p.gear.map((x, i) => (
-            <GearChip key={i} gear={x.key} />
+            <GearChip key={i} gear={x.key} compact />
           ))}
         </div>
       )}
@@ -1076,7 +1083,7 @@ function ActionPanel(props: PanelProps) {
 
   return shell(
     <>
-      <p className="text-sm text-amber-100/90">Chạm 1 lá trên tay để đánh, hoặc lá xanh lá / lá có đạn trước mặt để dùng.</p>
+      <p className="text-xs text-amber-100/80 sm:text-sm">Chạm lá trên tay để đánh, hoặc lá xanh lá / lá có đạn trước mặt để dùng.</p>
       <div className="flex flex-wrap gap-2">
         {abilities
           .filter((a) => a !== "sid" || me.life < me.max)

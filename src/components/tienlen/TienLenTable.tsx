@@ -285,7 +285,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
             aria-label="Chép link mời"
           >
             {copied ? "✓" : "🔗"}
-            <span className="hidden sm:inline"> {copied ? "Đã chép link" : "Chép link mời"}</span>
+            <span className="hidden sm:inline short:hidden"> {copied ? "Đã chép link" : "Chép link mời"}</span>
           </button>
           <button
             onClick={() => setShowScores(true)}
@@ -293,7 +293,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
             title="Bảng điểm"
             aria-label="Bảng điểm"
           >
-            🏆<span className="hidden sm:inline"> Bảng điểm</span>
+            🏆<span className="hidden sm:inline short:hidden"> Bảng điểm</span>
           </button>
           <button
             onClick={() => setShowMoves(true)}
@@ -301,14 +301,14 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
             title="Lịch sử ván"
             aria-label="Lịch sử ván"
           >
-            📜<span className="hidden sm:inline"> Lịch sử ván</span>
+            📜<span className="hidden sm:inline short:hidden"> Lịch sử ván</span>
           </button>
         </div>
         <div className="flex items-center gap-3">
           {view.spectators.length > 0 && (
             <span className="text-emerald-100/70" title={view.spectators.join(", ")}>
               👀 {view.spectators.length}
-              <span className="hidden sm:inline"> người xem</span>
+              <span className="hidden sm:inline short:hidden"> người xem</span>
             </span>
           )}
           {reconnecting && <span className="animate-pulse text-amber-300">Đang kết nối lại…</span>}

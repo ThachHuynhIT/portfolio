@@ -55,7 +55,7 @@ export function CardFace({
   const d = cardDef(id);
   const t = typeOf(id);
   const Tag = onClick ? "button" : "div";
-  const w = { xs: "w-9", sm: "w-12", md: "w-[3.9rem] sm:w-[4.6rem]", lg: "w-28" }[size];
+  const w = { xs: "w-9", sm: "w-12", md: "w-[3.9rem] sm:w-[4.6rem] short:w-[3.6rem]", lg: "w-28" }[size];
   return (
     <Tag
       type={onClick ? "button" : undefined}
@@ -101,7 +101,7 @@ export function CardBack({ className, count }: { className?: string; count?: num
 }
 
 /** A small chip for a card lying in front of someone. */
-export function PlayChip({ id, cubes, fresh, onClick, active }: { id: number; cubes?: number; fresh?: boolean; onClick?: () => void; active?: boolean }) {
+export function PlayChip({ id, cubes, fresh, onClick, active, compact }: { id: number; cubes?: number; fresh?: boolean; onClick?: () => void; active?: boolean; compact?: boolean }) {
   const t = typeOf(id);
   const Tag = onClick ? "button" : "span";
   return (
@@ -118,7 +118,8 @@ export function PlayChip({ id, cubes, fresh, onClick, active }: { id: number; cu
       )}
     >
       <span aria-hidden>{t.emoji}</span>
-      <span className="max-w-[5.5rem] truncate">{t.name}</span>
+      {/* compact: emoji only on phones (the name is in the tooltip / on tap). */}
+      <span className={cn("max-w-[5.5rem] truncate", compact && "max-sm:hidden short:hidden")}>{t.name}</span>
       {cubes ? <span className="ml-0.5 rounded bg-amber-400 px-0.5 font-bold text-black">{cubes}</span> : null}
     </Tag>
   );
@@ -208,7 +209,7 @@ export function EventBanner({ event, left, onClick }: { event: EventKey; left: n
   );
 }
 
-export function GearChip({ gear, onClick, price, disabled }: { gear: GearKey; onClick?: () => void; price?: number; disabled?: boolean }) {
+export function GearChip({ gear, onClick, price, disabled, compact }: { gear: GearKey; onClick?: () => void; price?: number; disabled?: boolean; compact?: boolean }) {
   const g = GEAR[gear];
   const Tag = onClick ? "button" : "span";
   return (
@@ -223,7 +224,7 @@ export function GearChip({ gear, onClick, price, disabled }: { gear: GearKey; on
       )}
     >
       <span aria-hidden>{g.emoji}</span>
-      <span className="max-w-[6rem] truncate">{g.name}</span>
+      <span className={cn("max-w-[6rem] truncate", compact && "max-sm:hidden short:hidden")}>{g.name}</span>
       {price !== undefined && <span className="rounded bg-yellow-400 px-1 font-bold text-black">{price}🪙</span>}
     </Tag>
   );

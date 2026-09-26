@@ -320,20 +320,20 @@ function Board({
           <span className="rounded-md bg-black/30 px-2 py-1 font-mono text-base font-bold tracking-[0.2em] text-amber-300">{view.code}</span>
           <button onClick={copyInvite} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Chép link mời" aria-label="Chép link mời">
             {copied ? "✓" : "🔗"}
-            <span className="hidden sm:inline"> {copied ? "Đã chép link" : "Chép link mời"}</span>
+            <span className="hidden sm:inline short:hidden"> {copied ? "Đã chép link" : "Chép link mời"}</span>
           </button>
           <button onClick={() => setShowScores(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Bảng điểm" aria-label="Bảng điểm">
-            🏆<span className="hidden sm:inline"> Bảng điểm</span>
+            🏆<span className="hidden sm:inline short:hidden"> Bảng điểm</span>
           </button>
           <button onClick={() => setShowGuide(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Lá bài" aria-label="Lá bài">
-            📖<span className="hidden sm:inline"> Lá bài</span>
+            📖<span className="hidden sm:inline short:hidden"> Lá bài</span>
           </button>
         </div>
         <div className="flex items-center gap-3 text-orange-100/70">
           {(g?.expansions ?? view.expansions).map((e) => (
-            <span key={e} title={PACKS[e].name}>
+            <span key={e} title={PACKS[e].name} className="max-sm:hidden">
               {PACKS[e].emoji}
-              <span className="hidden sm:inline"> {PACKS[e].name.replace("Gói ", "")}</span>
+              <span className="hidden sm:inline short:hidden"> {PACKS[e].name.replace("Gói ", "")}</span>
             </span>
           ))}
           {view.spectators.length > 0 && <span title={view.spectators.join(", ")}>👀 {view.spectators.length}</span>}
@@ -360,7 +360,7 @@ function Board({
           <BoomOverlay fx={fx} />
 
           {/* Opponents */}
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex flex-wrap justify-center gap-1.5 sm:gap-3">
             {opponents.length === 0 && <p className="py-4 text-sm text-orange-100/50">Chưa có ai khác — gửi link mời nhé!</p>}
             {opponents.map((s) => (
               <Seat
@@ -639,10 +639,16 @@ function Board({
                 🂠 RÚT BÀI
               </DockBtn>
               <DockBtn tone="ghost" onClick={() => (setSelected([]), setTarget(null), setNamed(""))} disabled={!selected.length}>
-                ✕ Bỏ chọn
+                ✕<span className="sr-only sm:not-sr-only"> Bỏ chọn</span>
               </DockBtn>
-              <EmojiBar onSend={(e) => void act({ type: "emoji", emoji: e })} />
+              {/* Phones: the emoji button sits under the dock so Đánh / Rút / ✕ fit on one line. */}
+              <span className="max-sm:hidden">
+                <EmojiBar onSend={(e) => void act({ type: "emoji", emoji: e })} />
+              </span>
             </div>
+          </div>
+          <div className="flex justify-center pr-12 sm:hidden">
+            <EmojiBar onSend={(e) => void act({ type: "emoji", emoji: e })} />
           </div>
         </div>
       )}
@@ -680,9 +686,9 @@ function DockBtn({
       className={cn(
         "rounded-xl font-black tracking-wide transition-all enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-35",
         tone === "play" &&
-          "min-w-[7.5rem] bg-gradient-to-b from-amber-300 to-orange-500 px-4 py-2.5 text-base sm:min-w-[9rem] sm:px-6 sm:py-3 sm:text-lg text-black shadow-[0_4px_0_#9a3412,0_0_24px_rgba(251,191,36,0.35)] enabled:hover:brightness-110",
+          "min-w-[7.5rem] bg-gradient-to-b from-amber-300 to-orange-500 px-4 py-2.5 text-base max-sm:min-w-[6.25rem] max-sm:px-3 sm:min-w-[9rem] sm:px-6 sm:py-3 sm:text-lg text-black shadow-[0_4px_0_#9a3412,0_0_24px_rgba(251,191,36,0.35)] enabled:hover:brightness-110",
         tone === "draw" &&
-          "min-w-[7rem] bg-gradient-to-b from-emerald-400 to-emerald-700 px-4 py-2.5 text-base sm:min-w-[8rem] sm:px-5 sm:py-3 sm:text-lg text-white shadow-[0_4px_0_#064e3b] enabled:hover:brightness-110",
+          "min-w-[7rem] bg-gradient-to-b from-emerald-400 to-emerald-700 px-4 py-2.5 text-base max-sm:min-w-[6.25rem] max-sm:px-3 sm:min-w-[8rem] sm:px-5 sm:py-3 sm:text-lg text-white shadow-[0_4px_0_#064e3b] enabled:hover:brightness-110",
         tone === "nope" &&
           "min-w-[7.5rem] animate-pulse bg-gradient-to-b from-red-500 to-red-800 px-4 py-2.5 text-lg sm:min-w-[9rem] sm:px-6 sm:py-3 sm:text-xl text-white shadow-[0_4px_0_#450a0a,0_0_28px_rgba(239,68,68,0.6)]",
         tone === "ghost" && "border border-white/20 bg-white/5 px-3 py-2 text-sm sm:px-4 font-semibold enabled:hover:bg-white/10",
@@ -808,7 +814,7 @@ function Seat({
     <Tag
       onClick={selectable ? onSelect : undefined}
       className={cn(
-        "relative flex min-w-[5.5rem] flex-col items-center gap-1 rounded-xl px-2 py-1.5 transition-all",
+        "relative flex min-w-[4rem] flex-col items-center gap-1 rounded-xl px-1 py-1.5 transition-all sm:min-w-[5.5rem] sm:px-2 short:gap-0.5 short:py-1",
         selectable && !selected && "cursor-pointer outline-dashed outline-2 outline-offset-2 outline-amber-300/70 hover:bg-amber-400/15 motion-safe:animate-pulse",
         selected && "scale-105 bg-rose-500/25 outline outline-2 outline-offset-2 outline-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.45)]",
       )}
@@ -832,7 +838,7 @@ function Seat({
         <SeatBubble reactions={reactions} />
         <span
           className={cn(
-            "flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-orange-200 to-orange-500 text-lg font-bold text-black",
+            "flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-200 to-orange-500 text-base font-bold text-black sm:h-11 sm:w-11 sm:text-lg short:h-8 short:w-8 short:text-sm",
             (!seat.connected || seat.kicked) && "opacity-50 grayscale",
             seat.out && "from-zinc-500 to-zinc-700",
           )}
@@ -840,7 +846,7 @@ function Seat({
           {seat.out ? "💀" : seat.name.charAt(0).toUpperCase()}
         </span>
       </span>
-      <span className="max-w-[6rem] truncate text-xs font-semibold">
+      <span className={cn("truncate text-xs font-semibold", self ? "max-w-[8rem]" : "max-w-[4rem] sm:max-w-[6rem]")}>
         {seat.name}
         {self && " (bạn)"}
       </span>
@@ -861,7 +867,7 @@ function Seat({
             🫳 {n}
           </span>
         ))}
-        {seat.games > 0 && <span className={cn("font-mono", seat.points > 0 ? "text-emerald-300" : seat.points < 0 ? "text-rose-300" : "")}>{signed(seat.points)}đ</span>}
+        {seat.games > 0 && <span className={cn("font-mono max-sm:hidden", seat.points > 0 ? "text-emerald-300" : seat.points < 0 ? "text-rose-300" : "")}>{signed(seat.points)}đ</span>}
       </span>
       {!!seat.marked?.length && (
         <span className="flex gap-0.5" title="Lá bị Đánh dấu — ai cũng thấy">

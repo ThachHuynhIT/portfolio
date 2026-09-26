@@ -92,7 +92,7 @@ export function GameLobby({ title, tagline, icons, basePath, wsPath, apiPrefix, 
   const code = joinCode.trim().toUpperCase();
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-4">
+    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-4 short:pb-8 short:pt-2">
       <div className="flex flex-wrap gap-2">
         <Link
           href="/games"
@@ -102,15 +102,15 @@ export function GameLobby({ title, tagline, icons, basePath, wsPath, apiPrefix, 
         </Link>
       </div>
 
-      <header className="mb-8 mt-6 text-center">
-        <p className="mb-2 text-4xl" aria-hidden>
+      <header className="mb-8 mt-6 text-center short:mb-3 short:mt-2">
+        <p className="mb-2 text-4xl short:mb-1 short:text-2xl" aria-hidden>
           {icons}
         </p>
-        <h1 className="text-3xl font-black tracking-tight text-amber-300 sm:text-4xl">{title}</h1>
+        <h1 className="text-3xl font-black tracking-tight text-amber-300 sm:text-4xl short:text-2xl">{title}</h1>
         <p className="mt-2 text-white/70">{tagline}</p>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] short:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] short:gap-3">
         <section className="h-fit rounded-2xl border border-white/10 bg-black/30 p-5 backdrop-blur">
           {name !== null && (
             <NameForm initial={name} submitLabel={busy ? "Đang tạo bàn…" : "Tạo bàn mới"} onSubmit={onCreate} busy={busy} />

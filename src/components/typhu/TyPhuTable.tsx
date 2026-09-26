@@ -304,13 +304,13 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
           <span className="rounded-md bg-black/30 px-2 py-1 font-mono text-base font-bold tracking-[0.2em] text-amber-300">{view.code}</span>
           <button onClick={copyInvite} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Chép link mời">
             {copied ? "✓" : "🔗"}
-            <span className="hidden sm:inline"> {copied ? "Đã chép link" : "Chép link mời"}</span>
+            <span className="hidden sm:inline short:hidden"> {copied ? "Đã chép link" : "Chép link mời"}</span>
           </button>
           <button onClick={() => setShowScores(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Bảng điểm">
-            🏆<span className="hidden sm:inline"> Bảng điểm</span>
+            🏆<span className="hidden sm:inline short:hidden"> Bảng điểm</span>
           </button>
           <button onClick={() => setShowRules(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Luật chơi">
-            📖<span className="hidden sm:inline"> Luật chơi</span>
+            📖<span className="hidden sm:inline short:hidden"> Luật chơi</span>
           </button>
         </div>
         <div className="flex items-center gap-3 text-sky-100/70">
