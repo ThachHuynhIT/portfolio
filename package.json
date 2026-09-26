@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "art:meono": "node scripts/meono-art.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -50,6 +51,7 @@
     "@types/three": "^0.165.0",
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.33",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
