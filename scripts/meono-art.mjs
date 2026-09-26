@@ -6,7 +6,7 @@
  *   npm run art:meono -- path/to/dir
  *
  * Two kinds of source file (prompts for both are in docs/MEONO_ART_PROMPTS.md):
- *   - `sheet1.png` … `sheet8.png`: one image holding a 3×2 grid of six cards, cut apart using SHEETS
+ *   - `sheet1.png` … `sheet4.png`: one image holding a 4×3 grid of twelve cards, cut apart using SHEETS
  *     below (left to right, top row first);
  *   - `<type>.png` (`defuse.png`, `back.png`…): a single card. It wins over the same card from a
  *     sheet, so one bad card can be redone on its own.
@@ -27,19 +27,15 @@ const W = 400;
 const H = 560;
 const EXTS = [".png", ".jpg", ".jpeg", ".webp", ".avif"];
 
-/** Cards in each sheet, left to right, top row first (3 columns × 2 rows); null = empty cell. */
+/** Cards in each sheet, left to right, top row first (4 columns × 3 rows); null = empty cell. */
 const SHEETS = {
-  1: ["exploding", "defuse", "attack", "skip", "favor", "shuffle"],
-  2: ["future", "nope", "taco", "melon", "potato", "beard"],
-  3: ["rainbow", "imploding", "reverse", "bottom", "feral", "alter"],
-  4: ["targeted", "superskip", "swap", "catomic", "streaking", "future5"],
-  5: ["garbage", "mark", "curse", "barking", "potluck", "ilt"],
-  6: ["alternow", "bury", "personal", "share", "slap", "annoy"],
-  7: ["zombie", "feed", "dig", "clone", "grave", "deadattack"],
-  8: ["clairvoyance", "steal", "rollcall", "corn", "back", null],
+  1: ["exploding", "defuse", "attack", "skip", "favor", "shuffle", "future", "nope", "taco", "melon", "potato", "beard"],
+  2: ["rainbow", "imploding", "reverse", "bottom", "feral", "alter", "targeted", "superskip", "swap", "catomic", "streaking", "future5"],
+  3: ["garbage", "mark", "curse", "barking", "potluck", "ilt", "alternow", "bury", "personal", "share", "slap", "annoy"],
+  4: ["zombie", "feed", "dig", "clone", "grave", "deadattack", "clairvoyance", "steal", "rollcall", "corn", "back", null],
 };
-const COLS = 3;
-const ROWS = 2;
+const COLS = 4;
+const ROWS = 3;
 
 // Card types, read from the CARDS table so this never drifts from the game.
 const cardsTs = readFileSync(join(ROOT, "src/lib/meono/cards.ts"), "utf8");
@@ -72,7 +68,7 @@ async function trimBg(buf, bg) {
 }
 
 /**
- * Cut a 3×2 sheet into its cards: trim the plain outer margin, split evenly, then (when the sheet
+ * Cut a 4×3 sheet into its cards: trim the plain outer margin, split evenly, then (when the sheet
  * has such a margin) trim that gutter colour off each cell, and shave a little more for safety.
  */
 async function cutSheet(file, cards) {
