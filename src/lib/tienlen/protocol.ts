@@ -124,6 +124,19 @@ export interface LeaderboardEntry {
   lastPlayed: number;
 }
 
+/** One entry of a Tiến Lên game's history, oldest first (be_game keeps the whole game, reset each game). */
+export interface TLMove {
+  id: number;
+  /** play · pass (auto = the server passed) · round = new round, `player` leads · out = went out (`rank` 0 = Nhất) · burned = chết cháy · forfeit = kicked */
+  kind: "play" | "pass" | "round" | "out" | "burned" | "forfeit";
+  player: string;
+  cards?: Card[];
+  auto?: boolean;
+  chop?: boolean;
+  chopPoints?: number;
+  rank?: number;
+}
+
 export interface GameView {
   status: "playing" | "ended";
   turn: string | null;
@@ -135,6 +148,8 @@ export interface GameView {
   instantWin: { playerId: string; reason: InstantWinReason } | null;
   /** Chết cháy players (still holding all 13 cards when the first player finished). */
   burned?: string[];
+  /** Everything played this game, oldest first (missing from older servers). */
+  moves?: TLMove[];
 }
 
 /** The full snapshot sent to one client after every change. */

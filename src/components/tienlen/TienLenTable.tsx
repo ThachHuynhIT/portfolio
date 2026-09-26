@@ -26,6 +26,7 @@ import { ChatBox } from "@/components/games/ChatBox";
 import { DraggableRow, useHandOrder } from "@/components/games/DraggableHand";
 import { BurnOverlay, ChopOverlay, EmojiBar, SeatBubble, Shake, SpectatorReactions, useBurnEffect, useChopEffect, useLiveReactions } from "./Effects";
 import { CardBack, PlayingCard } from "./PlayingCard";
+import { MoveHistory } from "./MoveHistory";
 import { DeltaBadge, ScoreboardModal, rankTitle, signed } from "./Scoreboard";
 import { inviteLink, useTienLenRoom } from "./useTienLen";
 
@@ -144,6 +145,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
   const [sortMode, setSortMode] = useState<SortMode>("rank");
   const [busy, setBusy] = useState(false);
   const [showScores, setShowScores] = useState(false);
+  const [showMoves, setShowMoves] = useState(false);
 
   const chopFx = useChopEffect(game?.status === "playing" ? game.lastPlay : null, nameOf);
   const burnFx = useBurnEffect(game?.burned, nameOf);
@@ -293,6 +295,14 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
           >
             🏆<span className="hidden sm:inline"> Bảng điểm</span>
           </button>
+          <button
+            onClick={() => setShowMoves(true)}
+            className="rounded-md border border-emerald-200/20 px-2 py-1 text-emerald-50 transition-colors hover:bg-white/10"
+            title="Lịch sử ván"
+            aria-label="Lịch sử ván"
+          >
+            📜<span className="hidden sm:inline"> Lịch sử ván</span>
+          </button>
         </div>
         <div className="flex items-center gap-3">
           {view.spectators.length > 0 && (
@@ -421,6 +431,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
         </div>
       </div>
 
+      {showMoves && <MoveHistory moves={game?.moves ?? []} nameOf={nameOf} meId={meId} onClose={() => setShowMoves(false)} />}
       {showScores && <ScoreboardModal view={view} onClose={() => setShowScores(false)} note={scoreNote(view.settings ?? DEFAULT_TIENLEN_SETTINGS)} />}
 
       {toast && (
