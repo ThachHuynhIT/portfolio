@@ -11,7 +11,7 @@
  *     game's `sheets` below (left to right, top row first);
  *   - `<name>.png` (`defuse.png`, `card-bang.png`, `back.png`…): a single card. It wins over the same
  *     card from a sheet, so one bad card can be redone on its own.
- * Each card is cropped to 5:7, resized to 400×560 and saved as public/games/<game>/cards/<name>.webp,
+ * Each card is cropped to its shape (5:7 400×560 unless the game sets `sizeOf`) and saved as public/games/<game>/cards/<name>.webp,
  * then src/lib/<game>/art.ts is rewritten so the game knows which cards have art. Cards without
  * art keep the drawn face.
  */
@@ -21,8 +21,10 @@ import { basename, extname, join, resolve } from "node:path";
 import sharp from "sharp";
 
 const ROOT = resolve(import.meta.dirname, "..");
-const W = 400;
-const H = 560;
+const CARD_W = 400;
+const CARD_H = 560;
+const W = CARD_W;
+const H = CARD_H;
 const COLS = 4;
 const ROWS = 3;
 const EXTS = [".png", ".jpg", ".jpeg", ".webp", ".avif"];
@@ -70,6 +72,8 @@ const GAMES = {
 /** card-<card type> · char-<character> · event-<event card> · back (the playing-card back). */
 export type BangArt = \`card-\${CardKey}\` | \`char-\${CharKey}\` | \`event-\${EventKey}\` | "back";`,
     exportName: "BANG_ART",
+    /** Output size per art kind: playing cards fill the art box of the card face, events are square. */
+    sizeOf: (name) => (name.startsWith("card-") ? [400, 440] : name.startsWith("event-") ? [480, 480] : [W, H]),
     about: "Art files in public/games/bang/cards/<name>.webp.",
     sheets: {
       // Playing cards
@@ -127,6 +131,7 @@ const CROP_TOLERANCE = 0.12;
  * itself, so nothing important is cut off.
  */
 async function save(img, name) {
+  const [W, H] = cfg.sizeOf?.(name) ?? [CARD_W, CARD_H];
   const { data, info } = await img.png().toBuffer({ resolveWithObject: true });
   const ratio = info.width / info.height;
   const out = join(OUT, `${name}.webp`);

@@ -933,7 +933,7 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
           {info.kind === "char" && <CharCard char={info.key} />}
           {info.kind === "event" && g.event && (
             <div className="text-sm">
-              <EventArt event={g.event} className="float-right ml-3 aspect-[5/7] w-24 rounded-lg" />
+              <EventArt event={g.event} className="float-right ml-3 aspect-square w-24 rounded-lg" />
               <b className="text-lg text-amber-200">
                 {EVENTS[g.event].emoji} {EVENTS[g.event].name}
               </b>

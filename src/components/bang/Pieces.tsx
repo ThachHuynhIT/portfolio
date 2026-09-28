@@ -63,10 +63,11 @@ export function CardFace({
   const w = { xs: "w-9", sm: "w-12", md: "w-[3.9rem] sm:w-[4.6rem] short:w-[3.6rem]", lg: "w-28" }[size];
   const art = artSrc(`card-${t.key}`);
   const title = `${t.name} ${suitText(id)}\n${t.text}`;
+  const small = size === "xs" || size === "sm";
   const face = (
     <span
       className={cn(
-        "relative flex aspect-[5/7] w-full select-none flex-col items-center justify-between overflow-hidden rounded-lg border-2 p-0.5 text-stone-900 shadow-md transition-[transform,opacity,filter] duration-150",
+        "relative flex aspect-[5/7] w-full select-none flex-col gap-[2px] overflow-hidden rounded-lg border-2 p-[2px] text-stone-900 shadow-md transition-[transform,opacity,filter] duration-150",
         FRAME[t.color],
         // Selected wins over hover: a hover lift never pulls a selected card back down.
         selected ? "-translate-y-2 ring-2 ring-amber-300 ring-offset-1 ring-offset-black" : onClick && "group-hover:-translate-y-1",
@@ -74,30 +75,40 @@ export function CardFace({
         dim && !selected && "opacity-60 grayscale",
       )}
     >
-      {art && <img src={art} alt="" draggable={false} className="absolute inset-0 h-full w-full object-cover" />}
+      {/* Top strip: rank + suit, then the full name (two lines when it's long). */}
       <span
         className={cn(
-          "relative self-start font-black leading-none",
-          size === "xs" ? "text-[7px]" : size === "lg" ? "text-base" : "text-[10px]",
-          isRedSuit(d.suit) ? "text-rose-700" : "text-stone-900",
-          art && "rounded bg-[#f7ecd6]/90 px-0.5",
+          "flex shrink-0 flex-col items-center rounded-md bg-[#f7ecd6]/95 px-0.5 text-center leading-[1.05]",
+          size === "xs" ? "py-px" : "py-0.5",
         )}
       >
-        {suitText(id)}
-      </span>
-      {!art && (
-        <span className={cn("leading-none", size === "xs" ? "text-sm" : size === "sm" ? "text-lg" : size === "lg" ? "text-5xl" : "text-2xl sm:text-3xl")} aria-hidden>
-          {t.emoji}
+        <span
+          className={cn(
+            "self-start font-black",
+            size === "xs" ? "text-[6px]" : size === "lg" ? "text-sm" : small ? "text-[8px]" : "text-[9px] sm:text-[10px]",
+            isRedSuit(d.suit) ? "text-rose-700" : "text-stone-900",
+          )}
+        >
+          {suitText(id)}
         </span>
-      )}
-      <span
-        className={cn(
-          "relative w-full truncate text-center font-bold leading-tight",
-          art && "-mx-0.5 -mb-0.5 w-[calc(100%+0.25rem)] bg-gradient-to-t from-black/80 to-black/0 px-0.5 pb-0.5 pt-1.5 text-white",
-          size === "xs" ? "text-[6px]" : size === "sm" ? "text-[8px]" : size === "lg" ? "text-sm" : "text-[9px] sm:text-[10px]",
+        <span
+          className={cn(
+            "w-full font-extrabold [overflow-wrap:anywhere]",
+            size === "xs" ? "line-clamp-1 text-[6px]" : size === "sm" ? "line-clamp-2 text-[8px]" : size === "lg" ? "text-sm" : "line-clamp-2 text-[9.5px] sm:text-[11px]",
+          )}
+        >
+          {t.name}
+        </span>
+      </span>
+      {/* Artwork with rounded corners, or the emoji when a card has no art yet. */}
+      <span className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-md bg-black/10 ring-1 ring-black/20">
+        {art ? (
+          <img src={art} alt="" draggable={false} className="h-full w-full object-cover" />
+        ) : (
+          <span className={cn("leading-none", size === "xs" ? "text-sm" : size === "sm" ? "text-lg" : size === "lg" ? "text-5xl" : "text-2xl sm:text-3xl")} aria-hidden>
+            {t.emoji}
+          </span>
         )}
-      >
-        {t.name}
       </span>
       {badge}
     </span>
