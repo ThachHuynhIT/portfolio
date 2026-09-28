@@ -1000,7 +1000,7 @@ function LogList({ g, className }: { g: BangGameView; className?: string }) {
   return (
     <div className={cn("flex min-h-0 flex-col rounded-2xl bg-black/35 p-2", className)}>
       <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-100/60">Diễn biến</p>
-      <ul className="flex min-h-0 flex-col-reverse gap-0.5 overflow-y-auto text-xs">
+      <ul className="flex min-h-0 flex-col gap-0.5 overflow-y-auto text-xs">
         {g.log
           .slice()
           .reverse()

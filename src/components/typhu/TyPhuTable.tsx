@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
 import { GameHeader, HeaderLabel, headerBtn } from "@/components/games/GameHeader";
@@ -271,11 +272,32 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
     return () => clearTimeout(t);
   }, [buildFx]);
 
+  // "Phá sản!" effect whenever a player goes bankrupt (players already out when the page opened don't replay it).
+  const [bankruptFx, setBankruptFx] = useState<{ id: string; name: string; me: boolean; at: number } | null>(null);
+  const outRef = useRef<Set<string> | null>(null);
+  const outKey = g?.players.filter((p) => p.bankrupt).map((p) => p.id).join(",") ?? "";
+  useEffect(() => {
+    const now = new Set(outKey ? outKey.split(",") : []);
+    const prev = outRef.current;
+    outRef.current = now;
+    if (!prev) return;
+    const fresh = [...now].find((id) => !prev.has(id));
+    if (fresh) setBankruptFx({ id: fresh, name: nameOf(fresh), me: fresh === view.meId, at: Date.now() });
+  }, [outKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!bankruptFx) return;
+    const t = setTimeout(() => setBankruptFx(null), 3200);
+    return () => clearTimeout(t);
+  }, [bankruptFx]);
+
   const live = useLiveReactions(view.reactions);
   const reactionsFor = (id: string): Reaction[] => live.filter((r) => r.playerId === id);
 
   const kick = async (s: TPSeatView) => {
-    if (!window.confirm(playing && s.inGame ? `Kích ${s.name}? Họ sẽ bị tính phá sản.` : `Kích ${s.name} khỏi bàn?`)) return;
+    // window.confirm returns false immediately where it's blocked; ask again rather than never kicking.
+    const asked = Date.now();
+    const ok = window.confirm(playing && s.inGame ? `Kích ${s.name}? Họ sẽ bị tính phá sản.` : `Kích ${s.name} khỏi bàn?`);
+    if (!ok && Date.now() - asked > 50) return;
     await act({ type: "kick", playerId: s.id });
   };
 
@@ -370,9 +392,10 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
               />
             ))}
             {/* Centre */}
-            <div className="relative flex flex-col items-center justify-center-safe gap-2 overflow-hidden bg-[radial-gradient(ellipse_at_center,#d9f2e3_0%,#a7d7b8_100%)] p-2 text-emerald-950 sm:p-4 short:gap-1 short:overflow-y-auto short:p-1.5" style={{ gridColumn: "2 / 11", gridRow: "2 / 11" }}>
+            <div className="relative flex flex-col items-center justify-center-safe gap-2 overflow-y-auto overflow-x-hidden bg-[radial-gradient(ellipse_at_center,#d9f2e3_0%,#a7d7b8_100%)] p-2 text-emerald-950 sm:p-4 short:gap-1 short:p-1.5" style={{ gridColumn: "2 / 11", gridRow: "2 / 11" }}>
               <CardOverlay card={cardFx} nameOf={nameOf} onClose={() => setCardFx(null)} />
               <BuildOverlay fx={buildFx} />
+              <BankruptOverlay fx={bankruptFx} />
               {!g || g.status === "ended" ? (
                 <Waiting view={view} me={me} act={act} nameOf={nameOf} />
               ) : (
@@ -442,7 +465,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
           {g && (
             <div className="rounded-2xl bg-black/35 p-3">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-100/60">Diễn biến</p>
-              <ul className="flex max-h-64 flex-col-reverse gap-1 overflow-y-auto text-xs">
+              <ul className="flex max-h-64 flex-col gap-1 overflow-y-auto text-xs">
                 {g.log
                   .slice()
                   .reverse()
@@ -780,25 +803,21 @@ function Centre({
               </CBtn>
             )}
             {g.phase === "debt" && g.debt && (
-              <div className="flex flex-col items-center gap-2 rounded-xl bg-rose-100 p-2 text-rose-900">
-                <p className="text-xs sm:text-sm">
-                  Bạn nợ <b>{money(g.debt.amount)}</b> ({g.debt.reason}), đang có {money(mine.cash)}. Bấm vào đất của mình để bán nhà hoặc thế chấp.
+              <>
+                <p className="rounded-lg bg-rose-100 px-2 py-1 text-xs font-semibold text-rose-900">
+                  💸 Bạn đang nợ {money(g.debt.amount)} — xử lý ở thanh phía dưới
                 </p>
-                <div className="flex gap-2">
-                  <CBtn primary onClick={() => void run({ type: "paydebt" })} disabled={busy || mine.cash < g.debt.amount}>
-                    Trả nợ
-                  </CBtn>
-                  <CBtn
-                    danger
-                    onClick={() => {
-                      if (window.confirm("Tuyên bố phá sản? Bạn sẽ rời ván này.")) void run({ type: "bankrupt" });
-                    }}
-                    disabled={busy}
-                  >
-                    Phá sản
-                  </CBtn>
-                </div>
-              </div>
+                <DebtBar
+                  debt={g.debt}
+                  cash={mine.cash}
+                  seconds={secs}
+                  busy={busy}
+                  canSellHouses={housesOwned > 0}
+                  onSellHouses={() => setShowBuild(true)}
+                  onPay={() => void run({ type: "paydebt" })}
+                  onBankrupt={() => void run({ type: "bankrupt" })}
+                />
+              </>
             )}
           </div>
         )}
@@ -932,16 +951,15 @@ function BuildPanel({ g, mine, settings, busy, run, onClose }: { g: TPGameView; 
                         </span>
                       </span>
                       {sellLandOn && d.houses === 0 && m && (
-                        <button
-                          onClick={() => {
-                            if (window.confirm(`Bán ${sq.name} cho ngân hàng lấy ${money(m.landPrice)}? Đất sẽ về chợ, ai cũng mua lại được.`)) void run({ type: "sellland", pos });
-                          }}
+                        <ConfirmButton
+                          onConfirm={() => void run({ type: "sellland", pos })}
                           disabled={busy || !!m.sellLand}
-                          title={m.sellLand ?? `Bán đất, nhận ${money(m.landPrice)}`}
+                          title={m.sellLand ?? `Bán đất cho ngân hàng, nhận ${money(m.landPrice)} — đất về chợ`}
+                          confirmLabel={`Bán lấy ${money(m.landPrice)}?`}
                           className="min-h-9 rounded-lg border border-amber-300/40 px-2 py-1 text-xs font-semibold text-amber-200 enabled:hover:bg-amber-400/10 disabled:opacity-30"
                         >
                           🏷️ Bán đất
-                        </button>
+                        </ConfirmButton>
                       )}
                       <button
                         onClick={() => void run({ type: "sell", pos })}
@@ -1024,6 +1042,169 @@ function CBtn({
     >
       {children}
     </button>
+  );
+}
+
+/** A button that asks "sure?" on the first tap and acts on the second (window.confirm is blocked in some in-app browsers). */
+function ConfirmButton({
+  children,
+  confirmLabel = "Chắc chắn?",
+  onConfirm,
+  disabled,
+  title,
+  className,
+}: {
+  children: React.ReactNode;
+  confirmLabel?: string;
+  onConfirm: () => void;
+  disabled?: boolean;
+  title?: string;
+  className?: string;
+}) {
+  const [armed, setArmed] = useState(false);
+  useEffect(() => {
+    if (!armed) return;
+    const t = setTimeout(() => setArmed(false), 3500);
+    return () => clearTimeout(t);
+  }, [armed]);
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      title={title}
+      onClick={() => {
+        if (armed) {
+          setArmed(false);
+          onConfirm();
+        } else setArmed(true);
+      }}
+      className={cn(className, armed && "animate-pulse ring-2 ring-rose-400")}
+    >
+      {armed ? confirmLabel : children}
+    </button>
+  );
+}
+
+/** Debt controls pinned to the bottom of the screen, so they never get cut off on a small board. */
+function DebtBar({
+  debt,
+  cash,
+  seconds,
+  busy,
+  canSellHouses,
+  onSellHouses,
+  onPay,
+  onBankrupt,
+}: {
+  debt: NonNullable<TPGameView["debt"]>;
+  cash: number;
+  seconds: number | null;
+  busy: boolean;
+  canSellHouses: boolean;
+  onSellHouses: () => void;
+  onPay: () => void;
+  onBankrupt: () => void;
+}) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  const short = Math.max(0, debt.amount - cash);
+  return createPortal(
+    <motion.div
+      initial={{ y: 80, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      role="alertdialog"
+      aria-label="Bạn đang nợ"
+      className="fixed inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-40 mx-auto max-w-xl rounded-2xl border-2 border-rose-400 bg-[#2a0f12]/95 p-3 pr-16 text-rose-50 shadow-[0_0_30px_rgba(244,63,94,0.45)] backdrop-blur sm:pr-20"
+    >
+      <p className="text-sm">
+        💸 Bạn nợ <b className="text-rose-200">{money(debt.amount)}</b> ({debt.reason}) · đang có <b>{money(cash)}</b>
+        {short > 0 && (
+          <>
+            {" "}
+            · còn thiếu <b className="text-amber-300">{money(short)}</b>
+          </>
+        )}
+        {seconds !== null && <span className="ml-2 font-mono text-rose-200/80">⏱ {seconds}s</span>}
+      </p>
+      <p className="mt-0.5 text-[11px] text-rose-100/60">Bán nhà, hoặc bấm vào đất của bạn trên bàn để thế chấp / bán đất. Hết giờ thì máy tự bán rồi trả.</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {canSellHouses && (
+          <button onClick={onSellHouses} disabled={busy} className="min-h-10 rounded-lg border border-white/25 px-3 text-sm font-semibold enabled:hover:bg-white/10 disabled:opacity-40">
+            🏚️ Bán nhà
+          </button>
+        )}
+        <button
+          onClick={onPay}
+          disabled={busy || short > 0}
+          className="min-h-10 rounded-lg bg-emerald-500 px-4 text-sm font-bold text-black enabled:hover:bg-emerald-400 disabled:opacity-40"
+        >
+          Trả nợ
+        </button>
+        <ConfirmButton
+          onConfirm={onBankrupt}
+          disabled={busy}
+          confirmLabel="Bấm lần nữa để phá sản"
+          className="min-h-10 rounded-lg bg-rose-600 px-4 text-sm font-bold text-white enabled:hover:bg-rose-500 disabled:opacity-40"
+        >
+          Phá sản
+        </ConfirmButton>
+      </div>
+    </motion.div>,
+    document.body,
+  );
+}
+
+const MONEY_BITS = ["💸", "💵", "🪙", "💸", "💵", "🪙", "💸", "💵", "🪙", "💸", "💵", "🪙"];
+
+/** Full-screen "PHÁ SẢN!" moment: a red flash, the name stamped in, money raining down. */
+function BankruptOverlay({ fx }: { fx: { id: string; name: string; me: boolean; at: number } | null }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return createPortal(
+    <AnimatePresence>
+      {fx && (
+        <motion.div
+          key={fx.at}
+          className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, transition: { duration: 0.4 } }}
+        >
+          <motion.div
+            className="absolute inset-0 bg-rose-900"
+            initial={{ opacity: 0.75 }}
+            animate={{ opacity: [0.75, 0.35, 0.5] }}
+            transition={{ duration: 0.9 }}
+          />
+          {MONEY_BITS.map((m, i) => (
+            <motion.span
+              key={i}
+              className="absolute top-0 text-3xl sm:text-5xl"
+              style={{ left: `${(i * 83) % 100}%` }}
+              initial={{ y: "-10vh", rotate: 0, opacity: 1 }}
+              animate={{ y: "110vh", rotate: (i % 2 ? 1 : -1) * 360, opacity: [1, 1, 0.6] }}
+              transition={{ duration: 2.2 + (i % 4) * 0.35, delay: (i % 6) * 0.12, ease: "easeIn" }}
+            >
+              {m}
+            </motion.span>
+          ))}
+          <motion.div
+            className="relative flex flex-col items-center gap-2 px-4 text-center"
+            initial={{ scale: 3, rotate: -12, opacity: 0 }}
+            animate={{ scale: 1, rotate: -6, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 14 }}
+          >
+            <span className="rounded-2xl border-4 border-white bg-rose-600 px-5 py-2 text-4xl font-black tracking-widest text-white shadow-2xl sm:text-6xl">PHÁ SẢN!</span>
+            <span className="rounded-full bg-black/70 px-4 py-1 text-base font-bold text-white sm:text-xl">
+              {fx.me ? "Bạn đã phá sản 😵" : `${fx.name} đã phá sản`}
+            </span>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body,
   );
 }
 
@@ -1248,15 +1429,15 @@ function SquareModal({
                 </CBtn>
               )}
               {m && m.sellLand !== "Luật bàn không cho bán đất" && deed.houses === 0 && (
-                <CBtn
-                  onClick={() => {
-                    if (window.confirm(`Bán ${sq.name} cho ngân hàng lấy ${money(m.landPrice)}? Đất sẽ về chợ, ai cũng mua lại được.`)) void run({ type: "sellland", pos });
-                  }}
+                <ConfirmButton
+                  onConfirm={() => void run({ type: "sellland", pos })}
                   disabled={busy || !!m.sellLand}
-                  title={m.sellLand ?? undefined}
+                  title={m.sellLand ?? "Đất về chợ, ai cũng mua lại được"}
+                  confirmLabel="Chắc chắn bán?"
+                  className="rounded-lg border border-emerald-800/30 bg-white/70 px-3 py-1.5 text-xs font-semibold shadow enabled:hover:bg-white disabled:cursor-not-allowed disabled:opacity-40 sm:text-sm"
                 >
                   🏷️ Bán đất (+{money(m.landPrice)})
-                </CBtn>
+                </ConfirmButton>
               )}
               {deed.mortgaged && (
                 <CBtn onClick={() => void run({ type: "unmortgage", pos })} disabled={busy || inDebt}>

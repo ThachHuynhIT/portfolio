@@ -331,7 +331,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
             })}
             <div className="rounded-2xl bg-black/35 p-3 sm:col-span-2 short:col-span-1">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet-100/60">Diễn biến</p>
-              <ul className="flex max-h-56 flex-col-reverse gap-1 overflow-y-auto text-xs">
+              <ul className="flex max-h-56 flex-col gap-1 overflow-y-auto text-xs">
                 {g.log
                   .slice()
                   .reverse()
