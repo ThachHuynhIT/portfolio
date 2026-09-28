@@ -67,7 +67,7 @@ each with a distinctive silhouette, outfit and colour accent.
 
 ## Lá bài
 
-Thứ tự ô là **trái → phải, từ hàng trên xuống**. Đừng đổi thứ tự, vì script cắt theo đúng thứ tự này (danh sách nằm trong `sheets` của `scripts/card-art.mjs`).
+Thứ tự ô là **trái → phải, từ hàng trên xuống**. Đừng đổi thứ tự, vì script cắt theo đúng thứ tự này (danh sách nằm trong `GAMES.bang.sheets` của `scripts/card-art.mjs`).
 
 ### Cụm 1 → `sheet1.png`: bộ gốc, lá nâu
 
