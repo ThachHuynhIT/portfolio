@@ -639,9 +639,9 @@ function Board({
             )}
 
             {/* Action dock */}
-            <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-black/40 p-2 sm:p-2.5 short:p-1.5 lg:flex lg:max-w-none lg:items-center lg:gap-3">
+            <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-black/40 p-2 sm:p-2.5 short:p-1.5 lg:grid lg:max-w-none lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-center lg:gap-x-3 lg:gap-y-1.5">
               {me && (
-                <div className="relative hidden shrink-0 items-center gap-2 border-r border-white/10 pr-3 lg:order-first lg:flex">
+                <div className="relative hidden shrink-0 items-center gap-2 border-r border-white/10 pr-3 lg:col-start-1 lg:row-start-1 lg:flex lg:justify-self-start">
                   <span className="relative inline-flex">
                     <SeatBubble reactions={reactionsFor(me.id)} />
                     <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-200 to-orange-500 text-lg font-bold text-black">
@@ -659,7 +659,7 @@ function Board({
                 </div>
               )}
               {(myTurn || nowPlay) && selected.length > 0 && (
-                <p className={cn("mb-1.5 rounded-lg px-3 py-1 text-center text-sm lg:order-2 lg:mb-0 lg:min-w-0 lg:flex-1 lg:text-left", planError ? "bg-rose-900/50 text-rose-200" : "bg-white/5 text-orange-100")}>
+                <p className={cn("mb-1.5 rounded-lg px-3 py-1 text-center text-sm lg:col-span-3 lg:row-start-2 lg:mb-0 lg:min-w-0", planError ? "bg-rose-900/50 text-rose-200" : "bg-white/5 text-orange-100")}>
                   {planError ?? (
                     <>
                       <b>{actionLabel}</b>
@@ -677,7 +677,7 @@ function Board({
                 </p>
               )}
               {(myTurn || nowPlay) && needName && (
-                <div className="mb-1.5 flex justify-center lg:order-3 lg:mb-0">
+                <div className="mb-1.5 flex justify-center lg:col-span-3 lg:row-start-3 lg:mb-0">
                   <select
                     value={named}
                     onChange={(e) => setNamed(e.target.value as CardType)}
@@ -693,7 +693,7 @@ function Board({
                   </select>
                 </div>
               )}
-              <div className="flex flex-wrap items-stretch justify-center gap-2 max-sm:flex-nowrap max-sm:gap-1.5 lg:order-1 lg:flex-nowrap">
+              <div className="flex flex-wrap items-stretch justify-center gap-2 max-sm:flex-nowrap max-sm:gap-1.5 lg:col-start-2 lg:row-start-1 lg:flex-nowrap">
                 {canNope && myNope && (
                   <DockBtn tone="nope" onClick={() => void run({ type: "nope", card: myNope.id })}>
                     🚫 KHÔNG!
@@ -705,13 +705,21 @@ function Board({
                 <DockBtn tone="draw" onClick={() => void run({ type: "draw" })} disabled={!canDraw}>
                   🂠 RÚT BÀI
                 </DockBtn>
-                <DockBtn tone="ghost" onClick={() => (setSelected([]), setTarget(null), setNamed(""))} disabled={!selected.length}>
-                  ✕<span className="sr-only sm:not-sr-only"> Bỏ chọn</span>
-                </DockBtn>
-                {/* Phones: the emoji button sits under the hand, next to the chat button. */}
-                <span className="max-sm:hidden">
-                  <EmojiBar onSend={(e) => void act({ type: "emoji", emoji: e })} />
+                <span className="contents lg:hidden">
+                  <DockBtn tone="ghost" onClick={() => (setSelected([]), setTarget(null), setNamed(""))} disabled={!selected.length}>
+                    ✕<span className="sr-only sm:not-sr-only"> Bỏ chọn</span>
+                  </DockBtn>
+                  {/* Phones: the emoji button sits under the hand, next to the chat button. */}
+                  <span className="max-sm:hidden">
+                    <EmojiBar onSend={(e) => void act({ type: "emoji", emoji: e })} />
+                  </span>
                 </span>
+              </div>
+              <div className="hidden items-center gap-2 lg:col-start-3 lg:row-start-1 lg:flex lg:justify-self-end">
+                <DockBtn tone="ghost" onClick={() => (setSelected([]), setTarget(null), setNamed(""))} disabled={!selected.length}>
+                  ✕ Bỏ chọn
+                </DockBtn>
+                <EmojiBar onSend={(e) => void act({ type: "emoji", emoji: e })} />
               </div>
             </div>
 
