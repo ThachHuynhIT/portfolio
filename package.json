@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "art:meono": "node scripts/meono-art.mjs",
+    "art:meono": "node scripts/card-art.mjs meono",
+    "art:bang": "node scripts/card-art.mjs bang",
     "postinstall": "prisma generate"
   },
   "dependencies": {

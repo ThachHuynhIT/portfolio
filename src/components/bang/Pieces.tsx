@@ -1,6 +1,8 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- small static card art; next/image adds nothing here */
 import { useEffect, useState } from "react";
+import { BANG_ART, BANG_ART_VERSION, type BangArt } from "@/lib/bang/art";
 import {
   CARD_TYPES,
   CHARACTERS,
@@ -29,6 +31,10 @@ const FRAME: Record<string, string> = {
   green: "border-emerald-600/80 bg-gradient-to-b from-[#e7f6ea] to-[#b9e2c3]",
 };
 
+const HAS_ART = new Set<string>(BANG_ART);
+/** URL of a card's artwork (see scripts/card-art.mjs), or null → draw the emoji face. */
+export const artSrc = (name: BangArt) => (HAS_ART.has(name) ? `/games/bang/cards/${name}.webp?v=${BANG_ART_VERSION}` : null);
+
 export const suitText = (id: number) => {
   const d = cardDef(id);
   return `${rankLabel(d.rank)}${SUIT_SYMBOL[d.suit]}`;
@@ -56,6 +62,7 @@ export function CardFace({
   const t = typeOf(id);
   const Tag = onClick ? "button" : "div";
   const w = { xs: "w-9", sm: "w-12", md: "w-[3.9rem] sm:w-[4.6rem] short:w-[3.6rem]", lg: "w-28" }[size];
+  const art = artSrc(`card-${t.key}`);
   return (
     <Tag
       type={onClick ? "button" : undefined}
@@ -72,15 +79,26 @@ export function CardFace({
         className,
       )}
     >
-      <span className={cn("self-start font-black leading-none", size === "xs" ? "text-[7px]" : size === "lg" ? "text-base" : "text-[10px]", isRedSuit(d.suit) ? "text-rose-700" : "text-stone-900")}>
-        {suitText(id)}
-      </span>
-      <span className={cn("leading-none", size === "xs" ? "text-sm" : size === "sm" ? "text-lg" : size === "lg" ? "text-5xl" : "text-2xl sm:text-3xl")} aria-hidden>
-        {t.emoji}
-      </span>
+      {art && <img src={art} alt="" draggable={false} className="absolute inset-0 h-full w-full object-cover" />}
       <span
         className={cn(
-          "w-full truncate text-center font-bold leading-tight",
+          "relative self-start font-black leading-none",
+          size === "xs" ? "text-[7px]" : size === "lg" ? "text-base" : "text-[10px]",
+          isRedSuit(d.suit) ? "text-rose-700" : "text-stone-900",
+          art && "rounded bg-[#f7ecd6]/90 px-0.5",
+        )}
+      >
+        {suitText(id)}
+      </span>
+      {!art && (
+        <span className={cn("leading-none", size === "xs" ? "text-sm" : size === "sm" ? "text-lg" : size === "lg" ? "text-5xl" : "text-2xl sm:text-3xl")} aria-hidden>
+          {t.emoji}
+        </span>
+      )}
+      <span
+        className={cn(
+          "relative w-full truncate text-center font-bold leading-tight",
+          art && "-mx-0.5 -mb-0.5 w-[calc(100%+0.25rem)] bg-gradient-to-t from-black/80 to-black/0 px-0.5 pb-0.5 pt-1.5 text-white",
           size === "xs" ? "text-[6px]" : size === "sm" ? "text-[8px]" : size === "lg" ? "text-sm" : "text-[9px] sm:text-[10px]",
         )}
       >
@@ -92,9 +110,10 @@ export function CardFace({
 }
 
 export function CardBack({ className, count }: { className?: string; count?: number }) {
+  const art = artSrc("back");
   return (
     <div className={cn("relative flex aspect-[5/7] w-10 items-center justify-center rounded-lg border-2 border-amber-900/70 bg-[repeating-linear-gradient(45deg,#7c2d12_0_5px,#92400e_5px_10px)] shadow-md", className)}>
-      <span className="text-lg">🤠</span>
+      {art ? <img src={art} alt="" draggable={false} className="h-full w-full rounded-md object-cover" /> : <span className="text-lg">🤠</span>}
       {count !== undefined && <span className="absolute -right-2 -top-2 rounded-full bg-black/80 px-1.5 font-mono text-[10px] text-amber-200">{count}</span>}
     </div>
   );
@@ -159,6 +178,13 @@ export function RoleBadge({ role, small }: { role: Role | null; small?: boolean 
   );
 }
 
+/** A character's portrait (art, or the emoji when there is none). `className` sizes the portrait. */
+export function CharAvatar({ char, className, emojiClass }: { char: CharKey; className?: string; emojiClass?: string }) {
+  const art = artSrc(`char-${char}`);
+  if (!art) return <span className={emojiClass}>{CHARACTERS[char].emoji}</span>;
+  return <img src={art} alt="" draggable={false} className={cn("inline-block aspect-[5/7] shrink-0 rounded-md border border-amber-900/40 object-cover object-top", className)} />;
+}
+
 export function CharCard({ char, onClick, selected, compact }: { char: CharKey; onClick?: () => void; selected?: boolean; compact?: boolean }) {
   const c = CHARACTERS[char];
   const Tag = onClick ? "button" : "div";
@@ -173,8 +199,8 @@ export function CharCard({ char, onClick, selected, compact }: { char: CharKey; 
       )}
     >
       <span className="flex items-center gap-2">
-        <span className="text-3xl" aria-hidden>
-          {c.emoji}
+        <span aria-hidden className="shrink-0">
+          <CharAvatar char={char} className="w-12" emojiClass="text-3xl" />
         </span>
         <span className="min-w-0 flex-1">
           <b className="block truncate text-base leading-tight">{c.name}</b>
@@ -189,6 +215,12 @@ export function CharCard({ char, onClick, selected, compact }: { char: CharKey; 
   );
 }
 
+/** An event card's artwork, or nothing when it has none. */
+export function EventArt({ event, className }: { event: EventKey; className?: string }) {
+  const art = artSrc(`event-${event}`);
+  return art ? <img src={art} alt="" draggable={false} className={cn("shrink-0 rounded-md object-cover", className)} /> : null;
+}
+
 export function EventBanner({ event, left, onClick }: { event: EventKey; left: number; onClick?: () => void }) {
   const e = EVENTS[event];
   return (
@@ -197,9 +229,13 @@ export function EventBanner({ event, left, onClick }: { event: EventKey; left: n
       onClick={onClick}
       className="flex w-full items-center gap-2 rounded-xl border border-amber-300/40 bg-gradient-to-r from-amber-500/25 to-orange-700/20 px-3 py-1.5 text-left text-sm"
     >
-      <span className="text-xl" aria-hidden>
-        {e.emoji}
-      </span>
+      {artSrc(`event-${event}`) ? (
+        <EventArt event={event} className="h-9 w-9" />
+      ) : (
+        <span className="text-xl" aria-hidden>
+          {e.emoji}
+        </span>
+      )}
       <span className="min-w-0 flex-1">
         <b className="text-amber-200">{e.name}</b>
         <span className="ml-1.5 text-amber-50/90 max-sm:line-clamp-1">{e.text}</span>

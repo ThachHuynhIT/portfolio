@@ -27,7 +27,7 @@ import {
 import { BANG_WS_PATH, type BangGameView, type BangPlayerView, type BangRoomView, type DrawMode, type PickSpec, type PromptView } from "@/lib/bang/protocol";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
-import { BangGuide, CardBack, CardFace, CharCard, EventBanner, GearChip, Hearts, PlayChip, RoleBadge, Sheet } from "./Pieces";
+import { BangGuide, CardBack, CardFace, CharAvatar, CharCard, EventArt, EventBanner, GearChip, Hearts, PlayChip, RoleBadge, Sheet } from "./Pieces";
 
 type Act = (msg: Record<string, unknown> & { type: string }) => Promise<boolean>;
 
@@ -745,7 +745,7 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
               <span className="relative">
                 <SeatBubble reactions={reactionsFor(me.id)} />
                 <button onClick={() => me.char && setInfo({ kind: "char", key: me.char })} className="flex items-center gap-1 font-bold">
-                  <span className="text-2xl">{me.char ? CHARACTERS[me.char].emoji : "❔"}</span>
+                  {me.char ? <CharAvatar char={me.char} className="w-7" emojiClass="text-2xl" /> : <span className="text-2xl">❔</span>}
                   {me.char ? CHARACTERS[me.char].name : "?"}
                 </button>
               </span>
@@ -846,6 +846,7 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
           {info.kind === "char" && <CharCard char={info.key} />}
           {info.kind === "event" && g.event && (
             <div className="text-sm">
+              <EventArt event={g.event} className="float-right ml-3 aspect-[5/7] w-24 rounded-lg" />
               <b className="text-lg text-amber-200">
                 {EVENTS[g.event].emoji} {EVENTS[g.event].name}
               </b>
@@ -965,7 +966,7 @@ function PlayerTile({
           className="text-xl leading-none"
           aria-label="Xem nhân vật"
         >
-          {gone ? "☠️" : p.char ? CHARACTERS[p.char].emoji : "❔"}
+          {gone ? "☠️" : p.char ? <CharAvatar char={p.char} className="w-6" /> : "❔"}
         </button>
         <span className="min-w-0 flex-1">
           <b className="block truncate text-[13px] leading-tight">

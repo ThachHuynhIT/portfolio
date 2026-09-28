@@ -49,7 +49,7 @@ Midjourney: thêm `--ar 20:21 --style raw` vào cuối cả prompt.
 
 ## Prompt từng cụm
 
-Thứ tự ô là **trái → phải, từ hàng trên xuống**. Đừng đổi thứ tự, vì script cắt theo đúng thứ tự này (danh sách nằm trong `SHEETS` của `scripts/meono-art.mjs`).
+Thứ tự ô là **trái → phải, từ hàng trên xuống**. Đừng đổi thứ tự, vì script cắt theo đúng thứ tự này (danh sách nằm trong `SHEETS` của `scripts/card-art.mjs`).
 
 ### Cụm 1 → `sheet1.png`: bộ cơ bản
 

@@ -27,7 +27,7 @@ const artSrc = (name: CardType | "back") => (HAS_ART.has(name) ? `/games/meono/c
 
 /**
  * A Mèo Nổ card: the artwork from public/games/meono/cards/ when there is one
- * (see scripts/meono-art.mjs), otherwise drawn with CSS + emoji.
+ * (see scripts/card-art.mjs), otherwise drawn with CSS + emoji.
  */
 export function MeoCard({ type, selected, onClick, size = "md", faceDown, className, tooltip = true }: MeoCardProps) {
   const info = CARDS[type];
