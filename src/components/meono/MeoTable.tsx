@@ -41,7 +41,7 @@ import { RankPointsPicker } from "@/components/games/RankPointsPicker";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { CardGuide } from "./CardGuide";
-import { MeoCard } from "./MeoCard";
+import { MeoCard, ROLES, roleOf } from "./MeoCard";
 import { EventFeed, PlayHistory } from "./PlayHistory";
 
 const SCORE_NOTE =
@@ -686,7 +686,7 @@ function Board({
                   </select>
                 </div>
               )}
-              <div className="flex flex-wrap items-stretch justify-center gap-2 lg:order-1 lg:flex-nowrap">
+              <div className="flex flex-wrap items-stretch justify-center gap-2 max-sm:flex-nowrap max-sm:gap-1.5 lg:order-1 lg:flex-nowrap">
                 {canNope && myNope && (
                   <DockBtn tone="nope" onClick={() => void run({ type: "nope", card: myNope.id })}>
                     🚫 KHÔNG!
@@ -708,11 +708,11 @@ function Board({
               </div>
             </div>
 
-            <div className="flex w-full max-w-2xl items-center justify-between gap-2 px-1 text-[11px] text-orange-100/60 lg:max-w-none">
-              <p className="line-clamp-2 min-w-0 flex-1 short:line-clamp-1">
-                {focusInfo ? (
+            <div className="flex w-full max-w-2xl items-start justify-between gap-2 px-1 text-xs text-orange-100/60 sm:text-sm lg:max-w-none">
+              <p className={cn("min-w-0 flex-1 leading-snug", !focusInfo && "text-[11px] sm:text-xs")}>
+                {focusInfo && focus ? (
                   <>
-                    <b className="text-amber-200">
+                    <b className={ROLES[roleOf(focus)].text}>
                       {focusInfo.emoji} {focusInfo.name}:
                     </b>{" "}
                     <span className="text-orange-50/85">{focusInfo.effect}</span>
@@ -723,7 +723,7 @@ function Board({
                   "Bấm lá để chọn · kéo ngang để xếp lại"
                 )}
               </p>
-              <span className="flex shrink-0 items-center gap-2">
+              <span className="flex shrink-0 items-center gap-2 text-[11px]">
                 {handOrder.isCustom && !cursed && !groups && (
                   <button onClick={handOrder.reset} className="underline hover:text-orange-50">
                     ↺ Xếp tự động
@@ -765,7 +765,7 @@ function Board({
                             type={c.type}
                             tooltip={false}
                             className={cn(
-                              "max-sm:w-[3.9rem] max-sm:[--emoji:1.55rem] short:w-16 short:[--emoji:1.6rem] lg:w-24 lg:text-[11px] lg:[--emoji:2.4rem] 2xl:w-28 2xl:[--emoji:2.8rem]",
+                              "max-sm:w-[4.1rem] max-sm:[--name:9.5px] max-sm:[--emoji:1.55rem] short:w-16 short:[--name:9.5px] short:[--emoji:1.6rem] lg:w-24 lg:[--name:12.5px] lg:[--emoji:2.4rem] 2xl:w-28 2xl:[--name:14px] 2xl:[--emoji:2.8rem]",
                               "pointer-events-none absolute left-0 top-0 brightness-75",
                               d === 1 ? "translate-x-[5px] rotate-[4deg]" : "translate-x-[10px] rotate-[8deg]",
                               c.annoyed && "opacity-50 grayscale",
@@ -776,7 +776,7 @@ function Board({
                           type={c.type}
                           selected={picked > 0}
                           onClick={() => clickStack(ids)}
-                          className={cn("max-sm:w-[3.9rem] max-sm:[--emoji:1.55rem] short:w-16 short:[--emoji:1.6rem] lg:w-24 lg:text-[11px] lg:[--emoji:2.4rem] 2xl:w-28 2xl:[--emoji:2.8rem]", c.annoyed && "opacity-50 grayscale")}
+                          className={cn("max-sm:w-[4.1rem] max-sm:[--name:9.5px] max-sm:[--emoji:1.55rem] short:w-16 short:[--name:9.5px] short:[--emoji:1.6rem] lg:w-24 lg:[--name:12.5px] lg:[--emoji:2.4rem] 2xl:w-28 2xl:[--name:14px] 2xl:[--emoji:2.8rem]", c.annoyed && "opacity-50 grayscale")}
                         />
                         {ids.length > 1 && (
                           <span
@@ -817,7 +817,7 @@ function Board({
                           selected={selected.includes(c.id)}
                           onClick={() => toggle(c)}
                           // Five to a row on a phone instead of four, so a big hand stays two rows.
-                          className={cn("max-sm:w-[3.9rem] max-sm:[--emoji:1.55rem] short:w-16 short:[--emoji:1.6rem] lg:w-24 lg:text-[11px] lg:[--emoji:2.4rem] 2xl:w-28 2xl:[--emoji:2.8rem]", c.annoyed && "opacity-50 grayscale")}
+                          className={cn("max-sm:w-[4.1rem] max-sm:[--name:9.5px] max-sm:[--emoji:1.55rem] short:w-16 short:[--name:9.5px] short:[--emoji:1.6rem] lg:w-24 lg:[--name:12.5px] lg:[--emoji:2.4rem] 2xl:w-28 2xl:[--name:14px] 2xl:[--emoji:2.8rem]", c.annoyed && "opacity-50 grayscale")}
                         />
                         {c.annoyed && <span className="pointer-events-none absolute -right-1 -top-1 rounded-full bg-amber-500 px-1 text-xs">😾</span>}
                       </span>
@@ -864,13 +864,13 @@ function DockBtn({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "rounded-xl font-black tracking-wide transition-all enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-35",
+        "whitespace-nowrap rounded-xl font-black tracking-wide transition-all enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-35 max-sm:tracking-normal",
         tone === "play" &&
-          "min-w-[7.5rem] bg-gradient-to-b from-amber-300 to-orange-500 px-4 py-2.5 text-base max-sm:min-w-[6.25rem] max-sm:px-3 sm:min-w-[9rem] sm:px-6 sm:py-3 sm:text-lg text-black shadow-[0_4px_0_#9a3412,0_0_24px_rgba(251,191,36,0.35)] enabled:hover:brightness-110",
+          "min-w-[7.5rem] bg-gradient-to-b from-amber-300 to-orange-500 px-4 py-2.5 text-base max-sm:min-w-0 max-sm:flex-1 max-sm:px-2 max-sm:py-2 max-sm:text-sm sm:min-w-[9rem] sm:px-6 sm:py-3 sm:text-lg text-black shadow-[0_4px_0_#9a3412,0_0_24px_rgba(251,191,36,0.35)] enabled:hover:brightness-110",
         tone === "draw" &&
-          "min-w-[7rem] bg-gradient-to-b from-emerald-400 to-emerald-700 px-4 py-2.5 text-base max-sm:min-w-[6.25rem] max-sm:px-3 sm:min-w-[8rem] sm:px-5 sm:py-3 sm:text-lg text-white shadow-[0_4px_0_#064e3b] enabled:hover:brightness-110",
+          "min-w-[7rem] bg-gradient-to-b from-emerald-400 to-emerald-700 px-4 py-2.5 text-base max-sm:min-w-0 max-sm:flex-1 max-sm:px-2 max-sm:py-2 max-sm:text-sm sm:min-w-[8rem] sm:px-5 sm:py-3 sm:text-lg text-white shadow-[0_4px_0_#064e3b] enabled:hover:brightness-110",
         tone === "nope" &&
-          "min-w-[7.5rem] animate-pulse bg-gradient-to-b from-red-500 to-red-800 px-4 py-2.5 text-lg sm:min-w-[9rem] sm:px-6 sm:py-3 sm:text-xl text-white shadow-[0_4px_0_#450a0a,0_0_28px_rgba(239,68,68,0.6)]",
+          "min-w-[7.5rem] animate-pulse bg-gradient-to-b from-red-500 to-red-800 px-4 py-2.5 text-lg max-sm:min-w-0 max-sm:flex-1 max-sm:px-2 max-sm:py-2 max-sm:text-sm sm:min-w-[9rem] sm:px-6 sm:py-3 sm:text-xl text-white shadow-[0_4px_0_#450a0a,0_0_28px_rgba(239,68,68,0.6)]",
         tone === "ghost" && "border border-white/20 bg-white/5 px-3 py-2 text-sm sm:px-4 font-semibold enabled:hover:bg-white/10",
       )}
     >

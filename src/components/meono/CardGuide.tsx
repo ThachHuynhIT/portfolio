@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CARDS, type CardType, EXPANSIONS, type Expansion, PACKS, type Pack } from "@/lib/meono/cards";
 import { cn } from "@/lib/utils";
-import { MeoCard } from "./MeoCard";
+import { type CardRole, MeoCard, ROLES, roleOf } from "./MeoCard";
 
 /** How a turn works, in short. */
 export function MeoRules() {
@@ -52,6 +52,15 @@ export function CardGuide({ enabled, onClose }: { enabled?: Expansion[]; onClose
           <MeoRules />
         </section>
 
+        <section className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl bg-black/25 px-3 py-2 text-xs">
+          <span className="font-semibold text-orange-100/70">Màu tên lá:</span>
+          {(Object.keys(ROLES) as CardRole[]).map((r) => (
+            <span key={r} className={cn("font-bold", ROLES[r].text)}>
+              {ROLES[r].emoji} {ROLES[r].label}
+            </span>
+          ))}
+        </section>
+
         {packs.map((pack) => {
           const cards = (Object.keys(CARDS) as CardType[]).filter((t) => CARDS[t].pack === pack);
           const on = inPlay(pack);
@@ -78,9 +87,9 @@ export function CardGuide({ enabled, onClose }: { enabled?: Expansion[]; onClose
                     className={cn("flex gap-3 rounded-xl bg-black/25 p-2.5", focus === t && "ring-2 ring-amber-300")}
                     onMouseEnter={() => setFocus(t)}
                   >
-                    <MeoCard type={t} size="sm" tooltip={false} />
+                    <MeoCard type={t} size="md" tooltip={false} className="!w-16 [--name:9px]" />
                     <div className="min-w-0 text-sm">
-                      <p className="font-bold text-amber-200">
+                      <p className={cn("font-bold", ROLES[roleOf(t)].text)}>
                         {CARDS[t].name} <span className="font-normal text-orange-100/50">×{CARDS[t].count}</span>
                       </p>
                       <p className="text-xs text-orange-100/60">{CARDS[t].how}</p>
