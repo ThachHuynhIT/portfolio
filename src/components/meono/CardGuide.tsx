@@ -37,12 +37,13 @@ export function CardGuide({ enabled, onClose }: { enabled?: Expansion[]; onClose
       <div
         role="dialog"
         aria-label="Hướng dẫn lá bài"
-        className="max-h-[90dvh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-orange-200/15 bg-[#1c0f0a] p-5 text-orange-50 shadow-2xl"
+        className="max-h-[90dvh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-2xl border border-orange-200/15 bg-[#1c0f0a] p-4 pt-0 text-orange-50 shadow-2xl sm:p-5 sm:pt-0"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-xl font-black text-amber-300">📖 Hướng dẫn Mèo Nổ</h2>
-          <button onClick={onClose} className="rounded-md px-2 py-1 text-orange-100/70 hover:bg-white/10" aria-label="Đóng">
+        {/* Sticky so ✕ stays in reach while scrolling a long guide on a phone. */}
+        <div className="sticky top-0 z-10 -mx-4 mb-3 flex items-center justify-between bg-[#1c0f0a] px-4 pb-2 pt-3 sm:-mx-5 sm:px-5 sm:pt-4">
+          <h2 className="text-lg font-black text-amber-300 sm:text-xl">📖 Hướng dẫn Mèo Nổ</h2>
+          <button onClick={onClose} className="grid min-h-9 min-w-9 place-items-center rounded-md text-orange-100/70 hover:bg-white/10" aria-label="Đóng">
             ✕
           </button>
         </div>

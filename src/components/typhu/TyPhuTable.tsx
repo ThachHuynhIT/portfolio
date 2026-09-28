@@ -4,8 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
+import { GameHeader, HeaderLabel, headerBtn } from "@/components/games/GameHeader";
 import { useGameRoom } from "@/components/games/gameClient";
-import { EmojiBar, SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
+import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
 import {
   AIR_RENT,
@@ -204,7 +205,7 @@ export default function TyPhuTable({ code, name, watch }: { code: string; name: 
   return (
     <>
       <Table view={view} reconnecting={status === "reconnecting"} act={act} toast={toast} />
-      <ChatBox messages={view.chat} meId={view.meId} myName={name} onSend={(text) => act({ type: "chat", text })} />
+      <ChatBox messages={view.chat} meId={view.meId} myName={name} onSend={(text) => act({ type: "chat", text })} onEmoji={(emoji) => void act({ type: "emoji", emoji })} row />
     </>
   );
 }
@@ -295,31 +296,46 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
   const outgoingTrade = g?.trade && g.trade.from === view.meId ? g.trade : null;
 
   return (
-    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-4 short:gap-2 short:pt-1.5">
-      {/* Top bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-        <div className="flex flex-wrap items-center gap-2">
-          <Link href="/co-ty-phu" className="rounded-lg border border-white/20 bg-black/40 px-3 py-1.5 hover:bg-black/60">
-            ← Sảnh
-          </Link>
-          <span className="rounded-md bg-black/30 px-2 py-1 font-mono text-base font-bold tracking-[0.2em] text-amber-300">{view.code}</span>
-          <button onClick={copyInvite} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Chép link mời">
-            {copied ? "✓" : "🔗"}
-            <span className="hidden sm:inline short:hidden"> {copied ? "Đã chép link" : "Chép link mời"}</span>
-          </button>
-          <button onClick={() => setShowScores(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Bảng điểm">
-            🏆<span className="hidden sm:inline short:hidden"> Bảng điểm</span>
-          </button>
-          <button onClick={() => setShowRules(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Luật chơi">
-            📖<span className="hidden sm:inline short:hidden"> Luật chơi</span>
-          </button>
-        </div>
-        <div className="flex items-center gap-3 text-sky-100/70">
-          {g?.endsAt && playing && <span title="Hết giờ thì người giàu nhất thắng">⏰ {formatClock(g.endsAt - now)}</span>}
-          {view.spectators.length > 0 && <span title={view.spectators.join(", ")}>👀 {view.spectators.length}</span>}
-          {reconnecting && <span className="animate-pulse text-amber-300">Đang kết nối lại…</span>}
-        </div>
-      </div>
+    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2 sm:px-4 sm:pt-3 short:gap-2 short:pt-1.5">
+      <GameHeader
+        primary={
+          <>
+            <Link href="/co-ty-phu" className={headerBtn}>
+              ← Sảnh
+            </Link>
+            <span className="font-mono text-sm font-bold tracking-[0.2em] text-amber-300">{view.code}</span>
+          </>
+        }
+        extra={
+          <>
+            <button onClick={copyInvite} className={headerBtn} title="Chép link mời">
+              {copied ? "✓" : "🔗"}
+              <HeaderLabel>{copied ? "Đã chép link" : "Chép link mời"}</HeaderLabel>
+            </button>
+            <button onClick={() => setShowScores(true)} className={headerBtn} title="Bảng điểm">
+              🏆 <HeaderLabel>Bảng điểm</HeaderLabel>
+            </button>
+            <button onClick={() => setShowRules(true)} className={headerBtn} title="Luật chơi">
+              📖 <HeaderLabel>Luật chơi</HeaderLabel>
+            </button>
+          </>
+        }
+        status={
+          <>
+            {g?.endsAt && playing && (
+              <span className="whitespace-nowrap font-mono" title="Hết giờ thì người giàu nhất thắng">
+                ⏰ {formatClock(g.endsAt - now)}
+              </span>
+            )}
+            {view.spectators.length > 0 && (
+              <span className="whitespace-nowrap" title={view.spectators.join(", ")}>
+                👀 {view.spectators.length}
+              </span>
+            )}
+            {reconnecting && <span className="animate-pulse whitespace-nowrap text-amber-300">Đang kết nối lại…</span>}
+          </>
+        }
+      />
 
       {spectator && (
         <div className="flex flex-wrap items-center justify-center gap-3 rounded-xl bg-black/30 px-3 py-2 text-sm text-sky-100/80">
@@ -376,7 +392,8 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
         </div>
 
         {/* Side panel */}
-        <aside className="flex flex-col gap-3 short:max-h-[calc(100dvh-3.75rem)] short:gap-2 short:overflow-y-auto">
+        {/* Bottom padding below lg: lets the log scroll clear of the floating chat / emoji buttons. */}
+        <aside className="flex flex-col gap-3 max-lg:pb-14 short:max-h-[calc(100dvh-3.75rem)] short:gap-2 short:overflow-y-auto">
           <div className="rounded-2xl bg-black/35 p-3 short:p-2">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-100/60">Người chơi</p>
             <ul className="grid grid-cols-2 gap-2 lg:grid-cols-1">
@@ -449,7 +466,6 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
             </div>
           )}
 
-          <EmojiBar onSend={(emoji) => void act({ type: "emoji", emoji })} />
         </aside>
       </div>
 

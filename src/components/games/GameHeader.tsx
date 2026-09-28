@@ -49,7 +49,7 @@ function MoreMenu({ children }: { children: React.ReactNode }) {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-label="Thêm"
-        className="rounded-md border border-white/20 px-2 py-0.5 text-sm leading-5 hover:bg-white/10"
+        className="grid h-7 min-w-8 place-items-center rounded-md border border-white/20 px-2 text-sm leading-5 hover:bg-white/10"
       >
         ⋯
       </button>
@@ -57,13 +57,21 @@ function MoreMenu({ children }: { children: React.ReactNode }) {
         // Buttons inside close the menu once used.
         <div
           onClick={() => setOpen(false)}
-          className="absolute left-0 top-full z-50 mt-1 flex min-w-[11rem] flex-col items-stretch gap-1 rounded-xl border border-white/15 bg-[#14100c]/95 p-1.5 text-sm shadow-2xl backdrop-blur [&>*]:justify-start [&>*]:text-left"
+          className="absolute left-0 top-full z-50 mt-1 flex min-w-[11rem] flex-col items-stretch gap-1 rounded-xl border border-white/15 bg-[#14100c]/95 p-1.5 text-sm shadow-2xl backdrop-blur [&>*]:min-h-9 [&>*]:justify-start [&>*]:py-1.5 [&>*]:text-left"
         >
           {children}
         </div>
       )}
     </div>
   );
+}
+
+/**
+ * Text of an `extra` header button: shown in the phone "⋯" menu and on wide screens, hidden in
+ * between (sm–lg) where the bar only has room for the button's icon (keep a `title` on the button).
+ */
+export function HeaderLabel({ children }: { children: React.ReactNode }) {
+  return <span className="hidden max-sm:inline lg:inline">{children}</span>;
 }
 
 /** Standard look for a header button (use for links too via className). */

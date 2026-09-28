@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChatBox } from "@/components/games/ChatBox";
+import { GameHeader, HeaderLabel, headerBtn } from "@/components/games/GameHeader";
 import { useGameRoom } from "@/components/games/gameClient";
-import { EmojiBar, SeatBubble, useLiveReactions } from "@/components/tienlen/Effects";
+import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
 import {
   CARD_TYPES,
@@ -112,7 +113,7 @@ export default function BangTable({ code, name, watch }: { code: string; name: s
   return (
     <>
       <Table view={view} reconnecting={status === "reconnecting"} act={act} />
-      <ChatBox messages={view.chat} meId={view.meId} myName={name} onSend={(text) => act({ type: "chat", text })} />
+      <ChatBox messages={view.chat} meId={view.meId} myName={name} onSend={(text) => act({ type: "chat", text })} onEmoji={(emoji) => void act({ type: "emoji", emoji })} row />
       {toast && (
         <div className="fixed bottom-20 left-1/2 z-50 max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-lg bg-rose-600 px-4 py-2 text-center text-sm font-medium text-white shadow-lg">{toast}</div>
       )}
@@ -140,37 +141,55 @@ function Table({ view, reconnecting, act }: { view: BangRoomView; reconnecting: 
     }
   };
   const packs = view.settings.packs;
+  // Seats show their own emoji on the board; spectators' (and everyone's before / between games) float in the corner.
+  const live = useLiveReactions(view.reactions);
+  const cornerReactions = g?.status === "playing" ? live.filter((r) => !r.playerId) : live;
   return (
-    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col gap-2 px-2 pb-20 pt-2 sm:gap-3 sm:px-4 sm:pb-6 sm:pt-3">
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-        <div className="flex flex-wrap items-center gap-2">
-          <Link href="/bang" className="rounded-lg border border-white/20 bg-black/40 px-3 py-1.5 hover:bg-black/60">
-            ← Sảnh
-          </Link>
-          <span className="rounded-md bg-black/30 px-2 py-1 font-mono text-base font-bold tracking-[0.2em] text-amber-300">{view.code}</span>
-          <button onClick={copyInvite} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Chép link mời" aria-label="Chép link mời">
-            {copied ? "✓" : "🔗"}
-            <span className="hidden sm:inline short:hidden"> {copied ? "Đã chép link" : "Chép link mời"}</span>
-          </button>
-          <button onClick={() => setShowScores(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Bảng điểm" aria-label="Bảng điểm">
-            🏆<span className="hidden sm:inline short:hidden"> Bảng điểm</span>
-          </button>
-          <button onClick={() => setShowGuide(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Hướng dẫn" aria-label="Hướng dẫn">
-            📖<span className="hidden sm:inline short:hidden"> Hướng dẫn</span>
-          </button>
-        </div>
-        <div className="flex items-center gap-2 text-amber-100/70">
-          {packs.map((p) => (
-            // Packs are listed in the guide; on a phone the room bar keeps to one line.
-            <span key={p} title={PACKS[p].name} className="max-sm:hidden">
-              {PACKS[p].emoji}
+    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col gap-2 px-2 pb-20 pt-2 sm:gap-3 sm:px-4 sm:pt-3 lg:pb-6">
+      <GameHeader
+        primary={
+          <>
+            <Link href="/bang" className={headerBtn}>
+              ← Sảnh
+            </Link>
+            <span className="font-mono text-sm font-bold tracking-[0.2em] text-amber-300">{view.code}</span>
+          </>
+        }
+        extra={
+          <>
+            <button onClick={copyInvite} className={headerBtn} title="Chép link mời">
+              {copied ? "✓" : "🔗"}
+              <HeaderLabel>{copied ? "Đã chép link" : "Chép link mời"}</HeaderLabel>
+            </button>
+            <button onClick={() => setShowScores(true)} className={headerBtn} title="Bảng điểm">
+              🏆 <HeaderLabel>Bảng điểm</HeaderLabel>
+            </button>
+            <button onClick={() => setShowGuide(true)} className={headerBtn} title="Hướng dẫn">
+              📖 <HeaderLabel>Hướng dẫn</HeaderLabel>
+            </button>
+          </>
+        }
+        status={
+          <>
+            {/* Packs are listed in the guide; phones keep the bar to the essentials. */}
+            <span className="flex items-center gap-1 max-md:hidden">
+              {packs.map((p) => (
+                <span key={p} title={PACKS[p].name}>
+                  {PACKS[p].emoji}
+                </span>
+              ))}
             </span>
-          ))}
-          {view.spectators.length > 0 && <span title={view.spectators.join(", ")}>👀 {view.spectators.length}</span>}
-          {reconnecting && <span className="animate-pulse text-amber-300">Đang kết nối lại…</span>}
-        </div>
-      </div>
+            {view.spectators.length > 0 && (
+              <span className="whitespace-nowrap" title={view.spectators.join(", ")}>
+                👀 {view.spectators.length}
+              </span>
+            )}
+            {reconnecting && <span className="animate-pulse whitespace-nowrap text-amber-300">Đang kết nối lại…</span>}
+          </>
+        }
+      />
 
+      <SpectatorReactions reactions={cornerReactions} />
       {!g || g.status === "ended" ? (
         <div className="flex flex-1 items-start justify-center pt-2 sm:items-center">
           <Waiting view={view} act={act} nameOf={nameOf} />
@@ -899,7 +918,7 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
 
         {/* Your hand */}
         {handCards.length > 0 && (
-          <div className={cn("relative flex flex-wrap justify-center gap-1.5 rounded-2xl pt-2 short:pr-12", myTurnNow && "p-2 pt-3")} data-testid="hand">
+          <div className={cn("relative flex flex-wrap justify-center gap-1.5 rounded-2xl pt-2", myTurnNow && "p-2 pt-3")} data-testid="hand">
             {myTurnNow && <TurnGlow />}
             {handCards.map((c) => (
               <CardFace key={c} id={c} onClick={() => tapHand(c)} selected={sel.includes(c) || mainCard === c} dim={!usable(c)} />
@@ -907,9 +926,6 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
           </div>
         )}
         {view.role === "spectator" && <p className="text-center text-sm text-white/60">👀 Bạn đang xem</p>}
-        <div className="flex justify-center pr-12 sm:pr-0">
-          <EmojiBar onSend={(emoji) => void act({ type: "emoji", emoji })} />
-        </div>
         </div>
       </div>
 

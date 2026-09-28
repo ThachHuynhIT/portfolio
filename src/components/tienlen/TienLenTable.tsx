@@ -24,8 +24,9 @@ import {
 import { cn } from "@/lib/utils";
 import { MyTurnBadge, TurnRing as MyTurnRing } from "@/components/games/TurnIndicator";
 import { ChatBox } from "@/components/games/ChatBox";
+import { GameHeader, HeaderLabel, headerBtn } from "@/components/games/GameHeader";
 import { DraggableRow, useHandOrder } from "@/components/games/DraggableHand";
-import { BurnOverlay, ChopOverlay, EmojiBar, SeatBubble, Shake, SpectatorReactions, useBurnEffect, useChopEffect, useLiveReactions } from "./Effects";
+import { BurnOverlay, ChopOverlay, SeatBubble, Shake, SpectatorReactions, useBurnEffect, useChopEffect, useLiveReactions } from "./Effects";
 import { CardBack, PlayingCard } from "./PlayingCard";
 import { MoveHistory } from "./MoveHistory";
 import { DeltaBadge, ScoreboardModal, rankTitle, signed } from "./Scoreboard";
@@ -103,11 +104,10 @@ export default function TienLenTable({ code, name, watch }: { code: string; name
         onPass={() => act(pass())}
         onStart={() => act(start())}
         onSettings={(s) => void act(setSettings(s))}
-        onEmoji={(e) => void act(sendEmoji(e))}
         onKick={(id) => act(kick(id))}
         toast={toast}
       />
-      <ChatBox messages={view.chat} meId={view.meId} myName={name} onSend={(text) => act(sendChat(text))} />
+      <ChatBox messages={view.chat} meId={view.meId} myName={name} onSend={(text) => act(sendChat(text))} onEmoji={(e) => void act(sendEmoji(e))} row />
     </>
   );
 }
@@ -123,12 +123,11 @@ interface TableProps {
   onPass: () => Promise<boolean>;
   onStart: () => Promise<boolean>;
   onSettings: (s: Partial<TienLenSettings>) => void;
-  onEmoji: (emoji: string) => void;
   onKick: (playerId: string) => Promise<boolean>;
   toast: string | null;
 }
 
-function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoji, onKick, toast }: TableProps) {
+function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onKick, toast }: TableProps) {
   const { seats, game, meId } = view;
   const spectator = view.role === "spectator";
   const me = seats.find((s) => s?.id === meId) ?? null;
@@ -257,7 +256,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
 
   return (
     <div
-      className="tl-root relative mx-auto flex min-h-[100dvh] w-full max-w-5xl flex-col px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-4 short:py-1.5"
+      className="tl-root relative mx-auto flex min-h-[100dvh] w-full max-w-5xl flex-col px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 sm:px-4 sm:pt-3 short:py-1.5"
       style={
         {
           // Sized by the short side too, so a sideways phone keeps the whole table on screen.
@@ -267,54 +266,40 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
         } as React.CSSProperties
       }
     >
-      {/* Room bar */}
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm short:mb-1.5">
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href="/tien-len"
-            className="rounded-lg border border-emerald-200/20 bg-black/40 px-3 py-1.5 text-emerald-50 transition-colors hover:bg-black/60"
-          >
-            ← Sảnh
-          </Link>
-          <span className="rounded-md bg-black/30 px-2 py-1 font-mono text-base font-bold tracking-[0.2em] text-amber-300">
-            {view.code}
-          </span>
-          <button
-            onClick={copyInvite}
-            className="rounded-md border border-emerald-200/20 px-2 py-1 text-emerald-50 transition-colors hover:bg-white/10"
-            title="Chép link mời"
-            aria-label="Chép link mời"
-          >
-            {copied ? "✓" : "🔗"}
-            <span className="hidden sm:inline short:hidden"> {copied ? "Đã chép link" : "Chép link mời"}</span>
-          </button>
-          <button
-            onClick={() => setShowScores(true)}
-            className="rounded-md border border-emerald-200/20 px-2 py-1 text-emerald-50 transition-colors hover:bg-white/10"
-            title="Bảng điểm"
-            aria-label="Bảng điểm"
-          >
-            🏆<span className="hidden sm:inline short:hidden"> Bảng điểm</span>
-          </button>
-          <button
-            onClick={() => setShowMoves(true)}
-            className="rounded-md border border-emerald-200/20 px-2 py-1 text-emerald-50 transition-colors hover:bg-white/10"
-            title="Lịch sử ván"
-            aria-label="Lịch sử ván"
-          >
-            📜<span className="hidden sm:inline short:hidden"> Lịch sử ván</span>
-          </button>
-        </div>
-        <div className="flex items-center gap-3">
-          {view.spectators.length > 0 && (
-            <span className="text-emerald-100/70" title={view.spectators.join(", ")}>
-              👀 {view.spectators.length}
-              <span className="hidden sm:inline short:hidden"> người xem</span>
-            </span>
-          )}
-          {reconnecting && <span className="animate-pulse text-amber-300">Đang kết nối lại…</span>}
-        </div>
-      </div>
+      <GameHeader
+        primary={
+          <>
+            <Link href="/tien-len" className={headerBtn}>
+              ← Sảnh
+            </Link>
+            <span className="font-mono text-sm font-bold tracking-[0.2em] text-amber-300">{view.code}</span>
+          </>
+        }
+        extra={
+          <>
+            <button onClick={copyInvite} className={headerBtn} title="Chép link mời">
+              {copied ? "✓" : "🔗"}
+              <HeaderLabel>{copied ? "Đã chép link" : "Chép link mời"}</HeaderLabel>
+            </button>
+            <button onClick={() => setShowScores(true)} className={headerBtn} title="Bảng điểm">
+              🏆 <HeaderLabel>Bảng điểm</HeaderLabel>
+            </button>
+            <button onClick={() => setShowMoves(true)} className={headerBtn} title="Lịch sử ván">
+              📜 <HeaderLabel>Lịch sử ván</HeaderLabel>
+            </button>
+          </>
+        }
+        status={
+          <>
+            {view.spectators.length > 0 && (
+              <span className="whitespace-nowrap" title={view.spectators.join(", ")}>
+                👀 {view.spectators.length}
+              </span>
+            )}
+            {reconnecting && <span className="animate-pulse whitespace-nowrap text-amber-300">Đang kết nối lại…</span>}
+          </>
+        }
+      />
 
       {spectator && (
         <div className="mb-3 flex flex-wrap items-center justify-center gap-3 rounded-xl bg-black/30 px-3 py-2 text-sm text-emerald-100/80">
@@ -420,10 +405,8 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
           </div>
         )}
 
-        {/* Kept narrow and centred so the floating chat button never covers it or the hand. */}
-        <div className="flex items-center justify-center gap-2">
-          <EmojiBar onSend={onEmoji} />
-          {!spectator && hand.length > 0 && (
+        {!spectator && hand.length > 0 && (
+          <div className="flex items-center justify-center gap-2">
             <ActionButton
               onClick={() => {
                 if (handOrder.isCustom) handOrder.reset();
@@ -432,8 +415,8 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
             >
               Xếp: {handOrder.isCustom ? "tự do ✋" : sortMode === "rank" ? "số" : "chất"}
             </ActionButton>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {showMoves && <MoveHistory moves={game?.moves ?? []} nameOf={nameOf} meId={meId} onClose={() => setShowMoves(false)} />}
@@ -628,7 +611,8 @@ function WaitingPanel({
   const deltaOf = (id: string) => last?.results.find((r) => r.id === id)?.delta;
 
   return (
-    <div className="w-full max-w-xs rounded-2xl bg-black/35 p-4 backdrop-blur-sm short:max-h-[62dvh] short:max-w-sm short:overflow-y-auto short:p-3">
+    // Portrait phones: the centre cell between the side seats is too narrow, so the panel floats over the whole felt.
+    <div className="z-10 w-full max-w-xs rounded-2xl bg-black/35 p-4 backdrop-blur-sm max-sm:absolute max-sm:inset-x-3 max-sm:top-1/2 max-sm:w-auto max-sm:max-w-none max-sm:max-h-[calc(100%-1.5rem)] max-sm:-translate-y-1/2 max-sm:overflow-y-auto max-sm:bg-black/75 short:max-h-[62dvh] short:max-w-sm short:overflow-y-auto short:p-3">
       {ended && game ? (
         <>
           <h2 className="mb-2 text-lg font-bold text-amber-300">

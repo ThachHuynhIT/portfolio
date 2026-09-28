@@ -300,7 +300,7 @@ body {
  * header (GameHeader), so it stays on sideways phones too.
  */
 .games-shell-table {
-  --games-bar-h: 2.25rem;
+  --games-bar-h: calc(2.25rem + 1px); /* h-9 bar + its 1px bottom border */
 }
 .games-table > :first-child {
   min-height: calc(100dvh - var(--games-bar-h));

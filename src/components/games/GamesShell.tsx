@@ -42,9 +42,9 @@ export function GamesShell({ children }: { children: React.ReactNode }) {
     body = children;
   } else {
     body = (
-      <div className="mx-auto grid w-full max-w-7xl gap-6 px-0 pb-6 xl:grid-cols-[minmax(0,1fr)_21rem] xl:px-4">
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 px-0 pb-6 xl:grid-cols-[minmax(0,1fr)_21rem] xl:px-4">
         <div className="min-w-0">{children}</div>
-        <aside className="px-4 xl:px-0 xl:pt-4">
+        <aside className="min-w-0 px-4 xl:px-0 xl:pt-4">
           <div className="xl:sticky xl:top-16 xl:max-h-[calc(100dvh-5rem)] xl:overflow-y-auto xl:[scrollbar-width:thin]">
             <AllRoomsPanel currentGame={game?.id} />
           </div>
@@ -89,7 +89,7 @@ function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: stri
           <span className={cn("grid place-items-center rounded-md bg-gradient-to-br from-amber-400 to-rose-500 text-black", compact ? "size-6 text-sm" : "size-7")} aria-hidden>
             🎮
           </span>
-          <span className={cn("hidden sm:inline", compact ? "text-sm" : "text-base")}>Games</span>
+          <span className={cn("hidden", compact ? "text-sm xl:inline" : "text-base sm:inline")}>Games</span>
         </Link>
 
         <span className="h-5 w-px shrink-0 bg-white/10" aria-hidden />
@@ -110,7 +110,8 @@ function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: stri
                   )}
                 >
                   <span aria-hidden>{g.emoji}</span>
-                  <span className="hidden md:inline">{g.short}</span>
+                  {/* Tables: icons only until the bar has room next to the table header. */}
+                  <span className={cn("hidden", compact ? "2xl:inline" : "md:inline")}>{g.short}</span>
                 </Link>
               </li>
             );
@@ -132,8 +133,8 @@ function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: stri
             <span className={cn("grid shrink-0 place-items-center rounded-full bg-amber-400 font-bold text-black", compact ? "size-5 text-[10px]" : "size-6 text-xs")} aria-hidden>
               {name.charAt(0).toUpperCase()}
             </span>
-            <span className={cn("max-w-[6rem] truncate font-medium sm:max-w-[10rem]", compact && "max-sm:hidden")}>{name}</span>
-            <span className={cn("text-white/50", compact && "max-sm:hidden")} aria-hidden>
+            <span className="max-w-[10rem] truncate font-medium max-sm:hidden">{name}</span>
+            <span className="text-white/50 max-sm:hidden" aria-hidden>
               ✎
             </span>
           </button>
@@ -148,8 +149,8 @@ function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: stri
           )}
         >
           <span aria-hidden>↩</span>
-          <span className="hidden lg:inline">Trang chính</span>
-          <span className="sr-only lg:hidden">Về trang chính</span>
+          <span className={cn("hidden", compact ? "2xl:inline" : "lg:inline")}>Trang chính</span>
+          <span className={cn("sr-only", compact ? "2xl:hidden" : "lg:hidden")}>Về trang chính</span>
         </Link>
       </nav>
     </header>

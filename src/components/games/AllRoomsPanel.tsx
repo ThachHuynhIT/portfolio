@@ -72,7 +72,7 @@ export function AllRoomsPanel({ currentGame, className }: { currentGame?: GameId
         <button
           onClick={() => void load()}
           disabled={loading}
-          className="rounded-md px-2 py-1 text-xs text-white/60 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
+          className="rounded-md px-2 py-1 text-xs text-white/60 transition-colors max-sm:min-h-8 hover:bg-white/10 hover:text-white disabled:opacity-50"
           title="Làm mới (tự cập nhật mỗi 10 giây)"
         >
           <span className={cn("inline-block", loading && "motion-safe:animate-spin")}>↻</span> Làm mới
@@ -139,14 +139,14 @@ export function AllRoomsPanel({ currentGame, className }: { currentGame?: GameId
                   {canJoin && (
                     <Link
                       href={`${game.href}/${room.code}`}
-                      className="rounded-md bg-amber-400 px-3 py-1 text-xs font-semibold text-black transition-colors hover:bg-amber-300"
+                      className="inline-flex items-center rounded-md bg-amber-400 px-3 py-1 text-xs font-semibold max-sm:min-h-9 max-sm:px-4 text-black transition-colors hover:bg-amber-300"
                     >
                       Vào chơi
                     </Link>
                   )}
                   <Link
                     href={`${game.href}/${room.code}?watch=1`}
-                    className="rounded-md border border-white/20 px-3 py-1 text-xs text-white/90 transition-colors hover:bg-white/10"
+                    className="inline-flex items-center rounded-md border border-white/20 px-3 py-1 text-xs text-white/90 max-sm:min-h-9 max-sm:px-4 transition-colors hover:bg-white/10"
                   >
                     👀 Xem
                   </Link>
@@ -173,7 +173,7 @@ function FilterChip({ active, onClick, title, children }: { active: boolean; onC
       title={title}
       aria-pressed={active}
       className={cn(
-        "flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs transition-colors",
+        "flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs transition-colors max-sm:min-h-8",
         active ? "border-amber-300/60 bg-amber-400/15 text-amber-100" : "border-white/10 text-white/70 hover:bg-white/10",
       )}
     >

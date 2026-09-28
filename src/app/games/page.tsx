@@ -68,10 +68,10 @@ const GAMES: GameCard[] = [
 
 export default function GamesPage() {
   return (
-    <main className="relative px-4 pb-10 pt-8 text-white sm:pt-10">
+    <main className="relative px-4 pb-10 pt-6 text-white sm:pt-10">
       <div className="mx-auto max-w-5xl">
-        <header className="mb-8 text-center">
-          <p className="mb-3 text-4xl" aria-hidden>
+        <header className="mb-6 text-center sm:mb-8">
+          <p className="mb-2 text-3xl sm:mb-3 sm:text-4xl" aria-hidden>
             🎮
           </p>
           <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
@@ -82,27 +82,30 @@ export default function GamesPage() {
           </p>
         </header>
 
-        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
           {GAMES.map((g) => (
             <li key={g.href}>
               <Link
                 href={g.href}
-                className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur transition-all hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.07]"
+                className="group relative flex h-full items-start gap-4 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur transition-all hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.07] sm:flex-col sm:gap-0 sm:p-6"
               >
                 <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${g.gradient} opacity-70 transition-opacity group-hover:opacity-100`} />
-                <span className="relative text-5xl transition-transform group-hover:scale-110" aria-hidden>
+                <span className="relative text-4xl transition-transform group-hover:scale-110 sm:text-5xl" aria-hidden>
                   {g.emoji}
                 </span>
-                <h2 className="relative mt-4 text-xl font-bold">{g.title}</h2>
-                <p className="relative mt-2 flex-1 text-sm text-white/70">{g.tagline}</p>
-                <div className="relative mt-4 flex flex-wrap gap-1.5">
-                  {g.tags.map((t) => (
-                    <span key={t} className="rounded-full border border-white/15 bg-black/30 px-2 py-0.5 text-xs text-white/80">
-                      {t}
-                    </span>
-                  ))}
+                {/* Phones: emoji beside the text so all six games fit in a couple of screens. */}
+                <div className="relative flex min-w-0 flex-1 flex-col self-stretch">
+                  <h2 className="text-lg font-bold sm:mt-4 sm:text-xl">{g.title}</h2>
+                  <p className="mt-1 flex-1 text-sm text-white/70 sm:mt-2">{g.tagline}</p>
+                  <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4">
+                    {g.tags.map((t) => (
+                      <span key={t} className="rounded-full border border-white/15 bg-black/30 px-2 py-0.5 text-xs text-white/80">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                  <span className="mt-5 hidden text-sm font-semibold text-amber-300 sm:block">Chơi ngay →</span>
                 </div>
-                <span className="relative mt-5 text-sm font-semibold text-amber-300">Chơi ngay →</span>
               </Link>
             </li>
           ))}

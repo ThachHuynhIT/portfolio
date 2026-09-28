@@ -101,19 +101,19 @@ export function GameLobby({ title, tagline, icons, basePath, wsPath, apiPrefix, 
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] short:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] short:gap-3">
-        <section className="h-fit rounded-2xl border border-white/10 bg-black/30 p-5 backdrop-blur">
+        <section className="h-fit rounded-2xl border border-white/10 bg-black/30 p-4 backdrop-blur sm:p-5">
           <div className="flex flex-col gap-3">
             <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/70">
               Bạn chơi với tên
               <b className="max-w-[12rem] truncate text-base text-amber-200">{name || "…"}</b>
-              <button type="button" onClick={openRename} className="text-xs text-white/50 underline-offset-2 hover:text-white hover:underline">
+              <button type="button" onClick={openRename} className="-my-1 rounded px-1 py-1 text-xs text-white/50 underline-offset-2 hover:text-white hover:underline">
                 ✎ Đổi tên
               </button>
             </p>
             <button
               onClick={() => void onCreate()}
               disabled={busy || !name}
-              className="rounded-lg bg-amber-400 px-4 py-2 font-semibold text-black transition-colors hover:bg-amber-300 disabled:opacity-40"
+              className="rounded-lg bg-amber-400 px-4 py-2.5 font-semibold text-black transition-colors hover:bg-amber-300 disabled:opacity-40"
             >
               {busy ? "Đang tạo bàn…" : "Tạo bàn mới"}
             </button>
@@ -151,7 +151,7 @@ export function GameLobby({ title, tagline, icons, basePath, wsPath, apiPrefix, 
           {extra && <div className="mt-5">{extra}</div>}
 
           <details className="mt-6 text-sm text-white/70">
-            <summary className="cursor-pointer text-white/90">Luật chơi & cách tính điểm</summary>
+            <summary className="cursor-pointer py-1 text-white/90">Luật chơi & cách tính điểm</summary>
             <div className="mt-2">{rules}</div>
           </details>
         </section>
@@ -160,7 +160,7 @@ export function GameLobby({ title, tagline, icons, basePath, wsPath, apiPrefix, 
           <section className="rounded-2xl border border-white/10 bg-black/30 p-5 backdrop-blur">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-lg font-bold text-amber-300">Bàn đang mở</h2>
-              <button onClick={() => void loadRooms()} className="text-xs text-white/60 hover:text-white">
+              <button onClick={() => void loadRooms()} className="-my-1 rounded px-2 py-1.5 text-xs text-white/60 hover:bg-white/10 hover:text-white">
                 ↻ Làm mới
               </button>
             </div>
@@ -194,11 +194,11 @@ export function GameLobby({ title, tagline, icons, basePath, wsPath, apiPrefix, 
                       </span>
                       <span className="flex gap-2">
                         {!full && r.status !== "playing" && (
-                          <Link href={`${basePath}/${r.code}`} className="rounded-md bg-amber-400 px-3 py-1 text-sm font-semibold text-black hover:bg-amber-300">
+                          <Link href={`${basePath}/${r.code}`} className="rounded-md bg-amber-400 px-3 py-1 text-sm font-semibold text-black hover:bg-amber-300 max-sm:px-4 max-sm:py-2">
                             Vào chơi
                           </Link>
                         )}
-                        <Link href={`${basePath}/${r.code}?watch=1`} className="rounded-md border border-white/25 px-3 py-1 text-sm text-white hover:bg-white/10">
+                        <Link href={`${basePath}/${r.code}?watch=1`} className="rounded-md border border-white/25 px-3 py-1 text-sm text-white hover:bg-white/10 max-sm:px-4 max-sm:py-2">
                           Xem
                         </Link>
                       </span>

@@ -4,10 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
+import { GameHeader, HeaderLabel, headerBtn } from "@/components/games/GameHeader";
 import { DraggableRow, useHandOrder } from "@/components/games/DraggableHand";
 import { RankPointsPicker } from "@/components/games/RankPointsPicker";
 import { useGameRoom } from "@/components/games/gameClient";
-import { EmojiBar, SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
+import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
 import {
   CARD_BY_ID,
@@ -106,7 +107,7 @@ export default function SplendorTable({ code, name, watch }: { code: string; nam
   return (
     <>
       <Table view={view} reconnecting={status === "reconnecting"} act={act} toast={toast} />
-      <ChatBox messages={view.chat} meId={view.meId} myName={name} onSend={(text) => act({ type: "chat", text })} />
+      <ChatBox messages={view.chat} meId={view.meId} myName={name} onSend={(text) => act({ type: "chat", text })} onEmoji={(emoji) => void act({ type: "emoji", emoji })} row />
     </>
   );
 }
@@ -188,39 +189,58 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
   const secondsLeft = g?.deadline ? Math.max(0, Math.ceil((g.deadline - now) / 1000)) : null;
 
   return (
-    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-24 pt-3 sm:px-4 short:gap-2 short:pt-1.5">
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-        <div className="flex flex-wrap items-center gap-2">
-          <Link href="/splendor" className="rounded-lg border border-white/20 bg-black/40 px-3 py-1.5 hover:bg-black/60">
-            ← Sảnh
-          </Link>
-          <span className="rounded-md bg-black/30 px-2 py-1 font-mono text-base font-bold tracking-[0.2em] text-amber-300">{view.code}</span>
-          <button onClick={copyInvite} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Chép link mời" aria-label="Chép link mời">
-            {copied ? "✓" : "🔗"}
-            <span className="hidden sm:inline short:hidden"> {copied ? "Đã chép link" : "Chép link mời"}</span>
-          </button>
-          <button onClick={() => setShowScores(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Bảng điểm" aria-label="Bảng điểm">
-            🏆<span className="hidden sm:inline short:hidden"> Bảng điểm</span>
-          </button>
-          <button onClick={() => setShowRules(true)} className="rounded-md border border-white/20 px-2 py-1 hover:bg-white/10" title="Luật chơi" aria-label="Luật chơi">
-            📖<span className="hidden sm:inline short:hidden"> Luật chơi</span>
-          </button>
-        </div>
-        <div className="flex items-center gap-3 text-violet-100/70">
-          {g && <span>🎯 {g.target} điểm</span>}
-          {view.spectators.length > 0 && <span title={view.spectators.join(", ")}>👀 {view.spectators.length}</span>}
-          {reconnecting && <span className="animate-pulse text-amber-300">Đang kết nối lại…</span>}
-        </div>
-      </div>
+    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-24 pt-2 sm:px-4 sm:pt-3 lg:pb-2 short:gap-2 short:pt-1.5">
+      <GameHeader
+        primary={
+          <>
+            <Link href="/splendor" className={headerBtn}>
+              ← Sảnh
+            </Link>
+            <span className="font-mono text-sm font-bold tracking-[0.2em] text-amber-300">{view.code}</span>
+          </>
+        }
+        extra={
+          <>
+            <button onClick={copyInvite} className={headerBtn} title="Chép link mời">
+              {copied ? "✓" : "🔗"}
+              <HeaderLabel>{copied ? "Đã chép link" : "Chép link mời"}</HeaderLabel>
+            </button>
+            <button onClick={() => setShowScores(true)} className={headerBtn} title="Bảng điểm">
+              🏆 <HeaderLabel>Bảng điểm</HeaderLabel>
+            </button>
+            <button onClick={() => setShowRules(true)} className={headerBtn} title="Luật chơi">
+              📖 <HeaderLabel>Luật chơi</HeaderLabel>
+            </button>
+          </>
+        }
+        status={
+          <>
+            {g && (
+              <span className="whitespace-nowrap" title="Điểm uy tín để thắng">
+                🎯 {g.target}
+                <span className="hidden sm:inline"> điểm</span>
+              </span>
+            )}
+            {view.spectators.length > 0 && (
+              <span className="whitespace-nowrap" title={view.spectators.join(", ")}>
+                👀 {view.spectators.length}
+              </span>
+            )}
+            {reconnecting && <span className="animate-pulse whitespace-nowrap text-amber-300">Đang kết nối lại…</span>}
+          </>
+        }
+      />
 
       {!g || g.status === "ended" ? (
-        <div className="flex flex-1 items-center justify-center">
+        <div className="relative flex flex-1 items-center justify-center">
+          {/* No player panels between games, so everyone's emoji shows in the corner. */}
+          <SpectatorReactions reactions={live} />
           <Waiting view={view} me={me} act={act} nameOf={nameOf} />
         </div>
       ) : (
         <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_19rem] short:grid-cols-2 short:gap-2">
           {/* Market */}
-          <div className="relative flex min-w-0 flex-col gap-3 rounded-3xl border border-amber-200/10 bg-[radial-gradient(ellipse_at_top,#3b1d5c_0%,#1a0f2b_70%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.5)] sm:p-4 short:gap-2 short:self-start short:p-2">
+          <div className="relative flex min-w-0 flex-col gap-3 rounded-3xl lg:gap-2 border border-amber-200/10 bg-[radial-gradient(ellipse_at_top,#3b1d5c_0%,#1a0f2b_70%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.5)] sm:p-4 short:gap-2 short:self-start short:p-2">
             <SpectatorReactions reactions={live.filter((r) => !r.playerId)} />
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex gap-2">
@@ -321,9 +341,6 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
                     </li>
                   ))}
               </ul>
-            </div>
-            <div className="sm:col-span-2 short:col-span-1">
-              <EmojiBar onSend={(emoji) => void act({ type: "emoji", emoji })} />
             </div>
           </aside>
         </div>
@@ -548,39 +565,42 @@ function CardModal({
   const plan = focus.card !== undefined && mine ? paymentPlan(focus.card, mine) : null;
   return (
     <Modal onClose={onClose}>
-      <div className="flex flex-col items-center gap-3">
+      {/* Sideways phones: card on the left, cost and buttons beside it, so nothing needs scrolling. */}
+      <div className="flex flex-col items-center gap-3 short:flex-row short:items-center short:gap-4">
         {focus.card !== undefined ? <DevCardView id={focus.card} size="lg" /> : <CardBack tier={focus.tier!} count={g.deckCounts[focus.tier! - 1]} />}
-        {focus.card !== undefined && (
-          <p className="text-center text-sm text-white/80">
-            Thẻ <b>{GEM_NAMES[CARD_BY_ID[focus.card].bonus]}</b> · {CARD_BY_ID[focus.card].points} điểm · giảm vĩnh viễn 1 {GEM_NAMES[CARD_BY_ID[focus.card].bonus]} cho các lần mua sau
-          </p>
-        )}
-        {plan && mine && <CostCompare plan={plan} gold={mine.tokens.gold} />}
-        {canAct ? (
-          <div className="flex flex-wrap justify-center gap-2">
-            {focus.card !== undefined && (
-              <button
-                onClick={() => done(run({ type: "buy", card: focus.card! }))}
-                disabled={busy || !canAfford(focus.card)}
-                className="rounded-lg bg-emerald-500 px-4 py-2 font-bold text-black hover:bg-emerald-400 disabled:opacity-40"
-              >
-                🛒 Mua
-              </button>
-            )}
-            {!focus.reserved && (
-              <button
-                onClick={() => done(run(focus.card !== undefined ? { type: "reserve", card: focus.card } : { type: "reserve", tier: focus.tier! }))}
-                disabled={busy || reserveFull}
-                className="rounded-lg bg-amber-400 px-4 py-2 font-bold text-black hover:bg-amber-300 disabled:opacity-40"
-              >
-                📌 Giữ {focus.card === undefined ? "1 thẻ úp" : ""} {g.bank.gold > 0 ? "+ 1 Vàng" : ""}
-              </button>
-            )}
-          </div>
-        ) : (
-          <p className="text-xs text-white/50">Mua hoặc giữ thẻ trong lượt của bạn.</p>
-        )}
-        {canAct && reserveFull && !focus.reserved && <p className="text-xs text-white/50">Bạn đã giữ đủ {MAX_RESERVED} thẻ.</p>}
+        <div className="flex w-full min-w-0 flex-col items-center gap-3 short:pr-5">
+          {focus.card !== undefined && (
+            <p className="text-center text-sm text-white/80">
+              Thẻ <b>{GEM_NAMES[CARD_BY_ID[focus.card].bonus]}</b> · {CARD_BY_ID[focus.card].points} điểm · giảm vĩnh viễn 1 {GEM_NAMES[CARD_BY_ID[focus.card].bonus]} cho các lần mua sau
+            </p>
+          )}
+          {plan && mine && <CostCompare plan={plan} gold={mine.tokens.gold} />}
+          {canAct ? (
+            <div className="flex flex-wrap justify-center gap-2">
+              {focus.card !== undefined && (
+                <button
+                  onClick={() => done(run({ type: "buy", card: focus.card! }))}
+                  disabled={busy || !canAfford(focus.card)}
+                  className="rounded-lg bg-emerald-500 px-4 py-2 font-bold text-black hover:bg-emerald-400 disabled:opacity-40"
+                >
+                  🛒 Mua
+                </button>
+              )}
+              {!focus.reserved && (
+                <button
+                  onClick={() => done(run(focus.card !== undefined ? { type: "reserve", card: focus.card } : { type: "reserve", tier: focus.tier! }))}
+                  disabled={busy || reserveFull}
+                  className="rounded-lg bg-amber-400 px-4 py-2 font-bold text-black hover:bg-amber-300 disabled:opacity-40"
+                >
+                  📌 Giữ {focus.card === undefined ? "1 thẻ úp" : ""} {g.bank.gold > 0 ? "+ 1 Vàng" : ""}
+                </button>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-white/50">Mua hoặc giữ thẻ trong lượt của bạn.</p>
+          )}
+          {canAct && reserveFull && !focus.reserved && <p className="text-xs text-white/50">Bạn đã giữ đủ {MAX_RESERVED} thẻ.</p>}
+        </div>
       </div>
     </Modal>
   );
@@ -795,7 +815,7 @@ export function SplendorRules() {
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div role="dialog" className="relative max-h-[88dvh] w-full max-w-md overflow-y-auto rounded-2xl border border-white/10 bg-[#1b1030] p-5 text-violet-50 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div role="dialog" className="relative max-h-[88dvh] w-full max-w-md overflow-y-auto rounded-2xl border border-white/10 bg-[#1b1030] p-5 text-violet-50 shadow-2xl short:max-h-[94dvh] short:max-w-2xl short:p-4" onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose} className="absolute right-2 top-2 rounded-md px-2 py-0.5 text-sm hover:bg-white/10" aria-label="Đóng">
           ✕
         </button>

@@ -16,6 +16,7 @@ export function ChatBox({
   myName,
   onSend,
   onEmoji,
+  row,
 }: {
   messages?: ChatMessage[];
   meId: string;
@@ -24,6 +25,8 @@ export function ChatBox({
   onSend: (text: string) => Promise<boolean>;
   /** Send a quick emoji reaction; shows the 😀 button above the chat button. */
   onEmoji?: (emoji: string) => void;
+  /** Put the emoji button left of the chat button instead of above it (keeps the pair one button tall). */
+  row?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
@@ -149,57 +152,62 @@ export function ChatBox({
         )}
       </AnimatePresence>
 
-      {onEmoji && (
-        <div className="relative">
-          <AnimatePresence>
-            {emojiOpen && (
-              <motion.div
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10, pointerEvents: "none" }}
-                className="absolute bottom-0 right-full mr-2 grid w-max grid-cols-5 gap-1 rounded-2xl border border-white/15 bg-[#0d1712]/95 p-1.5 shadow-2xl backdrop-blur sm:grid-cols-7"
-              >
-                {EMOJIS.map((e) => (
-                  <button
-                    key={e}
-                    type="button"
-                    onClick={() => {
-                      onEmoji(e);
-                      setEmojiOpen(false);
-                    }}
-                    className="rounded-lg p-1.5 text-2xl leading-none transition-transform hover:scale-125 hover:bg-white/10"
-                  >
-                    {e}
-                  </button>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <button
-            type="button"
-            onClick={() => (setEmojiOpen((o) => !o), setOpen(false))}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/70 text-xl shadow-lg backdrop-blur transition-transform hover:scale-105 sm:h-11 sm:w-11"
-            aria-label="Thả emoji"
-            aria-expanded={emojiOpen}
-          >
-            😀
-          </button>
-        </div>
-      )}
-
-      <button
-        onClick={() => (setOpen((o) => !o), setEmojiOpen(false))}
-        className="relative flex h-11 w-11 items-center justify-center rounded-full bg-amber-400 text-xl text-black shadow-lg transition-transform hover:scale-105 sm:h-12 sm:w-12 sm:text-2xl"
-        aria-label={open ? "Đóng chat" : "Mở chat"}
-        aria-expanded={open}
-      >
-        💬
-        {unread > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-xs font-bold text-white">
-            {unread > 9 ? "9+" : unread}
-          </span>
+      <div className={cn("flex items-end gap-2", row ? "flex-row" : "flex-col")}>
+        {onEmoji && (
+          <div className="relative">
+            <AnimatePresence>
+              {emojiOpen && (
+                <motion.div
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10, pointerEvents: "none" }}
+                  className={cn(
+                    "absolute grid w-max grid-cols-5 gap-1 rounded-2xl border border-white/15 bg-[#0d1712]/95 p-1.5 shadow-2xl backdrop-blur sm:grid-cols-7",
+                    row ? "bottom-full right-0 mb-2" : "bottom-0 right-full mr-2",
+                  )}
+                >
+                  {EMOJIS.map((e) => (
+                    <button
+                      key={e}
+                      type="button"
+                      onClick={() => {
+                        onEmoji(e);
+                        setEmojiOpen(false);
+                      }}
+                      className="rounded-lg p-1.5 text-2xl leading-none transition-transform hover:scale-125 hover:bg-white/10"
+                    >
+                      {e}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <button
+              type="button"
+              onClick={() => (setEmojiOpen((o) => !o), setOpen(false))}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/70 text-xl shadow-lg backdrop-blur transition-transform hover:scale-105 sm:h-11 sm:w-11"
+              aria-label="Thả emoji"
+              aria-expanded={emojiOpen}
+            >
+              😀
+            </button>
+          </div>
         )}
-      </button>
+
+        <button
+          onClick={() => (setOpen((o) => !o), setEmojiOpen(false))}
+          className="relative flex h-11 w-11 items-center justify-center rounded-full bg-amber-400 text-xl text-black shadow-lg transition-transform hover:scale-105 sm:h-12 sm:w-12 sm:text-2xl"
+          aria-label={open ? "Đóng chat" : "Mở chat"}
+          aria-expanded={open}
+        >
+          💬
+          {unread > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-xs font-bold text-white">
+              {unread > 9 ? "9+" : unread}
+            </span>
+          )}
+        </button>
+      </div>
     </div>
   );
 }

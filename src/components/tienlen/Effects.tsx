@@ -240,7 +240,7 @@ export function SeatBubble({ reactions }: { reactions: Reaction[] }) {
   );
 }
 
-/** Spectators' reactions, stacked at the side of the table. */
+/** Spectators' reactions (or any list, e.g. everyone's while no seat is drawn), stacked at the side of the table. */
 export function SpectatorReactions({ reactions }: { reactions: Reaction[] }) {
   return (
     <div className="pointer-events-none absolute right-3 top-16 z-20 flex flex-col items-end gap-1">
@@ -253,7 +253,10 @@ export function SpectatorReactions({ reactions }: { reactions: Reaction[] }) {
             animate={{ x: 0, opacity: 1 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            <span className="mr-1 text-emerald-100/70">👀 {r.name}</span>
+            <span className="mr-1 text-emerald-100/70">
+              {!r.playerId && "👀 "}
+              {r.name}
+            </span>
             <span className="text-lg">{r.emoji}</span>
           </motion.div>
         ))}
