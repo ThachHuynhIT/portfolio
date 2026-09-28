@@ -314,6 +314,13 @@ function Board({
     });
   // Groups of identical cards in hand order (never for a cursed, face-down hand; annoyed cards stay apart).
   const groups = compact && !cursed ? groupIdentical(orderedIds, handById) : null;
+  const moveGroup = (from: number, to: number) => {
+    if (!groups || from === to) return;
+    const next = groups.slice();
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    handOrder.setOrder(next.flat());
+  };
 
   const run = async (msg: Record<string, unknown> & { type: string }) => {
     setBusy(true);
@@ -718,13 +725,13 @@ function Board({
                     <span className="text-orange-50/85">{focusInfo.effect}</span>
                   </>
                 ) : groups ? (
-                  "Bấm chồng bài để chọn thêm 1 lá · − để bỏ bớt"
+                  "Bấm chồng bài để chọn thêm 1 lá · − để bỏ bớt · kéo ngang để xếp lại"
                 ) : (
                   "Bấm lá để chọn · kéo ngang để xếp lại"
                 )}
               </p>
               <span className="flex shrink-0 items-center gap-2 text-[11px]">
-                {handOrder.isCustom && !cursed && !groups && (
+                {handOrder.isCustom && !cursed && (
                   <button onClick={handOrder.reset} className="underline hover:text-orange-50">
                     ↺ Xếp tự động
                   </button>
@@ -747,14 +754,18 @@ function Board({
 
             <div className="max-h-[32dvh] w-full overflow-y-auto overflow-x-hidden overscroll-contain pb-1.5 sm:max-h-[36dvh] short:max-h-[7.5rem] lg:max-h-none lg:overflow-x-auto lg:overflow-y-hidden">
               {groups ? (
-                <div className="flex w-full flex-wrap justify-center gap-1.5 pt-4 short:pt-3 lg:mx-auto lg:w-max lg:flex-nowrap lg:px-3">
-                  {groups.map((ids) => {
+                // Stacks can be dragged to reorder too; the new order is saved for the cards inside them.
+                <DraggableRow
+                  items={groups.map((ids) => ids[0])}
+                  onMove={moveGroup}
+                  className="w-full flex-wrap justify-center gap-1.5 pt-4 short:pt-3 lg:mx-auto lg:w-max lg:flex-nowrap lg:px-3"
+                  renderItem={(_, gi) => {
+                    const ids = groups[gi];
                     const c = handById.get(ids[0])!;
                     const picked = ids.filter((id) => selected.includes(id)).length;
                     const behind = Math.min(ids.length - 1, 2);
                     return (
                       <span
-                        key={ids[0]}
                         className="relative block"
                         style={{ marginRight: behind * 5 }}
                         title={c.annoyed ? "Nổi cáu: lá này bị vô hiệu tới hết lượt tới của bạn" : undefined}
@@ -800,8 +811,8 @@ function Board({
                         {c.annoyed && <span className="pointer-events-none absolute -left-1 -top-1 z-10 rounded-full bg-amber-500 px-1 text-xs">😾</span>}
                       </span>
                     );
-                  })}
-                </div>
+                  }}
+                />
               ) : (
                 <DraggableRow
                   items={orderedIds}

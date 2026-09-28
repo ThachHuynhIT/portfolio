@@ -46,7 +46,10 @@ export function useHandOrder<K extends string | number>(defaultOrder: K[], stora
     save(next);
   };
 
-  return { ordered, isCustom: !!custom, move, reset: () => save(null) };
+  /** Replace the whole order (e.g. after moving a stack of identical cards). */
+  const setOrder = (next: K[]) => save(next);
+
+  return { ordered, isCustom: !!custom, move, setOrder, reset: () => save(null) };
 }
 
 const DRAG_THRESHOLD = 8;
