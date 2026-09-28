@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
 import { DraggableRow, useHandOrder } from "@/components/games/DraggableHand";
 import { useGameRoom } from "@/components/games/gameClient";
-import { MyTurnBadge, TurnRing } from "@/components/games/TurnIndicator";
+import { MyTurnBadge, TurnRing, TurnTimerBorder } from "@/components/games/TurnIndicator";
 import { EmojiBar, SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
 import {
@@ -248,6 +248,8 @@ function Board({
               ? `đánh ${cardName(planOk.kind as CardType)}`
               : "";
   // “Now” cards (Sửa tương lai ngay) can be played on anyone's turn.
+  const choiceFor = choice ? ("player" in choice ? choice.player : choice.from) : null;
+  const myDeadline = !playing ? null : choice ? (choiceFor === view.meId ? choice.deadline : null) : myTurn && !pending ? (g?.turnDeadline ?? null) : null;
   const nowPlay = meAlive && !!planOk && NOW_TYPES.includes(planOk.kind as CardType);
   const canPlay =
     (myTurn || nowPlay) && !pending && !choice && !!planOk && (!needTarget || !!target) && (!needName || !!named) && !busy;
@@ -376,7 +378,7 @@ function Board({
 
   return (
     // One screen tall: the hand + Đánh / Rút always stay in view; the table and the feed scroll inside the middle instead.
-    <div className="relative mx-auto flex h-[calc(100dvh-var(--games-bar-h,0px))] w-full max-w-6xl flex-col gap-2 overflow-hidden px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:gap-3 sm:px-4 sm:pt-3 short:gap-1.5 short:pt-1.5">
+    <div className="relative mx-auto flex h-[calc(100dvh-var(--games-bar-h,0px))] w-full max-w-6xl flex-col lg:max-w-[112rem] gap-2 overflow-hidden px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:gap-3 sm:px-4 sm:pt-3 short:gap-1.5 short:pt-1.5">
       {/* Top bar */}
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 text-sm">
         <div className="flex flex-wrap items-center gap-2">
@@ -452,7 +454,9 @@ function Board({
             {!g || g.status === "ended" ? (
               <Waiting view={view} me={me} act={act} nameOf={nameOf} />
             ) : (
-              <>
+              <div className="flex w-full flex-col items-center gap-3 short:gap-1.5 lg:grid lg:grid-cols-[auto_minmax(0,1fr)] lg:items-center lg:gap-8 lg:px-4">
+                {/* Left: draw pile + played cards */}
+                <div className="flex flex-col items-center gap-2">
                 <div className="flex items-end gap-5">
                   <button
                     onClick={() => void run({ type: "draw" })}
@@ -495,7 +499,10 @@ function Board({
                     </span>
                   )}
                 </div>
-                <p className="text-center text-sm">
+                </div>
+                {/* Right: whose turn, and whatever needs answering (Không!, give a card, hide the kitten…) */}
+                <div className="flex w-full min-w-0 flex-col items-center gap-3 short:gap-1.5">
+                <p className="text-center text-sm lg:text-base">
                   {myTurn ? (
                     <b className="text-amber-300">Lượt của bạn{g.turnsLeft > 1 ? ` (còn ${g.turnsLeft} lượt)` : ""} — đánh bài hoặc rút để kết thúc lượt</b>
                   ) : g.turn ? (
@@ -504,7 +511,7 @@ function Board({
                       {g.turnsLeft > 1 && ` (còn ${g.turnsLeft} lượt)`}
                     </>
                   ) : null}
-                  {g.turnDeadline && !pending && !choice && <span className="ml-2 text-orange-100/60">⏱ {secondsLeft(g.turnDeadline)}s</span>}
+                  {g.turnDeadline && !pending && !choice && !myTurn && <span className="ml-2 text-orange-100/60">⏱ {secondsLeft(g.turnDeadline)}s</span>}
                 </p>
 
                 {pending && (
@@ -536,13 +543,14 @@ function Board({
                     </div>
                   </div>
                 )}
-              </>
+                </div>
+              </div>
             )}
           </div>
 
-          {/* Me */}
+          {/* Me — on big screens this lives in the action dock instead, to keep the table short */}
           {me && !spectator && (
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-2 lg:hidden">
               <div className="flex items-center gap-2 text-sm">
                 <Seat
                   seat={me}
@@ -573,10 +581,11 @@ function Board({
         <div className="flex shrink-0 flex-col items-center gap-1">
           <div
             className={cn(
-              "relative flex w-full max-w-3xl flex-col items-center gap-1.5 rounded-2xl p-1.5 pt-2 short:gap-1 short:p-1",
+              "relative flex w-full max-w-3xl flex-col items-center gap-1.5 rounded-2xl p-1.5 pt-2 short:gap-1 short:p-1 lg:max-w-none lg:px-3 lg:pt-3",
               myTurn && "bg-rose-500/[0.07]",
             )}
           >
+            <TurnTimerBorder deadline={myDeadline} totalMs={(view.settings?.turnSeconds ?? 30) * 1000} now={now} />
             {myTurn && (
               <>
                 <TurnRing active className="inset-0" />
@@ -623,9 +632,27 @@ function Board({
             )}
 
             {/* Action dock */}
-            <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-black/40 p-2 sm:p-2.5 short:p-1.5">
+            <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-black/40 p-2 sm:p-2.5 short:p-1.5 lg:flex lg:max-w-none lg:items-center lg:gap-3">
+              {me && (
+                <div className="relative hidden shrink-0 items-center gap-2 border-r border-white/10 pr-3 lg:order-first lg:flex">
+                  <span className="relative inline-flex">
+                    <SeatBubble reactions={reactionsFor(me.id)} />
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-200 to-orange-500 text-lg font-bold text-black">
+                      {me.name.charAt(0).toUpperCase()}
+                    </span>
+                  </span>
+                  <span className="text-sm leading-tight">
+                    <b className="block max-w-[9rem] truncate">{me.name}</b>
+                    <span className="text-[11px] text-orange-100/70">
+                      🂠 {me.cardCount} lá{me.isHost ? " · 👑" : ""}
+                      {me.cursed ? " · 🍑 bị nguyền" : ""}
+                      {me.games > 0 ? ` · ${signed(me.points)}đ` : ""}
+                    </span>
+                  </span>
+                </div>
+              )}
               {(myTurn || nowPlay) && selected.length > 0 && (
-                <p className={cn("mb-1.5 rounded-lg px-3 py-1 text-center text-sm", planError ? "bg-rose-900/50 text-rose-200" : "bg-white/5 text-orange-100")}>
+                <p className={cn("mb-1.5 rounded-lg px-3 py-1 text-center text-sm lg:order-2 lg:mb-0 lg:min-w-0 lg:flex-1 lg:text-left", planError ? "bg-rose-900/50 text-rose-200" : "bg-white/5 text-orange-100")}>
                   {planError ?? (
                     <>
                       <b>{actionLabel}</b>
@@ -643,7 +670,7 @@ function Board({
                 </p>
               )}
               {(myTurn || nowPlay) && needName && (
-                <div className="mb-1.5 flex justify-center">
+                <div className="mb-1.5 flex justify-center lg:order-3 lg:mb-0">
                   <select
                     value={named}
                     onChange={(e) => setNamed(e.target.value as CardType)}
@@ -659,7 +686,7 @@ function Board({
                   </select>
                 </div>
               )}
-              <div className="flex flex-wrap items-stretch justify-center gap-2">
+              <div className="flex flex-wrap items-stretch justify-center gap-2 lg:order-1 lg:flex-nowrap">
                 {canNope && myNope && (
                   <DockBtn tone="nope" onClick={() => void run({ type: "nope", card: myNope.id })}>
                     🚫 KHÔNG!
@@ -681,7 +708,7 @@ function Board({
               </div>
             </div>
 
-            <div className="flex w-full max-w-2xl items-center justify-between gap-2 px-1 text-[11px] text-orange-100/60">
+            <div className="flex w-full max-w-2xl items-center justify-between gap-2 px-1 text-[11px] text-orange-100/60 lg:max-w-none">
               <p className="line-clamp-2 min-w-0 flex-1 short:line-clamp-1">
                 {focusInfo ? (
                   <>
@@ -718,9 +745,9 @@ function Board({
               </span>
             </div>
 
-            <div className="max-h-[32dvh] w-full overflow-y-auto overflow-x-hidden overscroll-contain pb-1.5 sm:max-h-[36dvh] lg:max-h-[34dvh] short:max-h-[7.5rem]">
+            <div className="max-h-[32dvh] w-full overflow-y-auto overflow-x-hidden overscroll-contain pb-1.5 sm:max-h-[36dvh] short:max-h-[7.5rem] lg:max-h-none lg:overflow-x-auto lg:overflow-y-hidden">
               {groups ? (
-                <div className="flex w-full flex-wrap justify-center gap-1.5 pt-4 short:pt-3">
+                <div className="flex w-full flex-wrap justify-center gap-1.5 pt-4 short:pt-3 lg:mx-auto lg:w-max lg:flex-nowrap lg:px-3">
                   {groups.map((ids) => {
                     const c = handById.get(ids[0])!;
                     const picked = ids.filter((id) => selected.includes(id)).length;
@@ -738,7 +765,7 @@ function Board({
                             type={c.type}
                             tooltip={false}
                             className={cn(
-                              "max-sm:w-[3.9rem] max-sm:[--emoji:1.55rem] short:w-16 short:[--emoji:1.6rem]",
+                              "max-sm:w-[3.9rem] max-sm:[--emoji:1.55rem] short:w-16 short:[--emoji:1.6rem] lg:w-24 lg:text-[11px] lg:[--emoji:2.4rem] 2xl:w-28 2xl:[--emoji:2.8rem]",
                               "pointer-events-none absolute left-0 top-0 brightness-75",
                               d === 1 ? "translate-x-[5px] rotate-[4deg]" : "translate-x-[10px] rotate-[8deg]",
                               c.annoyed && "opacity-50 grayscale",
@@ -749,7 +776,7 @@ function Board({
                           type={c.type}
                           selected={picked > 0}
                           onClick={() => clickStack(ids)}
-                          className={cn("max-sm:w-[3.9rem] max-sm:[--emoji:1.55rem] short:w-16 short:[--emoji:1.6rem]", c.annoyed && "opacity-50 grayscale")}
+                          className={cn("max-sm:w-[3.9rem] max-sm:[--emoji:1.55rem] short:w-16 short:[--emoji:1.6rem] lg:w-24 lg:text-[11px] lg:[--emoji:2.4rem] 2xl:w-28 2xl:[--emoji:2.8rem]", c.annoyed && "opacity-50 grayscale")}
                         />
                         {ids.length > 1 && (
                           <span
@@ -780,7 +807,7 @@ function Board({
                   items={orderedIds}
                   onMove={handOrder.move}
                   disabled={cursed}
-                  className="w-full flex-wrap justify-center gap-1.5 pt-4 short:pt-3"
+                  className="w-full flex-wrap justify-center gap-1.5 pt-4 short:pt-3 lg:mx-auto lg:w-max lg:flex-nowrap lg:px-3"
                   renderItem={(id) => {
                     const c = handById.get(id)!;
                     return (
@@ -790,7 +817,7 @@ function Board({
                           selected={selected.includes(c.id)}
                           onClick={() => toggle(c)}
                           // Five to a row on a phone instead of four, so a big hand stays two rows.
-                          className={cn("max-sm:w-[3.9rem] max-sm:[--emoji:1.55rem] short:w-16 short:[--emoji:1.6rem]", c.annoyed && "opacity-50 grayscale")}
+                          className={cn("max-sm:w-[3.9rem] max-sm:[--emoji:1.55rem] short:w-16 short:[--emoji:1.6rem] lg:w-24 lg:text-[11px] lg:[--emoji:2.4rem] 2xl:w-28 2xl:[--emoji:2.8rem]", c.annoyed && "opacity-50 grayscale")}
                         />
                         {c.annoyed && <span className="pointer-events-none absolute -right-1 -top-1 rounded-full bg-amber-500 px-1 text-xs">😾</span>}
                       </span>
