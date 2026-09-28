@@ -42,6 +42,14 @@ export interface TPSettings {
   parkingPot?: boolean;
   first?: number;
   second?: number;
+  /** House rules (missing from older servers = classic). "even": build evenly; "chain": see TyPhuRules. */
+  buildRule?: "even" | "chain";
+  /** Own the whole colour group before building. */
+  needGroup?: boolean;
+  /** Sell land back to the bank for half its price. */
+  sellLand?: boolean;
+  /** A bankrupt player's land: back on the market ("bank") or to the creditor. */
+  bankruptTo?: "bank" | "creditor";
 }
 
 export const STEP_SECONDS_OPTIONS = [15, 20, 30, 45, 60];
@@ -87,6 +95,8 @@ export interface TPGameView {
   /** Nghỉ chân pot (null when the rule is off). */
   pot?: number | null;
   log: LogEntry[];
+  /** My own lots: why build / sell a house / sell the land is blocked (null = allowed), and the land's sale price. */
+  manage?: Record<number, { build: string | null; sell: string | null; sellLand: string | null; landPrice: number }>;
 }
 
 export interface TPRoomView {
@@ -126,6 +136,6 @@ export type TPCommand =
   | { type: "settings"; startCash?: number; timeLimit?: number; stepSeconds?: number; doubleGo?: boolean; parkingPot?: boolean; first?: number; second?: number }
   | { type: "kick"; playerId: string }
   | { type: "roll" | "buy" | "skip" | "end" | "payjail" | "jailcard" | "paydebt" | "bankrupt" }
-  | { type: "build" | "sell" | "mortgage" | "unmortgage"; pos: number }
+  | { type: "build" | "sell" | "sellland" | "mortgage" | "unmortgage"; pos: number }
   | { type: "trade"; to: string; give: TradeSide; get: TradeSide }
   | { type: "tradeanswer"; accept: boolean };

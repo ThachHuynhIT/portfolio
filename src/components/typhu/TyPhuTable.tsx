@@ -27,7 +27,7 @@ import {
 } from "@/lib/typhu/board";
 import { SettingsTabs } from "@/components/games/SettingsTabs";
 import { RankPointsPicker } from "@/components/games/RankPointsPicker";
-import { STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TradeSide } from "@/lib/typhu/protocol";
+import { STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TPSettings, type TradeSide } from "@/lib/typhu/protocol";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { MyTurnBadge, TurnRing } from "@/components/games/TurnIndicator";
@@ -707,7 +707,7 @@ function Centre({
   // Re-run the dice animation on every new roll (each roll writes a "🎲" log line).
   const rollId = [...g.log].reverse().find((e) => e.text.startsWith("🎲"))?.id ?? 0;
   const [showBuild, setShowBuild] = useState(false);
-  const fullGroups = mine ? ownedFullGroups(g, mine.id) : [];
+  const fullGroups = mine ? buildableGroups(g, mine.id, view.settings.needGroup !== false) : [];
   const housesOwned = mine ? Object.values(g.deeds).filter((d) => d.owner === mine.id && d.houses > 0).length : 0;
 
   return (
@@ -770,7 +770,7 @@ function Centre({
               </CBtn>
             )}
             {g.phase !== "debt" && (
-              <CBtn build onClick={() => setShowBuild(true)} disabled={busy || !fullGroups.length} title={fullGroups.length ? undefined : "Cần sở hữu đủ cả một nhóm màu"}>
+              <CBtn build onClick={() => setShowBuild(true)} disabled={busy || !fullGroups.length} title={fullGroups.length ? undefined : view.settings.needGroup === false ? "Chưa có đất thành phố nào" : "Cần sở hữu đủ cả một nhóm màu"}>
                 🏠 Xây nhà{fullGroups.length ? ` (${fullGroups.length} nhóm)` : ""}
               </CBtn>
             )}
@@ -823,7 +823,7 @@ function Centre({
         <p className="hidden text-[11px] text-emerald-900/60 sm:block">Bấm vào một ô để xem chi tiết, xây nhà hoặc thế chấp.</p>
       )}
       {mine?.bankrupt && <p className="text-sm font-semibold text-rose-700">💸 Bạn đã phá sản — xem mọi người chơi tiếp nhé.</p>}
-      {showBuild && mine && <BuildPanel g={g} mine={mine} busy={busy} run={run} onClose={() => setShowBuild(false)} />}
+      {showBuild && mine && <BuildPanel g={g} mine={mine} settings={view.settings} busy={busy} run={run} onClose={() => setShowBuild(false)} />}
     </div>
   );
 }
@@ -864,29 +864,38 @@ const GROUP_NAMES: Record<Group, string> = {
 };
 const ALL_GROUPS = Object.keys(GROUP_NAMES) as Group[];
 
-/** Colour groups where `id` owns every city (the ones you can build on). */
-function ownedFullGroups(g: TPGameView, id: string): Group[] {
-  return ALL_GROUPS.filter((grp) => groupPositions(grp).every((p) => g.deeds[p]?.owner === id));
+/** Colour groups `id` can build in: every city owned, or (without the full-group rule) at least one. */
+function buildableGroups(g: TPGameView, id: string, needGroup: boolean): Group[] {
+  return ALL_GROUPS.filter((grp) => {
+    const cells = groupPositions(grp);
+    return needGroup ? cells.every((p) => g.deeds[p]?.owner === id) : cells.some((p) => g.deeds[p]?.owner === id);
+  });
 }
 
-/** Build / sell houses on every group you own, without hunting for the squares on the board. */
-function BuildPanel({ g, mine, busy, run, onClose }: { g: TPGameView; mine: TPPlayerView; busy: boolean; run: Act; onClose: () => void }) {
-  const full = ownedFullGroups(g, mine.id);
-  const partial = ALL_GROUPS.filter((grp) => !full.includes(grp) && groupPositions(grp).some((p) => g.deeds[p]?.owner === mine.id));
+/** One-line summary of the table's building rule. */
+const buildRuleText = (st: TPSettings) =>
+  (st.buildRule === "chain"
+    ? "Xây theo chuỗi: nhà 2 / nhà 3 cần 2 ô trong nhóm có nhà 1 / nhà 2, nhà 4 cần cả nhóm 3 nhà, khách sạn cần cả nhóm 4 nhà."
+    : "Xây đều từng ô trong nhóm; 4 nhà rồi lên khách sạn.") + (st.needGroup === false ? " Không cần đủ nhóm màu." : "");
+
+/** Build / sell houses (and sell land) on every group you can build in, without hunting for the squares on the board. */
+function BuildPanel({ g, mine, settings, busy, run, onClose }: { g: TPGameView; mine: TPPlayerView; settings: TPSettings; busy: boolean; run: Act; onClose: () => void }) {
+  const needGroup = settings.needGroup !== false;
+  const groups = buildableGroups(g, mine.id, needGroup);
+  const partial = needGroup ? ALL_GROUPS.filter((grp) => !groups.includes(grp) && groupPositions(grp).some((p) => g.deeds[p]?.owner === mine.id)) : [];
   const inDebt = g.phase === "debt";
+  const sellLandOn = !!settings.sellLand;
   return (
     <Modal onClose={onClose} dark>
-      <div className="text-left">
       <h2 className="mb-1 text-lg font-bold text-amber-300">{inDebt ? "🏚️ Bán nhà" : "🏠 Xây nhà"}</h2>
       <p className="mb-3 text-xs text-sky-100/70">
-        Tiền mặt: <b className="text-emerald-300">{money(mine.cash)}</b> · Xây đều từng ô trong nhóm; 4 nhà rồi lên khách sạn. Bán nhà được nửa giá.
+        Tiền mặt: <b className="text-emerald-300">{money(mine.cash)}</b> · {buildRuleText(settings)} Bán nhà được nửa giá{sellLandOn ? ", bán đất cho ngân hàng cũng nửa giá" : ""}.
       </p>
-      {full.length === 0 && <p className="text-sm text-sky-100/70">Bạn chưa sở hữu đủ nhóm màu nào.</p>}
+      {groups.length === 0 && <p className="text-sm text-sky-100/70">{needGroup ? "Bạn chưa sở hữu đủ nhóm màu nào." : "Bạn chưa có đất thành phố nào."}</p>}
       <div className="space-y-3">
-        {full.map((grp) => {
+        {groups.map((grp) => {
           const cells = groupPositions(grp);
-          const houses = cells.map((p) => g.deeds[p].houses);
-          const anyMortgaged = cells.some((p) => g.deeds[p].mortgaged);
+          const anyMortgaged = cells.some((p) => g.deeds[p]?.owner === mine.id && g.deeds[p].mortgaged);
           return (
             <div key={grp} className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
               <div className="flex items-center justify-between px-3 py-1.5 text-sm font-bold text-black" style={{ background: GROUP_COLORS[grp] }}>
@@ -897,26 +906,23 @@ function BuildPanel({ g, mine, busy, run, onClose }: { g: TPGameView; mine: TPPl
                 {cells.map((pos) => {
                   const sq = BOARD[pos] as Extract<Square, { kind: "prop" }>;
                   const d = g.deeds[pos];
-                  const canBuild =
-                    !inDebt && !anyMortgaged && d.houses < MAX_HOUSES && d.houses === Math.min(...houses) && mine.cash >= sq.house;
-                  const canSell = d.houses > 0 && d.houses === Math.max(...houses);
-                  const why = inDebt
-                    ? "Đang nợ — chỉ bán được"
-                    : anyMortgaged
-                      ? "Chuộc hết đất trong nhóm trước"
-                      : d.houses >= MAX_HOUSES
-                        ? "Đã có khách sạn"
-                        : d.houses !== Math.min(...houses)
-                          ? "Xây đều: ô khác trong nhóm trước"
-                          : mine.cash < sq.house
-                            ? `Cần ${money(sq.house)}`
-                            : "";
+                  if (!d || d.owner !== mine.id) {
+                    return (
+                      <li key={pos} className="flex items-center gap-2 px-3 py-2 text-sm text-sky-100/45">
+                        <span className="min-w-0 flex-1 truncate">{sq.name}</span>
+                        <span className="text-[11px]">{d ? "của người khác" : "chưa có chủ"}</span>
+                      </li>
+                    );
+                  }
+                  const m = g.manage?.[pos];
+                  const buildWhy = inDebt ? "Đang nợ — chỉ bán được" : (m?.build ?? null);
+                  const sellWhy = m?.sell ?? (d.houses > 0 ? null : "Không có nhà để bán");
                   return (
-                    <li key={pos} className="flex items-center gap-2 px-3 py-2 text-sm">
+                    <li key={pos} className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
                       <span className="min-w-0 flex-1">
                         <b className="block truncate">{sq.name}</b>
                         <span className="flex h-5 items-end gap-0.5">
-                          {d.houses === 0 && <span className="text-[11px] text-sky-100/50">Đất trống · thuê {money(sq.rent[0] * 2)}</span>}
+                          {d.houses === 0 && <span className="text-[11px] text-sky-100/50">Đất trống · thuê {money(sq.rent[0])}</span>}
                           {d.houses === MAX_HOUSES ? (
                             <Building hotel className="h-4" />
                           ) : (
@@ -925,24 +931,37 @@ function BuildPanel({ g, mine, busy, run, onClose }: { g: TPGameView; mine: TPPl
                           {d.houses > 0 && <span className="ml-1 text-[11px] text-sky-100/60">thuê {money(sq.rent[d.houses])}</span>}
                         </span>
                       </span>
+                      {sellLandOn && d.houses === 0 && m && (
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Bán ${sq.name} cho ngân hàng lấy ${money(m.landPrice)}? Đất sẽ về chợ, ai cũng mua lại được.`)) void run({ type: "sellland", pos });
+                          }}
+                          disabled={busy || !!m.sellLand}
+                          title={m.sellLand ?? `Bán đất, nhận ${money(m.landPrice)}`}
+                          className="min-h-9 rounded-lg border border-amber-300/40 px-2 py-1 text-xs font-semibold text-amber-200 enabled:hover:bg-amber-400/10 disabled:opacity-30"
+                        >
+                          🏷️ Bán đất
+                        </button>
+                      )}
                       <button
                         onClick={() => void run({ type: "sell", pos })}
-                        disabled={busy || !canSell}
-                        className="rounded-lg border border-white/20 px-2 py-1 text-xs font-semibold enabled:hover:bg-white/10 disabled:opacity-30"
-                        title={`Bán 1 nhà, nhận ${money(sq.house / 2)}`}
+                        disabled={busy || !!sellWhy}
+                        className="min-h-9 rounded-lg border border-white/20 px-2 py-1 text-xs font-semibold enabled:hover:bg-white/10 disabled:opacity-30"
+                        title={sellWhy ?? `Bán 1 nhà, nhận ${money(sq.house / 2)}`}
                       >
                         − Bán
                       </button>
                       {!inDebt && (
                         <button
                           onClick={() => void run({ type: "build", pos })}
-                          disabled={busy || !canBuild}
-                          title={why || undefined}
-                          className="rounded-lg bg-emerald-500 px-3 py-1 text-xs font-bold text-black enabled:hover:bg-emerald-400 disabled:opacity-30"
+                          disabled={busy || !!buildWhy}
+                          title={buildWhy ?? undefined}
+                          className="min-h-9 rounded-lg bg-emerald-500 px-3 py-1 text-xs font-bold text-black enabled:hover:bg-emerald-400 disabled:opacity-30"
                         >
                           + {d.houses === MAX_HOUSES - 1 ? "Khách sạn" : "Nhà"} · {money(sq.house)}
                         </button>
                       )}
+                      {buildWhy && !inDebt && d.houses < MAX_HOUSES && <span className="w-full text-right text-[11px] text-sky-100/45">{buildWhy}</span>}
                     </li>
                   );
                 })}
@@ -968,7 +987,6 @@ function BuildPanel({ g, mine, busy, run, onClose }: { g: TPGameView; mine: TPPl
           </ul>
         </div>
       )}
-      </div>
     </Modal>
   );
 }
@@ -1180,6 +1198,8 @@ function SquareModal({
   const inDebt = g?.phase === "debt";
   const group = sq.kind === "prop" ? groupPositions(sq.group) : [];
   const ownsSet = sq.kind === "prop" && !!g && group.every((p) => g.deeds[p]?.owner === meId);
+  const m = g?.manage?.[pos];
+  const buildWhy = inDebt ? "Đang nợ — không xây được" : (m?.build ?? (ownsSet ? null : "Sở hữu đủ cả nhóm màu mới được xây nhà."));
 
   return (
     <Modal onClose={onClose}>
@@ -1213,18 +1233,29 @@ function SquareModal({
           {mineHere && isOwnable(sq) && (
             <div className="flex flex-wrap gap-2 pt-1">
               {sq.kind === "prop" && !deed.mortgaged && deed.houses < MAX_HOUSES && (
-                <CBtn primary onClick={() => void run({ type: "build", pos })} disabled={busy || inDebt || !ownsSet}>
+                <CBtn primary onClick={() => void run({ type: "build", pos })} disabled={busy || !!buildWhy} title={buildWhy ?? undefined}>
                   🏠 Xây {deed.houses === MAX_HOUSES - 1 ? "khách sạn" : "nhà"} ({money(sq.house)})
                 </CBtn>
               )}
               {sq.kind === "prop" && deed.houses > 0 && (
-                <CBtn onClick={() => void run({ type: "sell", pos })} disabled={busy}>
+                <CBtn onClick={() => void run({ type: "sell", pos })} disabled={busy || !!m?.sell} title={m?.sell ?? undefined}>
                   Bán 1 nhà (+{money(sq.house / 2)})
                 </CBtn>
               )}
               {!deed.mortgaged && deed.houses === 0 && (
                 <CBtn onClick={() => void run({ type: "mortgage", pos })} disabled={busy}>
                   Thế chấp (+{money(mortgageValue(sq))})
+                </CBtn>
+              )}
+              {m && m.sellLand !== "Luật bàn không cho bán đất" && deed.houses === 0 && (
+                <CBtn
+                  onClick={() => {
+                    if (window.confirm(`Bán ${sq.name} cho ngân hàng lấy ${money(m.landPrice)}? Đất sẽ về chợ, ai cũng mua lại được.`)) void run({ type: "sellland", pos });
+                  }}
+                  disabled={busy || !!m.sellLand}
+                  title={m.sellLand ?? undefined}
+                >
+                  🏷️ Bán đất (+{money(m.landPrice)})
                 </CBtn>
               )}
               {deed.mortgaged && (
@@ -1234,7 +1265,7 @@ function SquareModal({
               )}
             </div>
           )}
-          {mineHere && sq.kind === "prop" && !ownsSet && <p className="text-xs text-emerald-900/60">Sở hữu đủ cả nhóm màu mới được xây nhà.</p>}
+          {mineHere && sq.kind === "prop" && buildWhy && deed.houses < MAX_HOUSES && <p className="text-xs text-emerald-900/60">{buildWhy}</p>}
           {deed?.owner === meId && !myTurn && <p className="text-xs text-emerald-900/60">Xây nhà / thế chấp được trong lượt của bạn.</p>}
         </div>
       </div>
@@ -1582,6 +1613,51 @@ function Waiting({ view, me, act, nameOf }: { view: TPRoomView; me: TPSeatView |
             ),
           },
           {
+            id: "house",
+            label: "🏠 Luật nhà",
+            content: (
+              <div className="space-y-2">
+                <label className="flex items-center justify-between gap-2">
+                  <span>Luật xây nhà</span>
+                  <select
+                    value={view.settings.buildRule ?? "even"}
+                    disabled={!isHost}
+                    onChange={(e) => void act({ type: "settings", buildRule: e.target.value as "even" | "chain" })}
+                    className="rounded-md border border-emerald-900/20 bg-white px-2 py-0.5"
+                  >
+                    <option value="even">Xây đều</option>
+                    <option value="chain">Xây theo chuỗi</option>
+                  </select>
+                </label>
+                <p className="text-[11px] leading-snug text-emerald-900/60">{buildRuleText(view.settings)}</p>
+                <Toggle
+                  label="Phải đủ cả nhóm màu mới được xây"
+                  checked={view.settings.needGroup !== false}
+                  disabled={!isHost}
+                  onChange={(v) => void act({ type: "settings", needGroup: v })}
+                />
+                <Toggle
+                  label="Cho bán đất cho ngân hàng (nửa giá, đất về chợ)"
+                  checked={!!view.settings.sellLand}
+                  disabled={!isHost}
+                  onChange={(v) => void act({ type: "settings", sellLand: v })}
+                />
+                <label className="flex items-center justify-between gap-2">
+                  <span>Đất của người phá sản</span>
+                  <select
+                    value={view.settings.bankruptTo ?? "bank"}
+                    disabled={!isHost}
+                    onChange={(e) => void act({ type: "settings", bankruptTo: e.target.value as "bank" | "creditor" })}
+                    className="rounded-md border border-emerald-900/20 bg-white px-2 py-0.5"
+                  >
+                    <option value="bank">Về ngân hàng — mua lại được</option>
+                    <option value="creditor">Về tay chủ nợ</option>
+                  </select>
+                </label>
+              </div>
+            ),
+          },
+          {
             id: "points",
             label: "🏆 Điểm",
             content: (
@@ -1632,6 +1708,12 @@ export function TyPhuRules() {
       <li>Tung 2 xúc xắc rồi đi. Tung đôi được tung tiếp; đôi 3 lần liền thì vào tù.</li>
       <li>Dừng ở đất, sân bay hay công ty chưa có chủ thì được mua. Không mua thì đất vẫn thuộc ngân hàng.</li>
       <li>Dừng ở đất người khác thì trả tiền thuê. Có đủ cả nhóm màu thì tiền thuê ×2 và được xây nhà — xây đều từng ô, 4 nhà rồi lên khách sạn.</li>
+      <li>
+        Luật nhà (chủ bàn chọn): <b>xây đều</b>, hoặc <b>xây theo chuỗi</b> — nhà 1 xây bình thường, nhà 2 cần ít nhất 2 ô trong nhóm đã có nhà 1, nhà 3 cần 2 ô đã có
+        nhà 2, nhà 4 cần mọi ô trong nhóm có 3 nhà, khách sạn cần mọi ô có 4 nhà. Có thể bỏ điều kiện đủ nhóm màu.
+      </li>
+      <li>Bán nhà được nửa giá. Nếu bàn cho phép, bán đất (không còn nhà) cho ngân hàng được nửa giá — đất về chợ, ai dừng ở đó mua lại được.</li>
+      <li>Phá sản: tiền còn lại về tay chủ nợ; đất trả về ngân hàng để người khác mua như bình thường (hoặc về tay chủ nợ, tuỳ luật bàn).</li>
       <li>Sân bay: càng nhiều sân bay càng thu nhiều (25 → 200tr). Điện / nước: tổng xúc xắc × 4, có cả hai thì × 10.</li>
       <li>Thiếu tiền: bán nhà (được nửa giá) hoặc thế chấp đất (nửa giá, chuộc lại mất thêm 10%). Không xoay nổi thì phá sản.</li>
       <li>Ở tù: tung đôi để ra, hoặc nộp 50tr / dùng thẻ ra tù trước khi tung. Sau 3 lượt thì phải nộp phạt.</li>
