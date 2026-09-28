@@ -461,10 +461,10 @@ function Board({
             {!g || g.status === "ended" ? (
               <Waiting view={view} me={me} act={act} nameOf={nameOf} />
             ) : (
-              <div className="flex w-full flex-col items-center gap-3 short:gap-1.5 lg:grid lg:grid-cols-[auto_minmax(0,1fr)] lg:items-center lg:gap-8 lg:px-4">
+              <div className="grid w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-3 short:gap-2 sm:gap-6 lg:gap-8 lg:px-4">
                 {/* Left: draw pile + played cards */}
                 <div className="flex flex-col items-center gap-2">
-                <div className="flex items-end gap-5">
+                <div className="flex items-end gap-2 sm:gap-5">
                   <button
                     onClick={() => void run({ type: "draw" })}
                     disabled={!canDraw}
@@ -472,10 +472,10 @@ function Board({
                     aria-label="Rút bài"
                   >
                     <div className="relative">
-                      <MeoCard type="exploding" faceDown size="md" className={cn("short:w-14", canDraw && "ring-2 ring-amber-300 group-hover:-translate-y-1")} />
+                      <MeoCard type="exploding" faceDown size="md" className={cn("max-sm:w-14 short:w-14", canDraw && "ring-2 ring-amber-300 group-hover:-translate-y-1")} />
                       <span className="absolute -right-2 -top-2 rounded-full bg-black/70 px-2 py-0.5 font-mono text-xs text-amber-200">{g.deckCount}</span>
                     </div>
-                    <span className="text-xs text-orange-100/70">{canDraw ? "Bấm để rút" : "Chồng bài"}</span>
+                    <span className="text-xs text-orange-100/70 max-sm:text-[10px]">{canDraw ? "Bấm để rút" : "Chồng bài"}</span>
                   </button>
                   <button
                     onClick={() => setShowDiscard(true)}
@@ -486,15 +486,15 @@ function Board({
                     {g.discard.length ? (
                       <span className="relative">
                         {g.discard.length > 1 && (
-                          <MeoCard type={g.discard[g.discard.length - 2]} size="md" tooltip={false} className="absolute left-1 top-1 -rotate-6 opacity-60 short:w-14" />
+                          <MeoCard type={g.discard[g.discard.length - 2]} size="md" tooltip={false} className="absolute left-1 top-1 -rotate-6 opacity-60 max-sm:w-14 short:w-14" />
                         )}
-                        <MeoCard type={g.discard[g.discard.length - 1]} size="md" tooltip={false} className="relative group-hover:-translate-y-1 short:w-14" />
+                        <MeoCard type={g.discard[g.discard.length - 1]} size="md" tooltip={false} className="relative group-hover:-translate-y-1 max-sm:w-14 short:w-14" />
                       </span>
                     ) : (
-                      <div className="aspect-[5/7] w-[4.6rem] rounded-xl border-2 border-dashed border-white/15 sm:w-20 short:w-14" />
+                      <div className="aspect-[5/7] w-[4.6rem] rounded-xl border-2 border-dashed border-white/15 max-sm:w-14 sm:w-20 short:w-14" />
                     )}
-                    <span className="text-xs text-orange-100/70">
-                      Đã đánh ({g.discard.length}){g.discard.length ? <span className="ml-1 text-amber-200 underline">👁️ xem</span> : null}
+                    <span className="text-center text-xs text-orange-100/70 max-sm:text-[10px] max-sm:leading-tight">
+                      Đã đánh ({g.discard.length}){g.discard.length ? <span className="ml-1 text-amber-200 underline max-sm:block">👁️ xem</span> : null}
                     </span>
                   </button>
                 </div>
