@@ -718,7 +718,7 @@ function Board({
               </span>
             </div>
 
-            <div className="max-h-[32dvh] w-full overflow-y-auto overflow-x-hidden overscroll-contain sm:max-h-[36dvh] lg:max-h-[34dvh] short:max-h-[7.5rem]">
+            <div className="max-h-[32dvh] w-full overflow-y-auto overflow-x-hidden overscroll-contain pb-1.5 sm:max-h-[36dvh] lg:max-h-[34dvh] short:max-h-[7.5rem]">
               {groups ? (
                 <div className="flex w-full flex-wrap justify-center gap-1.5 pt-4 short:pt-3">
                   {groups.map((ids) => {

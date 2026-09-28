@@ -22,6 +22,8 @@ Lá nào chưa có tranh vẫn hiện mặt vẽ bằng màu + emoji như cũ, n
 
 **Ảnh bị cắt lệch** (công cụ không vẽ đúng 4×3, ô to nhỏ không đều): tạo lại, hoặc tự cắt ô đó ra thành ảnh lẻ như trên.
 
+**Ô không đúng tỉ lệ 5:7** (ví dụ ảnh dọc 1060×1484 cho ô cao và hẹp): ô lệch dưới 12% thì được cắt cho vừa. Lệch nhiều hơn thì script chỉ gọt bớt 12% rồi kéo dài mép tranh cho đủ 5:7, nên không mất chi tiết ở trên và dưới. Tranh có vật chạm sát mép trái/phải sẽ thấy vệt kéo dài; muốn đẹp hơn thì vẽ lại ô đó thành ảnh lẻ 5:7. Riêng mặt sau lá (`back`, có khung hoạ tiết) luôn được cắt.
+
 ### Mẹo để ảnh lưới cắt chuẩn và đẹp
 
 - Yêu cầu **đúng 4 cột × 3 hàng, 12 ô bằng nhau**, có **khe và lề màu kem trơn** giữa các ô. Script dựa vào màu lề (lấy ở góc ảnh) để gọt khe.

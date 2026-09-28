@@ -43,6 +43,8 @@ const GAMES = {
     typeImport: `import type { CardType } from "./cards";`,
     exportName: "MEO_ART",
     about: `Card types that have artwork in public/games/meono/cards/<type>.webp ("back" = the card back).`,
+    /** Framed designs that look wrong padded: always cropped to 5:7. */
+    alwaysCrop: ["back"],
     /** Cards in each sheet, left to right, top row first (4 columns × 3 rows); null = empty cell. */
     sheets: {
       1: ["exploding", "defuse", "attack", "skip", "favor", "shuffle", "future", "nope", "taco", "melon", "potato", "beard"],
@@ -116,11 +118,41 @@ if (!existsSync(SRC)) {
   process.exit(1);
 }
 
-const save = (img, name) =>
-  img
-    .resize(W, H, { fit: "cover", position: sharp.strategy.attention })
+/** How far a panel's shape may be from 5:7 before it is padded instead of cropped. */
+const CROP_TOLERANCE = 0.12;
+
+/**
+ * Save one card at 400×560. A panel close to 5:7 is cropped to fit; a panel much taller or wider
+ * (e.g. a sheet drawn with 9:16 cells) is kept whole and centred on a blurred, enlarged copy of
+ * itself, so nothing important is cut off.
+ */
+async function save(img, name) {
+  const { data, info } = await img.png().toBuffer({ resolveWithObject: true });
+  const ratio = info.width / info.height;
+  const out = join(OUT, `${name}.webp`);
+  if (Math.abs(ratio / (W / H) - 1) <= CROP_TOLERANCE) {
+    return sharp(data).resize(W, H, { fit: "cover", position: sharp.strategy.attention }).webp({ quality: 82, effort: 6 }).toFile(out);
+  }
+  if (cfg.alwaysCrop?.includes(name)) {
+    return sharp(data).resize(W, H, { fit: "cover", position: sharp.strategy.attention }).webp({ quality: 82, effort: 6 }).toFile(out);
+  }
+  // Trim a little off the long side first (keeps the padding small), then stretch the edge pixels
+  // out to 5:7 — panel backgrounds are gradients, so the copied edges blend in.
+  const trimmed =
+    ratio < W / H
+      ? { w: info.width, h: Math.round(Math.min(info.height, (info.width / ratio) * (1 - CROP_TOLERANCE))) }
+      : { w: Math.round(Math.min(info.width, info.height * ratio * (1 - CROP_TOLERANCE))), h: info.height };
+  const fit = await sharp(data)
+    .resize(trimmed.w, trimmed.h, { fit: "cover", position: sharp.strategy.attention })
+    .resize(W, H, { fit: "inside" })
+    .toBuffer({ resolveWithObject: true });
+  const padX = W - fit.info.width;
+  const padY = H - fit.info.height;
+  return sharp(fit.data)
+    .extend({ left: Math.floor(padX / 2), right: Math.ceil(padX / 2), top: Math.floor(padY / 2), bottom: Math.ceil(padY / 2), extendWith: "copy" })
     .webp({ quality: 82, effort: 6 })
-    .toFile(join(OUT, `${name}.webp`));
+    .toFile(out);
+}
 
 /**
  * Where the panels are along one axis: runs of lines that are (almost) all gutter colour split the
