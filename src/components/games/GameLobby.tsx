@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { NameForm } from "@/components/tienlen/NameForm";
 import { DeltaBadge } from "@/components/tienlen/Scoreboard";
 import { cn } from "@/lib/utils";
-import { createGameRoom, fetchApi, getSavedName, saveName } from "./gameClient";
+import { createGameRoom, fetchApi, usePlayerName } from "./gameClient";
+import { useGamesShell } from "./GamesShell";
 
 const ROOMS_REFRESH_MS = 5000;
 
@@ -45,15 +45,15 @@ export interface GameLobbyProps {
 /** Shared lobby: create / join by code, live table list with play/watch, leaderboard. */
 export function GameLobby({ title, tagline, icons, basePath, wsPath, apiPrefix, maxPlayers, rules, extra, roomBadges }: GameLobbyProps) {
   const router = useRouter();
-  const [name, setName] = useState<string | null>(null);
+  // The games layout gates on a name, so it is set here; renaming goes through the top bar.
+  const name = usePlayerName();
+  const { openRename } = useGamesShell();
   const [joinCode, setJoinCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rooms, setRooms] = useState<LobbyRoom[] | null>(null);
   const [roomsError, setRoomsError] = useState(false);
   const [board, setBoard] = useState<LeaderRow[] | null>(null);
-
-  useEffect(() => setName(getSavedName()), []);
 
   const loadRooms = useCallback(async () => {
     try {
@@ -76,8 +76,7 @@ export function GameLobby({ title, tagline, icons, basePath, wsPath, apiPrefix, 
     return () => clearInterval(id);
   }, [loadRooms, apiPrefix]);
 
-  const onCreate = async (n: string) => {
-    saveName(n);
+  const onCreate = async () => {
     setBusy(true);
     setError(null);
     try {
@@ -92,17 +91,8 @@ export function GameLobby({ title, tagline, icons, basePath, wsPath, apiPrefix, 
   const code = joinCode.trim().toUpperCase();
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-4 short:pb-8 short:pt-2">
-      <div className="flex flex-wrap gap-2">
-        <Link
-          href="/games"
-          className="inline-block rounded-lg border border-white/15 bg-black/40 px-3 py-1.5 text-sm text-white/90 transition-colors hover:bg-black/60"
-        >
-          ← Tất cả game
-        </Link>
-      </div>
-
-      <header className="mb-8 mt-6 text-center short:mb-3 short:mt-2">
+    <main className="mx-auto w-full max-w-5xl px-4 pb-10 pt-4 short:pb-6 short:pt-2">
+      <header className="mb-6 mt-2 text-center short:mb-3 short:mt-0">
         <p className="mb-2 text-4xl short:mb-1 short:text-2xl" aria-hidden>
           {icons}
         </p>
@@ -112,9 +102,22 @@ export function GameLobby({ title, tagline, icons, basePath, wsPath, apiPrefix, 
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] short:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] short:gap-3">
         <section className="h-fit rounded-2xl border border-white/10 bg-black/30 p-5 backdrop-blur">
-          {name !== null && (
-            <NameForm initial={name} submitLabel={busy ? "Đang tạo bàn…" : "Tạo bàn mới"} onSubmit={onCreate} busy={busy} />
-          )}
+          <div className="flex flex-col gap-3">
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/70">
+              Bạn chơi với tên
+              <b className="max-w-[12rem] truncate text-base text-amber-200">{name || "…"}</b>
+              <button type="button" onClick={openRename} className="text-xs text-white/50 underline-offset-2 hover:text-white hover:underline">
+                ✎ Đổi tên
+              </button>
+            </p>
+            <button
+              onClick={() => void onCreate()}
+              disabled={busy || !name}
+              className="rounded-lg bg-amber-400 px-4 py-2 font-semibold text-black transition-colors hover:bg-amber-300 disabled:opacity-40"
+            >
+              {busy ? "Đang tạo bàn…" : "Tạo bàn mới"}
+            </button>
+          </div>
 
           <div className="my-5 flex items-center gap-3 text-xs text-white/40">
             <span className="h-px flex-1 bg-white/10" /> hoặc nhập mã bàn <span className="h-px flex-1 bg-white/10" />

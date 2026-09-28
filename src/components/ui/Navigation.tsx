@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
+import { isGamesRoute } from "@/components/games/gamesRegistry";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -211,11 +212,8 @@ export default function Navigation({ navLinks }: NavigationProps) {
     pathname?.startsWith("/music") ||
     pathname?.startsWith("/couple") ||
     pathname?.startsWith("/contra") ||
-    pathname?.startsWith("/tien-len") ||
-    pathname?.startsWith("/meo-no") ||
-    pathname?.startsWith("/co-ty-phu") ||
-    pathname?.startsWith("/splendor") ||
-    pathname?.startsWith("/bang")
+    // /games and every online game use their own layout (GamesShell).
+    isGamesRoute(pathname)
   ) {
     return null;
   }

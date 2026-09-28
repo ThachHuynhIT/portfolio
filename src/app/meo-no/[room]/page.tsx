@@ -1,52 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { getSavedName, saveName } from "@/components/games/gameClient";
-import { NameForm } from "@/components/tienlen/NameForm";
+import { getSavedName } from "@/components/games/gameClient";
 
 const MeoTable = dynamic(() => import("@/components/meono/MeoTable"), {
   ssr: false,
   loading: () => <p className="animate-pulse pt-32 text-center text-orange-100/70">Đang tải bàn chơi…</p>,
 });
 
+/** The games layout (GamesShell) only renders this once the player has a name. */
 export default function MeoNoRoomPage({ params }: { params: { room: string } }) {
   const code = decodeURIComponent(params.room).toUpperCase();
   const watch = useSearchParams().get("watch") === "1";
-  const [saved, setSaved] = useState<string | null>(null);
-  const [name, setName] = useState<string | null>(null);
-
-  useEffect(() => {
-    const n = getSavedName();
-    setSaved(n);
-    if (n) setName(n);
-  }, []);
-
-  if (saved === null) return null;
-
-  if (!name) {
-    return (
-      <main className="mx-auto flex min-h-[100dvh] max-w-sm flex-col justify-center px-4">
-        <Link href="/meo-no" className="mb-6 self-start text-sm text-orange-100/70 hover:text-orange-50">
-          ← Sảnh
-        </Link>
-        <h1 className="mb-1 text-2xl font-black text-amber-300">
-          {watch ? "Xem" : "Vào"} bàn {code}
-        </h1>
-        <p className="mb-5 text-sm text-orange-100/70">Nhập tên để mọi người nhận ra bạn.</p>
-        <NameForm
-          initial=""
-          submitLabel={watch ? "Vào xem" : "Vào bàn"}
-          onSubmit={(n) => {
-            saveName(n);
-            setName(n);
-          }}
-        />
-      </main>
-    );
-  }
+  // Frozen for this table: renaming in the top bar must not re-join the room mid-game.
+  const [name] = useState(getSavedName);
 
   return <MeoTable code={code} name={name} watch={watch} />;
 }

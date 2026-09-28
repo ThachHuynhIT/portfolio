@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 /**
  * Shared WebSocket client for the be_game backend (Tiến Lên, Mèo Nổ, …).
@@ -9,7 +9,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
  */
 
 const TOKEN_KEY = "tienlen:token";
-const NAME_KEY = "tienlen:name";
+/** One player name for every game (chosen at the games gate, shown in the games top bar). */
+export const PLAYER_NAME_KEY = "games:playerName";
+/** Older per-game key, migrated into PLAYER_NAME_KEY on first read. */
+const LEGACY_NAME_KEYS = ["tienlen:name"];
 /** Clients ping this often; the ping doubles as the presence heartbeat. */
 const PING_INTERVAL_MS = 10_000;
 
@@ -51,20 +54,60 @@ export function getToken(): string {
   }
 }
 
-export function getSavedName(): string {
+let cachedName: string | null = null;
+const nameListeners = new Set<() => void>();
+
+function loadName(): string {
   try {
-    return localStorage.getItem(NAME_KEY) ?? "";
+    const saved = localStorage.getItem(PLAYER_NAME_KEY);
+    if (saved !== null) return saved.trim();
+    for (const key of LEGACY_NAME_KEYS) {
+      const old = localStorage.getItem(key)?.trim();
+      if (old) {
+        localStorage.setItem(PLAYER_NAME_KEY, old);
+        localStorage.removeItem(key);
+        return old;
+      }
+    }
   } catch {
-    return "";
+    /* storage unavailable — fall through to "no name yet" */
   }
+  return "";
+}
+
+/** The player's name for every game ("" when none has been chosen yet). */
+export function getSavedName(): string {
+  return (cachedName ??= loadName());
 }
 
 export function saveName(name: string) {
+  cachedName = name.trim();
   try {
-    localStorage.setItem(NAME_KEY, name);
+    localStorage.setItem(PLAYER_NAME_KEY, cachedName);
   } catch {
-    /* storage unavailable — name just won't be remembered */
+    /* storage unavailable — the name lasts until the tab closes */
   }
+  nameListeners.forEach((l) => l());
+}
+
+function subscribeName(listener: () => void) {
+  nameListeners.add(listener);
+  // Another tab renamed the player.
+  const onStorage = (e: StorageEvent) => {
+    if (e.key !== PLAYER_NAME_KEY) return;
+    cachedName = (e.newValue ?? "").trim();
+    listener();
+  };
+  window.addEventListener("storage", onStorage);
+  return () => {
+    nameListeners.delete(listener);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+/** Live player name: `null` until read on the client (and during SSR), then the saved name ("" = none). */
+export function usePlayerName(): string | null {
+  return useSyncExternalStore(subscribeName, getSavedName, () => null);
 }
 
 type ServerMessage = ({ type: "ack"; id: number } & Ack) | { type: "state"; view: unknown } | { type: "reconnect" } | { type: "pong" };

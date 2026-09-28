@@ -52,7 +52,7 @@ export function GemIcon({ gem, className }: { gem: Token; className?: string }) 
 }
 
 /** A gem with a number on it — used for costs and requirements. */
-function GemCount({ gem, n, className }: { gem: Gem; n: number; className?: string }) {
+export function GemCount({ gem, n, className }: { gem: Gem; n: number; className?: string }) {
   return (
     <span className={cn("relative inline-flex shrink-0 items-center justify-center", className)} title={`${n} ${GEM_NAMES[gem]}`}>
       <GemIcon gem={gem} className="absolute inset-0 h-full w-full" />

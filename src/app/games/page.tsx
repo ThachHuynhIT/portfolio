@@ -68,9 +68,9 @@ const GAMES: GameCard[] = [
 
 export default function GamesPage() {
   return (
-    <main className="relative z-10 min-h-[100dvh] px-4 pb-20 pt-28 text-white">
+    <main className="relative px-4 pb-10 pt-8 text-white sm:pt-10">
       <div className="mx-auto max-w-5xl">
-        <header className="mb-10 text-center">
+        <header className="mb-8 text-center">
           <p className="mb-3 text-4xl" aria-hidden>
             🎮
           </p>

@@ -33,11 +33,26 @@ type Act = (msg: Record<string, unknown> & { type: string }) => Promise<boolean>
 
 const SCORE_NOTE = "Phe thắng mỗi người được số điểm chủ bàn chọn; phe thua chia đều phần trừ, tổng mỗi ván bằng 0.";
 
-/** Shift server-clock deadlines onto the local clock. */
-function localize(view: BangRoomView): BangRoomView {
+/**
+ * Shift server-clock deadlines onto the local clock.
+ *
+ * The clock offset is kept steady between messages: re-measuring it on every state update
+ * (it includes that message's network latency) made each localized deadline wobble by a few
+ * ms, which changed `promptKey` in Board and reset the selection (e.g. the Trượt! you had just
+ * picked) whenever anyone did anything — chat, an emoji, another player's move.
+ */
+function makeLocalize() {
+  let skew: number | null = null;
+  return (view: BangRoomView): BangRoomView => {
+    const measured = Date.now() - view.serverTime;
+    if (skew === null || Math.abs(measured - skew) > 1500) skew = measured;
+    return localizeWith(view, skew);
+  };
+}
+
+function localizeWith(view: BangRoomView, skew: number): BangRoomView {
   const g = view.current;
   if (!g) return view;
-  const skew = Date.now() - view.serverTime;
   return {
     ...view,
     current: {
@@ -59,6 +74,7 @@ function useNow(active: boolean, every = 500) {
 }
 
 export default function BangTable({ code, name, watch }: { code: string; name: string; watch?: boolean }) {
+  const [localize] = useState(makeLocalize);
   const { view, status, error, call } = useGameRoom<BangRoomView>(BANG_WS_PATH, code, name, watch ? "watch" : "play", localize);
   const [toast, setToast] = useState<string | null>(null);
   useEffect(() => {
@@ -666,6 +682,64 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
 
   const turnName = g.turn ? nameOf(g.turn) : "";
   const handCards = me?.hand ?? [];
+  const myTurnNow = !!me && g.turn === me.id;
+
+  /** Could this card be played on your turn right now (a rough client-side check — the server has the last word)? */
+  const playable = (card: number): boolean => {
+    if (!me) return false;
+    const t = typeOf(card);
+    const ab = [me.char, ...me.borrowed];
+    const canBang = g.bangsLeft > 0 && g.event !== "sermon";
+    const someone = (reach: Reach) => g.players.some((p) => inReach(p, reach));
+    const lemat = g.event !== "lasso" && me.play.some((c) => cardDef(c.id).key === "lemat");
+    // Lá nào cũng dùng được như BANG! (Súng Hai Cỡ / Quyết Đấu), Trượt! như BANG! (Cô Tai Ương).
+    const asBang = t.key !== "bang" && (lemat || g.event === "showdown" || (ab.includes("calamity") && !!t.isMissed));
+    if (asBang && canBang && someone("range")) return true;
+    if (t.color !== "brown") {
+      if (g.event === "judge") return false;
+      if (t.placeOn) return someone(t.placeOn === "dead" ? "dead" : "any");
+      return true;
+    }
+    if (t.isMissed || t.key === "escape" || t.key === "saved") return false; // answers only, out of your turn
+    if (t.key === "aim") return false; // goes along with a BANG!
+    if (t.isBang && !canBang) return false;
+    if (t.cost && handCards.length < 2) return false;
+    if (t.key === "beer") return me.life < me.max && g.event !== "reverend" && g.players.filter((p) => !p.dead).length > 2;
+    if (t.key === "lastcall" || t.key === "whisky") return me.life < me.max;
+    const n = playNeeds(t.key, g);
+    return !n.target || someone(n.target);
+  };
+
+  /** Can this hand card do anything right now? The rest are greyed out (still tappable to read). */
+  const usable = (card: number): boolean => {
+    if (!me || (me.dead && !me.ghost)) return false;
+    const t = typeOf(card);
+    const ab = [me.char, ...me.borrowed];
+    if (myPrompt && prompt) {
+      switch (prompt.kind) {
+        case "react":
+          if (prompt.answer === "evade") return t.key === "escape" || (ab.includes("mick") && !!t.isMissed && t.color === "brown");
+          if (prompt.answer === "bang") return !!t.isBang || g.event === "showdown" || (ab.includes("calamity") && !!t.isMissed);
+          if (ab.includes("bigspencer")) return false;
+          return (!!t.isMissed && t.color === "brown") || ab.includes("elena") || (!!t.isBang && (ab.includes("calamity") || g.event === "showdown"));
+        case "discard":
+          return true;
+        case "save":
+          return t.key === "saved";
+        default:
+          return false;
+      }
+    }
+    if (mode) {
+      if (mode.kind === "end" || (mode.kind === "play" && mode.card === card)) return true;
+      if (needs.cards) {
+        // An optional extra (Nhắm Kỹ) doesn't grey out the rest of the hand.
+        if (mode.kind === "play" && needs.cards.optional) return true;
+        return !needs.cards.test || needs.cards.test(card);
+      }
+    }
+    return myTurn && playable(card);
+  };
 
   return (
     <div className="grid flex-1 gap-2 sm:gap-3 lg:grid-cols-[minmax(0,1fr)_18rem] short:grid-cols-1">
@@ -740,7 +814,8 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
 
         {/* You */}
         {me && (
-          <div className={cn("rounded-2xl border p-2 sm:p-3", g.turn === me.id ? "border-amber-300/60 bg-amber-400/10" : "border-white/10 bg-black/30")}>
+          <div className={cn("relative rounded-2xl border p-2 sm:p-3", myTurnNow ? "border-rose-300/50 bg-amber-400/10" : "border-white/10 bg-black/30")}>
+            {myTurnNow && <TurnGlow />}
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <span className="relative">
                 <SeatBubble reactions={reactionsFor(me.id)} />
@@ -749,16 +824,27 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
                   {me.char ? CHARACTERS[me.char].name : "?"}
                 </button>
               </span>
+              {myTurnNow && (
+                <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[11px] font-bold text-white shadow-[0_0_10px_rgba(251,113,133,0.6)]" role="status">
+                  🔔 Lượt của bạn
+                </span>
+              )}
               <RoleBadge role={me.role} small />
               <Hearts life={me.life} max={me.max} dead={me.dead && !me.ghost} />
               {me.ghost && <span className="rounded bg-indigo-500/40 px-1 text-xs">👻 hồn ma</span>}
               {goldrush && <span className="text-xs text-yellow-200">🪙 {me.gold}</span>}
               {me.cubes > 0 && <span className="text-xs text-amber-200" title="Đạn trên thẻ nhân vật">🔸 {me.cubes}</span>}
-              {me.borrowed.length > 0 && <span className="text-xs text-white/60">+ {me.borrowed.map((b) => CHARACTERS[b].name).join(", ")}</span>}
               <span className="ml-auto text-xs text-white/60">
                 Tầm {g.range} · BANG! còn {g.bangsLeft >= 99 ? "∞" : g.bangsLeft} · giữ tối đa {limit}
               </span>
             </div>
+            {/* Your character's power, always on show under its name. */}
+            {me.char && <p className="mt-1 text-xs leading-snug text-amber-50/85 sm:text-[13px]">{CHARACTERS[me.char].text}</p>}
+            {me.borrowed.map((b) => (
+              <p key={b} className="mt-0.5 text-xs leading-snug text-white/65">
+                <b className="text-amber-200/90">+ {CHARACTERS[b].name}:</b> {CHARACTERS[b].text}
+              </p>
+            ))}
             {(me.play.length > 0 || me.gear.length > 0) && (
               <div className="mt-1.5 flex flex-wrap gap-1">
                 {me.play.map((c) => (
@@ -813,9 +899,10 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
 
         {/* Your hand */}
         {handCards.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-1.5 pt-2 short:pr-12" data-testid="hand">
+          <div className={cn("relative flex flex-wrap justify-center gap-1.5 rounded-2xl pt-2 short:pr-12", myTurnNow && "p-2 pt-3")} data-testid="hand">
+            {myTurnNow && <TurnGlow />}
             {handCards.map((c) => (
-              <CardFace key={c} id={c} onClick={() => tapHand(c)} selected={sel.includes(c) || mainCard === c} dim={!!needs.cards?.test && mode?.kind !== "play" && !needs.cards.test(c)} />
+              <CardFace key={c} id={c} onClick={() => tapHand(c)} selected={sel.includes(c) || mainCard === c} dim={!usable(c)} />
             ))}
           </div>
         )}
@@ -857,6 +944,16 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
         </Sheet>
       )}
     </div>
+  );
+}
+
+/** Softly pulsing rose ring around your own area while it is your turn (static under reduced motion). */
+function TurnGlow() {
+  return (
+    <span
+      aria-hidden
+      className="pointer-events-none absolute inset-0 rounded-[inherit] shadow-[0_0_18px_rgba(251,113,133,0.45)] ring-2 ring-rose-400 motion-safe:animate-pulse"
+    />
   );
 }
 

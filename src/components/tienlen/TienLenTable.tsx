@@ -22,6 +22,7 @@ import {
   tienlenRankPoints,
 } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
+import { MyTurnBadge, TurnRing as MyTurnRing } from "@/components/games/TurnIndicator";
 import { ChatBox } from "@/components/games/ChatBox";
 import { DraggableRow, useHandOrder } from "@/components/games/DraggableHand";
 import { BurnOverlay, ChopOverlay, EmojiBar, SeatBubble, Shake, SpectatorReactions, useBurnEffect, useChopEffect, useLiveReactions } from "./Effects";
@@ -374,16 +375,20 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onEmoj
       </Shake>
 
       {/* My area (or seat 0 for spectators) */}
-      <div className="mt-3 flex flex-col items-center gap-3 short:mt-1.5 short:grid short:grid-cols-[auto_auto] short:justify-center short:gap-x-3 short:gap-y-0">
+      <div className="relative mt-3 flex flex-col items-center gap-3 rounded-2xl short:mt-1.5 short:grid short:grid-cols-[auto_auto] short:justify-center short:gap-x-3 short:gap-y-0">
+        <MyTurnRing active={myTurn} />
         <div className="flex flex-col items-center gap-3 short:flex-row short:flex-wrap short:justify-center short:gap-2">
           <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-emerald-50">
             {spectator ? <Opponent {...seatProps(at(0))} /> : <SeatBadge {...seatProps(me)} />}
             {myTurn && (
-              <span className="font-semibold text-amber-300 short:max-w-[9rem] short:text-xs">
-                {/* Sideways the turn ring already says whose turn it is; keep only the hint. */}
-                <span className="short:hidden">Lượt của bạn{(playError || selectedCombo) && " — "}</span>
-                {playError ?? (selectedCombo ? comboName(selectedCombo) : "")}
-              </span>
+              <>
+                <MyTurnBadge />
+                {(playError || selectedCombo) && (
+                  <span className="font-semibold text-amber-300 short:max-w-[9rem] short:text-xs">
+                    {playError ?? (selectedCombo ? comboName(selectedCombo) : "")}
+                  </span>
+                )}
+              </>
             )}
             {!spectator && playing && me && !me.inGame && <span className="text-emerald-100/60">Bạn sẽ vào ván sau</span>}
           </div>

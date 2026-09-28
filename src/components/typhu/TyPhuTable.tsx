@@ -29,6 +29,7 @@ import { RankPointsPicker } from "@/components/games/RankPointsPicker";
 import { STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TradeSide } from "@/lib/typhu/protocol";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
+import { MyTurnBadge, TurnRing } from "@/components/games/TurnIndicator";
 
 const SCORE_NOTE =
   "Điểm theo thứ hạng: người còn trụ lại (hoặc giàu nhất khi hết giờ) Nhất, ai phá sản trước xếp sau. Chủ bàn chọn điểm Nhất / Nhì, các hạng cuối trừ tương ứng, tổng mỗi ván luôn bằng 0.";
@@ -707,81 +708,85 @@ function Centre({
           <span className="text-3xl sm:text-5xl">🎲</span>
         )}
       </div>
-      <p className="text-xs sm:text-sm">
-        {myTurn ? <b>Lượt của bạn</b> : <>Lượt của <b>{turnName}</b></>}
-        {secs !== null && <span className={cn("ml-2 font-mono", secs <= 8 && "text-rose-600")}>⏱ {secs}s</span>}
-      </p>
+      {/* My turn: pulsing ring around the turn line + my controls. */}
+      <div className={cn("relative flex w-full flex-col items-center gap-2 rounded-2xl", myTurn && "bg-rose-50/40 p-2 short:p-1.5")}>
+        <TurnRing active={myTurn} className="inset-0" />
+        <p className="flex items-center gap-2 text-xs sm:text-sm">
+          {myTurn ? <MyTurnBadge /> : <span>Lượt của <b>{turnName}</b></span>}
+          {secs !== null && <span className={cn("font-mono", secs <= 8 && "text-rose-600")}>⏱ {secs}s</span>}
+        </p>
 
-      {myTurn && mine && (
-        <div className="flex flex-wrap justify-center gap-2">
-          {g.phase === "roll" && (
-            <>
-              <CBtn primary onClick={() => void run({ type: "roll" })} disabled={busy}>
-                🎲 {g.rollAgain ? "Tung tiếp (đôi!)" : "Tung xúc xắc"}
-              </CBtn>
-              {mine.jail > 0 && (
-                <>
-                  <CBtn onClick={() => void run({ type: "payjail" })} disabled={busy || mine.cash < JAIL_FINE}>
-                    Nộp {money(JAIL_FINE)} ra tù
-                  </CBtn>
-                  {mine.jailCards > 0 && (
-                    <CBtn onClick={() => void run({ type: "jailcard" })} disabled={busy}>
-                      🗝️ Dùng thẻ ra tù
+        {myTurn && mine && (
+          <div className="flex flex-wrap justify-center gap-2">
+            {g.phase === "roll" && (
+              <>
+                <CBtn primary onClick={() => void run({ type: "roll" })} disabled={busy}>
+                  🎲 {g.rollAgain ? "Tung tiếp (đôi!)" : "Tung xúc xắc"}
+                </CBtn>
+                {mine.jail > 0 && (
+                  <>
+                    <CBtn onClick={() => void run({ type: "payjail" })} disabled={busy || mine.cash < JAIL_FINE}>
+                      Nộp {money(JAIL_FINE)} ra tù
                     </CBtn>
-                  )}
-                </>
-              )}
-            </>
-          )}
-          {g.phase === "buy" && here && isOwnable(here) && (
-            <>
-              <CBtn primary onClick={() => void run({ type: "buy" })} disabled={busy || mine.cash < here.price}>
-                🏷️ Mua {here.name} · {money(here.price)}
-              </CBtn>
-              <CBtn onClick={() => void run({ type: "skip" })} disabled={busy}>
-                Bỏ qua
-              </CBtn>
-              <BuyHint g={g} sq={here} meId={mine.id} />
-            </>
-          )}
-          {g.phase === "end" && (
-            <CBtn primary onClick={() => void run({ type: "end" })} disabled={busy}>
-              Kết thúc lượt ➜
-            </CBtn>
-          )}
-          {g.phase !== "debt" && (
-            <CBtn build onClick={() => setShowBuild(true)} disabled={busy || !fullGroups.length} title={fullGroups.length ? undefined : "Cần sở hữu đủ cả một nhóm màu"}>
-              🏠 Xây nhà{fullGroups.length ? ` (${fullGroups.length} nhóm)` : ""}
-            </CBtn>
-          )}
-          {g.phase === "debt" && housesOwned > 0 && (
-            <CBtn build onClick={() => setShowBuild(true)} disabled={busy}>
-              🏚️ Bán nhà
-            </CBtn>
-          )}
-          {g.phase === "debt" && g.debt && (
-            <div className="flex flex-col items-center gap-2 rounded-xl bg-rose-100 p-2 text-rose-900">
-              <p className="text-xs sm:text-sm">
-                Bạn nợ <b>{money(g.debt.amount)}</b> ({g.debt.reason}), đang có {money(mine.cash)}. Bấm vào đất của mình để bán nhà hoặc thế chấp.
-              </p>
-              <div className="flex gap-2">
-                <CBtn primary onClick={() => void run({ type: "paydebt" })} disabled={busy || mine.cash < g.debt.amount}>
-                  Trả nợ
+                    {mine.jailCards > 0 && (
+                      <CBtn onClick={() => void run({ type: "jailcard" })} disabled={busy}>
+                        🗝️ Dùng thẻ ra tù
+                      </CBtn>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+            {g.phase === "buy" && here && isOwnable(here) && (
+              <>
+                <CBtn primary onClick={() => void run({ type: "buy" })} disabled={busy || mine.cash < here.price}>
+                  🏷️ Mua {here.name} · {money(here.price)}
                 </CBtn>
-                <CBtn
-                  danger
-                  onClick={() => {
-                    if (window.confirm("Tuyên bố phá sản? Bạn sẽ rời ván này.")) void run({ type: "bankrupt" });
-                  }}
-                  disabled={busy}
-                >
-                  Phá sản
+                <CBtn onClick={() => void run({ type: "skip" })} disabled={busy}>
+                  Bỏ qua
                 </CBtn>
+                <BuyHint g={g} sq={here} meId={mine.id} />
+              </>
+            )}
+            {g.phase === "end" && (
+              <CBtn primary onClick={() => void run({ type: "end" })} disabled={busy}>
+                Kết thúc lượt ➜
+              </CBtn>
+            )}
+            {g.phase !== "debt" && (
+              <CBtn build onClick={() => setShowBuild(true)} disabled={busy || !fullGroups.length} title={fullGroups.length ? undefined : "Cần sở hữu đủ cả một nhóm màu"}>
+                🏠 Xây nhà{fullGroups.length ? ` (${fullGroups.length} nhóm)` : ""}
+              </CBtn>
+            )}
+            {g.phase === "debt" && housesOwned > 0 && (
+              <CBtn build onClick={() => setShowBuild(true)} disabled={busy}>
+                🏚️ Bán nhà
+              </CBtn>
+            )}
+            {g.phase === "debt" && g.debt && (
+              <div className="flex flex-col items-center gap-2 rounded-xl bg-rose-100 p-2 text-rose-900">
+                <p className="text-xs sm:text-sm">
+                  Bạn nợ <b>{money(g.debt.amount)}</b> ({g.debt.reason}), đang có {money(mine.cash)}. Bấm vào đất của mình để bán nhà hoặc thế chấp.
+                </p>
+                <div className="flex gap-2">
+                  <CBtn primary onClick={() => void run({ type: "paydebt" })} disabled={busy || mine.cash < g.debt.amount}>
+                    Trả nợ
+                  </CBtn>
+                  <CBtn
+                    danger
+                    onClick={() => {
+                      if (window.confirm("Tuyên bố phá sản? Bạn sẽ rời ván này.")) void run({ type: "bankrupt" });
+                    }}
+                    disabled={busy}
+                  >
+                    Phá sản
+                  </CBtn>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
+      </div>
       {!myTurn && g.phase === "buy" && here && <p className="text-xs text-emerald-900/70">{turnName} đang cân nhắc mua {here.name}…</p>}
       {!myTurn && g.phase === "debt" && g.debt && (
         <p className="text-xs text-rose-700">

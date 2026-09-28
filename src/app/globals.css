@@ -293,6 +293,22 @@ body {
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }
+/*
+ * Game tables sit under the slim games top bar (GamesShell): shrink their
+ * `min-h-[100dvh]` root by the bar's height so the table still fits one screen.
+ * Unlayered, so it wins over the table's Tailwind utility. Sideways phones hide the bar.
+ */
+.games-shell-table {
+  --games-bar-h: 2.25rem;
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .games-shell-table {
+    --games-bar-h: 0px;
+  }
+}
+.games-table > :first-child {
+  min-height: calc(100dvh - var(--games-bar-h));
+}
 @supports (-webkit-touch-callout: none) {
   .game-shell input,
   .game-shell select,

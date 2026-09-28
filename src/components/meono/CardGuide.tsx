@@ -26,7 +26,11 @@ export function MeoRules() {
 /** Card-by-card guide, grouped by pack. `enabled` highlights the packs in play. */
 export function CardGuide({ enabled, onClose }: { enabled?: Expansion[]; onClose: () => void }) {
   const [focus, setFocus] = useState<CardType | null>(null);
-  const packs: Pack[] = ["base", ...EXPANSIONS];
+  // Packs in play at this table come first, the rest after (dimmed).
+  const inPlay = (pack: Pack) => pack === "base" || !enabled || enabled.includes(pack as Expansion);
+  const all: Pack[] = ["base", ...EXPANSIONS];
+  const packs = [...all.filter(inPlay), ...all.filter((p) => !inPlay(p))];
+  const firstOff = packs.find((p) => !inPlay(p));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-3 backdrop-blur-sm" onClick={onClose}>
@@ -50,9 +54,14 @@ export function CardGuide({ enabled, onClose }: { enabled?: Expansion[]; onClose
 
         {packs.map((pack) => {
           const cards = (Object.keys(CARDS) as CardType[]).filter((t) => CARDS[t].pack === pack);
-          const on = pack === "base" || !enabled || enabled.includes(pack as Expansion);
+          const on = inPlay(pack);
           return (
             <section key={pack} className={cn("mb-5", !on && "opacity-50")}>
+              {pack === firstOff && (
+                <p className="mb-3 border-t border-white/10 pt-3 text-xs font-semibold uppercase tracking-wide text-orange-100/50">
+                  Các gói khác — không dùng ở bàn này
+                </p>
+              )}
               <h3 className="mb-1 flex items-center gap-2 font-bold text-orange-100">
                 {PACKS[pack].emoji} {PACKS[pack].name}
                 {enabled && pack !== "base" && (

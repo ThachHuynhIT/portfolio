@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
 import { DraggableRow, useHandOrder } from "@/components/games/DraggableHand";
 import { useGameRoom } from "@/components/games/gameClient";
+import { MyTurnBadge, TurnRing } from "@/components/games/TurnIndicator";
 import { EmojiBar, SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
 import {
@@ -41,7 +42,7 @@ import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { CardGuide } from "./CardGuide";
 import { MeoCard } from "./MeoCard";
-import { PlayHistory } from "./PlayHistory";
+import { EventFeed, PlayHistory } from "./PlayHistory";
 
 const SCORE_NOTE =
   "Điểm theo thứ hạng: người sống sót cuối cùng Nhất, ai bị loại trước xếp sau. Chủ bàn chọn điểm Nhất / Nhì, các hạng cuối trừ tương ứng, tổng mỗi ván luôn bằng 0.";
@@ -94,6 +95,22 @@ function classify(types: CardType[]): { kind: string; target: boolean; named: "h
   }
   if (types.length === 5 && new Set(types).size === 5) return { kind: "five", target: false, named: "discard" };
   return { error: "Bộ bài không hợp lệ" };
+}
+
+const COMPACT_KEY = "meono:compactHand";
+
+/** Ids of identical cards grouped together, in hand order (annoyed copies form their own group). */
+function groupIdentical(ids: number[], byId: Map<number, MCard>): number[][] {
+  const groups = new Map<string, number[]>();
+  for (const id of ids) {
+    const c = byId.get(id);
+    if (!c) continue;
+    const key = `${c.type}${c.annoyed ? ":annoyed" : ""}`;
+    const g = groups.get(key);
+    if (g) g.push(id);
+    else groups.set(key, [id]);
+  }
+  return [...groups.values()];
 }
 
 interface BoomFx {
@@ -175,7 +192,6 @@ function Board({
   const [named, setNamed] = useState<CardType | "">("");
   const [focus, setFocus] = useState<CardType | null>(null);
   const [showGuide, setShowGuide] = useState(false);
-  const [sideTab, setSideTab] = useState<"plays" | "log">("plays");
   const [showScores, setShowScores] = useState(false);
   const [showDiscard, setShowDiscard] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -236,17 +252,66 @@ function Board({
   const canPlay =
     (myTurn || nowPlay) && !pending && !choice && !!planOk && (!needTarget || !!target) && (!needName || !!named) && !busy;
   const canDraw = myTurn && !pending && !choice && !busy;
-  const myNope = hand.find((c) => c.type === "nope");
+  const myNope = hand.find((c) => c.type === "nope" && !c.annoyed);
+  // No answering your own card: the play itself, or your own Không! on top of the chain.
+  const lastPlay = g?.plays?.at(-1);
+  const nopeOwner = pending
+    ? pending.nopes > 0
+      ? (pending.lastNoper ?? (lastPlay?.result === "pending" ? lastPlay.nopes.at(-1) : undefined) ?? null)
+      : pending.by
+    : null;
+  const ownNope = !!pending && nopeOwner === view.meId;
+  const canNope = !!pending && meAlive && !!myNope && !ownNope;
+  // Answering a Favor / Dọn rác…: pick exactly one card.
+  const singlePick = (choice?.kind === "favor" && choice.from === view.meId) || (choice?.kind === "offer" && choice.player === view.meId);
+
+  // Compact hand: identical cards stacked with a ×n badge (remembered per browser).
+  const [compact, setCompact] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(COMPACT_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const toggleCompact = () =>
+    setCompact((v) => {
+      try {
+        localStorage.setItem(COMPACT_KEY, v ? "0" : "1");
+      } catch {
+        // Storage blocked: the choice just won't be remembered.
+      }
+      return !v;
+    });
 
   const toggle = (c: MCard) => {
     setFocus(c.type);
-    // Answering a Favor: pick exactly one card.
-    if ((choice?.kind === "favor" && choice.from === view.meId) || (choice?.kind === "offer" && choice.player === view.meId)) {
+    if (singlePick) {
       setSelected([c.id]);
       return;
     }
     setSelected((s) => (s.includes(c.id) ? s.filter((x) => x !== c.id) : [...s, c.id]));
   };
+  /** A stack of identical cards: each click selects one more copy; once all are picked, the next click clears them. */
+  const clickStack = (ids: number[]) => {
+    const c = handById.get(ids[0]);
+    if (!c) return;
+    setFocus(c.type);
+    if (singlePick) {
+      setSelected((s) => (s.length === 1 && ids.includes(s[0]) ? [] : [ids[0]]));
+      return;
+    }
+    setSelected((s) => {
+      const next = ids.find((id) => !s.includes(id));
+      return next === undefined ? s.filter((id) => !ids.includes(id)) : [...s, next];
+    });
+  };
+  const unpickOne = (ids: number[]) =>
+    setSelected((s) => {
+      const last = [...s].reverse().find((id) => ids.includes(id));
+      return last === undefined ? s : s.filter((id) => id !== last);
+    });
+  // Groups of identical cards in hand order (never for a cursed, face-down hand; annoyed cards stay apart).
+  const groups = compact && !cursed ? groupIdentical(orderedIds, handById) : null;
 
   const run = async (msg: Record<string, unknown> & { type: string }) => {
     setBusy(true);
@@ -310,9 +375,10 @@ function Board({
   const focusInfo = focus ? CARDS[focus] : null;
 
   return (
-    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col gap-3 px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-4 short:gap-2 short:pt-1.5">
+    // One screen tall: the hand + Đánh / Rút always stay in view; the table and the feed scroll inside the middle instead.
+    <div className="relative mx-auto flex h-[calc(100dvh-var(--games-bar-h,0px))] w-full max-w-6xl flex-col gap-2 overflow-hidden px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:gap-3 sm:px-4 sm:pt-3 short:gap-1.5 short:pt-1.5">
       {/* Top bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 text-sm">
         <div className="flex flex-wrap items-center gap-2">
           <Link href="/meo-no" className="rounded-lg border border-white/20 bg-black/40 px-3 py-1.5 hover:bg-black/60">
             ← Sảnh
@@ -342,7 +408,7 @@ function Board({
       </div>
 
       {spectator && (
-        <div className="flex flex-wrap items-center justify-center gap-3 rounded-xl bg-black/30 px-3 py-2 text-sm text-orange-100/80">
+        <div className="flex shrink-0 flex-wrap items-center justify-center gap-3 rounded-xl bg-black/30 px-3 py-2 text-sm text-orange-100/80">
           <span>👀 Bạn đang xem với tư cách khán giả</span>
           {view.seats.some((s) => s === null) && !playing && (
             <Link href={`/meo-no/${view.code}`} className="rounded-md bg-amber-400 px-3 py-1 font-semibold text-black">
@@ -352,10 +418,10 @@ function Board({
         </div>
       )}
 
-      {/* Below lg the grid dissolves (`contents`) so phones get table → hand → history instead of history in between. */}
-      <div className="contents flex-1 gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] short:grid short:grid-cols-[minmax(0,1fr)_14rem] short:gap-2">
+      {/* Middle: phones scroll table → feed here; wide / landscape screens get two columns that each scroll on their own. */}
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden short:grid short:grid-cols-[minmax(0,1fr)_14rem] short:grid-rows-[minmax(0,1fr)] short:gap-2 short:overflow-hidden">
         {/* Table */}
-        <div className="relative order-1 flex min-h-[300px] flex-col rounded-[2rem] border-[6px] border-[#4a2412] bg-[radial-gradient(ellipse_at_center,#7c2d12_0%,#431407_60%,#26100a_100%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.55)] sm:min-h-[340px] sm:p-4 short:min-h-0 short:rounded-3xl short:border-4 short:p-2">
+        <div className="relative flex min-h-[300px] shrink-0 flex-col rounded-[2rem] border-[6px] border-[#4a2412] bg-[radial-gradient(ellipse_at_center,#7c2d12_0%,#431407_60%,#26100a_100%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.55)] sm:min-h-[340px] sm:p-4 lg:min-h-0 lg:overflow-y-auto short:min-h-0 short:overflow-y-auto short:rounded-3xl short:border-4 short:p-2">
           <SpectatorReactions reactions={live.filter((r) => !r.playerId)} />
           <BoomOverlay fx={fx} />
 
@@ -446,11 +512,16 @@ function Board({
                     pending={pending}
                     nameOf={nameOf}
                     secondsLeft={secondsLeft(pending.deadline) ?? 0}
-                    canNope={meAlive && !!myNope}
+                    canNope={canNope}
+                    ownNope={ownNope && meAlive && !!myNope}
                     onNope={() => myNope && void run({ type: "nope", card: myNope.id })}
                   />
                 )}
-                {choice && <ChoicePanel view={view} choice={choice} nameOf={nameOf} secondsLeft={secondsLeft(choice.deadline) ?? 0} run={run} selected={selected} />}
+                {choice && (
+                  <div className="flex max-h-[45dvh] w-full justify-center overflow-y-auto overscroll-contain short:max-h-[70dvh]">
+                    <ChoicePanel view={view} choice={choice} nameOf={nameOf} secondsLeft={secondsLeft(choice.deadline) ?? 0} run={run} selected={selected} />
+                  </div>
+                )}
                 {g.shuffleLocked && <p className="rounded-full bg-lime-600/30 px-3 py-0.5 text-xs text-lime-100">🌽 Đang khoá Xáo bài</p>}
                 {view.vision && <p className="rounded-xl bg-indigo-500/20 px-3 py-2 text-center text-sm text-indigo-100">{view.vision}</p>}
                 {view.future && (
@@ -487,173 +558,255 @@ function Board({
           )}
         </div>
 
-        {/* Side: card history + log */}
-        <aside className="order-3 flex max-h-72 min-h-0 flex-col rounded-2xl border border-white/10 bg-black/30 p-3 sm:max-h-[460px] lg:order-none lg:max-h-[calc(100dvh-8rem)] short:max-h-[calc(100dvh-4rem)] short:p-2">
-          <div className="mb-2 flex gap-1 rounded-lg bg-black/30 p-1 text-xs font-semibold">
-            {(
-              [
-                ["plays", `🃏 Lịch sử bài${g?.plays?.length ? ` · ${g.plays.length}` : ""}`],
-                ["log", "📜 Diễn biến"],
-              ] as const
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                onClick={() => setSideTab(id)}
-                className={cn("flex-1 whitespace-nowrap rounded-md px-2 py-1.5", sideTab === id ? "bg-amber-400 text-black" : "text-orange-100/70 hover:bg-white/10")}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          {sideTab === "plays" ? (
-            <PlayHistory plays={g?.plays ?? []} nameOf={nameOf} meId={view.meId} className="flex-1" />
-          ) : (
-            <ol className="flex-1 space-y-1 overflow-y-auto text-sm">
-              {(g?.log ?? []).slice().reverse().map((e) => (
-                <li
-                  key={e.id}
-                  className={cn(
-                    "rounded-md px-2 py-1",
-                    e.tone === "boom" && "bg-rose-600/30 text-rose-100",
-                    e.tone === "defuse" && "bg-emerald-600/25 text-emerald-100",
-                    e.tone === "nope" && "bg-red-900/40 text-red-100",
-                    e.tone === "steal" && "bg-amber-600/20 text-amber-100",
-                    (!e.tone || e.tone === "info") && "text-orange-50/80",
-                  )}
-                >
-                  {e.text}
-                </li>
-              ))}
-              {!g?.log.length && <li className="text-orange-100/50">Chưa có gì xảy ra.</li>}
-            </ol>
-          )}
+        {/* Side: Diễn biến — plays (clickable cards) and every other event in one timeline. */}
+        <aside className="flex h-72 min-h-0 shrink-0 flex-col rounded-2xl border border-white/10 bg-black/30 p-3 sm:h-96 lg:h-auto short:h-auto short:p-2">
+          <h2 className="mb-2 flex shrink-0 items-center justify-between text-sm font-bold text-amber-200">
+            📜 Diễn biến
+            {!!g?.plays?.length && <span className="text-[11px] font-normal text-orange-100/50">🃏 {g.plays.length} lượt đánh</span>}
+          </h2>
+          <EventFeed log={g?.log ?? []} plays={g?.plays ?? []} nameOf={nameOf} meId={view.meId} className="flex-1" />
         </aside>
       </div>
 
-      {/* Hand + actions */}
+      {/* Actions above the hand; the whole block stays on screen (the hand scrolls inside if it's huge). */}
       {!spectator && hand.length > 0 && (
-        <div className="order-2 flex flex-col items-center gap-2 lg:order-none">
-          {focusInfo && (
-            <p className="max-w-2xl rounded-lg bg-black/40 px-3 py-1.5 text-center text-sm text-orange-50/90">
-              <b className="text-amber-200">{focusInfo.emoji} {focusInfo.name}:</b> {focusInfo.effect}
-            </p>
-          )}
-          <DraggableRow
-            items={orderedIds}
-            onMove={handOrder.move}
-            disabled={cursed}
-            className="w-full flex-wrap justify-center gap-1.5 pt-4 short:pt-3"
-            renderItem={(id) => {
-              const c = handById.get(id)!;
-              return (
-                <span className="relative block" title={c.annoyed ? "Nổi cáu: lá này bị vô hiệu tới hết lượt tới của bạn" : undefined}>
-                  <MeoCard
-                    type={c.type}
-                    selected={selected.includes(c.id)}
-                    onClick={() => toggle(c)}
-                    // Five to a row on a phone instead of four, so a big hand stays two rows.
-                    className={cn("max-sm:w-[3.9rem] max-sm:[--emoji:1.55rem] short:w-16 short:[--emoji:1.6rem]", c.annoyed && "opacity-50 grayscale")}
-                  />
-                  {c.annoyed && <span className="pointer-events-none absolute -right-1 -top-1 rounded-full bg-amber-500 px-1 text-xs">😾</span>}
-                </span>
-              );
-            }}
-          />
-          {handOrder.isCustom && !cursed && (
-            <button onClick={handOrder.reset} className="text-xs text-orange-100/60 underline hover:text-orange-50">
-              ↺ Xếp lại tự động
-            </button>
-          )}
-          {/* Target picker: shown right above the hand, no need to scroll up to the seats. */}
-          {(myTurn || nowPlay) && needTarget && (
-            <div className="w-full max-w-2xl rounded-2xl border border-rose-400/40 bg-rose-950/40 p-3">
-              <p className="mb-2 text-center text-sm font-semibold text-rose-100">
-                🎯 {planOk?.kind === "zombie" ? "Chọn người đã bị loại để hồi sinh" : `Chọn người để ${actionLabel}`}
-              </p>
-              <div className="flex flex-wrap justify-center gap-2">
-                {opponents.filter(canTarget).length === 0 && <p className="text-sm text-rose-100/60">Không có ai phù hợp.</p>}
-                {opponents.filter(canTarget).map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => setTarget(s.id)}
-                    className={cn(
-                      "flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm transition-all",
-                      target === s.id
-                        ? "scale-105 border-rose-300 bg-rose-500 text-white shadow-[0_0_18px_rgba(244,63,94,0.5)]"
-                        : "border-white/15 bg-black/40 hover:border-rose-300/60 hover:bg-rose-500/20",
-                    )}
+        <div className="flex shrink-0 flex-col items-center gap-1">
+          <div
+            className={cn(
+              "relative flex w-full max-w-3xl flex-col items-center gap-1.5 rounded-2xl p-1.5 pt-2 short:gap-1 short:p-1",
+              myTurn && "bg-rose-500/[0.07]",
+            )}
+          >
+            {myTurn && (
+              <>
+                <TurnRing active className="inset-0" />
+                <MyTurnBadge className="absolute -top-2.5 left-3 z-10">
+                  {/* No countdown in here: it's a live region and would be re-announced every second. */}
+                  Lượt của bạn{g && g.turnsLeft > 1 ? ` ×${g.turnsLeft}` : ""}
+                </MyTurnBadge>
+              </>
+            )}
+            {/* Target picker: right by the buttons, no need to scroll up to the seats. */}
+            {(myTurn || nowPlay) && needTarget && (
+              <div className="max-h-[24dvh] w-full max-w-2xl overflow-y-auto overscroll-contain rounded-2xl border border-rose-400/40 bg-rose-950/40 p-2">
+                <p className="mb-1.5 text-center text-sm font-semibold text-rose-100">
+                  🎯 {planOk?.kind === "zombie" ? "Chọn người đã bị loại để hồi sinh" : `Chọn người để ${actionLabel}`}
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {opponents.filter(canTarget).length === 0 && <p className="text-sm text-rose-100/60">Không có ai phù hợp.</p>}
+                  {opponents.filter(canTarget).map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => setTarget(s.id)}
+                      className={cn(
+                        "flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-left text-sm transition-all",
+                        target === s.id
+                          ? "scale-105 border-rose-300 bg-rose-500 text-white shadow-[0_0_18px_rgba(244,63,94,0.5)]"
+                          : "border-white/15 bg-black/40 hover:border-rose-300/60 hover:bg-rose-500/20",
+                      )}
+                    >
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-orange-200 to-orange-500 font-bold text-black">
+                        {s.out ? "💀" : s.name.charAt(0).toUpperCase()}
+                      </span>
+                      <span>
+                        <b className="block leading-tight">{s.name}</b>
+                        <span className="text-xs opacity-75">
+                          {s.out ? "đã bị loại" : `🂠 ${s.cardCount} lá`}
+                          {!s.connected && " · mất kết nối"}
+                        </span>
+                      </span>
+                      {target === s.id && <span className="text-lg">🎯</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action dock */}
+            <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-black/40 p-2 sm:p-2.5 short:p-1.5">
+              {(myTurn || nowPlay) && selected.length > 0 && (
+                <p className={cn("mb-1.5 rounded-lg px-3 py-1 text-center text-sm", planError ? "bg-rose-900/50 text-rose-200" : "bg-white/5 text-orange-100")}>
+                  {planError ?? (
+                    <>
+                      <b>{actionLabel}</b>
+                      {needTarget &&
+                        (target ? (
+                          <>
+                            {" "}
+                            → 🎯 <b>{nameOf(target)}</b>
+                          </>
+                        ) : (
+                          " — hãy chọn mục tiêu"
+                        ))}
+                    </>
+                  )}
+                </p>
+              )}
+              {(myTurn || nowPlay) && needName && (
+                <div className="mb-1.5 flex justify-center">
+                  <select
+                    value={named}
+                    onChange={(e) => setNamed(e.target.value as CardType)}
+                    className="rounded-lg border border-white/20 bg-black/60 px-3 py-1.5 text-sm"
+                    aria-label="Loại lá muốn lấy"
                   >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-orange-200 to-orange-500 font-bold text-black">
-                      {s.out ? "💀" : s.name.charAt(0).toUpperCase()}
-                    </span>
-                    <span>
-                      <b className="block leading-tight">{s.name}</b>
-                      <span className="text-xs opacity-75">{s.out ? "đã bị loại" : `🂠 ${s.cardCount} lá`}{!s.connected && " · mất kết nối"}</span>
-                    </span>
-                    {target === s.id && <span className="text-lg">🎯</span>}
-                  </button>
-                ))}
+                    <option value="">{needName === "discard" ? "— chọn lá muốn nhặt —" : "— gọi tên lá muốn lấy —"}</option>
+                    {(needName === "discard" ? [...new Set(g?.discard ?? [])] : NAMEABLE_TYPES).map((t) => (
+                      <option key={t} value={t}>
+                        {CARDS[t].emoji} {CARDS[t].name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <div className="flex flex-wrap items-stretch justify-center gap-2">
+                {canNope && myNope && (
+                  <DockBtn tone="nope" onClick={() => void run({ type: "nope", card: myNope.id })}>
+                    🚫 KHÔNG!
+                  </DockBtn>
+                )}
+                <DockBtn tone="play" onClick={doPlay} disabled={!canPlay}>
+                  ▶ ĐÁNH{selected.length > 1 ? ` ${selected.length} LÁ` : ""}
+                </DockBtn>
+                <DockBtn tone="draw" onClick={() => void run({ type: "draw" })} disabled={!canDraw}>
+                  🂠 RÚT BÀI
+                </DockBtn>
+                <DockBtn tone="ghost" onClick={() => (setSelected([]), setTarget(null), setNamed(""))} disabled={!selected.length}>
+                  ✕<span className="sr-only sm:not-sr-only"> Bỏ chọn</span>
+                </DockBtn>
+                {/* Phones: the emoji button sits under the hand, next to the chat button. */}
+                <span className="max-sm:hidden">
+                  <EmojiBar onSend={(e) => void act({ type: "emoji", emoji: e })} />
+                </span>
               </div>
             </div>
-          )}
 
-          {/* Action dock — sticks to the bottom on phones so Đánh / Rút stay reachable; the right padding clears the chat button. */}
-          <div className="sticky bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-30 w-full max-w-2xl rounded-2xl border border-white/10 bg-[#1f0d07]/90 p-2 pr-14 backdrop-blur sm:p-3 sm:pr-14 lg:static lg:bg-black/40 lg:p-3">
-            {(myTurn || nowPlay) && selected.length > 0 && (
-              <p className={cn("mb-2 rounded-lg px-3 py-1.5 text-center text-sm", planError ? "bg-rose-900/50 text-rose-200" : "bg-white/5 text-orange-100")}>
-                {planError ?? (
+            <div className="flex w-full max-w-2xl items-center justify-between gap-2 px-1 text-[11px] text-orange-100/60">
+              <p className="line-clamp-2 min-w-0 flex-1 short:line-clamp-1">
+                {focusInfo ? (
                   <>
-                    <b>{actionLabel}</b>
-                    {needTarget && (target ? <> → 🎯 <b>{nameOf(target)}</b></> : " — hãy chọn mục tiêu")}
+                    <b className="text-amber-200">
+                      {focusInfo.emoji} {focusInfo.name}:
+                    </b>{" "}
+                    <span className="text-orange-50/85">{focusInfo.effect}</span>
                   </>
+                ) : groups ? (
+                  "Bấm chồng bài để chọn thêm 1 lá · − để bỏ bớt"
+                ) : (
+                  "Bấm lá để chọn · kéo ngang để xếp lại"
                 )}
               </p>
-            )}
-            {(myTurn || nowPlay) && needName && (
-              <div className="mb-2 flex justify-center">
-                <select
-                  value={named}
-                  onChange={(e) => setNamed(e.target.value as CardType)}
-                  className="rounded-lg border border-white/20 bg-black/60 px-3 py-2 text-sm"
-                  aria-label="Loại lá muốn lấy"
-                >
-                  <option value="">{needName === "discard" ? "— chọn lá muốn nhặt —" : "— gọi tên lá muốn lấy —"}</option>
-                  {(needName === "discard" ? [...new Set(g?.discard ?? [])] : NAMEABLE_TYPES).map((t) => (
-                    <option key={t} value={t}>
-                      {CARDS[t].emoji} {CARDS[t].name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-            <div className="flex flex-wrap items-stretch justify-center gap-2">
-              {pending && meAlive && myNope && (
-                <DockBtn tone="nope" onClick={() => void run({ type: "nope", card: myNope.id })}>
-                  🚫 KHÔNG!
-                </DockBtn>
-              )}
-              <DockBtn tone="play" onClick={doPlay} disabled={!canPlay}>
-                ▶ ĐÁNH{selected.length > 1 ? ` ${selected.length} LÁ` : ""}
-              </DockBtn>
-              <DockBtn tone="draw" onClick={() => void run({ type: "draw" })} disabled={!canDraw}>
-                🂠 RÚT BÀI
-              </DockBtn>
-              <DockBtn tone="ghost" onClick={() => (setSelected([]), setTarget(null), setNamed(""))} disabled={!selected.length}>
-                ✕<span className="sr-only sm:not-sr-only"> Bỏ chọn</span>
-              </DockBtn>
-              {/* Phones: the emoji button sits under the dock so Đánh / Rút / ✕ fit on one line. */}
-              <span className="max-sm:hidden">
-                <EmojiBar onSend={(e) => void act({ type: "emoji", emoji: e })} />
+              <span className="flex shrink-0 items-center gap-2">
+                {handOrder.isCustom && !cursed && !groups && (
+                  <button onClick={handOrder.reset} className="underline hover:text-orange-50">
+                    ↺ Xếp tự động
+                  </button>
+                )}
+                {!cursed && (
+                  <button
+                    onClick={toggleCompact}
+                    aria-pressed={compact}
+                    title="Gộp các lá giống nhau thành một chồng"
+                    className={cn(
+                      "rounded-full border px-2 py-0.5",
+                      compact ? "border-amber-300 bg-amber-400/20 text-amber-100" : "border-white/20 hover:bg-white/10",
+                    )}
+                  >
+                    🗂️ Gộp lá{compact ? ": bật" : ""}
+                  </button>
+                )}
               </span>
             </div>
+
+            <div className="max-h-[32dvh] w-full overflow-y-auto overflow-x-hidden overscroll-contain sm:max-h-[36dvh] lg:max-h-[34dvh] short:max-h-[7.5rem]">
+              {groups ? (
+                <div className="flex w-full flex-wrap justify-center gap-1.5 pt-4 short:pt-3">
+                  {groups.map((ids) => {
+                    const c = handById.get(ids[0])!;
+                    const picked = ids.filter((id) => selected.includes(id)).length;
+                    const behind = Math.min(ids.length - 1, 2);
+                    return (
+                      <span
+                        key={ids[0]}
+                        className="relative block"
+                        style={{ marginRight: behind * 5 }}
+                        title={c.annoyed ? "Nổi cáu: lá này bị vô hiệu tới hết lượt tới của bạn" : undefined}
+                      >
+                        {Array.from({ length: behind }, (_, i) => behind - i).map((d) => (
+                          <MeoCard
+                            key={d}
+                            type={c.type}
+                            tooltip={false}
+                            className={cn(
+                              "max-sm:w-[3.9rem] max-sm:[--emoji:1.55rem] short:w-16 short:[--emoji:1.6rem]",
+                              "pointer-events-none absolute left-0 top-0 brightness-75",
+                              d === 1 ? "translate-x-[5px] rotate-[4deg]" : "translate-x-[10px] rotate-[8deg]",
+                              c.annoyed && "opacity-50 grayscale",
+                            )}
+                          />
+                        ))}
+                        <MeoCard
+                          type={c.type}
+                          selected={picked > 0}
+                          onClick={() => clickStack(ids)}
+                          className={cn("max-sm:w-[3.9rem] max-sm:[--emoji:1.55rem] short:w-16 short:[--emoji:1.6rem]", c.annoyed && "opacity-50 grayscale")}
+                        />
+                        {ids.length > 1 && (
+                          <span
+                            className={cn(
+                              "pointer-events-none absolute -right-2 -top-2 z-10 rounded-full px-1.5 text-xs font-black shadow ring-1",
+                              picked ? "bg-amber-400 text-black ring-amber-200" : "bg-black/80 text-amber-200 ring-amber-300/60",
+                            )}
+                          >
+                            {picked ? `${picked}/${ids.length}` : `×${ids.length}`}
+                          </span>
+                        )}
+                        {picked > 0 && ids.length > 1 && !singlePick && (
+                          <button
+                            onClick={() => unpickOne(ids)}
+                            className="absolute -bottom-1 -left-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-black/85 text-xs font-black text-amber-200 ring-1 ring-amber-300/60 hover:bg-black"
+                            aria-label={`Bỏ chọn 1 lá ${CARDS[c.type]?.name ?? ""}`}
+                          >
+                            −
+                          </button>
+                        )}
+                        {c.annoyed && <span className="pointer-events-none absolute -left-1 -top-1 z-10 rounded-full bg-amber-500 px-1 text-xs">😾</span>}
+                      </span>
+                    );
+                  })}
+                </div>
+              ) : (
+                <DraggableRow
+                  items={orderedIds}
+                  onMove={handOrder.move}
+                  disabled={cursed}
+                  className="w-full flex-wrap justify-center gap-1.5 pt-4 short:pt-3"
+                  renderItem={(id) => {
+                    const c = handById.get(id)!;
+                    return (
+                      <span className="relative block" title={c.annoyed ? "Nổi cáu: lá này bị vô hiệu tới hết lượt tới của bạn" : undefined}>
+                        <MeoCard
+                          type={c.type}
+                          selected={selected.includes(c.id)}
+                          onClick={() => toggle(c)}
+                          // Five to a row on a phone instead of four, so a big hand stays two rows.
+                          className={cn("max-sm:w-[3.9rem] max-sm:[--emoji:1.55rem] short:w-16 short:[--emoji:1.6rem]", c.annoyed && "opacity-50 grayscale")}
+                        />
+                        {c.annoyed && <span className="pointer-events-none absolute -right-1 -top-1 rounded-full bg-amber-500 px-1 text-xs">😾</span>}
+                      </span>
+                    );
+                  }}
+                />
+              )}
+            </div>
           </div>
-          <div className="flex justify-center pr-12 sm:hidden">
+          <div className="flex w-full justify-center pr-12 sm:hidden">
             <EmojiBar onSend={(e) => void act({ type: "emoji", emoji: e })} />
           </div>
         </div>
       )}
       {(spectator || hand.length === 0) && (
-        <div className="order-2 flex justify-center lg:order-none">
+        <div className="flex shrink-0 justify-center">
           <EmojiBar onSend={(e) => void act({ type: "emoji", emoji: e })} />
         </div>
       )}
@@ -900,12 +1053,15 @@ function PendingBar({
   nameOf,
   secondsLeft,
   canNope,
+  ownNope,
   onNope,
 }: {
   pending: NonNullable<NonNullable<MeoRoomView["current"]>["pending"]>;
   nameOf: (id: string) => string;
   secondsLeft: number;
   canNope: boolean;
+  /** Holding a Không! but the card on top of the chain is your own. */
+  ownNope?: boolean;
   onNope: () => void;
 }) {
   const label = PENDING_LABEL[pending.kind] ?? cardName(pending.kind as CardType);
@@ -940,6 +1096,7 @@ function PendingBar({
           🚫 KHÔNG!
         </button>
       )}
+      {!canNope && ownNope && <p className="mt-1 text-xs text-orange-100/50">Lá trên cùng là của bạn — không tự chặn được.</p>}
     </div>
   );
 }

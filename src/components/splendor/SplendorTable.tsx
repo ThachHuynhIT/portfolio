@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
@@ -15,6 +15,7 @@ import {
   GEM_NAMES,
   type Gem,
   MAX_RESERVED,
+  MAX_TOKENS,
   TARGET_OPTIONS,
   TOKENS,
   TURN_SECONDS_OPTIONS,
@@ -23,7 +24,7 @@ import {
 import { SPLENDOR_WS_PATH, type SPGameView, type SPPlayerView, type SPRoomView, type SPSeatView } from "@/lib/splendor/protocol";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
-import { BonusPip, CardBack, DevCardView, NobleTile, TokenChip } from "./Pieces";
+import { BonusPip, CardBack, DevCardView, GemCount, GemIcon, NobleTile, TokenChip } from "./Pieces";
 
 type Act = (msg: Record<string, unknown> & { type: string }) => Promise<boolean>;
 
@@ -48,6 +49,24 @@ function useNow(active: boolean, every = 500) {
 }
 
 const emptyPick = (): Record<Token, number> => ({ white: 0, blue: 0, green: 0, red: 0, black: 0, gold: 0 });
+const tokenSum = (t: Record<Token, number>) => TOKENS.reduce((a, k) => a + t[k], 0);
+
+/**
+ * How buying `cardId` works out for this player — mirrors be_game `paymentFor`:
+ * card bonuses discount the cost, tokens of that colour pay the rest, gold covers any shortfall.
+ */
+function paymentPlan(cardId: number, p: SPPlayerView) {
+  const card = CARD_BY_ID[cardId];
+  const rows = GEMS.filter((gem) => card.cost[gem]).map((gem) => {
+    const cost = card.cost[gem] ?? 0;
+    const bonus = Math.min(cost, p.bonuses[gem]);
+    const tokens = Math.min(cost - bonus, p.tokens[gem]);
+    return { gem, cost, bonus: p.bonuses[gem], tokens: p.tokens[gem], short: cost - bonus - tokens };
+  });
+  const short = rows.reduce((a, r) => a + r.short, 0);
+  const goldUsed = Math.min(short, p.tokens.gold);
+  return { rows, short, goldUsed, missing: short - goldUsed };
+}
 
 export default function SplendorTable({ code, name, watch }: { code: string; name: string; watch?: boolean }) {
   const { view, status, error, call } = useGameRoom<SPRoomView>(SPLENDOR_WS_PATH, code, name, watch ? "watch" : "play", localize);
@@ -106,7 +125,11 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
   const [showScores, setShowScores] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [busy, setBusy] = useState(false);
-  useEffect(() => setPick(emptyPick()), [g?.turn, g?.phase]);
+  const [confirmTake, setConfirmTake] = useState(false);
+  useEffect(() => {
+    setPick(emptyPick());
+    setConfirmTake(false);
+  }, [g?.turn, g?.phase]);
 
   const run = async (msg: Record<string, unknown> & { type: string }) => {
     setBusy(true);
@@ -148,17 +171,19 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
       return n;
     });
   };
-  const doTake = async () => {
+  const myTokens = mine ? tokenSum(mine.tokens) : 0;
+  const afterTake = myTokens + picked.length;
+  const doTake = async (confirmed = false) => {
+    // Going over 10 means returning the excess right after — warn first.
+    if (!confirmed && afterTake > MAX_TOKENS) {
+      setConfirmTake(true);
+      return;
+    }
+    setConfirmTake(false);
     if (await run({ type: "take", gems: picked })) setPick(emptyPick());
   };
 
-  const canAfford = (cardId: number) => {
-    if (!mine) return false;
-    const card = CARD_BY_ID[cardId];
-    let gold = 0;
-    for (const gem of GEMS) gold += Math.max(0, (card.cost[gem] ?? 0) - mine.bonuses[gem] - mine.tokens[gem]);
-    return gold <= mine.tokens.gold;
-  };
+  const canAfford = (cardId: number) => !!mine && paymentPlan(cardId, mine).missing === 0;
 
   const secondsLeft = g?.deadline ? Math.max(0, Math.ceil((g.deadline - now) / 1000)) : null;
 
@@ -261,7 +286,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
               )}
             </div>
 
-            {myTurn && g.phase === "discard" && mine && <DiscardPanel p={mine} need={g.discardNeed} run={run} busy={busy} />}
+            {myTurn && g.phase === "discard" && mine && <DiscardPanel p={mine} need={g.discardNeed} run={run} busy={busy} secondsLeft={secondsLeft} />}
           </div>
 
           {/* Players */}
@@ -329,6 +354,36 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
           onClose={() => setFocus(null)}
         />
       )}
+      {confirmTake && myTurn && g?.phase === "turn" && (
+        <Modal onClose={() => setConfirmTake(false)}>
+          <div className="flex flex-col items-center gap-3 text-center">
+            <h2 className="text-lg font-bold text-amber-300">⚠️ Vượt quá {MAX_TOKENS} viên đá</h2>
+            <div className="flex items-center gap-1.5">
+              {picked.map((gem, i) => (
+                <GemIcon key={i} gem={gem} className="h-9 w-9" />
+              ))}
+            </div>
+            <p className="text-sm text-white/85">
+              Bạn đang có <b>{myTokens}</b> viên, lấy thêm <b>{picked.length}</b> viên sẽ thành <b className="text-rose-300">{afterTake}</b> viên.
+            </p>
+            <p className="rounded-lg bg-rose-500/15 px-3 py-2 text-sm text-rose-100 ring-1 ring-rose-400/40">
+              Mỗi người chỉ giữ tối đa {MAX_TOKENS} viên — sau khi lấy, bạn sẽ phải chọn <b>{afterTake - MAX_TOKENS}</b> viên để trả lại ngân hàng.
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              <button
+                onClick={() => void doTake(true)}
+                disabled={busy}
+                className="rounded-lg bg-amber-400 px-4 py-2 font-bold text-black hover:bg-amber-300 disabled:opacity-40"
+              >
+                OK, lấy đá
+              </button>
+              <button onClick={() => setConfirmTake(false)} className="rounded-lg border border-white/25 px-4 py-2 font-semibold hover:bg-white/10">
+                Chọn lại
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
       {showScores && <ScoreboardModal view={view} onClose={() => setShowScores(false)} note={SCORE_NOTE} />}
       {showRules && (
         <Modal onClose={() => setShowRules(false)}>
@@ -367,8 +422,27 @@ function PlayerPanel({
   const mineReserved = p.reserved.filter((c): c is number => c !== null);
   const reservedOrder = useHandOrder(mineReserved, orderKey ?? null);
   const tokenTotal = Object.values(p.tokens).reduce((a, b) => a + b, 0);
+  const myTurn = self && isTurn;
   return (
-    <div className={cn("relative rounded-2xl p-2.5 sm:p-3 short:p-2", isTurn ? "bg-amber-400/15 ring-1 ring-amber-300/60" : "bg-black/35", self && "max-lg:order-first")}>
+    <div
+      className={cn(
+        "relative rounded-2xl p-2.5 sm:p-3 short:p-2",
+        myTurn ? "bg-rose-500/10 ring-2 ring-rose-400" : isTurn ? "bg-amber-400/15 ring-1 ring-amber-300/60" : "bg-black/35",
+        self && "max-lg:order-first",
+      )}
+    >
+      {/* My turn: a softly pulsing amber-red glow (static under reduced motion). */}
+      {myTurn && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -inset-1 rounded-[1.1rem] shadow-[0_0_18px_4px_rgba(251,113,133,0.45)] ring-2 ring-amber-400/70 motion-safe:animate-pulse"
+        />
+      )}
+      {myTurn && (
+        <span className="absolute -top-2.5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-amber-400 to-rose-500 px-2.5 py-0.5 text-[11px] font-black text-black shadow-lg">
+          Lượt của bạn
+        </span>
+      )}
       <div className="mb-1.5 flex items-center justify-between gap-2 sm:mb-2 short:mb-1">
         <span className="relative flex min-w-0 items-center gap-2">
           <SeatBubble reactions={reactions} />
@@ -471,6 +545,7 @@ function CardModal({
   const canAct = myTurn && g.phase === "turn" && !!mine;
   const reserveFull = (mine?.reserved.length ?? 0) >= MAX_RESERVED;
   const done = (p: Promise<boolean>) => void p.then((ok) => ok && onClose());
+  const plan = focus.card !== undefined && mine ? paymentPlan(focus.card, mine) : null;
   return (
     <Modal onClose={onClose}>
       <div className="flex flex-col items-center gap-3">
@@ -480,6 +555,7 @@ function CardModal({
             Thẻ <b>{GEM_NAMES[CARD_BY_ID[focus.card].bonus]}</b> · {CARD_BY_ID[focus.card].points} điểm · giảm vĩnh viễn 1 {GEM_NAMES[CARD_BY_ID[focus.card].bonus]} cho các lần mua sau
           </p>
         )}
+        {plan && mine && <CostCompare plan={plan} gold={mine.tokens.gold} />}
         {canAct ? (
           <div className="flex flex-wrap justify-center gap-2">
             {focus.card !== undefined && (
@@ -504,48 +580,118 @@ function CardModal({
         ) : (
           <p className="text-xs text-white/50">Mua hoặc giữ thẻ trong lượt của bạn.</p>
         )}
-        {canAct && focus.card !== undefined && !canAfford(focus.card) && <p className="text-xs text-rose-300">Chưa đủ đá để mua thẻ này.</p>}
         {canAct && reserveFull && !focus.reserved && <p className="text-xs text-white/50">Bạn đã giữ đủ {MAX_RESERVED} thẻ.</p>}
       </div>
     </Modal>
   );
 }
 
-function DiscardPanel({ p, need, run, busy }: { p: SPPlayerView; need: number; run: Act; busy: boolean }) {
-  const [give, setGive] = useState<Record<Token, number>>(emptyPick);
-  const total = Object.values(give).reduce((a, b) => a + b, 0);
+/** Card cost vs what I have: top row = cost per colour, bottom row = my cards + tokens, with the shortfall. */
+function CostCompare({ plan, gold }: { plan: ReturnType<typeof paymentPlan>; gold: number }) {
+  const cols = plan.rows.length + (gold > 0 ? 1 : 0);
   return (
-    <div className="rounded-2xl bg-rose-500/15 p-3 ring-1 ring-rose-400/40">
-      <p className="mb-2 text-sm">
-        Bạn có quá 10 viên — chọn <b>{need}</b> viên để trả lại ({total}/{need}):
+    <div className="w-full rounded-xl bg-black/35 p-3">
+      <div className="grid items-center gap-x-2 gap-y-2 text-center" style={{ gridTemplateColumns: `auto repeat(${cols}, minmax(0, 1fr))` }}>
+        <span className="text-left text-[11px] font-semibold uppercase tracking-wide text-white/55">Cần</span>
+        {plan.rows.map((r) => (
+          <span key={r.gem} className="flex justify-center">
+            <GemCount gem={r.gem} n={r.cost} className="h-10 w-10 text-lg" />
+          </span>
+        ))}
+        {gold > 0 && <span className="text-[11px] text-white/40">—</span>}
+
+        <span className="text-left text-[11px] font-semibold uppercase tracking-wide text-white/55">Bạn có</span>
+        {plan.rows.map((r) => (
+          <span key={r.gem} className="flex flex-col items-center gap-0.5">
+            <span className={cn("text-lg font-black leading-none", r.short ? "text-rose-300" : "text-emerald-300")}>{r.bonus + r.tokens}</span>
+            <span className="text-[10px] leading-tight text-white/55">
+              {r.bonus} thẻ + {r.tokens} đá
+            </span>
+            {r.short > 0 ? (
+              <span className="rounded bg-rose-500/25 px-1.5 text-xs font-black text-rose-300">−{r.short}</span>
+            ) : (
+              <span className="text-xs font-bold text-emerald-400">✓</span>
+            )}
+          </span>
+        ))}
+        {gold > 0 && (
+          <span className="flex flex-col items-center gap-0.5" title="Vàng thay được mọi màu">
+            <span className="relative">
+              <GemIcon gem="gold" className="h-8 w-8" />
+              <span className="absolute -bottom-1 -right-1 rounded-full bg-black/85 px-1 text-[11px] font-bold text-white">{gold}</span>
+            </span>
+            <span className="text-[10px] leading-tight text-amber-200/80">{plan.goldUsed ? `bù ${plan.goldUsed}` : "Vàng"}</span>
+          </span>
+        )}
+      </div>
+      <p className={cn("mt-3 rounded-lg px-3 py-1.5 text-center text-sm font-bold", plan.missing ? "bg-rose-500/15 text-rose-200" : "bg-emerald-500/15 text-emerald-200")}>
+        {plan.missing ? `Thiếu ${plan.missing} đá` : "Đủ để mua"}
+        {plan.goldUsed > 0 && (
+          <span className="ml-1 font-normal text-amber-200/90">{plan.missing ? `(đã tính ${plan.goldUsed} Vàng)` : `· dùng ${plan.goldUsed} Vàng`}</span>
+        )}
       </p>
-      <div className="flex flex-wrap gap-3">
-        {TOKENS.filter((t) => p.tokens[t]).map((t) => (
-          <div key={t} className="flex flex-col items-center gap-1">
-            <TokenChip gem={t} count={p.tokens[t] - give[t]} />
-            <div className="flex gap-1">
-              <button onClick={() => setGive((g) => ({ ...g, [t]: Math.max(0, g[t] - 1) }))} className="h-6 w-6 rounded bg-white/10" disabled={!give[t]}>
-                −
-              </button>
-              <span className="w-4 text-center text-sm">{give[t]}</span>
-              <button
-                onClick={() => setGive((g) => ({ ...g, [t]: Math.min(p.tokens[t], g[t] + 1) }))}
-                className="h-6 w-6 rounded bg-white/10"
-                disabled={give[t] >= p.tokens[t] || total >= need}
-              >
-                +
-              </button>
-            </div>
-          </div>
+    </div>
+  );
+}
+
+/** Return tokens down to 10: tap a gem you hold to put it in the "return" pile, tap it there to take it back. */
+function DiscardPanel({ p, need, run, busy, secondsLeft }: { p: SPPlayerView; need: number; run: Act; busy: boolean; secondsLeft: number | null }) {
+  const [give, setGive] = useState<Record<Token, number>>(emptyPick);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => ref.current?.scrollIntoView({ behavior: "smooth", block: "center" }), []);
+  const total = tokenSum(give);
+  const left = need - total;
+  const held = TOKENS.filter((t) => p.tokens[t] - give[t] > 0);
+  const giving = TOKENS.filter((t) => give[t] > 0);
+  const add = (t: Token) => setGive((g) => (tokenSum(g) >= need ? g : { ...g, [t]: Math.min(p.tokens[t], g[t] + 1) }));
+  const remove = (t: Token) => setGive((g) => ({ ...g, [t]: Math.max(0, g[t] - 1) }));
+  return (
+    <div ref={ref} className="rounded-2xl bg-rose-500/15 p-3 ring-2 ring-rose-400/60">
+      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-sm font-bold text-rose-100">
+          Trả lại {need} viên đá (bạn đang có {tokenSum(p.tokens)}/{MAX_TOKENS})
+        </p>
+        {secondsLeft !== null && <span className={cn("font-mono text-xs", secondsLeft <= 8 ? "text-rose-300" : "text-white/60")}>⏱ {secondsLeft}s</span>}
+      </div>
+      <p className="mb-1 text-xs text-white/65">Bấm vào đá bạn muốn trả:</p>
+      <div className="flex min-h-12 flex-wrap gap-3">
+        {held.map((t) => (
+          <TokenChip
+            key={t}
+            gem={t}
+            count={p.tokens[t] - give[t]}
+            dimmed={left === 0}
+            onClick={left > 0 ? () => add(t) : undefined}
+            title={`Trả 1 ${GEM_NAMES[t]}`}
+          />
         ))}
       </div>
-      <button
-        onClick={() => void run({ type: "discard", tokens: give })}
-        disabled={busy || total !== need}
-        className="mt-3 rounded-lg bg-amber-400 px-4 py-2 font-bold text-black disabled:opacity-40"
-      >
-        Trả lại
-      </button>
+      <div className="mt-3 rounded-xl border border-dashed border-rose-300/40 bg-black/25 p-2">
+        <p className="mb-1 text-xs text-white/65">
+          Sẽ trả ({total}/{need}){giving.length > 0 && " — bấm để lấy lại"}:
+        </p>
+        <div className="flex min-h-11 flex-wrap items-center gap-3">
+          {giving.length ? (
+            giving.map((t) => <TokenChip key={t} gem={t} count={give[t]} onClick={() => remove(t)} title={`Giữ lại 1 ${GEM_NAMES[t]}`} />)
+          ) : (
+            <span className="text-xs text-white/40">Chưa chọn viên nào</span>
+          )}
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => void run({ type: "discard", tokens: give })}
+          disabled={busy || left !== 0}
+          className="rounded-lg bg-amber-400 px-4 py-2 font-bold text-black hover:bg-amber-300 disabled:opacity-40"
+        >
+          {left > 0 ? `Chọn thêm ${left} viên` : `Trả lại ${need} viên`}
+        </button>
+        {total > 0 && (
+          <button onClick={() => setGive(emptyPick())} className="rounded-lg border border-white/25 px-3 py-2 text-sm hover:bg-white/10">
+            Chọn lại
+          </button>
+        )}
+      </div>
     </div>
   );
 }

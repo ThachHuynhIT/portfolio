@@ -60,23 +60,18 @@ export function CardFace({
 }) {
   const d = cardDef(id);
   const t = typeOf(id);
-  const Tag = onClick ? "button" : "div";
   const w = { xs: "w-9", sm: "w-12", md: "w-[3.9rem] sm:w-[4.6rem] short:w-[3.6rem]", lg: "w-28" }[size];
   const art = artSrc(`card-${t.key}`);
-  return (
-    <Tag
-      type={onClick ? "button" : undefined}
-      onClick={onClick}
-      title={`${t.name} ${suitText(id)}\n${t.text}`}
-      aria-pressed={onClick ? !!selected : undefined}
+  const title = `${t.name} ${suitText(id)}\n${t.text}`;
+  const face = (
+    <span
       className={cn(
-        "relative flex aspect-[5/7] shrink-0 select-none flex-col items-center justify-between overflow-hidden rounded-lg border-2 p-0.5 text-stone-900 shadow-md transition-transform",
+        "relative flex aspect-[5/7] w-full select-none flex-col items-center justify-between overflow-hidden rounded-lg border-2 p-0.5 text-stone-900 shadow-md transition-[transform,opacity,filter] duration-150",
         FRAME[t.color],
-        w,
-        onClick && "cursor-pointer hover:-translate-y-1",
-        selected && "-translate-y-2 ring-2 ring-amber-300 ring-offset-1 ring-offset-black",
-        dim && "opacity-40 grayscale",
-        className,
+        // Selected wins over hover: a hover lift never pulls a selected card back down.
+        selected ? "-translate-y-2 ring-2 ring-amber-300 ring-offset-1 ring-offset-black" : onClick && "group-hover:-translate-y-1",
+        // Greyed but still readable (name / suit / tooltip stay legible).
+        dim && !selected && "opacity-60 grayscale",
       )}
     >
       {art && <img src={art} alt="" draggable={false} className="absolute inset-0 h-full w-full object-cover" />}
@@ -105,7 +100,29 @@ export function CardFace({
         {t.name}
       </span>
       {badge}
-    </Tag>
+    </span>
+  );
+  if (!onClick) {
+    return (
+      <div title={title} className={cn("relative shrink-0", w, className)}>
+        {face}
+      </div>
+    );
+  }
+  // The button itself never moves: only the face inside lifts. If the hit area moved with the
+  // hover / selected lift, a pointer near the card's edge would flicker in and out of :hover
+  // (the card sinks, jumps back, …) and a selected card looked like it lost its selection.
+  // -mt-2 pt-2 stretches the hit area over the lifted position without changing the layout.
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      aria-pressed={!!selected}
+      className={cn("group relative -mt-2 shrink-0 cursor-pointer rounded-lg pt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300", w, className)}
+    >
+      {face}
+    </button>
   );
 }
 
