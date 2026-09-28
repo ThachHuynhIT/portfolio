@@ -3,7 +3,7 @@ import { GamesShell } from "@/components/games/GamesShell";
 
 export const metadata: Metadata = {
   title: "Mèo Nổ — chơi online",
-  description: "Mèo Nổ online cùng bạn bè: tạo bàn, gửi link mời, 2–6 người, có gói mở rộng và hướng dẫn từng lá bài.",
+  description: "Mèo Nổ online cùng bạn bè: tạo bàn, gửi link mời, 2–7 người, có gói mở rộng và hướng dẫn từng lá bài.",
 };
 
 export default function MeoNoLayout({ children }: { children: React.ReactNode }) {

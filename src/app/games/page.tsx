@@ -28,8 +28,8 @@ const GAMES: GameCard[] = [
     href: "/meo-no",
     title: "Mèo Nổ",
     emoji: "😼",
-    tagline: "Rút bài né bom, “Không!” chặn nhau, 2 gói mở rộng và hướng dẫn từng lá. Chơi 2–6 người.",
-    tags: ["Online", "2–6 người", "Gói mở rộng"],
+    tagline: "Rút bài né bom, “Không!” chặn nhau, 6 gói mở rộng (16 combo dựng sẵn hoặc tự chọn) và hướng dẫn từng lá. Chơi 2–7 người.",
+    tags: ["Online", "2–7 người", "6 gói mở rộng"],
     gradient: "from-orange-500/30 via-rose-700/20 to-transparent",
   },
   {

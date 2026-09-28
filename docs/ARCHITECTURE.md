@@ -11,27 +11,30 @@ Dự án được xây dựng dựa trên **Next.js 14 App Router** với ngôn 
 ```mermaid
 graph TD
     User([Người dùng / Trình duyệt]) --> AppRouter[Next.js App Router: src/app]
-    
+
     subgraph "Routing & Pages"
         AppRouter --> HomeRoute["/ (Portfolio Chính)"]
-        AppRouter --> BlogRoute["/blog & /blog/[slug] (MDX Blog)"]
+        AppRouter --> ContentRoutes["/blog, /projects, /photography, /music, /couple"]
+        AppRouter --> AdminRoute["/admin + /api/admin (CMS)"]
         AppRouter --> ContraRoute["/contra (2D Arcade Game)"]
-        AppRouter --> ToolRoute["/tools/json-validator (Developer Tool)"]
-        AppRouter --> CoupleRoute["/couple (Anniversary Page)"]
+        AppRouter --> GamesRoute["/games, /tien-len, /meo-no, /co-ty-phu, /splendor, /bang"]
+        AppRouter --> ToolRoute["/tools/json-validator"]
     end
-    
+
     subgraph "Core Subsystems"
-        HomeRoute --> SectionComp[Sections Components: src/components/sections]
-        HomeRoute --> ThreeEngine[3D WebGL Engine: src/components/3d]
-        BlogRoute --> MDXEngine[MDX Compiler & File Reader: src/lib/blog.ts]
+        HomeRoute --> ThreeEngine[3D WebGL: src/components/3d]
+        HomeRoute --> ContentLib[Data access: src/lib/content/*, src/lib/blog.ts]
+        ContentRoutes --> ContentLib
+        AdminRoute --> ContentLib
+        ContentLib --> DB[(PostgreSQL via Prisma: src/lib/db.ts)]
+        AdminRoute --> Media[Cloudinary: src/lib/media-service.ts]
         ContraRoute --> CanvasEngine[HTML5 Canvas Game Loop: src/components/game]
-        ToolRoute --> ValidationEngine[JSON Parameter Validator Engine]
-        CoupleRoute --> MemoryEngine[Anniversary Counter & Interactive Timeline]
+        GamesRoute --> GamesShell[Khung game: src/components/games]
+        GamesShell --> BeGame[(be_game: WebSocket + Redis, repo riêng)]
     end
-    
+
     subgraph "Shared Foundation"
-        SectionComp --> UIComp[Design System UI: src/components/ui]
-        SectionComp --> DataStore[Data & Config: src/lib/constants.ts]
+        HomeRoute --> UIComp[Design System UI: src/components/ui]
         UIComp --> AnimLib[Framer Motion Presets: src/lib/animations.ts]
         UIComp --> Styling[Tailwind CSS v4 & globals.css]
     end
@@ -41,80 +44,49 @@ graph TD
 
 ## 2. Cấu Trúc Thư Mục (Directory Structure)
 
+Chỉ liệt kê thư mục và file chính:
+
 ```
 portfolio/
-├── .claude/                   # Cấu hình IDE / Claude Code
-│   └── settings.local.json
-├── content/                   # Dữ liệu nội dung tĩnh ngoài source code
-│   └── blog/                  # Các bài viết blog định dạng .mdx
-│       ├── framer-motion-guide.mdx
-│       └── react-three-fiber-guide.mdx
-├── docs/                      # Tài liệu chi tiết của dự án
-│   ├── ARCHITECTURE.md        # Kiến trúc hệ thống (file này)
-│   ├── FEATURES.md            # Đặc tả chi tiết các tính năng
-│   ├── CUSTOMIZATION_GUIDE.md # Hướng dẫn tùy biến nội dung & giao diện
-│   └── DEPLOYMENT.md          # Hướng dẫn build và deploy
-├── public/                    # Static assets (hình ảnh, icons, resume.pdf)
-├── src/                       # Toàn bộ mã nguồn ứng dụng
-│   ├── app/                   # Next.js App Router (Routes & Layouts)
-│   │   ├── blog/              # Routes trang Blog & chi tiết bài viết
-│   │   │   ├── [slug]/page.tsx
-│   │   │   └── page.tsx
-│   │   ├── contra/            # Route game Contra arcade
-│   │   │   └── page.tsx
-│   │   ├── couple/            # Route trang kỷ niệm tình yêu
-│   │   │   ├── couple.module.css
-│   │   │   ├── layout.tsx
-│   │   │   └── page.tsx
-│   │   ├── tools/             # Route các công cụ tiện ích
-│   │   │   └── json-validator/
-│   │   │       └── page.tsx
-│   │   ├── globals.css        # Tailwind v4 configuration, theme variables (dark + light) & utilities
-│   │   ├── layout.tsx         # Root layout chung (Nav, Main, Footer, Fonts, THEME_INIT_SCRIPT chống nháy theme)
-│   │   └── page.tsx           # Trang chủ Portfolio (One-page scroll)
-│   ├── components/            # React Components
-│   │   ├── 3d/                # Three.js / React Three Fiber components
-│   │   │   ├── FloatingTechStack.tsx
-│   │   │   ├── Hero3DScene.tsx
-│   │   │   ├── ParticleField.tsx
-│   │   │   ├── SceneContainer.tsx
-│   │   │   └── index.ts
-│   │   ├── blog/              # Components dành cho blog
-│   │   │   └── BlogList.tsx
-│   │   ├── game/              # Canvas Game Engine
-│   │   │   └── ContraGame.tsx
-│   │   ├── sections/          # Các section của trang Portfolio chính
-│   │   │   ├── AboutSection.tsx
-│   │   │   ├── ContactSection.tsx
-│   │   │   ├── HeroSection.tsx
-│   │   │   ├── ProjectsSection.tsx
-│   │   │   ├── SkillsSection.tsx
-│   │   │   └── index.ts
-│   │   ├── tools/             # Components cho công cụ dev
-│   │   │   └── JsonValidator.tsx
-│   │   └── ui/                # Reusable UI primitives
-│   │       ├── AnimatedSection.tsx
-│   │       ├── Button.tsx
-│   │       ├── Footer.tsx
-│   │       ├── GlassCard.tsx
-│   │       ├── Navigation.tsx
-│   │       ├── ThemeToggle.tsx  # Nút chuyển Light/Dark (mặt trăng/mặt trời)
-│   │       ├── TiltCard.tsx
-│   │       └── index.ts
-│   ├── context/                # React Context providers toàn site
-│   │   └── ThemeContext.tsx    # ThemeProvider + useTheme() — quản lý data-theme trên <html>
-│   └── lib/                   # Utilities, types, constants, logic
-│       ├── animations.ts      # Framer Motion animation variants
-│       ├── blog.ts            # MDX file reader & parser (Server-only)
-│       ├── constants.ts       # Central source of truth cho data & siteConfig (bao gồm EXCLUDED_ROUTE_PREFIXES cho theme)
-│       ├── types.ts           # TypeScript interfaces & domain models
-│       └── utils.ts           # Helper functions (cn helper: clsx + tailwind-merge)
-├── CLAUDE.md                  # Hướng dẫn tác vụ dành cho AI Agents / Claude
-├── eslint.config.mjs          # Cấu hình ESLint (FlatCompat)
-├── next.config.js             # Cấu hình Next.js
-├── package.json               # Dependencies & scripts
-├── README.md                  # Tài liệu tổng quan dự án
-└── tsconfig.json              # Cấu hình TypeScript compiler
+├── content/                   # Dữ liệu cũ (blog/*.mdx, data/*.json) — chỉ là nguồn cho scripts/migrate-json-to-db.ts
+├── docs/                      # ARCHITECTURE, FEATURES, CUSTOMIZATION_GUIDE, DEPLOYMENT, MEONO_/BANG_ART_PROMPTS
+├── prisma/schema.prisma       # Schema Postgres (model Cms*, Track/Playlist,...)
+├── public/                    # Static assets (fonts/, games/splendor/{cards,nobles,gems}/*.webp, games/<game>/cards/*.webp khi có art)
+├── scripts/
+│   ├── card-art.mjs           # npm run art:meono / art:bang — art/<game>/*.png → public/games/<game>/cards/*.webp + src/lib/<game>/art.ts
+│   └── migrate-json-to-db.ts  # Migrate 1 lần content/ → Postgres
+├── src/
+│   ├── app/                   # Next.js App Router
+│   │   ├── page.tsx           # Trang chủ (Hero → About → Skills → Projects → PhotoPreview → BlogPreview → Contact)
+│   │   ├── layout.tsx         # Root layout (Theme/Language/Music providers, GlobalBackground, Navigation, Footer, GlobalMusicPlayer, THEME_INIT_SCRIPT)
+│   │   ├── not-found.tsx      # 404 (nền hố đen)
+│   │   ├── globals.css        # Tailwind v4, theme tokens (dark + light), utilities
+│   │   ├── admin/             # CMS: blog, couple, media, music, nav-links, photography, projects, site-config, skills, social-links, login
+│   │   ├── api/               # admin/**, contact, couple, music/{tracks,upload}
+│   │   ├── blog/, projects/, photography/ (+ album/[slug]), music/, couple/, contra/, tools/json-validator/
+│   │   ├── games/             # Trang tổng các game
+│   │   └── tien-len/, meo-no/, co-ty-phu/, splendor/, bang/   # layout.tsx (GamesShell) + page.tsx (sảnh) + [room]/page.tsx (bàn)
+│   ├── components/
+│   │   ├── 3d/                # SceneContainer, ParticleField, StarryBackground3D, blackhole/ (BlackHoleCanvas + engine)
+│   │   ├── admin/, blog/, music/, photography/, projects/, sections/, tools/, layout/ (GlobalBackground)
+│   │   ├── ui/                # Button, GlassCard, TiltCard, AnimatedSection, Navigation, Footer, Skeleton, ImageWithSkeleton, ThemeToggle, LanguageSwitcher, Icon,...
+│   │   ├── game/              # ContraGame.tsx
+│   │   ├── games/             # Khung chung game online (xem §3.8)
+│   │   └── tienlen/, meono/, typhu/, splendor/, bang/   # Bàn chơi từng game
+│   ├── context/               # LanguageContext, MusicContext, ThemeContext, ToastContext
+│   ├── generated/prisma/      # Prisma client (sinh bởi prisma generate, gitignored)
+│   ├── lib/
+│   │   ├── db.ts              # Prisma singleton (pg Pool + @prisma/adapter-pg)
+│   │   ├── content/*.ts       # Đọc/ghi từng loại nội dung (unstable_cache cho đọc public)
+│   │   ├── blog.ts, admin-auth.ts, session-token.ts, cloudinary.ts, media-service.ts, rate-limit.ts, seo.ts
+│   │   ├── constants.ts       # EXCLUDED_ROUTE_PREFIXES (route luôn dark)
+│   │   ├── animations.ts, types.ts, utils.ts, content-overrides.ts, section-defaults.ts
+│   │   └── tienlen/, meono/, typhu/, splendor/, bang/   # Bản sao dữ liệu/luật + protocol của be_game
+│   ├── locales/               # en.ts, vi.ts
+│   └── middleware.ts          # Chặn /admin khi chưa đăng nhập
+├── CLAUDE.md, README.md
+├── eslint.config.mjs, next.config.js, prisma.config.ts, tsconfig.json, package.json
+└── .env.example               # Danh sách biến môi trường
 ```
 
 ---
@@ -129,19 +101,18 @@ Phân hệ 3D được xây dựng dựa trên `@react-three/fiber` (R3F), `@rea
    - Quản lý khởi tạo `<Canvas>` của Three.js với cấu hình camera tối ưu.
    - **Tự động nhận diện `prefers-reduced-motion`**: Nếu người dùng bật chế độ giảm chuyển động trong hệ điều hành, hệ thống sẽ render Fallback CSS gradient thay vì khởi động WebGL context để tiết kiệm GPU và bảo vệ trải nghiệm người dùng.
    - **`SceneErrorBoundary`**: Bọc toàn bộ 3D scene trong một Error Boundary cấp component. Khi WebGL bị crash hoặc driver GPU không hỗ trợ, màn hình sẽ fallback an toàn mà không làm sập toàn bộ trang web.
+   - Dùng cho `StarryBackground3D` (nền sao toàn site qua `GlobalBackground`) và `ParticleField` của Contact.
 
-2. **Hiệu Suất & Mouse Tracking Không Gây Re-render**:
-   - `HeroSection.tsx` sử dụng `useRef` dạng Mutable Object (`mousePositionRef.current = { x, y }`) để lắng nghe sự kiện `onMouseMove`.
-   - `Hero3DScene.tsx` đọc trực tiếp giá trị này trong vòng lặp `useFrame((state, delta) => ...)` của Three.js.
-   - **Kết quả**: Vị trí chuột được cập nhật mượt mà 60–120 FPS ở tầng GPU/Canvas mà không kích hoạt chu kỳ re-render của React DOM.
+2. **Hố đen Hero (`blackhole/BlackHoleCanvas.tsx`)** — ngoại lệ không đi qua `SceneContainer`:
+   - Engine raymarching Schwarzschild tự quản lý `THREE.WebGLRenderer` + vòng lặp riêng (không phải R3F), tự co giãn theo phần tử cha (`ResizeObserver`), tôn trọng `prefers-reduced-motion`.
+   - Hero dùng chế độ trang trí (`interactive={false}`, `scrollEffect`): camera nghiêng/zoom dần theo vị trí cuộn của cả trang; sự kiện cuộn được throttle bằng `requestAnimationFrame` và cập nhật thẳng vào engine, không qua React state. Trang 404 dùng cùng engine.
 
 3. **Hệ Thống Hạt (`ParticleField.tsx`)**:
-   - Sử dụng `THREE.BufferGeometry` với 500 điểm hạt (particle vertices) được cấp phát một lần duy nhất vào bộ nhớ Float32Array.
-   - Vị trí các hạt được biến đổi bằng hàm sóng hình sin/cosin trong `useFrame`.
+   - `Float32Array` vị trí/vận tốc cấp phát một lần theo `count` (mặc định 1000; Contact dùng 500, hoặc 200 trên máy yếu), cập nhật trong `useFrame`.
 
 ---
 
-### 3.2. MDX Blog Engine (`content/blog` & `src/lib/blog.ts`)
+### 3.2. MDX Blog Engine (`src/lib/blog.ts`, bảng `CmsBlogPost`)
 
 Hệ thống blog hoạt động theo mô hình Server-Side MDX Compilation:
 
@@ -150,22 +121,22 @@ sequenceDiagram
     participant User as Trình duyệt
     participant Page as src/app/blog/[slug]/page.tsx
     participant Lib as src/lib/blog.ts
-    participant FS as File System (content/blog/*.mdx)
+    participant DB as Postgres (CmsBlogPost)
     participant MDX as next-mdx-remote/rsc
 
     User->>Page: GET /blog/framer-motion-guide
     Page->>Lib: getPostBySlug("framer-motion-guide")
-    Lib->>FS: fs.readFileSync(".../framer-motion-guide.mdx")
-    FS-->>Lib: File contents (Frontmatter + Markdown)
-    Lib->>Lib: matter(fileContents) (Tách YAML header & body)
-    Lib-->>Page: BlogPost Object (title, date, tags, content)
+    Lib->>DB: db.cmsBlogPost.findUnique({ where: { slug } })
+    DB-->>Lib: Row (title, excerpt, content, contentVi, tags,...)
+    Lib-->>Page: BlogPost Object
     Page->>MDX: MDXRemote source={content} components={mdxComponents} plugins={[rehypeHighlight, rehypeSlug]}
     MDX-->>Page: Rendered HTML + Syntax Highlighted Blocks
     Page-->>User: Gửi HTML đã render hoàn chỉnh (SSR/SSG)
 ```
 
-- **Static Generation (`generateStaticParams`)**: Tự động sinh static HTML tại thời điểm build cho toàn bộ các file `.mdx` trong `content/blog/`.
-- **Dynamic SEO (`generateMetadata`)**: Tự động trích xuất tiêu đề, mô tả và OpenGraph metadata từ Frontmatter.
+- **Static Generation (`generateStaticParams`)**: Sinh static HTML lúc build cho mọi slug có trong DB; bài được tạo/sửa ở `/admin/blog` (admin API gọi `revalidateTag("blog")`).
+- **Dynamic SEO (`generateMetadata`)**: Tiêu đề, mô tả và OpenGraph lấy từ dữ liệu bài viết.
+- `content/blog/*.mdx` chỉ còn là nguồn cho `scripts/migrate-json-to-db.ts`.
 - **Custom MDX Components**: Ghi đè toàn bộ các thẻ HTML cơ bản (`h1`-`h3`, `p`, `a`, `pre`, `code`, `blockquote`) bằng giao diện glassmorphic tối đồng bộ với theme của ứng dụng.
 
 ---
@@ -176,7 +147,7 @@ Trang `/contra` chứa một game engine 2D Contra arcade độc lập ~1.800 d�
 
 - **Game Loop (`requestAnimationFrame`)**: Chạy độc lập với React state, cập nhật vật lý theo delta time chuẩn xác.
 - **Phân tách Layer**:
-  1. *Input Layer*: Lắng nghe bàn phím (WASD / Mũi tên, J bắn, K nhảy, L dash/grenade, Enter/P pause).
+  1. *Input Layer*: Lắng nghe bàn phím (A/D hoặc ←/→ di chuyển, W/↑ ngắm lên, S/↓ nằm, Space/W/↑ nhảy, ↓+Space rơi qua cầu, J/Z/X bắn, Enter bắt đầu, Esc tạm dừng). Vòng lặp fixed-timestep `FIXED_DT = 1000/60`.
   2. *Physics & Collision Layer*: Hệ thống AABB (Axis-Aligned Bounding Box) kiểm tra va chạm giữa Player, Quái, Đạn và Nền tảng (Platform).
   3. *Entity Management*: Quản lý danh sách đối tượng linh động (Players, Enemies, Bullets, Particles, PowerUps).
   4. *Render Layer*: Vẽ trực tiếp lên HTML5 Canvas 2D Context, áp dụng hiệu ứng CRT scanline, ánh sáng nổ, khói và mảnh văng particle.
@@ -198,10 +169,10 @@ Công cụ kiểm tra tính toàn vẹn dữ liệu JSON:
 
 - **Tailwind CSS v4**: Cấu hình theme trực tiếp qua `@theme inline` và biến CSS Custom Properties (`--background: #050505`, `--foreground`, `--purple-500`, `--cyan-500`).
 - **Standardized Micro-Animations**:
-  - `fadeInUp`, `fadeInDown`, `fadeInLeft`, `fadeInRight`: Xuất hiện với độ trễ chuyển động mượt mà.
+  - `fadeInUp`, `fadeInLeft`, `fadeInRight`, `scaleUp`: Xuất hiện với độ trễ chuyển động mượt mà.
   - `staggerContainer`: Điều phối xuất hiện lần lượt cho các danh sách (skills, project cards).
-  - `blurFadeIn`: Hiệu ứng mờ dần kết hợp scale sang trọng.
-  - `tilt`: Hiệu ứng nghiêng thẻ 3D theo con trỏ chuột (`TiltCard.tsx`).
+  - `blurFadeIn`: Hiệu ứng mờ dần kết hợp blur; `floatAnimation`: bay lên-xuống lặp vô hạn.
+  - Nghiêng thẻ 3D theo con trỏ nằm trong component `TiltCard.tsx` (spring của Framer Motion), không phải variant.
 
 ---
 
@@ -212,7 +183,7 @@ Giao diện gốc của site là **Dark** (không đổi); Light mode được t
 - **Biến thể Tailwind tuỳ biến**: `globals.css` khai báo `@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));` — mọi class tiền tố `light:` chỉ có hiệu lực khi `<html>` (hoặc tổ tiên gần nhất) có `data-theme="light"`. Component chỉ cần **thêm** class `light:` bên cạnh class dark gốc, không xoá/thay class cũ.
 - **`ThemeProvider`** (bọc toàn app ở `layout.tsx`, bên trong `<script>` chống nháy theme): phát hiện theme ưu tiên qua `localStorage["portfolio_theme"]`, fallback `prefers-color-scheme`; tiếp tục lắng nghe sự kiện đổi theme OS nếu người dùng chưa từng chọn thủ công. Ghi `data-theme` lên `document.documentElement` mỗi khi theme đổi.
 - **Chống FOUC (Flash of Unstyled/Incorrect Content)**: một inline script chặn render trong `layout.tsx` (`THEME_INIT_SCRIPT`) chạy **trước khi React hydrate**, set sẵn `data-theme` bằng đúng logic của `ThemeContext.tsx` — 2 nơi này bắt buộc đồng bộ.
-- **Route ngoại lệ luôn Dark**: `EXCLUDED_ROUTE_PREFIXES` (`src/lib/constants.ts`) = `/admin`, `/contra`, `/couple` — `resolvedTheme` bị ép về `"dark"` bất kể lựa chọn người dùng khi đang ở các route này.
+- **Route ngoại lệ luôn Dark**: `EXCLUDED_ROUTE_PREFIXES` (`src/lib/constants.ts`) = `/admin`, `/contra`, `/couple`, `/music`, `/games`, `/tien-len`, `/meo-no`, `/co-ty-phu`, `/splendor`, `/bang` — `resolvedTheme` bị ép về `"dark"` bất kể lựa chọn người dùng khi đang ở các route này.
 - **Ngoại lệ theo component**: modal `PhotoLightboxModal.tsx` trong module Photography chủ đích luôn Dark ("theater mode"), độc lập với theme hiện tại của trang.
 - Design tokens theo theme (`--background`, `--foreground`, `--glass-bg`, `--glow-purple-color`, `--glow-cyan-color`, `--scrollbar-*`, `--selection-*`) được định nghĩa lại trong khối `[data-theme="light"]` — các utility Tailwind theo token (`bg-background`, `text-foreground`) tự đổi màu mà **không** cần tiền tố `light:`.
 
@@ -228,16 +199,36 @@ Giao diện gốc của site là **Dark** (không đổi); Light mode được t
 
 ---
 
+### 3.8. Game Online (`src/components/games`, backend be_game)
+
+- **Backend**: repo riêng **be_game** (Vercel serverless WebSocket + Redis). Client gọi `serverBase()` = `NEXT_PUBLIC_TIENLEN_SERVER_URL` (mặc định `http://localhost:4000`). Tiến Lên dùng `/api/ws`, `/api/rooms`, `/api/leaderboard`; các game khác dùng `/api/<game>/ws|rooms|leaderboard` với `<game>` = `meono`, `typhu`, `splendor`, `bang`.
+- **Layout**: `layout.tsx` của `/games` và mỗi game bọc trang trong `GamesShell` — thanh tab game, tên người chơi (đổi tên được), cổng chọn tên (chưa có tên thì hiện trước), `AllRoomsPanel` (cột phải ở hub/sảnh, poll `/rooms` của mọi game mỗi 10 giây) và footer gọn. `Navigation`/`Footer` của site tự ẩn trên các route này (`isGamesRoute()` trong `gamesRegistry.ts`, nơi khai báo danh sách game, route, endpoint `/rooms` và số ghế tối đa).
+- **`gameClient.ts`**: WebSocket dùng chung (`useGameRoom`, `createGameRoom`, `fetchApi`) — ack, ping 10 giây (kiêm heartbeat), reconnect có backoff và chuyển kết nối khi server báo sắp hết thời gian function. Token ghế lưu `sessionStorage` (reload giữ ghế, mỗi tab là một người chơi); tên người chơi dùng chung mọi game ở `localStorage["games:playerName"]` (`getSavedName`/`saveName`/`usePlayerName`, key cũ `tienlen:name` được migrate). Trang bàn chơi cố định tên lúc mount.
+- **Component dùng chung**: `GameLobby` (tạo/vào bàn bằng mã, danh sách bàn, xem, bảng xếp hạng, luật), `ChatBox` (chat nổi cho người chơi & khán giả), `DraggableHand` (tự xếp bài trên tay, chỉ lưu `sessionStorage`), `SettingsTabs` (tab cài đặt phòng chờ), `TurnIndicator` (`TurnRing` + `MyTurnBadge`), `RankPointsPicker` (chủ phòng chọn điểm Nhất/Nhì, các hạng còn lại đối xứng để tổng bằng 0).
+- **Bản sao luật/dữ liệu**: `src/lib/{tienlen,meono,typhu,splendor,bang}/` là bản sao từ be_game (`src/game/` cho Tiến Lên, `src/<game>/cards.ts` hoặc `board.ts` + `protocol.ts`) để kiểm tra nước đi và hiển thị ở client — sửa luật ở be_game thì phải đồng bộ lại.
+- **Ảnh lá bài**: Đá Quý dùng ảnh WebP có sẵn trong `public/games/splendor/`. Mèo Nổ và Đấu Súng có art tùy chọn từng lá: ảnh nguồn đặt ở `art/<game>/` (gitignored) → `npm run art:meono` / `npm run art:bang` (`scripts/card-art.mjs`) → `public/games/<game>/cards/*.webp` + `src/lib/<game>/art.ts`; lá chưa có art giữ mặt vẽ bằng emoji. Prompt: `docs/MEONO_ART_PROMPTS.md`, `docs/BANG_ART_PROMPTS.md`.
+
+---
+
+### 3.9. Lớp Dữ Liệu (Prisma + PostgreSQL)
+
+- `src/lib/db.ts`: Prisma client (sinh ở `src/generated/prisma`) với driver adapter `@prisma/adapter-pg`, singleton qua `globalThis`. `prisma.config.ts` đọc `DATABASE_URL`.
+- Mọi nội dung (site config, nav/social links, skills, projects, ảnh/album, couple, media registry, blog, tin nhắn liên hệ) nằm ở các model `Cms*`, truy cập qua `src/lib/content/*.ts` và `src/lib/blog.ts`; Music dùng `Track`/`Playlist`/`PlaylistTrack`.
+- Đọc public được cache bằng `unstable_cache`; route `/api/admin/**` kiểm tra `requireAdminSession()` rồi ghi DB và `revalidateTag(...)`.
+
+---
+
 ## 4. Quản Lý Trạng Thái & Luồng Dữ Liệu (State Management)
 
 | Thành phần | Cơ chế State | Mục đích |
 |---|---|---|
-| **Single Source of Truth** | `src/lib/constants.ts` | Lưu trữ cấu hình toàn site (`siteConfig`), danh sách kỹ năng, dự án, liên kết mạng xã hội |
+| **Nội dung site** | Postgres (Prisma) qua `src/lib/content/*`, đọc ở Server Component rồi truyền props | Cấu hình site, kỹ năng, dự án, ảnh, liên kết, couple, blog — sửa qua `/admin` |
 | **Contact Form** | `react-hook-form` + `zod` | Validation form liên hệ theo schema nghiêm ngặt, quản lý trạng thái submit và hiển thị thông báo |
 | **Blog Filter** | React Local State (`useState`) | Lọc danh sách bài viết theo danh mục (category) tức thì tại Client |
 | **3D Animations** | `useRef` + Three.js `useFrame` | Truyền tọa độ chuột trực tiếp vào GPU loop, tránh re-render React DOM |
 | **2D Arcade Game** | Internal Engine State + Refs | Vòng lặp game độc lập 60 FPS, chỉ tương tác với React khi Pause / Game Over |
 | **JSON Validator** | React Local State (`useState`) | Quản lý danh sách file upload, kết quả phân tích và bộ lọc lỗi |
+| **Game online** | `useGameRoom` (WebSocket) + state phòng do server gửi | Server be_game là nguồn sự thật; client chỉ giữ tên, token ghế, thứ tự bài trên tay |
 | **Light/Dark Theme** | React Context (`ThemeContext`) + `localStorage` + `data-theme` attribute | Đồng bộ theme giữa inline blocking script, Context và CSS (`light:` variant), loại trừ theo route (`EXCLUDED_ROUTE_PREFIXES`) |
 
 ---
@@ -245,7 +236,7 @@ Giao diện gốc của site là **Dark** (không đổi); Light mode được t
 ## 5. Tiêu Chuẩn Hiệu Năng & SEO (Performance & SEO)
 
 1. **Tối Ưu Font**: Sử dụng `next/font/google` nạp `Inter` và `Space Grotesk` với cơ chế zero layout shift (font display swap).
-2. **Dynamic Imports**: Tất cả các component nặng (Three.js WebGL, 2D Canvas Game) đều được tải bất đồng bộ theo cơ chế lazy loading (`next/dynamic` với `ssr: false`).
+2. **Dynamic Imports**: Các component nặng (WebGL, Canvas game, các section dưới màn hình đầu) được tải bằng `next/dynamic` (WebGL/Canvas dùng `ssr: false`).
 3. **Semantic HTML & Metadata**:
    - Thẻ `<h1>` duy nhất trên trang chủ, phân cấp `<h2>`-`<h4>` rõ ràng.
    - Hỗ trợ đầy đủ OpenGraph và Twitter Card metadata trên toàn bộ các route.
