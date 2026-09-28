@@ -296,15 +296,11 @@ body {
 /*
  * Game tables sit under the slim games top bar (GamesShell): shrink their
  * `min-h-[100dvh]` root by the bar's height so the table still fits one screen.
- * Unlayered, so it wins over the table's Tailwind utility. Sideways phones hide the bar.
+ * Unlayered, so it wins over the table's Tailwind utility. The bar also holds the table's own
+ * header (GameHeader), so it stays on sideways phones too.
  */
 .games-shell-table {
   --games-bar-h: 2.25rem;
-}
-@media (orientation: landscape) and (max-height: 500px) {
-  .games-shell-table {
-    --games-bar-h: 0px;
-  }
 }
 .games-table > :first-child {
   min-height: calc(100dvh - var(--games-bar-h));

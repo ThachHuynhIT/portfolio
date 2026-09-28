@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { MAX_NAME_LENGTH } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { AllRoomsPanel } from "./AllRoomsPanel";
+import { FullscreenButton, GAME_HEADER_SLOT_ID } from "./GameHeader";
 import { saveName, usePlayerName } from "./gameClient";
 import { ONLINE_GAMES, gameOfPath, gamesPageKind } from "./gamesRegistry";
 
@@ -72,8 +73,8 @@ function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: stri
     <header
       className={cn(
         "z-40 w-full border-b border-white/10 bg-black/60 text-white backdrop-blur-xl",
-        // Tables: slim and not sticky (scrolls away), and gone on sideways phones where every pixel of height counts.
-        compact ? "relative short:hidden" : "sticky top-0",
+        // Tables: slim; the table's own header (room code, invite…) lives in here too.
+        compact ? "relative" : "sticky top-0",
       )}
     >
       <nav className={cn("mx-auto flex max-w-7xl items-center gap-2 px-3 sm:px-4", compact ? "h-9" : "h-12")} aria-label="Games">
@@ -93,7 +94,7 @@ function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: stri
 
         <span className="h-5 w-px shrink-0 bg-white/10" aria-hidden />
 
-        <ul className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [scrollbar-width:none]">
+        <ul className={cn("flex min-w-0 items-center gap-0.5 overflow-x-auto [scrollbar-width:none]", compact ? "hidden shrink-0 lg:flex" : "flex-1")}>
           {ONLINE_GAMES.map((g) => {
             const on = active?.id === g.id;
             return (
@@ -116,6 +117,9 @@ function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: stri
           })}
         </ul>
 
+        {compact && <div id={GAME_HEADER_SLOT_ID} className="flex min-w-0 flex-1 items-center" />}
+        <FullscreenButton />
+
         {name && (
           <button
             onClick={onRename}
@@ -128,8 +132,8 @@ function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: stri
             <span className={cn("grid shrink-0 place-items-center rounded-full bg-amber-400 font-bold text-black", compact ? "size-5 text-[10px]" : "size-6 text-xs")} aria-hidden>
               {name.charAt(0).toUpperCase()}
             </span>
-            <span className="max-w-[6rem] truncate font-medium sm:max-w-[10rem]">{name}</span>
-            <span className="text-white/50" aria-hidden>
+            <span className={cn("max-w-[6rem] truncate font-medium sm:max-w-[10rem]", compact && "max-sm:hidden")}>{name}</span>
+            <span className={cn("text-white/50", compact && "max-sm:hidden")} aria-hidden>
               ✎
             </span>
           </button>
@@ -140,7 +144,7 @@ function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: stri
           title="Về trang chính"
           className={cn(
             "flex shrink-0 items-center gap-1 rounded-lg px-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white",
-            compact ? "py-0.5 text-xs" : "py-1 text-sm",
+            compact ? "py-0.5 text-xs max-sm:hidden" : "py-1 text-sm",
           )}
         >
           <span aria-hidden>↩</span>
