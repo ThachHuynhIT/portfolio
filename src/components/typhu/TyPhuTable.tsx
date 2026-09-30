@@ -2098,18 +2098,47 @@ function RulesModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+/**
+ * Dialog: a bottom sheet on phones (backdrop above it to tap away, a full-width "Đóng" bar at the bottom),
+ * centred from `sm` up. The ✕ stays put while the content scrolls; Esc closes too.
+ */
 function Modal({ children, onClose, dark }: { children: React.ReactNode; onClose: () => void; dark?: boolean }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4" onClick={onClose}>
       <div
         role="dialog"
-        className={cn("relative max-h-[88dvh] w-full max-w-md overflow-y-auto rounded-2xl shadow-2xl", dark && "border border-white/10 bg-[#0c2233] p-5 text-sky-50")}
+        aria-modal
+        className={cn(
+          "relative flex max-h-[82dvh] w-full max-w-md flex-col overflow-hidden rounded-t-2xl text-left shadow-2xl sm:max-h-[88dvh] sm:rounded-2xl",
+          dark ? "border border-white/10 bg-[#0c2233] text-sky-50" : "bg-[#f4efe1]",
+        )}
         onClick={(e) => e.stopPropagation()}
       >
-        <button onClick={onClose} className="absolute right-2 top-2 z-10 rounded-md bg-black/20 px-2 py-0.5 text-sm hover:bg-black/40" aria-label="Đóng">
+        <button
+          onClick={onClose}
+          className={cn(
+            "absolute right-2 top-2 z-10 grid size-9 place-items-center rounded-full text-lg leading-none shadow",
+            dark ? "bg-white/10 text-white hover:bg-white/20" : "bg-black/35 text-white hover:bg-black/50",
+          )}
+          aria-label="Đóng"
+        >
           ✕
         </button>
-        {children}
+        <div className={cn("min-h-0 flex-1 overflow-y-auto overscroll-contain", dark && "p-5 [&>h2:first-child]:pr-10")}>{children}</div>
+        <button
+          onClick={onClose}
+          className={cn(
+            "shrink-0 border-t py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-sm font-semibold sm:hidden",
+            dark ? "border-white/10 bg-black/20 text-sky-100" : "border-emerald-900/15 bg-white/60 text-emerald-950",
+          )}
+        >
+          Đóng
+        </button>
       </div>
     </div>
   );
