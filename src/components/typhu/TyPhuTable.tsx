@@ -230,7 +230,21 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
   const [showTrade, setShowTrade] = useState(false);
   const [showScores, setShowScores] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [showAssets, setShowAssets] = useState(false);
   const [busy, setBusy] = useState(false);
+  const inDebt = myTurn && g?.phase === "debt" && !!g.debt;
+  // The assets panel sits in the side column (below the board on phones) so it never covers the board;
+  // it opens by itself while I'm in debt.
+  const assetsOpen = !!mine && myTurn && (showAssets || inDebt);
+  const assetsRef = useRef<HTMLDivElement>(null);
+  const openAssets = () => {
+    setShowAssets(true);
+    // Below the board on phones: bring it into view.
+    requestAnimationFrame(() => assetsRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+  };
+  useEffect(() => {
+    if (!myTurn) setShowAssets(false);
+  }, [myTurn]);
 
   const run = async (msg: Record<string, unknown> & { type: string }) => {
     setBusy(true);
@@ -408,6 +422,8 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
                   run={run}
                   nameOf={nameOf}
                   secondsLeft={secondsLeft}
+                  assetsOpen={assetsOpen}
+                  onOpenAssets={openAssets}
                 />
               )}
             </div>
@@ -417,6 +433,19 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
         {/* Side panel */}
         {/* Bottom padding below lg: lets the log scroll clear of the floating chat / emoji buttons. */}
         <aside className="flex flex-col gap-3 max-lg:pb-14 short:max-h-[calc(100dvh-3.75rem)] short:gap-2 short:overflow-y-auto">
+          {assetsOpen && g && mine && (
+            <div ref={assetsRef} className="scroll-mt-2">
+              <AssetPanel
+                g={g}
+                mine={mine}
+                settings={view.settings}
+                busy={busy}
+                run={run}
+                seconds={secondsLeft(g.deadline)}
+                onClose={inDebt ? undefined : () => setShowAssets(false)}
+              />
+            </div>
+          )}
           <div className="rounded-2xl bg-black/35 p-3 short:p-2">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-100/60">Người chơi</p>
             <ul className="grid grid-cols-2 gap-2 lg:grid-cols-1">
@@ -713,6 +742,8 @@ function Centre({
   run,
   nameOf,
   secondsLeft,
+  assetsOpen,
+  onOpenAssets,
 }: {
   g: TPGameView;
   view: TPRoomView;
@@ -722,6 +753,8 @@ function Centre({
   run: Act;
   nameOf: (id: string) => string;
   secondsLeft: (t: number | null | undefined) => number | null;
+  assetsOpen: boolean;
+  onOpenAssets: () => void;
 }) {
   const turnName = g.turn ? nameOf(g.turn) : "";
   const current = g.players.find((p) => p.id === g.turn);
@@ -731,12 +764,13 @@ function Centre({
   const rollId = [...g.log].reverse().find((e) => e.text.startsWith("🎲"))?.id ?? 0;
   const [showBuild, setShowBuild] = useState(false);
   const fullGroups = mine ? buildableGroups(g, mine.id, view.settings.needGroup !== false) : [];
-  const housesOwned = mine ? Object.values(g.deeds).filter((d) => d.owner === mine.id && d.houses > 0).length : 0;
+  const ownsLand = !!mine && Object.values(g.deeds).some((d) => d.owner === mine.id);
+  const debt = myTurn && g.phase === "debt" ? g.debt : null;
 
   return (
     <div className="flex w-full max-w-sm flex-col items-center gap-2 text-center">
       <p className="hidden font-black tracking-tight text-emerald-900 sm:block sm:text-3xl">CỜ TỶ PHÚ</p>
-      <div className="flex items-center gap-2">
+      <div className={cn("flex items-center gap-2", debt && "max-sm:hidden")}>
         {g.dice ? (
           <>
             <Die value={g.dice[0]} rolling={rollId} />
@@ -797,28 +831,12 @@ function Centre({
                 🏠 Xây nhà{fullGroups.length ? ` (${fullGroups.length} nhóm)` : ""}
               </CBtn>
             )}
-            {g.phase === "debt" && housesOwned > 0 && (
-              <CBtn build onClick={() => setShowBuild(true)} disabled={busy}>
-                🏚️ Bán nhà
+            {g.phase !== "debt" && ownsLand && !assetsOpen && (
+              <CBtn onClick={onOpenAssets} disabled={busy}>
+                💰 Thế chấp / Bán
               </CBtn>
             )}
-            {g.phase === "debt" && g.debt && (
-              <>
-                <p className="rounded-lg bg-rose-100 px-2 py-1 text-xs font-semibold text-rose-900">
-                  💸 Bạn đang nợ {money(g.debt.amount)} — xử lý ở thanh phía dưới
-                </p>
-                <DebtBar
-                  debt={g.debt}
-                  cash={mine.cash}
-                  seconds={secs}
-                  busy={busy}
-                  canSellHouses={housesOwned > 0}
-                  onSellHouses={() => setShowBuild(true)}
-                  onPay={() => void run({ type: "paydebt" })}
-                  onBankrupt={() => void run({ type: "bankrupt" })}
-                />
-              </>
-            )}
+            {debt && <DebtControls debt={debt} cash={mine.cash} busy={busy} run={run} onOpenAssets={ownsLand ? onOpenAssets : undefined} />}
           </div>
         )}
       </div>
@@ -830,7 +848,7 @@ function Centre({
       )}
       {g.log.length > 0 && (
         <ul className="w-full space-y-0.5 text-[11px] text-emerald-950/80 lg:hidden">
-          {g.log.slice(g.phase === "buy" && myTurn ? -1 : -2).map((e) => (
+          {g.log.slice(debt || (g.phase === "buy" && myTurn) ? -1 : -2).map((e) => (
             <li key={e.id} className="truncate rounded bg-white/50 px-2 py-0.5">
               {e.text}
             </li>
@@ -842,7 +860,7 @@ function Centre({
         <p className="hidden text-[11px] text-emerald-900/60 sm:block">Bấm vào một ô để xem chi tiết, xây nhà hoặc thế chấp.</p>
       )}
       {mine?.bankrupt && <p className="text-sm font-semibold text-rose-700">💸 Bạn đã phá sản — xem mọi người chơi tiếp nhé.</p>}
-      {showBuild && mine && <BuildPanel g={g} mine={mine} settings={view.settings} busy={busy} run={run} onClose={() => setShowBuild(false)} />}
+      {showBuild && mine && <BuildPanel g={g} mine={mine} settings={view.settings} busy={busy} run={run} onClose={() => setShowBuild(false)} onOpenAssets={onOpenAssets} />}
     </div>
   );
 }
@@ -897,18 +915,32 @@ const buildRuleText = (st: TPSettings) =>
     ? "Xây theo chuỗi: nhà 2 / nhà 3 cần 2 ô trong nhóm có nhà 1 / nhà 2, nhà 4 cần cả nhóm 3 nhà, khách sạn cần cả nhóm 4 nhà."
     : "Xây đều từng ô trong nhóm; 4 nhà rồi lên khách sạn.") + (st.needGroup === false ? " Không cần đủ nhóm màu." : "");
 
-/** Build / sell houses (and sell land) on every group you can build in, without hunting for the squares on the board. */
-function BuildPanel({ g, mine, settings, busy, run, onClose }: { g: TPGameView; mine: TPPlayerView; settings: TPSettings; busy: boolean; run: Act; onClose: () => void }) {
+/** Build on every group you can build in, without hunting for the squares on the board. Selling / mortgaging lives in AssetPanel. */
+function BuildPanel({
+  g,
+  mine,
+  settings,
+  busy,
+  run,
+  onClose,
+  onOpenAssets,
+}: {
+  g: TPGameView;
+  mine: TPPlayerView;
+  settings: TPSettings;
+  busy: boolean;
+  run: Act;
+  onClose: () => void;
+  onOpenAssets: () => void;
+}) {
   const needGroup = settings.needGroup !== false;
   const groups = buildableGroups(g, mine.id, needGroup);
   const partial = needGroup ? ALL_GROUPS.filter((grp) => !groups.includes(grp) && groupPositions(grp).some((p) => g.deeds[p]?.owner === mine.id)) : [];
-  const inDebt = g.phase === "debt";
-  const sellLandOn = !!settings.sellLand;
   return (
     <Modal onClose={onClose} dark>
-      <h2 className="mb-1 text-lg font-bold text-amber-300">{inDebt ? "🏚️ Bán nhà" : "🏠 Xây nhà"}</h2>
+      <h2 className="mb-1 text-lg font-bold text-amber-300">🏠 Xây nhà</h2>
       <p className="mb-3 text-xs text-sky-100/70">
-        Tiền mặt: <b className="text-emerald-300">{money(mine.cash)}</b> · {buildRuleText(settings)} Bán nhà được nửa giá{sellLandOn ? ", bán đất cho ngân hàng cũng nửa giá" : ""}.
+        Tiền mặt: <b className="text-emerald-300">{money(mine.cash)}</b> · {buildRuleText(settings)}
       </p>
       {groups.length === 0 && <p className="text-sm text-sky-100/70">{needGroup ? "Bạn chưa sở hữu đủ nhóm màu nào." : "Bạn chưa có đất thành phố nào."}</p>}
       <div className="space-y-3">
@@ -929,57 +961,44 @@ function BuildPanel({ g, mine, settings, busy, run, onClose }: { g: TPGameView; 
                     return (
                       <li key={pos} className="flex items-center gap-2 px-3 py-2 text-sm text-sky-100/45">
                         <span className="min-w-0 flex-1 truncate">{sq.name}</span>
-                        <span className="text-[11px]">{d ? "của người khác" : "chưa có chủ"}</span>
+                        <span className="shrink-0 text-[11px]">{d ? "của người khác" : "chưa có chủ"}</span>
                       </li>
                     );
                   }
-                  const m = g.manage?.[pos];
-                  const buildWhy = inDebt ? "Đang nợ — chỉ bán được" : (m?.build ?? null);
-                  const sellWhy = m?.sell ?? (d.houses > 0 ? null : "Không có nhà để bán");
+                  const buildWhy = g.manage?.[pos]?.build ?? null;
+                  const full = d.houses >= MAX_HOUSES;
                   return (
-                    <li key={pos} className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm">
-                      <span className="min-w-0 flex-1">
-                        <b className="block truncate">{sq.name}</b>
-                        <span className="flex h-5 items-end gap-0.5">
-                          {d.houses === 0 && <span className="text-[11px] text-sky-100/50">Đất trống · thuê {money(sq.rent[0])}</span>}
-                          {d.houses === MAX_HOUSES ? (
-                            <Building hotel className="h-4" />
-                          ) : (
-                            Array.from({ length: d.houses }, (_, i) => <Building key={i} className="h-4" />)
-                          )}
-                          {d.houses > 0 && <span className="ml-1 text-[11px] text-sky-100/60">thuê {money(sq.rent[d.houses])}</span>}
+                    <li key={pos} className="px-3 py-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="min-w-0 flex-1">
+                          <b className="block truncate">{sq.name}</b>
+                          <span className="flex h-5 items-end gap-0.5">
+                            {d.mortgaged ? (
+                              <span className="text-[11px] font-semibold text-rose-300">Đang thế chấp</span>
+                            ) : d.houses === 0 ? (
+                              <span className="text-[11px] text-sky-100/50">Đất trống · thuê {money(sq.rent[0])}</span>
+                            ) : d.houses === MAX_HOUSES ? (
+                              <Building hotel className="h-4" />
+                            ) : (
+                              Array.from({ length: d.houses }, (_, i) => <Building key={i} className="h-4" />)
+                            )}
+                            {d.houses > 0 && <span className="ml-1 text-[11px] text-sky-100/60">thuê {money(sq.rent[d.houses])}</span>}
+                          </span>
                         </span>
-                      </span>
-                      {sellLandOn && d.houses === 0 && m && (
-                        <ConfirmButton
-                          onConfirm={() => void run({ type: "sellland", pos })}
-                          disabled={busy || !!m.sellLand}
-                          title={m.sellLand ?? `Bán đất cho ngân hàng, nhận ${money(m.landPrice)} — đất về chợ`}
-                          confirmLabel={`Bán lấy ${money(m.landPrice)}?`}
-                          className="min-h-9 rounded-lg border border-amber-300/40 px-2 py-1 text-xs font-semibold text-amber-200 enabled:hover:bg-amber-400/10 disabled:opacity-30"
-                        >
-                          🏷️ Bán đất
-                        </ConfirmButton>
-                      )}
-                      <button
-                        onClick={() => void run({ type: "sell", pos })}
-                        disabled={busy || !!sellWhy}
-                        className="min-h-9 rounded-lg border border-white/20 px-2 py-1 text-xs font-semibold enabled:hover:bg-white/10 disabled:opacity-30"
-                        title={sellWhy ?? `Bán 1 nhà, nhận ${money(sq.house / 2)}`}
-                      >
-                        − Bán
-                      </button>
-                      {!inDebt && (
-                        <button
-                          onClick={() => void run({ type: "build", pos })}
-                          disabled={busy || !!buildWhy}
-                          title={buildWhy ?? undefined}
-                          className="min-h-9 rounded-lg bg-emerald-500 px-3 py-1 text-xs font-bold text-black enabled:hover:bg-emerald-400 disabled:opacity-30"
-                        >
-                          + {d.houses === MAX_HOUSES - 1 ? "Khách sạn" : "Nhà"} · {money(sq.house)}
-                        </button>
-                      )}
-                      {buildWhy && !inDebt && d.houses < MAX_HOUSES && <span className="w-full text-right text-[11px] text-sky-100/45">{buildWhy}</span>}
+                        {full ? (
+                          <span className="shrink-0 text-[11px] font-semibold text-amber-200">🏨 Tối đa</span>
+                        ) : (
+                          <button
+                            onClick={() => void run({ type: "build", pos })}
+                            disabled={busy || !!buildWhy}
+                            title={buildWhy ?? undefined}
+                            className="min-h-9 shrink-0 whitespace-nowrap rounded-lg bg-emerald-500 px-3 py-1 text-xs font-bold text-black enabled:hover:bg-emerald-400 disabled:opacity-30"
+                          >
+                            + {d.houses === MAX_HOUSES - 1 ? "Khách sạn" : "Nhà"} · {money(sq.house)}
+                          </button>
+                        )}
+                      </div>
+                      {buildWhy && !full && <p className="mt-0.5 text-right text-[11px] text-sky-100/45">{buildWhy}</p>}
                     </li>
                   );
                 })}
@@ -988,13 +1007,13 @@ function BuildPanel({ g, mine, settings, busy, run, onClose }: { g: TPGameView; 
           );
         })}
       </div>
-      {!inDebt && partial.length > 0 && (
+      {partial.length > 0 && (
         <div className="mt-4">
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-sky-100/50">Còn thiếu để xây</p>
           <ul className="space-y-1 text-xs text-sky-100/70">
             {partial.map((grp) => (
               <li key={grp} className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-sm" style={{ background: GROUP_COLORS[grp] }} />
+                <span className="h-3 w-3 shrink-0 rounded-sm" style={{ background: GROUP_COLORS[grp] }} />
                 Nhóm {GROUP_NAMES[grp]}: còn thiếu{" "}
                 {groupPositions(grp)
                   .filter((p) => g.deeds[p]?.owner !== mine.id)
@@ -1005,6 +1024,15 @@ function BuildPanel({ g, mine, settings, busy, run, onClose }: { g: TPGameView; 
           </ul>
         </div>
       )}
+      <button
+        onClick={() => {
+          onClose();
+          onOpenAssets();
+        }}
+        className="mt-4 w-full rounded-lg border border-amber-300/40 px-3 py-2 text-sm font-semibold text-amber-200 hover:bg-amber-400/10"
+      >
+        💰 Bán nhà / thế chấp / bán đất →
+      </button>
     </Modal>
   );
 }
@@ -1085,73 +1113,231 @@ function ConfirmButton({
   );
 }
 
-/** Debt controls pinned to the bottom of the screen, so they never get cut off on a small board. */
-function DebtBar({
+/** Debt line + Trả nợ / Phá sản in the board centre: small, so the board around it stays visible. */
+function DebtControls({
   debt,
   cash,
-  seconds,
   busy,
-  canSellHouses,
-  onSellHouses,
-  onPay,
-  onBankrupt,
+  run,
+  onOpenAssets,
 }: {
   debt: NonNullable<TPGameView["debt"]>;
   cash: number;
-  seconds: number | null;
   busy: boolean;
-  canSellHouses: boolean;
-  onSellHouses: () => void;
-  onPay: () => void;
-  onBankrupt: () => void;
+  run: Act;
+  /** Scrolls to the assets panel (below the board on phones); absent when there's nothing to sell. */
+  onOpenAssets?: () => void;
 }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
   const short = Math.max(0, debt.amount - cash);
-  return createPortal(
-    <motion.div
-      initial={{ y: 80, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      role="alertdialog"
-      aria-label="Bạn đang nợ"
-      className="fixed inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-40 mx-auto max-w-xl rounded-2xl border-2 border-rose-400 bg-[#2a0f12]/95 p-3 pr-16 text-rose-50 shadow-[0_0_30px_rgba(244,63,94,0.45)] backdrop-blur sm:pr-20"
-    >
-      <p className="text-sm">
-        💸 Bạn nợ <b className="text-rose-200">{money(debt.amount)}</b> ({debt.reason}) · đang có <b>{money(cash)}</b>
-        {short > 0 && (
-          <>
-            {" "}
-            · còn thiếu <b className="text-amber-300">{money(short)}</b>
-          </>
-        )}
-        {seconds !== null && <span className="ml-2 font-mono text-rose-200/80">⏱ {seconds}s</span>}
+  return (
+    <div role="alert" className="flex w-full flex-col items-center gap-1.5">
+      <p className="rounded-lg bg-rose-100 px-2 py-1 text-xs font-semibold text-rose-900">
+        💸 Nợ {money(debt.amount)} ({debt.reason}){short > 0 ? <> · thiếu <b>{money(short)}</b></> : " · đủ tiền trả"}
       </p>
-      <p className="mt-0.5 text-[11px] text-rose-100/60">Bán nhà, hoặc bấm vào đất của bạn trên bàn để thế chấp / bán đất. Hết giờ thì máy tự bán rồi trả.</p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {canSellHouses && (
-          <button onClick={onSellHouses} disabled={busy} className="min-h-10 rounded-lg border border-white/25 px-3 text-sm font-semibold enabled:hover:bg-white/10 disabled:opacity-40">
-            🏚️ Bán nhà
-          </button>
-        )}
-        <button
-          onClick={onPay}
-          disabled={busy || short > 0}
-          className="min-h-10 rounded-lg bg-emerald-500 px-4 text-sm font-bold text-black enabled:hover:bg-emerald-400 disabled:opacity-40"
-        >
+      <div className="flex flex-wrap justify-center gap-1.5">
+        <CBtn primary onClick={() => void run({ type: "paydebt" })} disabled={busy || short > 0}>
           Trả nợ
-        </button>
+        </CBtn>
+        {onOpenAssets && (
+          <span className="lg:hidden short:hidden">
+            <CBtn build onClick={onOpenAssets} disabled={busy}>
+              💰 Bán / thế chấp ↓
+            </CBtn>
+          </span>
+        )}
         <ConfirmButton
-          onConfirm={onBankrupt}
+          onConfirm={() => void run({ type: "bankrupt" })}
           disabled={busy}
           confirmLabel="Bấm lần nữa để phá sản"
-          className="min-h-10 rounded-lg bg-rose-600 px-4 text-sm font-bold text-white enabled:hover:bg-rose-500 disabled:opacity-40"
+          className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white shadow enabled:hover:bg-rose-500 disabled:opacity-40 sm:text-sm"
         >
           Phá sản
         </ConfirmButton>
       </div>
-    </motion.div>,
-    document.body,
+    </div>
+  );
+}
+
+/** Why a lot can't be mortgaged: only my own houses in the group get in the way. */
+function mortgageBlocker(g: TPGameView, meId: string, pos: number): string | null {
+  const sq = BOARD[pos];
+  const d = g.deeds[pos];
+  if (!d || d.owner !== meId) return "Đây không phải đất của bạn";
+  if (d.mortgaged) return "Đã thế chấp rồi";
+  if (sq.kind === "prop" && groupPositions(sq.group).some((p) => g.deeds[p]?.owner === meId && g.deeds[p].houses > 0)) return "Bán hết nhà của bạn trong nhóm trước";
+  return null;
+}
+
+/**
+ * Everything I own with the ways to raise cash (sell a house, mortgage, sell land) and to buy a mortgage back.
+ * Lives in the side column, not over the board; while in debt it also shows what's still missing.
+ */
+function AssetPanel({
+  g,
+  mine,
+  settings,
+  busy,
+  run,
+  seconds,
+  onClose,
+}: {
+  g: TPGameView;
+  mine: TPPlayerView;
+  settings: TPSettings;
+  busy: boolean;
+  run: Act;
+  seconds: number | null;
+  /** Absent while in debt: the panel stays until the debt is settled. */
+  onClose?: () => void;
+}) {
+  const debt = g.phase === "debt" ? g.debt : null;
+  const short = debt ? Math.max(0, debt.amount - mine.cash) : 0;
+  const owned = Object.keys(g.deeds)
+    .map(Number)
+    .filter((pos) => g.deeds[pos].owner === mine.id)
+    .sort((a, b) => a - b);
+  // Cities by colour group, then airports / companies.
+  const sections: { key: string; title: string; color?: string; cells: number[] }[] = [];
+  for (const grp of ALL_GROUPS) {
+    const cells = owned.filter((pos) => BOARD[pos].kind === "prop" && (BOARD[pos] as Extract<Square, { kind: "prop" }>).group === grp);
+    if (cells.length) sections.push({ key: grp, title: `Nhóm ${GROUP_NAMES[grp]}`, color: GROUP_COLORS[grp], cells });
+  }
+  const others = owned.filter((pos) => BOARD[pos].kind !== "prop");
+  if (others.length) sections.push({ key: "other", title: "Sân bay & công ty", cells: others });
+  const sellLandOn = !!settings.sellLand;
+  const btn = "min-h-8 whitespace-nowrap rounded-lg px-2 py-1 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-30 sm:text-xs";
+
+  return (
+    <section
+      aria-label="Thế chấp / bán tài sản"
+      className={cn("rounded-2xl border p-3 short:p-2", debt ? "border-rose-400/70 bg-[#2a0f12]/90 shadow-[0_0_24px_rgba(244,63,94,0.3)]" : "border-amber-300/30 bg-black/45")}
+    >
+      <div className="mb-2 flex items-center gap-2">
+        <p className="flex-1 text-sm font-bold text-amber-300">💰 Thế chấp / Bán</p>
+        {onClose && (
+          <button onClick={onClose} aria-label="Đóng" className="grid size-7 place-items-center rounded-md text-white/60 hover:bg-white/10 hover:text-white">
+            ✕
+          </button>
+        )}
+      </div>
+      <p className="mb-2 text-xs text-sky-100/75">
+        Tiền mặt <b className="text-emerald-300">{money(mine.cash)}</b>
+        {debt && (
+          <>
+            {" "}
+            · nợ <b className="text-rose-200">{money(debt.amount)}</b>
+            {short > 0 ? (
+              <>
+                {" "}
+                · còn thiếu <b className="text-amber-300">{money(short)}</b>
+              </>
+            ) : (
+              <b className="text-emerald-300"> · đủ tiền trả</b>
+            )}
+            {seconds !== null && <span className="ml-1 font-mono text-rose-200/80">⏱ {seconds}s</span>}
+          </>
+        )}
+      </p>
+      {debt && (
+        <div className="mb-2 flex flex-wrap gap-1.5">
+          <button onClick={() => void run({ type: "paydebt" })} disabled={busy || short > 0} className={cn(btn, "bg-emerald-500 px-3 text-black enabled:hover:bg-emerald-400")}>
+            Trả nợ
+          </button>
+          <ConfirmButton
+            onConfirm={() => void run({ type: "bankrupt" })}
+            disabled={busy}
+            confirmLabel="Bấm lần nữa để phá sản"
+            className={cn(btn, "bg-rose-600 px-3 text-white enabled:hover:bg-rose-500")}
+          >
+            Phá sản
+          </ConfirmButton>
+          <span className="w-full text-[11px] text-rose-100/55">Hết giờ thì máy tự bán nhà / thế chấp rồi trả.</span>
+        </div>
+      )}
+      {owned.length === 0 && <p className="text-xs text-sky-100/60">Bạn không còn đất nào.</p>}
+      <div className="max-h-[min(60vh,28rem)] space-y-2 overflow-y-auto pr-0.5 lg:max-h-[calc(100dvh-16rem)]">
+        {sections.map((sec) => (
+          <div key={sec.key} className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
+            <p className="px-2 py-1 text-xs font-bold text-black" style={{ background: sec.color ?? "#cfe8d8" }}>
+              {sec.title}
+            </p>
+            <ul className="divide-y divide-white/5">
+              {sec.cells.map((pos) => {
+                const sq = BOARD[pos] as Ownable;
+                const d = g.deeds[pos];
+                const m = g.manage?.[pos];
+                const sellWhy = m?.sell ?? null;
+                const mortWhy = mortgageBlocker(g, mine.id, pos);
+                const unmortCost = unmortgageCost(sq);
+                return (
+                  <li key={pos} className="flex flex-wrap items-center gap-1.5 px-2 py-1.5 text-xs">
+                    <span className="min-w-0 flex-1 basis-28">
+                      <b className="block truncate text-[13px]">{sq.name}</b>
+                      <span className="flex h-4 items-end gap-0.5 text-[11px] text-sky-100/55">
+                        {d.mortgaged ? (
+                          <span className="font-semibold text-rose-300">Đang thế chấp</span>
+                        ) : d.houses === 0 ? (
+                          "Đất trống"
+                        ) : d.houses === MAX_HOUSES ? (
+                          <Building hotel className="h-3.5" />
+                        ) : (
+                          Array.from({ length: d.houses }, (_, i) => <Building key={i} className="h-3.5" />)
+                        )}
+                      </span>
+                    </span>
+                    {sq.kind === "prop" && d.houses > 0 && (
+                      <button
+                        onClick={() => void run({ type: "sell", pos })}
+                        disabled={busy || !!sellWhy}
+                        title={sellWhy ?? `Bán 1 ${d.houses === MAX_HOUSES ? "khách sạn" : "nhà"}, nhận ${money(sq.house / 2)}`}
+                        className={cn(btn, "border border-white/20 enabled:hover:bg-white/10")}
+                      >
+                        🏚️ Bán nhà +{money(sq.house / 2)}
+                      </button>
+                    )}
+                    {!d.mortgaged && d.houses === 0 && (
+                      <button
+                        onClick={() => void run({ type: "mortgage", pos })}
+                        disabled={busy || !!mortWhy}
+                        title={mortWhy ?? `Thế chấp, nhận ${money(mortgageValue(sq))}`}
+                        className={cn(btn, "border border-sky-300/40 text-sky-100 enabled:hover:bg-sky-400/10")}
+                      >
+                        🏦 Thế chấp +{money(mortgageValue(sq))}
+                      </button>
+                    )}
+                    {d.mortgaged && (
+                      <button
+                        onClick={() => void run({ type: "unmortgage", pos })}
+                        disabled={busy || !!debt || mine.cash < unmortCost}
+                        title={debt ? "Đang nợ — chưa chuộc được" : `Chuộc lại với ${money(unmortCost)}`}
+                        className={cn(btn, "border border-emerald-300/40 text-emerald-200 enabled:hover:bg-emerald-400/10")}
+                      >
+                        Chuộc −{money(unmortCost)}
+                      </button>
+                    )}
+                    {sellLandOn && m && d.houses === 0 && !d.mortgaged && (
+                      <ConfirmButton
+                        onConfirm={() => void run({ type: "sellland", pos })}
+                        disabled={busy || !!m.sellLand}
+                        title={m.sellLand ?? `Bán đất cho ngân hàng, nhận ${money(m.landPrice)} — đất về chợ`}
+                        confirmLabel={`Bán lấy ${money(m.landPrice)}?`}
+                        className={cn(btn, "border border-amber-300/40 text-amber-200 enabled:hover:bg-amber-400/10")}
+                      >
+                        🏷️ Bán đất +{money(m.landPrice)}
+                      </ConfirmButton>
+                    )}
+                    {sq.kind === "prop" && d.houses > 0 && sellWhy && <span className="w-full text-right text-[10px] text-sky-100/45">{sellWhy}</span>}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-[10px] text-sky-100/45">
+        Bán nhà được nửa giá xây. Thế chấp nhận nửa giá đất, chuộc lại mất thêm 10%.{sellLandOn ? " Bán đất: nửa giá, đất về chợ cho người khác mua." : ""}
+      </p>
+    </section>
   );
 }
 
@@ -1423,8 +1609,8 @@ function SquareModal({
                   Bán 1 nhà (+{money(sq.house / 2)})
                 </CBtn>
               )}
-              {!deed.mortgaged && deed.houses === 0 && (
-                <CBtn onClick={() => void run({ type: "mortgage", pos })} disabled={busy}>
+              {!deed.mortgaged && deed.houses === 0 && g && (
+                <CBtn onClick={() => void run({ type: "mortgage", pos })} disabled={busy || !!mortgageBlocker(g, meId, pos)} title={mortgageBlocker(g, meId, pos) ?? undefined}>
                   Thế chấp (+{money(mortgageValue(sq))})
                 </CBtn>
               )}
