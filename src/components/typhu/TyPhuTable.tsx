@@ -1757,20 +1757,18 @@ function TradeModal({ g, meId, nameOf, run, onClose }: { g: TPGameView; meId: st
   const me = g.players.find((p) => p.id === meId);
   const them = g.players.find((p) => p.id === to);
 
+  // Built lots trade too — the houses go with the land.
   const tradable = (owner: string) =>
     Object.entries(g.deeds)
-      .filter(([pos, d]) => {
-        if (d.owner !== owner) return false;
-        const sq = BOARD[Number(pos)];
-        return !(sq.kind === "prop" && groupPositions(sq.group).some((p) => (g.deeds[p]?.houses ?? 0) > 0));
-      })
-      .map(([pos]) => Number(pos));
+      .filter(([, d]) => d.owner === owner)
+      .map(([pos]) => Number(pos))
+      .sort((a, b) => a - b);
 
   const toggle = (list: number[], set: (v: number[]) => void, pos: number) => set(list.includes(pos) ? list.filter((x) => x !== pos) : [...list, pos]);
 
   const Picker = ({ owner, list, set }: { owner: string; list: number[]; set: (v: number[]) => void }) => {
     const props = tradable(owner);
-    if (!props.length) return <p className="text-xs text-white/50">Không có đất đổi được (đất có nhà phải bán nhà trước).</p>;
+    if (!props.length) return <p className="text-xs text-white/50">Không có đất để đổi.</p>;
     return (
       <div className="flex flex-wrap gap-1">
         {props.map((pos) => {
@@ -1784,6 +1782,7 @@ function TradeModal({ g, meId, nameOf, run, onClose }: { g: TPGameView; meId: st
               style={{ background: sq.kind === "prop" ? GROUP_COLORS[sq.group] : "#e5e7eb" }}
             >
               {sq.name}
+              {g.deeds[pos].houses > 0 && ` ${g.deeds[pos].houses === MAX_HOUSES ? "🏨" : `🏠${g.deeds[pos].houses}`}`}
               {g.deeds[pos].mortgaged && " (TC)"}
             </button>
           );
@@ -2084,7 +2083,7 @@ export function TyPhuRules() {
       <li>Sân bay: càng nhiều sân bay càng thu nhiều (25 → 200tr). Điện / nước: tổng xúc xắc × 4, có cả hai thì × 10.</li>
       <li>Thiếu tiền: bán nhà (được nửa giá) hoặc thế chấp đất (nửa giá, chuộc lại mất thêm 10%). Không xoay nổi thì phá sản.</li>
       <li>Ở tù: tung đôi để ra, hoặc nộp 50tr / dùng thẻ ra tù trước khi tung. Sau 3 lượt thì phải nộp phạt.</li>
-      <li>Đổi đất với nhau bất cứ lúc nào (kèm tiền nếu muốn). Người còn lại cuối cùng — hoặc giàu nhất khi hết giờ — thắng.</li>
+      <li>Đổi đất với nhau bất cứ lúc nào (kèm tiền nếu muốn); đất có nhà đổi được, nhà đi theo đất. Người còn lại cuối cùng — hoặc giàu nhất khi hết giờ — thắng.</li>
       <li>Mỗi bước có 30 giây; hết giờ hoặc mất kết nối thì máy tự đi (không mua gì).</li>
     </ul>
   );
