@@ -23,7 +23,7 @@ export function SettingsTabs({ tabs, className, light }: { tabs: SettingsTab[]; 
             aria-selected={t.id === current?.id}
             onClick={() => setActive(t.id)}
             className={cn(
-              "flex-1 whitespace-nowrap px-2 py-2 text-xs font-semibold transition-colors",
+              "min-h-9 flex-1 whitespace-nowrap px-2 py-2 text-xs font-semibold transition-colors max-sm:min-h-10",
               light
                 ? t.id === current?.id
                   ? "border-b-2 border-emerald-700 bg-white/70 text-emerald-900"

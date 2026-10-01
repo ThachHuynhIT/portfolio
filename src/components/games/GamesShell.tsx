@@ -57,7 +57,8 @@ export function GamesShell({ children }: { children: React.ReactNode }) {
     <ShellContext.Provider value={{ openRename: () => setRenaming(true) }}>
       <div className={cn("flex min-h-[100dvh] flex-col", table && "games-shell-table")}>
         <GamesTopBar compact={table} name={name} onRename={() => setRenaming(true)} />
-        <div className={cn("flex-1", table && "games-table")}>{body}</div>
+        {/* The bar is taller on phones (finger-sized buttons): keep the table exactly one screen tall. */}
+        <div className={cn("flex-1", table && "games-table max-sm:[--games-bar-h:calc(2.75rem_+_1px)] short:[--games-bar-h:calc(2.75rem_+_1px)]")}>{body}</div>
         {!table && <GamesFooter />}
       </div>
       {renaming && name && <RenameDialog current={name} inTable={table} onClose={() => setRenaming(false)} />}
@@ -77,11 +78,11 @@ function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: stri
         compact ? "relative" : "sticky top-0",
       )}
     >
-      <nav className={cn("mx-auto flex max-w-7xl items-center gap-2 px-3 sm:px-4", compact ? "h-9" : "h-12")} aria-label="Games">
+      <nav className={cn("mx-auto flex max-w-7xl items-center gap-2 px-3 sm:px-4", compact ? "h-9 max-sm:h-11 short:h-11" : "h-12")} aria-label="Games">
         <Link
           href="/games"
           className={cn(
-            "flex shrink-0 items-center gap-1.5 rounded-lg px-1.5 py-1 font-black tracking-tight transition-colors hover:bg-white/10",
+            "flex shrink-0 items-center gap-1.5 rounded-lg px-1.5 py-1 font-black tracking-tight transition-colors hover:bg-white/10 max-sm:min-h-9 short:min-h-9",
             !active && "text-amber-300",
           )}
           aria-current={!active ? "page" : undefined}
@@ -105,13 +106,14 @@ function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: stri
                   aria-current={on ? "page" : undefined}
                   className={cn(
                     "flex items-center gap-1 rounded-lg px-2 transition-colors",
-                    compact ? "py-0.5 text-xs" : "py-1 text-sm",
+                    compact ? "py-0.5 text-xs" : "py-1 text-sm max-sm:min-h-9 max-sm:min-w-9 max-sm:justify-center",
                     on ? "bg-amber-400/15 text-amber-200 ring-1 ring-amber-300/40" : "text-white/70 hover:bg-white/10 hover:text-white",
                   )}
                 >
                   <span aria-hidden>{g.emoji}</span>
-                  {/* Tables: icons only until the bar has room next to the table header. */}
-                  <span className={cn("hidden", compact ? "2xl:inline" : "md:inline")}>{g.short}</span>
+                  {/* Tables: icons only, so the table header portalled next to them always has room.
+                      Hub / lobbies: the current game's label from sm, every label once all of them fit. */}
+                  {!compact && <span className={cn("hidden", on ? "sm:inline" : "xl:inline")}>{g.short}</span>}
                 </Link>
               </li>
             );
@@ -126,15 +128,16 @@ function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: stri
             onClick={onRename}
             title="Đổi tên"
             className={cn(
-              "flex min-w-0 shrink items-center gap-1.5 rounded-full border border-white/15 bg-white/5 pl-1 pr-2.5 transition-colors hover:border-amber-300/50 hover:bg-white/10",
+              "flex min-w-0 shrink items-center gap-1.5 rounded-full border border-white/15 bg-white/5 pl-1 pr-2.5 transition-colors hover:border-amber-300/50 hover:bg-white/10 max-sm:min-h-9 max-sm:pl-1.5 short:min-h-9",
               compact ? "py-0.5 text-xs" : "py-1 text-sm",
             )}
           >
             <span className={cn("grid shrink-0 place-items-center rounded-full bg-amber-400 font-bold text-black", compact ? "size-5 text-[10px]" : "size-6 text-xs")} aria-hidden>
               {name.charAt(0).toUpperCase()}
             </span>
-            <span className="max-w-[10rem] truncate font-medium max-sm:hidden">{name}</span>
-            <span className="text-white/50 max-sm:hidden" aria-hidden>
+            {/* Tables: the name only on wide screens, the table header needs the room. */}
+            <span className={cn("max-w-[10rem] truncate font-medium max-sm:hidden", compact && "hidden xl:inline")}>{name}</span>
+            <span className={cn("text-white/50 max-sm:hidden", compact && "hidden xl:inline")} aria-hidden>
               ✎
             </span>
           </button>
@@ -145,12 +148,12 @@ function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: stri
           title="Về trang chính"
           className={cn(
             "flex shrink-0 items-center gap-1 rounded-lg px-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white",
-            compact ? "py-0.5 text-xs max-sm:hidden" : "py-1 text-sm",
+            compact ? "py-0.5 text-xs max-sm:hidden short:min-h-9" : "py-1 text-sm max-sm:min-h-9 max-sm:min-w-9 max-sm:justify-center",
           )}
         >
           <span aria-hidden>↩</span>
-          <span className={cn("hidden", compact ? "2xl:inline" : "lg:inline")}>Trang chính</span>
-          <span className={cn("sr-only", compact ? "2xl:hidden" : "lg:hidden")}>Về trang chính</span>
+          <span className={cn("hidden", !compact && "lg:inline")}>Trang chính</span>
+          <span className={cn("sr-only", !compact && "lg:hidden")}>Về trang chính</span>
         </Link>
       </nav>
     </header>
@@ -165,10 +168,10 @@ function GamesFooter() {
           🎮 <span className="font-semibold text-white/70">Games</span> · chơi online cùng bạn bè, ngay trên trình duyệt
         </p>
         <p className="flex items-center gap-3">
-          <Link href="/games" className="hover:text-white">
+          <Link href="/games" className="hover:text-white max-sm:py-2">
             Tất cả game
           </Link>
-          <Link href="/" className="hover:text-white">
+          <Link href="/" className="hover:text-white max-sm:py-2">
             ↩ Về trang chính
           </Link>
           <span>© {new Date().getFullYear()} ThachHuynh</span>
@@ -207,8 +210,8 @@ function NameGate() {
         }}
         className="w-full max-w-sm rounded-3xl border border-white/10 bg-black/45 p-6 text-white shadow-2xl backdrop-blur-xl sm:p-8"
       >
-        <p className="mb-4 text-center text-4xl" aria-hidden>
-          🃏 😼 🎩 💎 🤠
+        <p className="mb-4 whitespace-nowrap text-center text-2xl leading-none sm:text-3xl" aria-hidden>
+          🃏 😼 🎩 💎 🤠 🪨 🐴
         </p>
         <h1 className="text-center text-2xl font-black tracking-tight text-amber-300">Chào mừng tới Games!</h1>
         <p className="mb-6 mt-2 text-center text-sm text-white/65">Chọn một cái tên để bạn bè nhận ra bạn — tên này dùng cho mọi game và đổi được bất cứ lúc nào.</p>

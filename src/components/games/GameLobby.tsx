@@ -106,7 +106,7 @@ export function GameLobby({ title, tagline, icons, basePath, wsPath, apiPrefix, 
             <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/70">
               Bạn chơi với tên
               <b className="max-w-[12rem] truncate text-base text-amber-200">{name || "…"}</b>
-              <button type="button" onClick={openRename} className="-my-1 rounded px-1 py-1 text-xs text-white/50 underline-offset-2 hover:text-white hover:underline">
+              <button type="button" onClick={openRename} className="-my-1 rounded px-1 py-1 text-xs text-white/50 underline-offset-2 hover:text-white hover:underline max-sm:min-h-9 max-sm:px-2">
                 ✎ Đổi tên
               </button>
             </p>
@@ -151,7 +151,7 @@ export function GameLobby({ title, tagline, icons, basePath, wsPath, apiPrefix, 
           {extra && <div className="mt-5">{extra}</div>}
 
           <details className="mt-6 text-sm text-white/70">
-            <summary className="cursor-pointer py-1 text-white/90">Luật chơi & cách tính điểm</summary>
+            <summary className="cursor-pointer py-1 text-white/90 max-sm:py-2">Luật chơi & cách tính điểm</summary>
             <div className="mt-2">{rules}</div>
           </details>
         </section>
@@ -160,7 +160,7 @@ export function GameLobby({ title, tagline, icons, basePath, wsPath, apiPrefix, 
           <section className="rounded-2xl border border-white/10 bg-black/30 p-5 backdrop-blur">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-lg font-bold text-amber-300">Bàn đang mở</h2>
-              <button onClick={() => void loadRooms()} className="-my-1 rounded px-2 py-1.5 text-xs text-white/60 hover:bg-white/10 hover:text-white">
+              <button onClick={() => void loadRooms()} className="-my-1 rounded px-2 py-1.5 text-xs text-white/60 hover:bg-white/10 hover:text-white max-sm:min-h-9">
                 ↻ Làm mới
               </button>
             </div>

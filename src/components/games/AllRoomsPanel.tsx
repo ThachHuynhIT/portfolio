@@ -79,7 +79,7 @@ export function AllRoomsPanel({ currentGame, className }: { currentGame?: GameId
         </button>
       </div>
 
-      <div className="-mx-1 mb-3 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+      <div className="-mx-1 mb-3 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible">
         <FilterChip active={filter === "all"} onClick={() => setFilter("all")}>
           Tất cả
         </FilterChip>

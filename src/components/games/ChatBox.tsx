@@ -89,7 +89,7 @@ export function ChatBox({
           >
             <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
               <b>💬 Trò chuyện</b>
-              <button onClick={() => setOpen(false)} className="rounded px-2 text-white/60 hover:bg-white/10" aria-label="Đóng chat">
+              <button onClick={() => setOpen(false)} className="-my-1 -mr-1.5 grid size-8 place-items-center rounded-full text-white/60 hover:bg-white/10 hover:text-white max-sm:size-9" aria-label="Đóng chat">
                 ✕
               </button>
             </div>
@@ -122,13 +122,13 @@ export function ChatBox({
                 onChange={(e) => setText(e.target.value.slice(0, CHAT_MAX_LENGTH))}
                 placeholder="Nhắn gì đó…"
                 maxLength={CHAT_MAX_LENGTH}
-                className="min-w-0 flex-1 rounded-lg bg-white/10 px-3 py-1.5 outline-none placeholder:text-white/40 focus:ring-1 focus:ring-amber-300"
+                className="min-w-0 flex-1 rounded-lg bg-white/10 px-3 py-1.5 outline-none placeholder:text-white/40 focus:ring-1 focus:ring-amber-300 max-sm:min-h-10 max-sm:text-base"
                 aria-label="Tin nhắn"
               />
               <button
                 type="submit"
                 disabled={!text.trim() || sending}
-                className="rounded-lg bg-amber-400 px-3 py-1.5 font-semibold text-black hover:bg-amber-300 disabled:opacity-40"
+                className="rounded-lg bg-amber-400 px-3 py-1.5 font-semibold text-black hover:bg-amber-300 disabled:opacity-40 max-sm:min-h-10"
               >
                 Gửi
               </button>

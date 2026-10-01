@@ -60,7 +60,7 @@ export function CardFace({
 }) {
   const d = cardDef(id);
   const t = typeOf(id);
-  const w = { xs: "w-9", sm: "w-12", md: "w-[3.9rem] sm:w-[4.6rem] short:w-[3.6rem]", lg: "w-28" }[size];
+  const w = { xs: "w-9", sm: "w-12", md: "w-[3.9rem] sm:w-[4.6rem] xl:w-[5.2rem] 2xl:w-[5.8rem] short:w-[3.6rem]", lg: "w-28" }[size];
   const art = artSrc(`card-${t.key}`);
   const title = `${t.name} ${suitText(id)}\n${t.text}`;
   const small = size === "xs" || size === "sm";
@@ -94,7 +94,7 @@ export function CardFace({
         <span
           className={cn(
             "w-full font-extrabold [overflow-wrap:anywhere]",
-            size === "xs" ? "line-clamp-1 text-[6px]" : size === "sm" ? "line-clamp-2 text-[8px]" : size === "lg" ? "text-sm" : "line-clamp-2 text-[9.5px] sm:text-[11px]",
+            size === "xs" ? "line-clamp-1 text-[6px]" : size === "sm" ? "line-clamp-2 text-[8px]" : size === "lg" ? "text-sm" : "line-clamp-2 text-[9.5px] sm:text-[11px] 2xl:text-xs",
           )}
         >
           {t.name}
@@ -161,6 +161,8 @@ export function PlayChip({ id, cubes, fresh, onClick, active, compact }: { id: n
         t.color === "green" ? "border-emerald-400/50 bg-emerald-500/15" : "border-sky-400/50 bg-sky-500/15",
         fresh && "opacity-60",
         onClick && "cursor-pointer hover:bg-white/15",
+        // Phones: a finger-sized target (the compact chips on other players' tiles are emoji only).
+        onClick && "max-sm:min-h-8 max-sm:min-w-8 max-sm:justify-center max-sm:px-1.5 short:min-h-7 short:min-w-7 short:justify-center",
         active && "ring-2 ring-amber-300",
       )}
     >
@@ -332,14 +334,25 @@ export function BangGuide({ packs, onClose }: { packs: Pack[]; onClose: () => vo
     ["rules", "📖 Luật"],
   ] as [typeof tab, string][];
   return (
-    <Sheet onClose={onClose} title="📖 Hướng dẫn Đấu Súng">
-      <div className="mb-3 flex gap-1 overflow-x-auto text-xs font-semibold">
-        {tabs.map(([id, label]) => (
-          <button key={id} onClick={() => setTab(id)} className={cn("shrink-0 rounded-md px-2.5 py-1.5", tab === id ? "bg-amber-400 text-black" : "bg-white/5 text-amber-50/80")}>
-            {label}
-          </button>
-        ))}
-      </div>
+    <Sheet
+      onClose={onClose}
+      title="📖 Hướng dẫn Đấu Súng"
+      tabs={
+        <div className="-mx-1 flex gap-1 overflow-x-auto px-1 text-xs font-semibold [scrollbar-width:none]" role="tablist">
+          {tabs.map(([id, label]) => (
+            <button
+              key={id}
+              role="tab"
+              aria-selected={tab === id}
+              onClick={() => setTab(id)}
+              className={cn("min-h-8 shrink-0 rounded-md px-2.5 py-1.5 max-sm:min-h-9", tab === id ? "bg-amber-400 text-black" : "bg-white/5 text-amber-50/80 hover:bg-white/10")}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      }
+    >
       {tab === "cards" && (
         <ul className="grid gap-2 sm:grid-cols-2">
           {cards.map((k) => {
@@ -406,8 +419,12 @@ export function BangGuide({ packs, onClose }: { packs: Pack[]; onClose: () => vo
   );
 }
 
-/** Modal that becomes a bottom sheet on phones. */
-export function Sheet({ children, onClose, title }: { children: React.ReactNode; onClose: () => void; title?: string }) {
+/**
+ * Modal that becomes a bottom sheet on phones: the title and ✕ stay put while the body scrolls,
+ * plus a big "Đóng" bar on phones (same pattern as the other games' dialogs). Esc closes it.
+ * `tabs` (e.g. the guide's tab row) sit in the fixed header too.
+ */
+export function Sheet({ children, onClose, title, tabs }: { children: React.ReactNode; onClose: () => void; title?: string; tabs?: React.ReactNode }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -417,16 +434,31 @@ export function Sheet({ children, onClose, title }: { children: React.ReactNode;
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4" onClick={onClose}>
       <div
         role="dialog"
-        className="relative max-h-[88dvh] w-full max-w-2xl overflow-y-auto rounded-t-2xl border border-white/10 bg-[#1f140c] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-amber-50 shadow-2xl sm:rounded-2xl sm:p-5"
+        aria-modal
+        aria-label={title}
+        className="relative flex max-h-[88dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-[#1f140c] text-amber-50 shadow-2xl sm:rounded-2xl short:max-h-[96dvh]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-3 flex items-start justify-between gap-2">
-          {title ? <h2 className="text-lg font-black text-amber-300">{title}</h2> : <span />}
-          <button onClick={onClose} className="rounded-md px-2 py-0.5 text-sm hover:bg-white/10" aria-label="Đóng">
-            ✕
-          </button>
-        </div>
-        {children}
+        <button
+          onClick={onClose}
+          className="absolute right-2 top-2 z-10 grid size-9 place-items-center rounded-full bg-white/10 text-lg leading-none text-white shadow hover:bg-white/20"
+          aria-label="Đóng"
+        >
+          ✕
+        </button>
+        {(title || tabs) && (
+          <div className="shrink-0 border-b border-white/10 px-4 pb-2 pt-3 pr-12 sm:px-5">
+            {title && <h2 className="mb-2 text-lg font-black leading-tight text-amber-300">{title}</h2>}
+            {tabs}
+          </div>
+        )}
+        <div className={cn("min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5", !title && !tabs && "pr-12 sm:pr-12")}>{children}</div>
+        <button
+          onClick={onClose}
+          className="shrink-0 border-t border-white/10 bg-black/20 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-sm font-semibold text-amber-100 sm:hidden short:py-2"
+        >
+          Đóng
+        </button>
       </div>
     </div>
   );

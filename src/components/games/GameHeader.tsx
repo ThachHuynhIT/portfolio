@@ -49,7 +49,7 @@ function MoreMenu({ children }: { children: React.ReactNode }) {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-label="Thêm"
-        className="grid h-7 min-w-8 place-items-center rounded-md border border-white/20 px-2 text-sm leading-5 hover:bg-white/10"
+        className="grid h-7 min-w-8 place-items-center rounded-md border border-white/20 px-2 text-sm leading-5 hover:bg-white/10 max-sm:h-9 max-sm:min-w-9"
       >
         ⋯
       </button>
@@ -75,7 +75,9 @@ export function HeaderLabel({ children }: { children: React.ReactNode }) {
 }
 
 /** Standard look for a header button (use for links too via className). */
-export const headerBtn = "flex items-center gap-1 whitespace-nowrap rounded-md border border-white/20 px-2 py-0.5 leading-5 hover:bg-white/10";
+/** Phones (portrait `max-sm`, sideways `short`) get finger-sized targets; the bar grows to fit. */
+export const headerBtn =
+  "flex items-center justify-center gap-1 whitespace-nowrap rounded-md border border-white/20 px-2 py-0.5 leading-5 hover:bg-white/10 max-sm:min-h-9 max-sm:min-w-9 max-sm:px-2.5 short:min-h-9 short:min-w-9";
 
 /** Toggle browser fullscreen; hidden where the browser can't (iPhone Safari). */
 export function FullscreenButton({ className }: { className?: string }) {
@@ -100,7 +102,7 @@ export function FullscreenButton({ className }: { className?: string }) {
       title={on ? "Thoát toàn màn hình" : "Toàn màn hình"}
       aria-label={on ? "Thoát toàn màn hình" : "Toàn màn hình"}
       aria-pressed={on}
-      className={cn("grid shrink-0 place-items-center rounded-lg px-1.5 py-0.5 text-white/70 transition-colors hover:bg-white/10 hover:text-white", className)}
+      className={cn("grid size-8 shrink-0 place-items-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white max-sm:size-9 short:size-9", className)}
     >
       <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         {on ? (

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChatBox } from "@/components/games/ChatBox";
 import { GameHeader, HeaderLabel, headerBtn } from "@/components/games/GameHeader";
+import { SettingsTabs } from "@/components/games/SettingsTabs";
 import { useGameRoom } from "@/components/games/gameClient";
 import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
@@ -31,6 +32,8 @@ import { cn } from "@/lib/utils";
 import { BangGuide, CardBack, CardFace, CharAvatar, CharCard, EventArt, EventBanner, GearChip, Hearts, PlayChip, RoleBadge, Sheet } from "./Pieces";
 
 type Act = (msg: Record<string, unknown> & { type: string }) => Promise<boolean>;
+
+const selectCls = "min-h-8 rounded-md bg-black/40 px-1.5 py-1 text-white disabled:opacity-70";
 
 const SCORE_NOTE = "Phe thắng mỗi người được số điểm chủ bàn chọn; phe thua chia đều phần trừ, tổng mỗi ván bằng 0.";
 
@@ -145,7 +148,7 @@ function Table({ view, reconnecting, act }: { view: BangRoomView; reconnecting: 
   const live = useLiveReactions(view.reactions);
   const cornerReactions = g?.status === "playing" ? live.filter((r) => !r.playerId) : live;
   return (
-    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col gap-2 px-2 pb-20 pt-2 sm:gap-3 sm:px-4 sm:pt-3 lg:pb-6">
+    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col gap-2 px-2 pb-20 pt-2 sm:gap-3 sm:px-4 sm:pt-3 lg:pb-6 2xl:max-w-7xl">
       <GameHeader
         primary={
           <>
@@ -195,7 +198,9 @@ function Table({ view, reconnecting, act }: { view: BangRoomView; reconnecting: 
           <Waiting view={view} act={act} nameOf={nameOf} />
         </div>
       ) : g.status === "picking" ? (
-        <PickPhase view={view} g={g} act={act} nameOf={nameOf} />
+        <div className="flex flex-1 items-start justify-center pt-2 sm:items-center">
+          <PickPhase view={view} g={g} act={act} nameOf={nameOf} />
+        </div>
       ) : (
         <Board view={view} g={g} act={act} nameOf={nameOf} onGuide={() => setShowGuide(true)} />
       )}
@@ -216,9 +221,11 @@ function Waiting({ view, act, nameOf }: { view: BangRoomView; act: Act; nameOf: 
   const s = view.settings;
   const last = view.history[view.history.length - 1];
   const togglePack = (p: (typeof EXPANSIONS)[number]) => void act({ type: "settings", packs: s.packs.includes(p) ? s.packs.filter((x) => x !== p) : [...s.packs, p] });
+  const ended = g?.status === "ended";
   return (
-    <div className="w-full max-w-xl space-y-4">
-      {g?.status === "ended" && (
+    // After a game, wide screens put the result beside the setup so "Ván mới" stays on screen.
+    <div className={cn("w-full max-w-xl space-y-4", ended && "lg:grid lg:max-w-5xl lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start lg:gap-4 lg:space-y-0")}>
+      {ended && (
         <div className="rounded-3xl border border-amber-300/30 bg-black/45 p-4 backdrop-blur">
           <h2 className="mb-2 text-xl font-black text-amber-300">🏆 {g.winners.length ? g.winners.map(nameOf).join(", ") + " thắng!" : "Không ai thắng"}</h2>
           <ul className="space-y-1.5 text-sm">
@@ -241,58 +248,115 @@ function Waiting({ view, act, nameOf }: { view: BangRoomView; act: Act; nameOf: 
       )}
       <div className="rounded-3xl border border-amber-200/15 bg-black/45 p-4 backdrop-blur sm:p-5">
         <h2 className="mb-1 text-xl font-black text-amber-300">🤠 Đấu Súng</h2>
-        <p className="mb-3 text-sm text-amber-100/80">
+        <p className="mb-2 text-sm text-amber-100/80">
           {count}/{MAX_PLAYERS} người · cần ít nhất {MIN_PLAYERS} · gửi link mời để bạn bè vào bàn
         </p>
-        <div className="mb-4 space-y-3 rounded-xl bg-white/5 p-3 text-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-amber-100/60">Bản mở rộng</p>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {EXPANSIONS.map((p) => (
-              <label key={p} className={cn("flex items-start gap-2 rounded-lg border p-2", s.packs.includes(p) ? "border-amber-300/50 bg-amber-400/10" : "border-white/10", isHost && "cursor-pointer")}>
-                <input type="checkbox" checked={s.packs.includes(p)} disabled={!isHost} onChange={() => togglePack(p)} className="mt-0.5 h-4 w-4 accent-amber-400" />
-                <span>
-                  <b>
-                    {PACKS[p].emoji} {PACKS[p].name}
-                  </b>
-                  <span className="block text-xs text-white/60">{PACKS[p].blurb}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-          <div className="grid gap-2 text-xs sm:grid-cols-3">
-            <label className="flex items-center justify-between gap-2">
-              <span>Mỗi lượt</span>
-              <select value={s.turnSeconds} disabled={!isHost} onChange={(e) => void act({ type: "settings", turnSeconds: Number(e.target.value) })} className="rounded bg-black/40 px-1 py-0.5">
-                {TURN_SECONDS_OPTIONS.map((v) => (
-                  <option key={v} value={v}>
-                    {v} giây
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex items-center justify-between gap-2">
-              <span>Trả lời</span>
-              <select value={s.respondSeconds} disabled={!isHost} onChange={(e) => void act({ type: "settings", respondSeconds: Number(e.target.value) })} className="rounded bg-black/40 px-1 py-0.5">
-                {RESPOND_SECONDS_OPTIONS.map((v) => (
-                  <option key={v} value={v}>
-                    {v} giây
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex items-center justify-between gap-2">
-              <span>Điểm thắng</span>
-              <select value={s.first} disabled={!isHost} onChange={(e) => void act({ type: "settings", first: Number(e.target.value) })} className="rounded bg-black/40 px-1 py-0.5">
-                {[1, 2, 3, 4, 5, 10].map((v) => (
-                  <option key={v} value={v}>
-                    +{v}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          {!isHost && <p className="text-xs text-white/40">Chỉ chủ bàn đổi được luật.</p>}
-        </div>
+        {/* Who is at the table. */}
+        <ul className="mb-3 flex flex-wrap gap-1.5 text-sm">
+          {view.seats.map(
+            (seat) =>
+              seat && (
+                <li
+                  key={seat.id}
+                  className={cn(
+                    "flex max-w-full items-center gap-1 rounded-full border px-2.5 py-1",
+                    seat.id === view.meId ? "border-amber-300/50 bg-amber-400/15" : "border-white/10 bg-white/5",
+                    !seat.connected && "opacity-60",
+                  )}
+                  title={seat.connected ? undefined : "Mất kết nối"}
+                >
+                  {seat.isHost && <span title="Chủ bàn">👑</span>}
+                  <span className="truncate">{seat.name}</span>
+                  {seat.id === view.meId && <span className="text-xs text-white/60">(bạn)</span>}
+                  {!seat.connected && <span aria-label="Mất kết nối">📴</span>}
+                  {seat.games > 0 && (
+                    <span className={cn("font-mono text-xs", seat.points > 0 ? "text-emerald-300" : seat.points < 0 ? "text-rose-300" : "text-white/50")}>{signed(seat.points)}đ</span>
+                  )}
+                </li>
+              ),
+          )}
+        </ul>
+        <SettingsTabs
+          className="mb-3"
+          tabs={[
+            {
+              id: "packs",
+              label: `🧩 Mở rộng (${s.packs.length})`,
+              content: (
+                <div className="grid gap-1.5 sm:grid-cols-2">
+                  {EXPANSIONS.map((p) => (
+                    <label
+                      key={p}
+                      className={cn(
+                        "flex items-start gap-2 rounded-lg border p-2 text-sm",
+                        s.packs.includes(p) ? "border-amber-300/50 bg-amber-400/10" : "border-white/10",
+                        isHost && "cursor-pointer hover:bg-white/5",
+                      )}
+                    >
+                      <input type="checkbox" checked={s.packs.includes(p)} disabled={!isHost} onChange={() => togglePack(p)} className="mt-0.5 h-4 w-4 shrink-0 accent-amber-400" />
+                      <span className="min-w-0">
+                        <b>
+                          {PACKS[p].emoji} {PACKS[p].name}
+                        </b>
+                        <span className="block text-xs text-white/60">{PACKS[p].blurb}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              ),
+            },
+            {
+              id: "time",
+              label: "⏱️ Thời gian",
+              content: (
+                <div className="space-y-2 text-sm">
+                  <label className="flex items-center justify-between gap-2">
+                    <span>Thời gian mỗi lượt</span>
+                    <select value={s.turnSeconds} disabled={!isHost} onChange={(e) => void act({ type: "settings", turnSeconds: Number(e.target.value) })} className={selectCls}>
+                      {TURN_SECONDS_OPTIONS.map((v) => (
+                        <option key={v} value={v}>
+                          {v} giây
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex items-center justify-between gap-2">
+                    <span>
+                      Thời gian trả lời <span className="text-white/50">(né đạn, cứu…)</span>
+                    </span>
+                    <select value={s.respondSeconds} disabled={!isHost} onChange={(e) => void act({ type: "settings", respondSeconds: Number(e.target.value) })} className={selectCls}>
+                      {RESPOND_SECONDS_OPTIONS.map((v) => (
+                        <option key={v} value={v}>
+                          {v} giây
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              ),
+            },
+            {
+              id: "points",
+              label: "🏆 Điểm",
+              content: (
+                <div className="space-y-2 text-sm">
+                  <label className="flex items-center justify-between gap-2">
+                    <span>Điểm mỗi người phe thắng</span>
+                    <select value={s.first} disabled={!isHost} onChange={(e) => void act({ type: "settings", first: Number(e.target.value) })} className={selectCls}>
+                      {[1, 2, 3, 4, 5, 10].map((v) => (
+                        <option key={v} value={v}>
+                          +{v}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <p className="text-xs text-white/50">{SCORE_NOTE}</p>
+                </div>
+              ),
+            },
+          ]}
+        />
+        {!isHost && <p className="-mt-1 mb-3 text-xs text-white/40">Chỉ chủ bàn đổi được luật.</p>}
         {isHost ? (
           <button
             onClick={() => void act({ type: "start" })}
@@ -761,7 +825,7 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
   };
 
   return (
-    <div className="grid flex-1 gap-2 sm:gap-3 lg:grid-cols-[minmax(0,1fr)_18rem] short:grid-cols-1">
+    <div className="grid flex-1 content-start gap-2 sm:gap-3 lg:grid-cols-[minmax(0,1fr)_18rem] 2xl:grid-cols-[minmax(0,1fr)_21rem] short:grid-cols-1">
       {/* Sideways phones: the table on the left, you / actions / hand on the right. */}
       <div className="flex min-w-0 flex-col gap-2 sm:gap-3 short:grid short:grid-cols-2 short:items-start">
         <div className="contents short:flex short:min-w-0 short:flex-col short:gap-2">
@@ -806,7 +870,7 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
                 {g.queued > 0 && <span className="text-white/50"> (+{g.queued})</span>}
               </p>
             )}
-            <button onClick={() => setShowLog((v) => !v)} className="block max-w-full truncate text-left text-xs text-white/60 underline-offset-2 hover:underline">
+            <button onClick={() => setShowLog((v) => !v)} className="-my-1 block max-w-full truncate py-1 text-left text-xs text-white/60 underline-offset-2 hover:underline" aria-expanded={showLog}>
               📜 {g.log[g.log.length - 1]?.text ?? "Chưa có gì"}
             </button>
           </div>
@@ -1076,7 +1140,7 @@ function PlayerTile({
             e.stopPropagation();
             onChar();
           }}
-          className="text-xl leading-none"
+          className="-m-1 p-1 text-xl leading-none"
           aria-label="Xem nhân vật"
         >
           {gone ? "☠️" : p.char ? <CharAvatar char={p.char} className="w-6" /> : "❔"}
@@ -1250,7 +1314,7 @@ function ModeForm({ g, mode, needs, missing, sel, target, target2, pick, opt, as
           {text && <p className="text-amber-50/80">{text}</p>}
           {needs.note && <p className="text-xs text-white/60">{needs.note}</p>}
         </div>
-        <button className="shrink-0 rounded px-2 text-white/60 hover:bg-white/10" onClick={reset} aria-label="Huỷ">
+        <button className="-mr-1 -mt-1 grid size-9 shrink-0 place-items-center rounded-full text-white/60 hover:bg-white/10 hover:text-white" onClick={reset} aria-label="Huỷ">
           ✕
         </button>
       </div>

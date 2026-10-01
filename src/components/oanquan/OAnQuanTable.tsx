@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
@@ -150,6 +150,10 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
   const showResult = ended && !animating;
   const turnMs = view.settings.turnSeconds * 1000;
   const secondsLeft = g?.deadline ? Math.max(0, Math.ceil((g.deadline - now) / 1000)) : null;
+  const resultRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (showResult) resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [showResult]);
 
   /** Player strips sit above/below the board; on sideways phones they move to the side column. */
   const panel = (p: OQPlayerView | null, className: string) => {
@@ -174,7 +178,7 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
   };
 
   return (
-    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col gap-3 px-2 pb-24 pt-2 sm:px-4 sm:pt-3 lg:pb-3 short:gap-2 short:pb-16 short:pt-1.5">
+    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col gap-3 px-2 pb-24 pt-2 sm:px-4 sm:pt-3 lg:pb-3 2xl:max-w-7xl short:gap-2 short:pb-16 short:pt-3">
       <GameHeader
         primary={
           <>
@@ -227,7 +231,7 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
           <Waiting view={view} me={me} act={act} nameOf={nameOf} />
         </div>
       ) : (
-        <div className="grid flex-1 content-start gap-3 lg:grid-cols-[minmax(0,1fr)_18rem] short:grid-cols-[minmax(0,1fr)_15rem] short:gap-2">
+        <div className="grid flex-1 content-start gap-3 lg:grid-cols-[minmax(0,1fr)_20rem] 2xl:grid-cols-[minmax(0,1fr)_22rem] short:grid-cols-[minmax(0,1fr)_15rem] short:gap-2">
           <section className="relative flex min-w-0 flex-col gap-2.5 short:gap-1.5">
             <SpectatorReactions reactions={live.filter((r) => !r.playerId)} />
             {panel(topPlayer, "short:hidden")}
@@ -292,13 +296,18 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
             {panel(bottomPlayer, "short:hidden")}
 
             {showResult && (
-              <div className="flex justify-center">
+              <div ref={resultRef} className="flex scroll-mt-2 justify-center lg:hidden short:flex">
                 <Waiting view={view} me={me} act={act} nameOf={nameOf} />
               </div>
             )}
           </section>
 
           <aside className="flex min-w-0 flex-col gap-3 short:gap-2">
+            {showResult && (
+              <div className="hidden lg:block short:hidden [&>div]:max-w-none">
+                <Waiting view={view} me={me} act={act} nameOf={nameOf} />
+              </div>
+            )}
             {panel(topPlayer, "hidden short:flex")}
             {panel(bottomPlayer, "hidden short:flex")}
             <div className="rounded-2xl bg-black/35 p-3 short:p-2">
@@ -465,7 +474,7 @@ function Waiting({ view, me, act, nameOf }: { view: OQRoomView; me: OQSeatView |
   const last = view.history[view.history.length - 1];
   const isHost = !!me?.isHost && view.role === "player";
   const s = view.settings;
-  const select = "rounded bg-black/40 px-1 py-0.5 text-white";
+  const select = "min-h-8 rounded-md bg-black/40 px-1.5 py-1 text-white disabled:opacity-70";
   return (
     <div className="w-full max-w-md rounded-3xl border border-amber-200/15 bg-black/50 p-4 backdrop-blur sm:p-5">
       {ended && g ? (
@@ -501,7 +510,33 @@ function Waiting({ view, me, act, nameOf }: { view: OQRoomView; me: OQSeatView |
       ) : (
         <>
           <h2 className="mb-1 text-xl font-black text-amber-300">🪨 Ô Ăn Quan</h2>
-          <p className="mb-4 text-sm text-amber-100/80">{count}/2 người · gửi link mời để bạn bè vào bàn</p>
+          <p className="mb-2 text-sm text-amber-100/80">{count}/2 người · gửi link mời để bạn bè vào bàn</p>
+          {/* Who is at the table. */}
+          <ul className="mb-3 flex flex-wrap gap-1.5 text-sm">
+            {view.seats.map(
+              (seat) =>
+                seat && (
+                  <li
+                    key={seat.id}
+                    className={cn(
+                      "flex max-w-full items-center gap-1 rounded-full border px-2.5 py-1",
+                      seat.id === view.meId ? "border-amber-300/50 bg-amber-400/15" : "border-white/10 bg-white/5",
+                      !seat.connected && "opacity-60",
+                    )}
+                    title={seat.connected ? undefined : "Mất kết nối"}
+                  >
+                    {seat.isHost && <span title="Chủ bàn">👑</span>}
+                    <span className="truncate">{seat.name}</span>
+                    {seat.id === view.meId && <span className="text-xs text-white/60">(bạn)</span>}
+                    {!seat.connected && <span aria-label="Mất kết nối">📴</span>}
+                    {seat.games > 0 && (
+                      <span className={cn("font-mono text-xs", seat.points > 0 ? "text-emerald-300" : seat.points < 0 ? "text-rose-300" : "text-white/50")}>{signed(seat.points)}đ</span>
+                    )}
+                  </li>
+                ),
+            )}
+            {count < 2 && <li className="rounded-full border border-dashed border-white/20 px-2.5 py-1 text-white/45">Đang chờ người thứ hai…</li>}
+          </ul>
         </>
       )}
       <SettingsTabs
