@@ -22,6 +22,8 @@ import {
   TIME_LIMIT_OPTIONS,
   UTIL_MULT,
   groupPositions,
+  houseCost,
+  houseRefund,
   isOwnable,
   mortgageValue,
   unmortgageCost,
@@ -994,7 +996,7 @@ function BuildPanel({
                             title={buildWhy ?? undefined}
                             className="min-h-9 shrink-0 whitespace-nowrap rounded-lg bg-emerald-500 px-3 py-1 text-xs font-bold text-black enabled:hover:bg-emerald-400 disabled:opacity-30"
                           >
-                            + {d.houses === MAX_HOUSES - 1 ? "Khách sạn" : "Nhà"} · {money(sq.house)}
+                            + {d.houses === MAX_HOUSES - 1 ? "Khách sạn" : `Nhà ${d.houses + 1}`} · {money(houseCost(sq, d.houses + 1))}
                           </button>
                         )}
                       </div>
@@ -1289,10 +1291,10 @@ function AssetPanel({
                       <button
                         onClick={() => void run({ type: "sell", pos })}
                         disabled={busy || !!sellWhy}
-                        title={sellWhy ?? `Bán 1 ${d.houses === MAX_HOUSES ? "khách sạn" : "nhà"}, nhận ${money(sq.house / 2)}`}
+                        title={sellWhy ?? `Bán ${d.houses === MAX_HOUSES ? "khách sạn" : `nhà ${d.houses}`}, nhận ${money(houseRefund(sq, d.houses))} (nửa giá đã xây)`}
                         className={cn(btn, "border border-white/20 enabled:hover:bg-white/10")}
                       >
-                        🏚️ Bán nhà +{money(sq.house / 2)}
+                        🏚️ Bán nhà +{money(houseRefund(sq, d.houses))}
                       </button>
                     )}
                     {!d.mortgaged && d.houses === 0 && (
@@ -1309,10 +1311,10 @@ function AssetPanel({
                       <button
                         onClick={() => void run({ type: "unmortgage", pos })}
                         disabled={busy || !!debt || mine.cash < unmortCost}
-                        title={debt ? "Đang nợ — chưa chuộc được" : `Chuộc lại với ${money(unmortCost)}`}
+                        title={debt ? "Đang nợ — chưa chuộc được" : `Chuộc lại: ${money(mortgageValue(sq))} + 10% phí = ${money(unmortCost)}`}
                         className={cn(btn, "border border-emerald-300/40 text-emerald-200 enabled:hover:bg-emerald-400/10")}
                       >
-                        Chuộc −{money(unmortCost)}
+                        Chuộc −{money(unmortCost)} <span className="font-normal opacity-70">(+10%)</span>
                       </button>
                     )}
                     {sellLandOn && m && d.houses === 0 && !d.mortgaged && (
@@ -1335,7 +1337,7 @@ function AssetPanel({
         ))}
       </div>
       <p className="mt-2 text-[10px] text-sky-100/45">
-        Bán nhà được nửa giá xây. Thế chấp nhận nửa giá đất, chuộc lại mất thêm 10%.{sellLandOn ? " Bán đất: nửa giá, đất về chợ cho người khác mua." : ""}
+        Bán nhà được nửa giá căn đó. Thế chấp nhận 50% giá đất, chuộc lại phải trả thêm 10%.{sellLandOn ? " Bán đất được 70% giá (hơn thế chấp) nhưng mất đất — đất về chợ cho người khác mua." : ""}
       </p>
     </section>
   );
@@ -1601,12 +1603,12 @@ function SquareModal({
             <div className="flex flex-wrap gap-2 pt-1">
               {sq.kind === "prop" && !deed.mortgaged && deed.houses < MAX_HOUSES && (
                 <CBtn primary onClick={() => void run({ type: "build", pos })} disabled={busy || !!buildWhy} title={buildWhy ?? undefined}>
-                  🏠 Xây {deed.houses === MAX_HOUSES - 1 ? "khách sạn" : "nhà"} ({money(sq.house)})
+                  🏠 Xây {deed.houses === MAX_HOUSES - 1 ? "khách sạn" : `nhà ${deed.houses + 1}`} ({money(houseCost(sq, deed.houses + 1))})
                 </CBtn>
               )}
               {sq.kind === "prop" && deed.houses > 0 && (
                 <CBtn onClick={() => void run({ type: "sell", pos })} disabled={busy || !!m?.sell} title={m?.sell ?? undefined}>
-                  Bán 1 nhà (+{money(sq.house / 2)})
+                  Bán 1 nhà (+{money(houseRefund(sq, deed.houses))})
                 </CBtn>
               )}
               {!deed.mortgaged && deed.houses === 0 && g && (
@@ -1627,7 +1629,7 @@ function SquareModal({
               )}
               {deed.mortgaged && (
                 <CBtn onClick={() => void run({ type: "unmortgage", pos })} disabled={busy || inDebt}>
-                  Chuộc lại ({money(unmortgageCost(sq))})
+                  Chuộc lại ({money(unmortgageCost(sq))}, +10%)
                 </CBtn>
               )}
             </div>
@@ -1646,19 +1648,30 @@ function OwnableInfo({ sq }: { sq: Ownable }) {
     return (
       <>
         <p>
-          Giá <b>{money(sq.price)}</b> · xây mỗi nhà <b>{money(sq.house)}</b>
+          Giá <b>{money(sq.price)}</b> · nhà đầu <b>{money(houseCost(sq, 1))}</b>, mỗi căn sau đắt hơn 25%
         </p>
         <table className="w-full text-xs">
+          <thead>
+            <tr className="text-[10px] uppercase tracking-wide text-emerald-900/50">
+              <th className="py-0.5 text-left font-semibold" />
+              <th className="py-0.5 text-right font-semibold">Thuê</th>
+              <th className="py-0.5 text-right font-semibold">Giá xây</th>
+            </tr>
+          </thead>
           <tbody>
             {sq.rent.map((r, i) => (
               <tr key={i} className="border-b border-emerald-900/10">
                 <td className="py-0.5">{labels[i]}</td>
                 <td className="py-0.5 text-right font-mono">{money(r)}</td>
+                <td className="py-0.5 text-right font-mono text-emerald-900/70">{i === 0 ? "—" : money(houseCost(sq, i))}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        <p className="text-xs text-emerald-900/70">Có đủ nhóm màu mà chưa xây: tiền thuê đất trống ×2. Thế chấp nhận {money(mortgageValue(sq))}.</p>
+        <p className="text-xs text-emerald-900/70">
+          Có đủ nhóm màu mà chưa xây: tiền thuê đất trống ×2. Thế chấp nhận {money(mortgageValue(sq))} (chuộc {money(unmortgageCost(sq))}). Bán đất cho ngân hàng (nếu bàn cho phép):{" "}
+          {money(Math.floor((sq.price * 7) / 10))}.
+        </p>
       </>
     );
   }
@@ -2003,7 +2016,7 @@ function Waiting({ view, me, act, nameOf }: { view: TPRoomView; me: TPSeatView |
                   onChange={(v) => void act({ type: "settings", needGroup: v })}
                 />
                 <Toggle
-                  label="Cho bán đất cho ngân hàng (nửa giá, đất về chợ)"
+                  label="Cho bán đất cho ngân hàng (70% giá, đất về chợ)"
                   checked={!!view.settings.sellLand}
                   disabled={!isHost}
                   onChange={(v) => void act({ type: "settings", sellLand: v })}
@@ -2078,10 +2091,10 @@ export function TyPhuRules() {
         Luật nhà (chủ bàn chọn): <b>xây đều</b>, hoặc <b>xây theo chuỗi</b> — nhà 1 xây bình thường, nhà 2 cần ít nhất 2 ô trong nhóm đã có nhà 1, nhà 3 cần 2 ô đã có
         nhà 2, nhà 4 cần mọi ô trong nhóm có 3 nhà, khách sạn cần mọi ô có 4 nhà. Có thể bỏ điều kiện đủ nhóm màu.
       </li>
-      <li>Bán nhà được nửa giá. Nếu bàn cho phép, bán đất (không còn nhà) cho ngân hàng được nửa giá — đất về chợ, ai dừng ở đó mua lại được.</li>
+      <li>Mỗi căn nhà xây sau trên cùng ô đắt hơn căn trước 25% (khách sạn gấp đôi giá nhà đầu); bán lại được nửa giá căn đó. Nếu bàn cho phép, bán đất (không còn nhà) cho ngân hàng được 70% giá — nhiều hơn thế chấp nhưng mất đất, đất về chợ cho ai dừng ở đó mua lại.</li>
       <li>Phá sản: tiền còn lại về tay chủ nợ; đất trả về ngân hàng để người khác mua như bình thường (hoặc về tay chủ nợ, tuỳ luật bàn).</li>
       <li>Sân bay: càng nhiều sân bay càng thu nhiều (25 → 200tr). Điện / nước: tổng xúc xắc × 4, có cả hai thì × 10.</li>
-      <li>Thiếu tiền: bán nhà (được nửa giá) hoặc thế chấp đất (nửa giá, chuộc lại mất thêm 10%). Không xoay nổi thì phá sản.</li>
+      <li>Thiếu tiền: bán nhà (được nửa giá) hoặc thế chấp đất (nhận 50% giá, chuộc lại phải trả thêm 10%). Không xoay nổi thì phá sản.</li>
       <li>Ở tù: tung đôi để ra, hoặc nộp 50tr / dùng thẻ ra tù trước khi tung. Sau 3 lượt thì phải nộp phạt.</li>
       <li>Đổi đất với nhau bất cứ lúc nào (kèm tiền nếu muốn); đất có nhà đổi được, nhà đi theo đất. Người còn lại cuối cùng — hoặc giàu nhất khi hết giờ — thắng.</li>
       <li>Mỗi bước có 30 giây; hết giờ hoặc mất kết nối thì máy tự đi (không mua gì).</li>
