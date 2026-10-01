@@ -46,10 +46,17 @@ export interface TPSettings {
   buildRule?: "even" | "chain";
   /** Own the whole colour group before building. */
   needGroup?: boolean;
-  /** Sell land back to the bank for half its price. */
+  /** Sell land back to the bank (for landSalePct of its price). */
   sellLand?: boolean;
   /** A bankrupt player's land: back on the market ("bank") or to the creditor. */
   bankruptTo?: "bank" | "creditor";
+  /** Price / turn knobs (missing from older servers = the defaults in board.ts / TyPhuTable). */
+  goSalary?: number;
+  risingCost?: boolean;
+  unmortgageFee?: number;
+  landSalePct?: number;
+  jailRent?: boolean;
+  doubleRoll?: boolean;
 }
 
 export const STEP_SECONDS_OPTIONS = [15, 20, 30, 45, 60];

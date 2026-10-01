@@ -21,10 +21,15 @@ import {
   type Square,
   TIME_LIMIT_OPTIONS,
   UTIL_MULT,
+  GO_SALARY,
+  GO_SALARY_OPTIONS,
+  LAND_SALE_OPTIONS,
+  UNMORTGAGE_FEE_OPTIONS,
   groupPositions,
   houseCost,
   houseRefund,
   isOwnable,
+  landSaleValue,
   mortgageValue,
   unmortgageCost,
 } from "@/lib/typhu/board";
@@ -540,6 +545,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
         <SquareModal
           pos={openSquare}
           g={g}
+          settings={view.settings}
           meId={view.meId}
           myTurn={myTurn}
           nameOf={nameOf}
@@ -996,7 +1002,7 @@ function BuildPanel({
                             title={buildWhy ?? undefined}
                             className="min-h-9 shrink-0 whitespace-nowrap rounded-lg bg-emerald-500 px-3 py-1 text-xs font-bold text-black enabled:hover:bg-emerald-400 disabled:opacity-30"
                           >
-                            + {d.houses === MAX_HOUSES - 1 ? "Khách sạn" : `Nhà ${d.houses + 1}`} · {money(houseCost(sq, d.houses + 1))}
+                            + {d.houses === MAX_HOUSES - 1 ? "Khách sạn" : `Nhà ${d.houses + 1}`} · {money(houseCost(sq, d.houses + 1, settings))}
                           </button>
                         )}
                       </div>
@@ -1207,6 +1213,7 @@ function AssetPanel({
   const others = owned.filter((pos) => BOARD[pos].kind !== "prop");
   if (others.length) sections.push({ key: "other", title: "Sân bay & công ty", cells: others });
   const sellLandOn = !!settings.sellLand;
+  const fee = settings.unmortgageFee ?? 10;
   const btn = "min-h-8 whitespace-nowrap rounded-lg px-2 py-1 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-30 sm:text-xs";
 
   return (
@@ -1270,7 +1277,7 @@ function AssetPanel({
                 const m = g.manage?.[pos];
                 const sellWhy = m?.sell ?? null;
                 const mortWhy = mortgageBlocker(g, mine.id, pos);
-                const unmortCost = unmortgageCost(sq);
+                const unmortCost = unmortgageCost(sq, settings);
                 return (
                   <li key={pos} className="flex flex-wrap items-center gap-1.5 px-2 py-1.5 text-xs">
                     <span className="min-w-0 flex-1 basis-28">
@@ -1291,10 +1298,10 @@ function AssetPanel({
                       <button
                         onClick={() => void run({ type: "sell", pos })}
                         disabled={busy || !!sellWhy}
-                        title={sellWhy ?? `Bán ${d.houses === MAX_HOUSES ? "khách sạn" : `nhà ${d.houses}`}, nhận ${money(houseRefund(sq, d.houses))} (nửa giá đã xây)`}
+                        title={sellWhy ?? `Bán ${d.houses === MAX_HOUSES ? "khách sạn" : `nhà ${d.houses}`}, nhận ${money(houseRefund(sq, d.houses, settings))} (nửa giá đã xây)`}
                         className={cn(btn, "border border-white/20 enabled:hover:bg-white/10")}
                       >
-                        🏚️ Bán nhà +{money(houseRefund(sq, d.houses))}
+                        🏚️ Bán nhà +{money(houseRefund(sq, d.houses, settings))}
                       </button>
                     )}
                     {!d.mortgaged && d.houses === 0 && (
@@ -1311,10 +1318,10 @@ function AssetPanel({
                       <button
                         onClick={() => void run({ type: "unmortgage", pos })}
                         disabled={busy || !!debt || mine.cash < unmortCost}
-                        title={debt ? "Đang nợ — chưa chuộc được" : `Chuộc lại: ${money(mortgageValue(sq))} + 10% phí = ${money(unmortCost)}`}
+                        title={debt ? "Đang nợ — chưa chuộc được" : `Chuộc lại: ${money(mortgageValue(sq))} + ${fee}% phí = ${money(unmortCost)}`}
                         className={cn(btn, "border border-emerald-300/40 text-emerald-200 enabled:hover:bg-emerald-400/10")}
                       >
-                        Chuộc −{money(unmortCost)} <span className="font-normal opacity-70">(+10%)</span>
+                        Chuộc −{money(unmortCost)} {fee > 0 && <span className="font-normal opacity-70">(+{fee}%)</span>}
                       </button>
                     )}
                     {sellLandOn && m && d.houses === 0 && !d.mortgaged && (
@@ -1337,7 +1344,8 @@ function AssetPanel({
         ))}
       </div>
       <p className="mt-2 text-[10px] text-sky-100/45">
-        Bán nhà được nửa giá căn đó. Thế chấp nhận 50% giá đất, chuộc lại phải trả thêm 10%.{sellLandOn ? " Bán đất được 70% giá (hơn thế chấp) nhưng mất đất — đất về chợ cho người khác mua." : ""}
+        Bán nhà được nửa giá căn đó. Thế chấp nhận 50% giá đất{fee > 0 ? `, chuộc lại phải trả thêm ${fee}%` : ", chuộc lại đúng giá đó"}.
+        {sellLandOn ? ` Bán đất được ${settings.landSalePct ?? 70}% giá${(settings.landSalePct ?? 70) > 50 ? " (hơn thế chấp)" : ""} nhưng mất đất — đất về chợ cho người khác mua.` : ""}
       </p>
     </section>
   );
@@ -1545,6 +1553,7 @@ function PlayerRow({
 function SquareModal({
   pos,
   g,
+  settings,
   meId,
   myTurn,
   nameOf,
@@ -1554,6 +1563,7 @@ function SquareModal({
 }: {
   pos: number;
   g: TPGameView | null;
+  settings: TPSettings;
   meId: string;
   myTurn: boolean;
   nameOf: (id: string) => string;
@@ -1579,7 +1589,7 @@ function SquareModal({
           {sq.kind === "prop" && <p className="text-xs">{sq.region}</p>}
         </div>
         <div className="space-y-2 p-4 text-sm">
-          {isOwnable(sq) ? <OwnableInfo sq={sq} /> : <p>{SQUARE_TEXT[sq.kind]?.(sq)}</p>}
+          {isOwnable(sq) ? <OwnableInfo sq={sq} settings={settings} /> : <p>{SQUARE_TEXT[sq.kind]?.(sq)}</p>}
           {deed && (
             <p className="rounded bg-white/70 px-2 py-1">
               Chủ: <b>{nameOf(deed.owner)}</b>
@@ -1603,12 +1613,12 @@ function SquareModal({
             <div className="flex flex-wrap gap-2 pt-1">
               {sq.kind === "prop" && !deed.mortgaged && deed.houses < MAX_HOUSES && (
                 <CBtn primary onClick={() => void run({ type: "build", pos })} disabled={busy || !!buildWhy} title={buildWhy ?? undefined}>
-                  🏠 Xây {deed.houses === MAX_HOUSES - 1 ? "khách sạn" : `nhà ${deed.houses + 1}`} ({money(houseCost(sq, deed.houses + 1))})
+                  🏠 Xây {deed.houses === MAX_HOUSES - 1 ? "khách sạn" : `nhà ${deed.houses + 1}`} ({money(houseCost(sq, deed.houses + 1, settings))})
                 </CBtn>
               )}
               {sq.kind === "prop" && deed.houses > 0 && (
                 <CBtn onClick={() => void run({ type: "sell", pos })} disabled={busy || !!m?.sell} title={m?.sell ?? undefined}>
-                  Bán 1 nhà (+{money(houseRefund(sq, deed.houses))})
+                  Bán 1 nhà (+{money(houseRefund(sq, deed.houses, settings))})
                 </CBtn>
               )}
               {!deed.mortgaged && deed.houses === 0 && g && (
@@ -1629,7 +1639,7 @@ function SquareModal({
               )}
               {deed.mortgaged && (
                 <CBtn onClick={() => void run({ type: "unmortgage", pos })} disabled={busy || inDebt}>
-                  Chuộc lại ({money(unmortgageCost(sq))}, +10%)
+                  Chuộc lại ({money(unmortgageCost(sq, settings))}{settings.unmortgageFee !== 0 ? `, +${settings.unmortgageFee ?? 10}%` : ""})
                 </CBtn>
               )}
             </div>
@@ -1642,13 +1652,14 @@ function SquareModal({
   );
 }
 
-function OwnableInfo({ sq }: { sq: Ownable }) {
+function OwnableInfo({ sq, settings }: { sq: Ownable; settings: TPSettings }) {
   if (sq.kind === "prop") {
     const labels = ["Đất trống", "1 nhà", "2 nhà", "3 nhà", "4 nhà", "Khách sạn"];
     return (
       <>
         <p>
-          Giá <b>{money(sq.price)}</b> · nhà đầu <b>{money(houseCost(sq, 1))}</b>, mỗi căn sau đắt hơn 25%
+          Giá <b>{money(sq.price)}</b> · nhà đầu <b>{money(houseCost(sq, 1, settings))}</b>
+          {settings.risingCost === false ? ", căn nào cũng giá đó" : ", mỗi căn sau đắt hơn 25%"}
         </p>
         <table className="w-full text-xs">
           <thead>
@@ -1663,14 +1674,14 @@ function OwnableInfo({ sq }: { sq: Ownable }) {
               <tr key={i} className="border-b border-emerald-900/10">
                 <td className="py-0.5">{labels[i]}</td>
                 <td className="py-0.5 text-right font-mono">{money(r)}</td>
-                <td className="py-0.5 text-right font-mono text-emerald-900/70">{i === 0 ? "—" : money(houseCost(sq, i))}</td>
+                <td className="py-0.5 text-right font-mono text-emerald-900/70">{i === 0 ? "—" : money(houseCost(sq, i, settings))}</td>
               </tr>
             ))}
           </tbody>
         </table>
         <p className="text-xs text-emerald-900/70">
-          Có đủ nhóm màu mà chưa xây: tiền thuê đất trống ×2. Thế chấp nhận {money(mortgageValue(sq))} (chuộc {money(unmortgageCost(sq))}). Bán đất cho ngân hàng (nếu bàn cho phép):{" "}
-          {money(Math.floor((sq.price * 7) / 10))}.
+          Có đủ nhóm màu mà chưa xây: tiền thuê đất trống ×2. Thế chấp nhận {money(mortgageValue(sq))} (chuộc {money(unmortgageCost(sq, settings))}).
+          {settings.sellLand && <> Bán đất cho ngân hàng: {money(landSaleValue(sq, settings))}.</>}
         </p>
       </>
     );
@@ -1698,7 +1709,7 @@ function OwnableInfo({ sq }: { sq: Ownable }) {
 }
 
 const SQUARE_TEXT: Partial<Record<Square["kind"], (sq: Square) => string>> = {
-  go: () => "Mỗi lần đi qua hoặc dừng ở đây nhận 200tr.",
+  go: () => "Mỗi lần đi qua hoặc dừng ở đây nhận lương (mặc định 200tr, chủ bàn chỉnh được).",
   chance: () => "Rút một thẻ Cơ hội: có thể được tiền, phải di chuyển, hoặc vào tù.",
   chest: () => "Rút một thẻ Khí vận: phần lớn là tiền thưởng, đôi khi phải chi.",
   tax: (sq) => `Nộp ${money((sq as Extract<Square, { kind: "tax" }>).amount)} cho ngân hàng.`,
@@ -1938,8 +1949,15 @@ function Waiting({ view, me, act, nameOf }: { view: TPRoomView; me: TPSeatView |
                     ))}
                   </select>
                 </label>
+                <SettingSelect
+                  label="Qua Khởi hành nhận"
+                  value={view.settings.goSalary ?? GO_SALARY}
+                  options={GO_SALARY_OPTIONS.map((v) => [v, money(v)])}
+                  disabled={!isHost}
+                  onChange={(v) => void act({ type: "settings", goSalary: v })}
+                />
                 <Toggle
-                  label="Dừng đúng Khởi hành nhận gấp đôi (400tr)"
+                  label={`Dừng đúng Khởi hành nhận gấp đôi (${money((view.settings.goSalary ?? GO_SALARY) * 2)})`}
                   checked={!!view.settings.doubleGo}
                   disabled={!isHost}
                   onChange={(v) => void act({ type: "settings", doubleGo: v })}
@@ -1950,12 +1968,26 @@ function Waiting({ view, me, act, nameOf }: { view: TPRoomView; me: TPSeatView |
                   disabled={!isHost}
                   onChange={(v) => void act({ type: "settings", parkingPot: v })}
                 />
+                <SettingSelect
+                  label="Phí chuộc thế chấp"
+                  value={view.settings.unmortgageFee ?? 10}
+                  options={UNMORTGAGE_FEE_OPTIONS.map((v) => [v, v ? `+${v}%` : "Không phí"])}
+                  disabled={!isHost}
+                  onChange={(v) => void act({ type: "settings", unmortgageFee: v })}
+                />
+                <SettingSelect
+                  label="Bán đất cho ngân hàng được"
+                  value={view.settings.landSalePct ?? 70}
+                  options={LAND_SALE_OPTIONS.map((v) => [v, `${v}% giá đất`])}
+                  disabled={!isHost || !view.settings.sellLand}
+                  onChange={(v) => void act({ type: "settings", landSalePct: v })}
+                />
               </div>
             ),
           },
           {
             id: "time",
-            label: "⏱️ Thời gian",
+            label: "⏱️ Lượt",
             content: (
               <div className="space-y-2">
                 <label className="flex items-center justify-between gap-2">
@@ -1988,6 +2020,18 @@ function Waiting({ view, me, act, nameOf }: { view: TPRoomView; me: TPSeatView |
                     ))}
                   </select>
                 </label>
+                <Toggle
+                  label="Tung đôi được tung tiếp (đôi 3 lần liền vào tù)"
+                  checked={view.settings.doubleRoll !== false}
+                  disabled={!isHost}
+                  onChange={(v) => void act({ type: "settings", doubleRoll: v })}
+                />
+                <Toggle
+                  label="Đang ở tù vẫn thu tiền thuê"
+                  checked={view.settings.jailRent !== false}
+                  disabled={!isHost}
+                  onChange={(v) => void act({ type: "settings", jailRent: v })}
+                />
               </div>
             ),
           },
@@ -2016,7 +2060,13 @@ function Waiting({ view, me, act, nameOf }: { view: TPRoomView; me: TPSeatView |
                   onChange={(v) => void act({ type: "settings", needGroup: v })}
                 />
                 <Toggle
-                  label="Cho bán đất cho ngân hàng (70% giá, đất về chợ)"
+                  label="Giá nhà tăng dần (căn sau +25%, khách sạn ×2)"
+                  checked={view.settings.risingCost !== false}
+                  disabled={!isHost}
+                  onChange={(v) => void act({ type: "settings", risingCost: v })}
+                />
+                <Toggle
+                  label={`Cho bán đất cho ngân hàng (${view.settings.landSalePct ?? 70}% giá, đất về chợ)`}
                   checked={!!view.settings.sellLand}
                   disabled={!isHost}
                   onChange={(v) => void act({ type: "settings", sellLand: v })}
@@ -2069,6 +2119,38 @@ function Waiting({ view, me, act, nameOf }: { view: TPRoomView; me: TPSeatView |
   );
 }
 
+function SettingSelect({
+  label,
+  value,
+  options,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  options: [number, string][];
+  disabled: boolean;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <label className="flex items-center justify-between gap-2">
+      <span>{label}</span>
+      <select
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="rounded-md border border-emerald-900/20 bg-white px-2 py-0.5 disabled:opacity-50"
+      >
+        {options.map(([v, text]) => (
+          <option key={v} value={v}>
+            {text}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 function Toggle({ label, checked, disabled, onChange }: { label: string; checked: boolean; disabled: boolean; onChange: (v: boolean) => void }) {
   return (
     <label className={cn("flex items-center justify-between gap-2", !disabled && "cursor-pointer")}>
@@ -2083,7 +2165,7 @@ function Toggle({ label, checked, disabled, onChange }: { label: string; checked
 export function TyPhuRules() {
   return (
     <ul className="list-disc space-y-1.5 pl-5 text-sm">
-      <li>2–6 người, mỗi người bắt đầu với số tiền chủ bàn chọn (mặc định 1.500tr). Mỗi vòng qua Khởi hành nhận 200tr.</li>
+      <li>2–6 người, mỗi người bắt đầu với số tiền chủ bàn chọn (mặc định 1.500tr). Mỗi vòng qua Khởi hành nhận 200tr (chủ bàn chỉnh được).</li>
       <li>Tung 2 xúc xắc rồi đi. Tung đôi được tung tiếp; đôi 3 lần liền thì vào tù.</li>
       <li>Dừng ở đất, sân bay hay công ty chưa có chủ thì được mua. Không mua thì đất vẫn thuộc ngân hàng.</li>
       <li>Dừng ở đất người khác thì trả tiền thuê. Có đủ cả nhóm màu thì tiền thuê ×2 và được xây nhà — xây đều từng ô, 4 nhà rồi lên khách sạn.</li>
@@ -2091,10 +2173,10 @@ export function TyPhuRules() {
         Luật nhà (chủ bàn chọn): <b>xây đều</b>, hoặc <b>xây theo chuỗi</b> — nhà 1 xây bình thường, nhà 2 cần ít nhất 2 ô trong nhóm đã có nhà 1, nhà 3 cần 2 ô đã có
         nhà 2, nhà 4 cần mọi ô trong nhóm có 3 nhà, khách sạn cần mọi ô có 4 nhà. Có thể bỏ điều kiện đủ nhóm màu.
       </li>
-      <li>Mỗi căn nhà xây sau trên cùng ô đắt hơn căn trước 25% (khách sạn gấp đôi giá nhà đầu); bán lại được nửa giá căn đó. Nếu bàn cho phép, bán đất (không còn nhà) cho ngân hàng được 70% giá — nhiều hơn thế chấp nhưng mất đất, đất về chợ cho ai dừng ở đó mua lại.</li>
+      <li>Mỗi căn nhà xây sau trên cùng ô đắt hơn căn trước 25% (khách sạn gấp đôi giá nhà đầu; chủ bàn có thể tắt để căn nào cũng một giá); bán lại được nửa giá căn đó. Nếu bàn cho phép, bán đất (không còn nhà) cho ngân hàng được 70% giá (chỉnh được 50–90%) — nhiều hơn thế chấp nhưng mất đất, đất về chợ cho ai dừng ở đó mua lại.</li>
       <li>Phá sản: tiền còn lại về tay chủ nợ; đất trả về ngân hàng để người khác mua như bình thường (hoặc về tay chủ nợ, tuỳ luật bàn).</li>
       <li>Sân bay: càng nhiều sân bay càng thu nhiều (25 → 200tr). Điện / nước: tổng xúc xắc × 4, có cả hai thì × 10.</li>
-      <li>Thiếu tiền: bán nhà (được nửa giá) hoặc thế chấp đất (nhận 50% giá, chuộc lại phải trả thêm 10%). Không xoay nổi thì phá sản.</li>
+      <li>Thiếu tiền: bán nhà (được nửa giá) hoặc thế chấp đất (nhận 50% giá, chuộc lại phải trả thêm 10% — chủ bàn chỉnh được). Không xoay nổi thì phá sản.</li>
       <li>Ở tù: tung đôi để ra, hoặc nộp 50tr / dùng thẻ ra tù trước khi tung. Sau 3 lượt thì phải nộp phạt.</li>
       <li>Đổi đất với nhau bất cứ lúc nào (kèm tiền nếu muốn); đất có nhà đổi được, nhà đi theo đất. Người còn lại cuối cùng — hoặc giàu nhất khi hết giờ — thắng.</li>
       <li>Mỗi bước có 30 giây; hết giờ hoặc mất kết nối thì máy tự đi (không mua gì).</li>
