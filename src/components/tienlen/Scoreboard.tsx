@@ -2,6 +2,7 @@
 
 import { type GameRecord, INSTANT_WIN_NAMES } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
+import { Sheet } from "./Sheet";
 
 const RANK_TITLES = ["Nhất", "Nhì", "Ba"];
 export const rankTitle = (i: number, total: number) => (i === total - 1 ? "Bét" : RANK_TITLES[i] ?? String(i + 1));
@@ -33,25 +34,23 @@ export interface ScoreboardData {
 const TIENLEN_NOTE =
   "Điểm mỗi ván: Nhất +2, Nhì +1 (4 người +2/+1/−1/−2 · 3 người +2/+1/−3 · 2 người +2/−2) · chết cháy thua gấp đôi · tới trắng +4 từ mỗi người · chặt heo đen +1, heo đỏ +2, mỗi lần chặt chồng gấp đôi (người bị chặt trả).";
 
-export function ScoreboardModal({ view, onClose, note = TIENLEN_NOTE }: { view: ScoreboardData; onClose: () => void; note?: string }) {
+export function ScoreboardModal({
+  view,
+  onClose,
+  note = TIENLEN_NOTE,
+  className = "border-emerald-200/15 bg-[#0b2a1c] text-emerald-50",
+}: {
+  view: ScoreboardData;
+  onClose: () => void;
+  note?: string;
+  /** Panel colours (Mèo Nổ passes its own). */
+  className?: string;
+}) {
   const players = view.seats.filter((s): s is NonNullable<typeof s> => !!s).sort((a, b) => b.points - a.points);
   const history = view.history.slice().reverse();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div
-        role="dialog"
-        aria-label="Bảng điểm"
-        className="max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-2xl border border-emerald-200/15 bg-[#0b2a1c] p-5 text-emerald-50 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-amber-300">Bảng điểm phòng {view.code}</h2>
-          <button onClick={onClose} className="rounded-md px-2 py-1 text-emerald-100/70 hover:bg-white/10" aria-label="Đóng">
-            ✕
-          </button>
-        </div>
-
+    <Sheet title={`🏆 Bảng điểm phòng ${view.code}`} label="Bảng điểm" onClose={onClose} className={className} bodyClassName="p-4 sm:p-5">
         <table className="mb-5 w-full text-sm">
           <thead className="text-left text-xs text-emerald-100/50">
             <tr>
@@ -103,10 +102,7 @@ export function ScoreboardModal({ view, onClose, note = TIENLEN_NOTE }: { view: 
             ))}
           </ol>
         )}
-        <p className="mt-4 text-xs text-emerald-100/40">
-          {note}
-        </p>
-      </div>
-    </div>
+        <p className="mt-4 text-xs leading-relaxed text-emerald-100/55">{note}</p>
+    </Sheet>
   );
 }

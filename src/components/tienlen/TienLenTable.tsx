@@ -260,9 +260,10 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onKick
       style={
         {
           // Sized by the short side too, so a sideways phone keeps the whole table on screen.
-          "--cw": "clamp(44px, min(9.5vw, 13dvh), 78px)",
-          "--cw-sm": "clamp(30px, min(6vw, 9dvh), 48px)",
-          "--cw-back": "clamp(14px, min(3.2vw, 5dvh), 26px)",
+          // Big screens get bigger cards instead of an empty felt.
+          "--cw": "clamp(44px, min(9.5vw, 13dvh), 96px)",
+          "--cw-sm": "clamp(30px, min(6vw, 9dvh), 64px)",
+          "--cw-back": "clamp(14px, min(3.2vw, 5dvh), 32px)",
         } as React.CSSProperties
       }
     >
@@ -284,9 +285,12 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onKick
             <button onClick={() => setShowScores(true)} className={headerBtn} title="Bảng điểm">
               🏆 <HeaderLabel>Bảng điểm</HeaderLabel>
             </button>
-            <button onClick={() => setShowMoves(true)} className={headerBtn} title="Lịch sử ván">
-              📜 <HeaderLabel>Lịch sử ván</HeaderLabel>
-            </button>
+            {/* Hidden while the server doesn't send the game's moves (nothing to show). */}
+            {(!game || game.moves) && (
+              <button onClick={() => setShowMoves(true)} className={headerBtn} title="Lịch sử ván">
+                📜 <HeaderLabel>Lịch sử ván</HeaderLabel>
+              </button>
+            )}
           </>
         }
         status={
@@ -378,7 +382,8 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onKick
             {!spectator && playing && me && !me.inGame && <span className="text-emerald-100/60">Bạn sẽ vào ván sau</span>}
           </div>
 
-          {!spectator && hand.length > 0 && (
+          {/* After a game the leftover hand stays on show, without the (then useless) play buttons. */}
+          {!spectator && playing && hand.length > 0 && (
             <div className="flex items-center justify-center gap-2">
               <ActionButton onClick={doPass} disabled={!canPass}>
                 Bỏ lượt
@@ -394,18 +399,31 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onKick
         </div>
 
         {!spectator && hand.length > 0 && (
-          <div className="flex w-full justify-center overflow-visible pt-5 short:order-last short:col-span-2 short:pt-3">
-            <DraggableRow
-              items={hand}
-              onMove={handOrder.move}
-              className="[--overlap:-0.42] sm:[--overlap:-0.3]"
-              itemStyle={(i) => (i ? { marginLeft: "calc(var(--cw) * var(--overlap))" } : undefined)}
-              renderItem={(c) => <PlayingCard card={c} selected={selected.includes(c)} onClick={() => toggle(c)} />}
-            />
-          </div>
+          playing ? (
+            <div className="flex w-full justify-center overflow-visible pt-5 short:order-last short:col-span-2 short:pt-5">
+              <DraggableRow
+                items={hand}
+                onMove={handOrder.move}
+                className="[--overlap:-0.42] sm:[--overlap:-0.3]"
+                itemStyle={(i) => (i ? { marginLeft: "calc(var(--cw) * var(--overlap))" } : undefined)}
+                renderItem={(c) => <PlayingCard card={c} selected={selected.includes(c)} onClick={() => toggle(c)} />}
+              />
+            </div>
+          ) : (
+            // After a game: the cards left over, small, so the result panel and "Ván mới" keep the room
+            // (phones: kept left of the 😀 / 💬 buttons).
+            <div className="flex flex-col items-center gap-1 max-sm:pr-[6.5rem] short:hidden">
+              <span className="text-xs text-emerald-100/60">Bài còn lại ({hand.length} lá)</span>
+              <div className="flex">
+                {hand.map((c, i) => (
+                  <PlayingCard key={c} card={c} size="sm" style={i ? { marginLeft: "calc(var(--cw-sm) * -0.4)" } : undefined} />
+                ))}
+              </div>
+            </div>
+          )
         )}
 
-        {!spectator && hand.length > 0 && (
+        {!spectator && playing && hand.length > 0 && (
           <div className="flex items-center justify-center gap-2">
             <ActionButton
               onClick={() => {
@@ -423,7 +441,11 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onKick
       {showScores && <ScoreboardModal view={view} onClose={() => setShowScores(false)} note={scoreNote(view.settings ?? DEFAULT_TIENLEN_SETTINGS)} />}
 
       {toast && (
-        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
+        // Top of the screen, like the other tables: at the bottom it covered the hand and the chat buttons.
+        <div
+          role="alert"
+          className="fixed left-1/2 top-[calc(var(--games-bar-h,0px)+0.5rem)] z-50 max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-lg bg-rose-600 px-4 py-2 text-center text-sm font-medium text-white shadow-lg"
+        >
           {toast}
         </div>
       )}
@@ -612,7 +634,9 @@ function WaitingPanel({
 
   return (
     // Portrait phones: the centre cell between the side seats is too narrow, so the panel floats over the whole felt.
-    <div className="z-10 w-full max-w-xs rounded-2xl bg-black/35 p-4 backdrop-blur-sm max-sm:absolute max-sm:inset-x-3 max-sm:top-1/2 max-sm:w-auto max-sm:max-w-none max-sm:max-h-[calc(100%-1.5rem)] max-sm:-translate-y-1/2 max-sm:overflow-y-auto max-sm:bg-black/75 short:max-h-[62dvh] short:max-w-sm short:overflow-y-auto short:p-3">
+    <div className="z-10 w-full max-w-xs rounded-2xl bg-black/35 p-4 backdrop-blur-sm max-sm:absolute max-sm:inset-x-3 max-sm:top-1/2 max-sm:w-auto max-sm:max-w-none max-sm:max-h-[calc(100%-1.5rem)] max-sm:-translate-y-1/2 max-sm:overflow-y-auto max-sm:bg-black/75 short:grid short:max-h-[50dvh] short:max-w-xl short:grid-cols-2 short:items-start short:gap-x-3 short:overflow-y-auto short:p-3">
+      {/* Sideways phones: two columns (results | start + rules) so the start button stays in view. */}
+      <div className="short:col-start-1 short:row-span-2 short:row-start-1">
       {ended && game ? (
         <>
           <h2 className="mb-2 text-lg font-bold text-amber-300">
@@ -641,14 +665,29 @@ function WaitingPanel({
         <>
           <h2 className="mb-1 text-lg font-bold text-amber-300">Tiến Lên Miền Nam</h2>
           <p className="mb-3 text-sm text-emerald-50/80">{count}/4 người · gửi link mời để bạn bè vào phòng</p>
+          {/* Portrait phones: this panel covers the side seats, so list who's in the room here. */}
+          <ul className="mb-3 flex flex-wrap justify-center gap-1.5 sm:hidden">
+            {view.seats.map((s) =>
+              s ? (
+                <li key={s.id} className={cn("rounded-full px-2.5 py-0.5 text-xs", s.id === view.meId ? "bg-amber-400/20 text-amber-100" : "bg-white/10 text-emerald-50")}>
+                  {s.isHost && "👑 "}
+                  {s.name}
+                  {s.id === view.meId && " (bạn)"}
+                  {!s.connected && " · mất kết nối"}
+                </li>
+              ) : null,
+            )}
+          </ul>
         </>
       )}
+      </div>
       <SettingsPanel
         settings={view.settings ?? DEFAULT_TIENLEN_SETTINGS}
         editable={view.role === "player" && !!me?.isHost}
         players={count}
         onChange={onSettings}
       />
+      <div className="short:col-start-2 short:row-start-1 short:mb-2">
       {view.role === "spectator" ? (
         <p className="text-sm text-emerald-100/70">{ended ? "Chờ ván mới…" : "Chờ chủ phòng bắt đầu…"}</p>
       ) : me?.isHost ? (
@@ -662,6 +701,7 @@ function WaitingPanel({
       ) : (
         <p className="text-sm text-emerald-100/70">Chờ chủ phòng bắt đầu…</p>
       )}
+      </div>
     </div>
   );
 }
@@ -689,16 +729,16 @@ function SettingsPanel({
   const preview = tienlenRankPoints(n, settings);
   const labels = ["Nhất", "Nhì", "Ba", "Bét"];
   return (
-    <div className="mb-3 space-y-2 rounded-xl bg-black/25 p-2 text-left text-xs text-emerald-50">
+    <div className="mb-3 space-y-2 rounded-xl bg-black/25 p-2 text-left text-xs text-emerald-50 short:col-start-2 short:row-start-2 short:mb-0">
       <p className="font-semibold uppercase tracking-wide text-emerald-100/60">Luật bàn</p>
-      <label className={cn("flex items-center justify-between gap-2", editable && "cursor-pointer")}>
+      <label className={cn("flex min-h-8 items-center justify-between gap-2 pointer-coarse:min-h-9", editable && "cursor-pointer")}>
         <span>Tự bỏ lượt khi không có bài chặn</span>
         <input
           type="checkbox"
           checked={settings.autoPass}
           disabled={!editable}
           onChange={(e) => onChange({ autoPass: e.target.checked })}
-          className="h-4 w-4 accent-amber-400"
+          className="h-4 w-4 shrink-0 accent-amber-400 pointer-coarse:h-5 pointer-coarse:w-5"
         />
       </label>
       <div className="flex items-center justify-between gap-2">
@@ -711,7 +751,7 @@ function SettingsPanel({
               const first = Number(e.target.value);
               onChange({ first, second: Math.min(settings.second, first) });
             }}
-            className="rounded bg-black/40 px-1 py-0.5"
+            className="rounded bg-black/40 px-1 py-0.5 pointer-coarse:min-h-9 pointer-coarse:px-2"
             aria-label="Điểm Nhất"
           >
             {Array.from({ length: MAX_RANK_POINTS }, (_, i) => i + 1).map((v) => (
@@ -725,7 +765,7 @@ function SettingsPanel({
             value={settings.second}
             disabled={!editable}
             onChange={(e) => onChange({ second: Number(e.target.value) })}
-            className="rounded bg-black/40 px-1 py-0.5"
+            className="rounded bg-black/40 px-1 py-0.5 pointer-coarse:min-h-9 pointer-coarse:px-2"
             aria-label="Điểm Nhì"
           >
             {Array.from({ length: settings.first + 1 }, (_, i) => i).map((v) => (

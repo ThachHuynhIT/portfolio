@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CARDS, type CardType, EXPANSIONS, type Expansion, PACKS, type Pack } from "@/lib/meono/cards";
 import { cn } from "@/lib/utils";
+import { Sheet } from "@/components/tienlen/Sheet";
 import { type CardRole, MeoCard, ROLES, roleOf } from "./MeoCard";
 
 /** How a turn works, in short. */
@@ -33,21 +34,12 @@ export function CardGuide({ enabled, onClose }: { enabled?: Expansion[]; onClose
   const firstOff = packs.find((p) => !inPlay(p));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-3 backdrop-blur-sm" onClick={onClose}>
-      <div
-        role="dialog"
-        aria-label="Hướng dẫn lá bài"
-        className="max-h-[90dvh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-2xl border border-orange-200/15 bg-[#1c0f0a] p-4 pt-0 text-orange-50 shadow-2xl sm:p-5 sm:pt-0"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Sticky so ✕ stays in reach while scrolling a long guide on a phone. */}
-        <div className="sticky top-0 z-10 -mx-4 mb-3 flex items-center justify-between bg-[#1c0f0a] px-4 pb-2 pt-3 sm:-mx-5 sm:px-5 sm:pt-4">
-          <h2 className="text-lg font-black text-amber-300 sm:text-xl">📖 Hướng dẫn Mèo Nổ</h2>
-          <button onClick={onClose} className="grid min-h-9 min-w-9 place-items-center rounded-md text-orange-100/70 hover:bg-white/10" aria-label="Đóng">
-            ✕
-          </button>
-        </div>
-
+    <Sheet
+      title="📖 Hướng dẫn Mèo Nổ"
+      onClose={onClose}
+      className="max-w-3xl border-orange-200/15 bg-[#1c0f0a] text-orange-50"
+      bodyClassName="p-4 sm:p-5"
+    >
         <section className="mb-5 rounded-xl bg-black/25 p-3">
           <h3 className="mb-2 font-bold text-orange-100">Cách chơi</h3>
           <MeoRules />
@@ -102,7 +94,6 @@ export function CardGuide({ enabled, onClose }: { enabled?: Expansion[]; onClose
             </section>
           );
         })}
-      </div>
-    </div>
+    </Sheet>
   );
 }

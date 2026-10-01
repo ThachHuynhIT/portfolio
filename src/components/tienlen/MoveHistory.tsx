@@ -5,6 +5,7 @@ import { type TLMove, comboName, detectCombo } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { PlayingCard } from "./PlayingCard";
 import { rankTitle } from "./Scoreboard";
+import { Sheet } from "./Sheet";
 
 /**
  * Everything played in the current game, from the first card, grouped by round.
@@ -15,12 +16,6 @@ export function MoveHistory({ moves, nameOf, meId, onClose }: { moves: TLMove[];
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [moves.length]);
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   // Split into rounds: a "round" entry starts the next one.
   const rounds: TLMove[][] = [[]];
   for (const m of moves) {
@@ -30,20 +25,13 @@ export function MoveHistory({ moves, nameOf, meId, onClose }: { moves: TLMove[];
   const who = (id: string) => (id === meId ? "Bạn" : nameOf(id));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4" onClick={onClose}>
-      <div
-        role="dialog"
-        aria-label="Lịch sử ván"
-        className="flex max-h-[88dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-emerald-200/15 bg-[#0b2a1c] text-emerald-50 shadow-2xl sm:rounded-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-          <h2 className="text-lg font-bold text-amber-300">📜 Lịch sử ván này</h2>
-          <button onClick={onClose} className="rounded-md px-2 py-1 hover:bg-white/10" aria-label="Đóng">
-            ✕
-          </button>
-        </div>
-        <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+    <Sheet
+      title="📜 Lịch sử ván này"
+      onClose={onClose}
+      className="max-w-lg border-emerald-200/15 bg-[#0b2a1c] text-emerald-50"
+      bodyClassName="space-y-3 px-4 py-3"
+      bodyRef={listRef}
+    >
           {!moves.length && <p className="text-sm text-emerald-100/60">Chưa ai đánh lá nào.</p>}
           {rounds.map((round, i) =>
             round.length ? (
@@ -82,8 +70,6 @@ export function MoveHistory({ moves, nameOf, meId, onClose }: { moves: TLMove[];
               </section>
             ) : null,
           )}
-        </div>
-      </div>
-    </div>
+    </Sheet>
   );
 }

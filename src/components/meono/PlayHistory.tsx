@@ -23,7 +23,7 @@ function CardChip({ type, active, onClick }: { type: CardType; active: boolean; 
       onClick={onClick}
       title={info ? `${info.name}: ${info.effect}` : type}
       className={cn(
-        "flex items-center gap-1 rounded-md bg-gradient-to-br px-1.5 py-0.5 text-[11px] font-bold text-white shadow",
+        "flex items-center gap-1 rounded-md bg-gradient-to-br px-1.5 py-0.5 text-[11px] font-bold text-white shadow pointer-coarse:min-h-8 pointer-coarse:px-2",
         info?.color,
         active ? "ring-2 ring-amber-300" : "hover:brightness-110",
       )}
@@ -46,7 +46,7 @@ function FocusInfo({ focus, onClose }: { focus: Focus; onClose: () => void }) {
         <p className="text-sm font-bold text-amber-200">
           {info.emoji} {info.name}
         </p>
-        <button onClick={onClose} className="rounded px-1 text-orange-100/60 hover:bg-white/10" aria-label="Đóng">
+        <button onClick={onClose} className="-m-1 grid size-7 shrink-0 place-items-center rounded-full text-orange-100/70 hover:bg-white/10 pointer-coarse:size-9" aria-label="Đóng">
           ✕
         </button>
       </div>
@@ -104,7 +104,7 @@ export function PlayHistory({ plays, nameOf, meId, className }: { plays: MeoPlay
   const [focus, setFocus] = useState<Focus>(null);
   const who = (id: string) => (id === meId ? "Bạn" : nameOf(id));
 
-  if (!plays.length) return <p className="text-sm text-orange-100/50">Chưa ai đánh lá nào.</p>;
+  if (!plays.length) return <p className={cn("text-sm text-orange-100/50", className)}>Chưa ai đánh lá nào.</p>;
   return (
     <div className={cn("flex min-h-0 flex-col gap-2", className)}>
       <FocusInfo focus={focus} onClose={() => setFocus(null)} />

@@ -41,6 +41,7 @@ import { SettingsTabs } from "@/components/games/SettingsTabs";
 import { RankPointsPicker } from "@/components/games/RankPointsPicker";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
+import { Sheet } from "@/components/tienlen/Sheet";
 import { CardGuide } from "./CardGuide";
 import { MeoCard, ROLES, roleOf } from "./MeoCard";
 import { EventFeed, PlayHistory } from "./PlayHistory";
@@ -464,7 +465,14 @@ function Board({
       )}
 
       {/* Middle: phones scroll table → feed here; wide / landscape screens get two columns that each scroll on their own. */}
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden short:grid short:grid-cols-[minmax(0,1fr)_14rem] short:grid-rows-[minmax(0,1fr)] short:gap-2 short:overflow-hidden">
+      {/* Without the hand dock (waiting, game over, watching) nothing keeps the floating 😀 / 💬 buttons off the
+          feed: phones get room to scroll its end clear of them, wider screens a right gutter. */}
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden short:grid short:grid-cols-[minmax(0,1fr)_14rem] short:grid-rows-[minmax(0,1fr)] short:gap-2 short:overflow-hidden",
+          (spectator || hand.length === 0) && "max-lg:pb-28 lg:pr-16 short:!pb-0 short:pr-14",
+        )}
+      >
         {/* Table */}
         <div className="relative flex min-h-[300px] shrink-0 flex-col rounded-[2rem] border-[6px] border-[#4a2412] bg-[radial-gradient(ellipse_at_center,#7c2d12_0%,#431407_60%,#26100a_100%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.55)] sm:min-h-[340px] sm:p-4 lg:min-h-0 lg:overflow-y-auto short:min-h-0 short:overflow-y-auto short:rounded-3xl short:border-4 short:p-2">
           <SpectatorReactions reactions={live.filter((r) => !r.playerId)} />
@@ -497,7 +505,7 @@ function Board({
             {!g || g.status === "ended" ? (
               <Waiting view={view} me={me} act={act} nameOf={nameOf} />
             ) : (
-              <div className="grid w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-3 short:gap-2 sm:gap-6 lg:gap-8 lg:px-4">
+              <div className="grid w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-3 short:gap-2 sm:gap-6 lg:mx-auto lg:max-w-5xl lg:gap-10 lg:px-4">
                 {/* Left: draw pile + played cards */}
                 <div className="flex flex-col items-center gap-2">
                 <div className="flex items-end gap-2 sm:gap-5">
@@ -508,7 +516,7 @@ function Board({
                     aria-label="Rút bài"
                   >
                     <div className="relative">
-                      <MeoCard type="exploding" faceDown size="md" className={cn("max-sm:w-14 short:w-14", canDraw && "ring-2 ring-amber-300 group-hover:-translate-y-1")} />
+                      <MeoCard type="exploding" faceDown size="md" className={cn("max-sm:w-14 short:w-14 lg:w-24 lg:[--emoji:2.4rem] lg:[--name:12px] 2xl:w-32 2xl:[--emoji:3.2rem] 2xl:[--name:14px]", canDraw && "ring-2 ring-amber-300 group-hover:-translate-y-1")} />
                       <span className="absolute -right-2 -top-2 rounded-full bg-black/70 px-2 py-0.5 font-mono text-xs text-amber-200">{g.deckCount}</span>
                     </div>
                     <span className="text-xs text-orange-100/70 max-sm:text-[10px]">{canDraw ? "Bấm để rút" : "Chồng bài"}</span>
@@ -522,12 +530,12 @@ function Board({
                     {g.discard.length ? (
                       <span className="relative">
                         {g.discard.length > 1 && (
-                          <MeoCard type={g.discard[g.discard.length - 2]} size="md" tooltip={false} className="absolute left-1 top-1 -rotate-6 opacity-60 max-sm:w-14 short:w-14" />
+                          <MeoCard type={g.discard[g.discard.length - 2]} size="md" tooltip={false} className="absolute left-1 top-1 -rotate-6 opacity-60 max-sm:w-14 short:w-14 lg:w-24 lg:[--emoji:2.4rem] lg:[--name:12px] 2xl:w-32 2xl:[--emoji:3.2rem] 2xl:[--name:14px]" />
                         )}
-                        <MeoCard type={g.discard[g.discard.length - 1]} size="md" tooltip={false} className="relative group-hover:-translate-y-1 max-sm:w-14 short:w-14" />
+                        <MeoCard type={g.discard[g.discard.length - 1]} size="md" tooltip={false} className="relative group-hover:-translate-y-1 max-sm:w-14 short:w-14 lg:w-24 lg:[--emoji:2.4rem] lg:[--name:12px] 2xl:w-32 2xl:[--emoji:3.2rem] 2xl:[--name:14px]" />
                       </span>
                     ) : (
-                      <div className="aspect-[5/7] w-[4.6rem] rounded-xl border-2 border-dashed border-white/15 max-sm:w-14 sm:w-20 short:w-14" />
+                      <div className="aspect-[5/7] w-[4.6rem] rounded-xl border-2 border-dashed border-white/15 max-sm:w-14 sm:w-20 short:w-14 lg:w-24 2xl:w-32" />
                     )}
                     <span className="text-center text-xs text-orange-100/70 max-sm:text-[10px] max-sm:leading-tight">
                       Đã đánh ({g.discard.length}){g.discard.length ? <span className="ml-1 text-amber-200 underline max-sm:block">👁️ xem</span> : null}
@@ -545,7 +553,7 @@ function Board({
                 </div>
                 {/* Right: whose turn, and whatever needs answering (Không!, give a card, hide the kitten…) */}
                 <div className="flex w-full min-w-0 flex-col items-center gap-3 short:gap-1.5">
-                <p className="text-center text-sm lg:text-base">
+                <p className="text-center text-sm lg:text-base 2xl:text-lg">
                   {myTurn ? (
                     <b className="text-amber-300">Lượt của bạn{g.turnsLeft > 1 ? ` (còn ${g.turnsLeft} lượt)` : ""} — đánh bài hoặc rút để kết thúc lượt</b>
                   ) : g.turn ? (
@@ -592,7 +600,7 @@ function Board({
 
           {/* Me — on big screens this lives in the action dock instead, to keep the table short */}
           {me && !spectator && (
-            <div className="flex flex-col items-center gap-2 lg:hidden">
+            <div className={cn("flex flex-col items-center gap-2", hand.length > 0 && "lg:hidden")}>
               <div className="flex items-center gap-2 text-sm">
                 <Seat
                   seat={me}
@@ -890,7 +898,7 @@ function Board({
                             type={c.type}
                             tooltip={false}
                             className={cn(
-                              "max-sm:w-[4.1rem] max-sm:[--name:9.5px] max-sm:[--emoji:1.55rem] short:w-16 short:[--name:9.5px] short:[--emoji:1.6rem] lg:w-24 lg:[--name:12.5px] lg:[--emoji:2.4rem] 2xl:w-28 2xl:[--name:14px] 2xl:[--emoji:2.8rem]",
+                              "max-sm:w-[min(4.1rem,calc((100vw_-_108px)/5))] max-sm:[--name:9px] max-sm:[--emoji:1.4rem] short:w-16 short:[--name:9.5px] short:[--emoji:1.6rem] lg:w-24 lg:[--name:12.5px] lg:[--emoji:2.4rem] 2xl:w-28 2xl:[--name:14px] 2xl:[--emoji:2.8rem]",
                               "pointer-events-none absolute left-0 top-0 brightness-75",
                               d === 1 ? "translate-x-[5px] rotate-[4deg]" : "translate-x-[10px] rotate-[8deg]",
                               c.annoyed && "opacity-50 grayscale",
@@ -901,7 +909,7 @@ function Board({
                           type={c.type}
                           selected={picked > 0}
                           onClick={() => clickStack(ids)}
-                          className={cn("max-sm:w-[4.1rem] max-sm:[--name:9.5px] max-sm:[--emoji:1.55rem] short:w-16 short:[--name:9.5px] short:[--emoji:1.6rem] lg:w-24 lg:[--name:12.5px] lg:[--emoji:2.4rem] 2xl:w-28 2xl:[--name:14px] 2xl:[--emoji:2.8rem]", c.annoyed && "opacity-50 grayscale")}
+                          className={cn("max-sm:w-[min(4.1rem,calc((100vw_-_108px)/5))] max-sm:[--name:9px] max-sm:[--emoji:1.4rem] short:w-16 short:[--name:9.5px] short:[--emoji:1.6rem] lg:w-24 lg:[--name:12.5px] lg:[--emoji:2.4rem] 2xl:w-28 2xl:[--name:14px] 2xl:[--emoji:2.8rem]", c.annoyed && "opacity-50 grayscale")}
                         />
                         {ids.length > 1 && (
                           <span
@@ -941,8 +949,8 @@ function Board({
                           type={c.type}
                           selected={selected.includes(c.id)}
                           onClick={() => toggle(c)}
-                          // Five to a row on a phone instead of four, so a big hand stays two rows.
-                          className={cn("max-sm:w-[4.1rem] max-sm:[--name:9.5px] max-sm:[--emoji:1.55rem] short:w-16 short:[--name:9.5px] short:[--emoji:1.6rem] lg:w-24 lg:[--name:12.5px] lg:[--emoji:2.4rem] 2xl:w-28 2xl:[--name:14px] 2xl:[--emoji:2.8rem]", c.annoyed && "opacity-50 grayscale")}
+                          // Five to a row on a phone (the right gutter is kept free for the 😀 / 💬 buttons), so a big hand stays on screen.
+                          className={cn("max-sm:w-[min(4.1rem,calc((100vw_-_108px)/5))] max-sm:[--name:9px] max-sm:[--emoji:1.4rem] short:w-16 short:[--name:9.5px] short:[--emoji:1.6rem] lg:w-24 lg:[--name:12.5px] lg:[--emoji:2.4rem] 2xl:w-28 2xl:[--name:14px] 2xl:[--emoji:2.8rem]", c.annoyed && "opacity-50 grayscale")}
                         />
                         {c.annoyed && <span className="pointer-events-none absolute -right-1 -top-1 rounded-full bg-amber-500 px-1 text-xs">😾</span>}
                       </span>
@@ -958,7 +966,7 @@ function Board({
 
       {showGuide && <CardGuide enabled={g?.expansions ?? view.expansions} onClose={() => setShowGuide(false)} />}
       {showDiscard && g && <DiscardViewer discard={g.discard} plays={g.plays ?? []} nameOf={nameOf} meId={view.meId} onClose={() => setShowDiscard(false)} />}
-      {showScores && <ScoreboardModal view={view} note={SCORE_NOTE} onClose={() => setShowScores(false)} />}
+      {showScores && <ScoreboardModal view={view} note={SCORE_NOTE} onClose={() => setShowScores(false)} className="border-orange-200/15 bg-[#1c0f0a] text-orange-50" />}
       {toast && (
         <div role="alert" className="fixed left-1/2 top-[calc(var(--games-bar-h,0px)+0.5rem)] z-50 max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-lg bg-rose-600 text-center px-4 py-2 text-sm font-medium text-white shadow-lg">{toast}</div>
       )}
@@ -1017,21 +1025,15 @@ function DiscardViewer({
   const counts = discard.reduce<Record<string, number>>((m, t) => ((m[t] = (m[t] ?? 0) + 1), m), {});
   const info = focus ? CARDS[focus] : null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-3 backdrop-blur-sm" onClick={onClose}>
-      <div
-        role="dialog"
-        aria-label="Các lá đã đánh"
-        className="flex max-h-[90dvh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-orange-200/15 bg-[#1c0f0a] text-orange-50 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b border-white/10 px-4 py-2 sm:py-3">
-          <h2 className="text-base font-black text-amber-300 sm:text-lg">🗂️ Các lá đã đánh ({discard.length})</h2>
-          <button onClick={onClose} className="grid min-h-9 min-w-9 place-items-center rounded-md hover:bg-white/10" aria-label="Đóng">
-            ✕
-          </button>
-        </div>
+    <Sheet
+      title={`🗂️ Các lá đã đánh (${discard.length})`}
+      label="Các lá đã đánh"
+      onClose={onClose}
+      className="max-w-3xl border-orange-200/15 bg-[#1c0f0a] text-orange-50"
+      bodyClassName="flex flex-col overflow-hidden"
+    >
         {info && focus && (
-          <div className="flex items-start gap-3 border-b border-white/10 bg-black/30 px-4 py-3">
+          <div className="flex shrink-0 items-start gap-3 border-b border-white/10 bg-black/30 px-4 py-3">
             <MeoCard type={focus} size="md" tooltip={false} className="max-sm:w-14 max-sm:[--emoji:1.4rem] max-sm:[--name:9px]" />
             <div className="min-w-0 text-sm">
               <p className="text-base font-bold text-amber-200">
@@ -1044,7 +1046,7 @@ function DiscardViewer({
             </div>
           </div>
         )}
-        <div className="flex gap-1 border-b border-white/10 px-4 pt-2 text-xs font-semibold">
+        <div className="flex shrink-0 gap-1 border-b border-white/10 px-4 pt-2 text-xs font-semibold">
           {(
             [
               ["pile", `🗂️ Chồng bài (${discard.length})`],
@@ -1061,7 +1063,7 @@ function DiscardViewer({
           ))}
         </div>
         {tab === "pile" ? (
-          <div className="overflow-y-auto p-4">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
             <p className="mb-2 text-xs text-orange-100/60">Mới nhất ở đầu — bấm vào lá để xem chức năng.</p>
             <div className="flex flex-wrap gap-2 pt-3">
               {newestFirst.map((t, i) => (
@@ -1072,8 +1074,7 @@ function DiscardViewer({
         ) : (
           <PlayHistory plays={plays} nameOf={nameOf} meId={meId} className="min-h-0 flex-1 overflow-hidden p-4" />
         )}
-      </div>
-    </div>
+    </Sheet>
   );
 }
 
@@ -1136,7 +1137,7 @@ function Seat({
         <SeatBubble reactions={reactions} />
         <span
           className={cn(
-            "flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-200 to-orange-500 text-base font-bold text-black sm:h-11 sm:w-11 sm:text-lg short:h-8 short:w-8 short:text-sm",
+            "flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-200 to-orange-500 text-base font-bold text-black sm:h-11 sm:w-11 sm:text-lg 2xl:h-14 2xl:w-14 2xl:text-xl short:h-8 short:w-8 short:text-sm",
             (!seat.connected || seat.kicked) && "opacity-50 grayscale",
             seat.out && "from-zinc-500 to-zinc-700",
           )}
@@ -1144,7 +1145,7 @@ function Seat({
           {seat.out ? "💀" : seat.name.charAt(0).toUpperCase()}
         </span>
       </span>
-      <span className={cn("truncate text-xs font-semibold", self ? "max-w-[8rem]" : "max-w-[4rem] sm:max-w-[6rem]")}>
+      <span className={cn("truncate text-xs font-semibold 2xl:text-sm", self ? "max-w-[8rem]" : "max-w-[4rem] sm:max-w-[6rem] 2xl:max-w-[8rem]")}>
         {seat.name}
         {self && " (bạn)"}
       </span>
@@ -1675,7 +1676,8 @@ function Waiting({
         <button
           onClick={() => void act({ type: "start" })}
           disabled={count < minP || count > view.maxPlayers}
-          className="w-full rounded-lg bg-amber-400 px-4 py-2 font-semibold text-black transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-40"
+          // Sideways phones scroll this long panel inside the short table: the button stays pinned at the bottom.
+          className="w-full rounded-lg bg-amber-400 px-4 py-2 font-semibold text-black transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-amber-700 disabled:text-black/70 short:sticky short:bottom-0 short:z-10 short:shadow-[0_-6px_14px_rgba(0,0,0,0.55)]"
         >
           {count < minP ? `Cần ít nhất ${minP} người` : count > view.maxPlayers ? `Tối đa ${view.maxPlayers} người` : ended ? "Ván mới" : "Bắt đầu"}
         </button>
