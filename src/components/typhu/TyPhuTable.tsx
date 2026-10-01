@@ -339,7 +339,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
   const outgoingTrade = g?.trade && g.trade.from === view.meId ? g.trade : null;
 
   return (
-    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2 sm:px-4 sm:pt-3 short:gap-2 short:pt-1.5">
+    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-[max(1rem,env(safe-area-inset-bottom))] xl:max-w-none pt-2 sm:px-4 sm:pt-3 short:gap-2 short:pt-1.5">
       <GameHeader
         primary={
           <>
@@ -392,9 +392,9 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
       )}
 
       {/* Sideways phone: board as tall as the screen allows on the left, the side panel scrolling on the right. */}
-      <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_20rem] short:grid-cols-[auto_minmax(0,1fr)] short:items-start short:gap-2">
+      <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,calc(100dvh-5rem))_20rem] lg:justify-center lg:gap-4 xl:grid-cols-[minmax(0,calc(100dvh-5rem))_22rem] short:grid-cols-[auto_minmax(0,1fr)] short:items-start short:gap-2">
         {/* Board */}
-        <div className="relative mx-auto w-full max-w-[min(100%,calc(100dvh-7rem))] short:w-[calc(100dvh-3.75rem)] short:max-w-none">
+        <div className="relative mx-auto w-full max-w-[min(100%,calc(100dvh-7rem))] lg:max-w-none short:w-[calc(100dvh-3.75rem)] short:max-w-none">
           <SpectatorReactions reactions={live.filter((r) => !r.playerId)} />
           <div
             className="grid aspect-square w-full gap-[2px] rounded-xl border-4 border-[#1e3a2f] bg-[#1e3a2f] shadow-2xl"
@@ -451,6 +451,12 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
                 seconds={secondsLeft(g.deadline)}
                 onClose={inDebt ? undefined : () => setShowAssets(false)}
               />
+            </div>
+          )}
+          {(!g || g.status === "ended") && (
+            <div className="hidden rounded-2xl bg-[#f4efe1] p-3 text-sm text-emerald-950 shadow-xl max-sm:block short:block short:p-2">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-900/60">⚙️ Luật bàn</p>
+              <TableSettings view={view} isHost={!!me?.isHost && view.role === "player"} act={act} />
             </div>
           )}
           <div className="rounded-2xl bg-black/35 p-3 short:p-2">
@@ -653,6 +659,10 @@ function Cell({
         side === "corner" && "bg-[#e6f4ea]",
         highlight && "ring-2 ring-inset ring-amber-400",
         deed?.mortgaged && "opacity-60 grayscale-[40%]",
+        band && bandSide === "top" && (houses ? "pt-[40%]" : "pt-[22%]"),
+        band && bandSide === "bottom" && (houses ? "pb-[40%]" : "pb-[22%]"),
+        band && bandSide === "left" && (houses ? "pl-[40%]" : "pl-[22%]"),
+        band && bandSide === "right" && (houses ? "pr-[40%]" : "pr-[22%]"),
       )}
       title={deed ? `${sq.name} — chủ ${owner?.emoji}` : sq.name}
     >
@@ -672,15 +682,15 @@ function Cell({
         </span>
       )}
       <span className="pointer-events-none flex flex-col items-center px-[2px]">
-        {SQUARE_ICON[sq.kind] && <span className={cn(side === "corner" ? "text-base sm:text-2xl" : "text-[10px] sm:text-sm")}>{SQUARE_ICON[sq.kind]}</span>}
-        {sq.kind === "util" && <span className="text-[10px] sm:text-sm">{sq.name.includes("Điện") ? "💡" : "🚰"}</span>}
-        <span className={cn("line-clamp-2 font-semibold", side === "corner" ? "text-[8px] sm:text-xs" : "text-[6px] sm:text-[9px] xl:text-[10px]")}>
+        {SQUARE_ICON[sq.kind] && <span className={cn(side === "corner" ? "text-base sm:text-2xl short:text-base" : "text-[10px] sm:text-sm short:text-[10px]")}>{SQUARE_ICON[sq.kind]}</span>}
+        {sq.kind === "util" && <span className="text-[10px] sm:text-sm short:text-[10px]">{sq.name.includes("Điện") ? "💡" : "🚰"}</span>}
+        <span className={cn("line-clamp-2 font-semibold", side === "corner" ? "text-[8px] sm:text-xs short:text-[8px]" : "text-[6px] sm:text-[9px] xl:text-[10px] short:text-[6px]")}>
           {sq.kind === "air" ? sq.name.replace("Sân bay ", "SB ") : sq.name}
         </span>
-        {isOwnable(sq) && !deed && <span className="hidden text-[8px] text-emerald-900/70 sm:block">{money(sq.price)}</span>}
-        {deed?.mortgaged && <span className="text-[6px] font-bold text-rose-700 sm:text-[8px]">THẾ CHẤP</span>}
+        {isOwnable(sq) && !deed && <span className="hidden text-[8px] text-emerald-900/70 sm:block short:hidden">{money(sq.price)}</span>}
+        {deed?.mortgaged && <span className="text-[6px] font-bold text-rose-700 sm:text-[8px] short:text-[6px]">THẾ CHẤP</span>}
         {sq.kind === "parking" && !!game?.pot && (
-          <span className="rounded bg-amber-300 px-1 text-[7px] font-bold text-amber-950 sm:text-[10px]">💰 {money(game.pot)}</span>
+          <span className="rounded bg-amber-300 px-1 text-[7px] font-bold text-amber-950 sm:text-[10px] short:text-[7px]">💰 {money(game.pot)}</span>
         )}
       </span>
       {owner && deed && (
@@ -690,7 +700,7 @@ function Cell({
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 300, damping: 15 }}
           className={cn(
-            "pointer-events-none absolute flex aspect-square h-[30%] min-h-[10px] items-center justify-center rounded-full border border-white text-[6px] shadow sm:text-[10px]",
+            "pointer-events-none absolute flex aspect-square h-[30%] min-h-[10px] items-center justify-center rounded-full border border-white text-[6px] shadow sm:text-[10px] short:text-[6px]",
             badgePos,
           )}
           style={{ background: owner.color }}
@@ -707,7 +717,7 @@ function Cell({
               // Short tween per square: the walk itself is the square-by-square steps.
               transition={{ layout: { type: "tween", ease: "easeOut", duration: 0.16 } }}
               className={cn(
-                "flex h-[42%] min-h-[12px] w-auto aspect-square items-center justify-center rounded-full border border-white text-[8px] shadow-md sm:text-sm",
+                "flex h-[42%] min-h-[12px] w-auto aspect-square items-center justify-center rounded-full border border-white text-[8px] shadow-md sm:text-sm short:text-[8px]",
                 game?.turn === p.id && "ring-2 ring-amber-400",
               )}
               style={{ background: tokenOf(p.id).color }}
@@ -732,7 +742,7 @@ function Die({ value, rolling }: { value: number; rolling: number }) {
       initial={{ rotate: -200, scale: 0.4, opacity: 0 }}
       animate={{ rotate: 0, scale: 1, opacity: 1 }}
       transition={{ type: "spring", stiffness: 260, damping: 16 }}
-      className="grid h-10 w-10 grid-cols-3 grid-rows-3 gap-[2px] rounded-lg bg-white p-1.5 shadow-lg sm:h-14 sm:w-14 sm:p-2"
+      className="grid h-10 w-10 grid-cols-3 grid-rows-3 gap-[2px] rounded-lg bg-white p-1.5 shadow-lg sm:h-14 sm:w-14 sm:p-2 short:h-8 short:w-8 short:p-1"
     >
       {Array.from({ length: 9 }, (_, i) => (
         <span key={i} className={cn("rounded-full", PIPS[value]?.includes(i) && "bg-emerald-950")} />
@@ -777,16 +787,16 @@ function Centre({
 
   return (
     <div className="flex w-full max-w-sm flex-col items-center gap-2 text-center">
-      <p className="hidden font-black tracking-tight text-emerald-900 sm:block sm:text-3xl">CỜ TỶ PHÚ</p>
+      <p className="hidden font-black tracking-tight text-emerald-900 sm:block sm:text-3xl short:hidden">CỜ TỶ PHÚ</p>
       <div className={cn("flex items-center gap-2", debt && "max-sm:hidden")}>
         {g.dice ? (
           <>
             <Die value={g.dice[0]} rolling={rollId} />
             <Die value={g.dice[1]} rolling={rollId + 0.5} />
-            <span className="ml-1 font-mono text-lg font-black text-emerald-900 sm:text-2xl">= {g.dice[0] + g.dice[1]}</span>
+            <span className="ml-1 font-mono text-lg font-black text-emerald-900 sm:text-2xl short:text-base">= {g.dice[0] + g.dice[1]}</span>
           </>
         ) : (
-          <span className="text-3xl sm:text-5xl">🎲</span>
+          <span className="text-3xl sm:text-5xl short:text-2xl">🎲</span>
         )}
       </div>
       {/* My turn: pulsing ring around the turn line + my controls. */}
@@ -855,7 +865,7 @@ function Centre({
         </p>
       )}
       {g.log.length > 0 && (
-        <ul className="w-full space-y-0.5 text-[11px] text-emerald-950/80 lg:hidden">
+        <ul className="w-full space-y-0.5 text-[11px] text-emerald-950/80 lg:hidden short:hidden">
           {g.log.slice(debt || (g.phase === "buy" && myTurn) ? -1 : -2).map((e) => (
             <li key={e.id} className="truncate rounded bg-white/50 px-2 py-0.5">
               {e.text}
@@ -865,7 +875,7 @@ function Centre({
       )}
       {mine?.jail ? <p className="text-xs text-zinc-700">🚔 Bạn đang ở tù — tung đôi, nộp phạt hoặc dùng thẻ để ra.</p> : null}
       {view.role === "player" && mine && !mine.bankrupt && (
-        <p className="hidden text-[11px] text-emerald-900/60 sm:block">Bấm vào một ô để xem chi tiết, xây nhà hoặc thế chấp.</p>
+        <p className="hidden text-[11px] text-emerald-900/60 sm:block short:hidden">Bấm vào một ô để xem chi tiết, xây nhà hoặc thế chấp.</p>
       )}
       {mine?.bankrupt && <p className="text-sm font-semibold text-rose-700">💸 Bạn đã phá sản — xem mọi người chơi tiếp nhé.</p>}
       {showBuild && mine && <BuildPanel g={g} mine={mine} settings={view.settings} busy={busy} run={run} onClose={() => setShowBuild(false)} onOpenAssets={onOpenAssets} />}
@@ -1224,7 +1234,7 @@ function AssetPanel({
       <div className="mb-2 flex items-center gap-2">
         <p className="flex-1 text-sm font-bold text-amber-300">💰 Thế chấp / Bán</p>
         {onClose && (
-          <button onClick={onClose} aria-label="Đóng" className="grid size-7 place-items-center rounded-md text-white/60 hover:bg-white/10 hover:text-white">
+          <button onClick={onClose} aria-label="Đóng" className="grid size-9 place-items-center rounded-md text-white/60 hover:bg-white/10 hover:text-white lg:size-7">
             ✕
           </button>
         )}
@@ -1264,7 +1274,7 @@ function AssetPanel({
         </div>
       )}
       {owned.length === 0 && <p className="text-xs text-sky-100/60">Bạn không còn đất nào.</p>}
-      <div className="max-h-[min(60vh,28rem)] space-y-2 overflow-y-auto pr-0.5 lg:max-h-[calc(100dvh-16rem)]">
+      <div className="space-y-2 lg:max-h-[calc(100dvh-16rem)] lg:overflow-y-auto lg:pr-0.5">
         {sections.map((sec) => (
           <div key={sec.key} className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
             <p className="px-2 py-1 text-xs font-bold text-black" style={{ background: sec.color ?? "#cfe8d8" }}>
@@ -1533,7 +1543,7 @@ function PlayerRow({
                 key={pos}
                 onClick={() => onOpen(pos)}
                 title={sq.name}
-                className={cn("flex h-5 items-center gap-0.5 rounded px-1 text-[10px] font-semibold text-black", d.mortgaged && "opacity-40 line-through")}
+                className={cn("flex h-5 items-center justify-center gap-0.5 rounded px-1 text-[10px] font-semibold text-black max-sm:h-7 max-sm:min-w-7 max-sm:px-1.5 max-sm:text-[11px] short:h-6 short:min-w-6", d.mortgaged && "opacity-40 line-through")}
                 style={{ background: sq.kind === "prop" ? GROUP_COLORS[sq.group] : "#e5e7eb" }}
               >
                 {sq.kind === "air" ? "✈️" : sq.kind === "util" ? (sq.name.includes("Điện") ? "💡" : "🚰") : null}
@@ -1802,9 +1812,14 @@ function TradeModal({ g, meId, nameOf, run, onClose }: { g: TPGameView; meId: st
             <button
               key={pos}
               onClick={() => toggle(list, set, pos)}
-              className={cn("rounded px-2 py-0.5 text-xs font-semibold text-black", on ? "ring-2 ring-white" : "opacity-60")}
+              aria-pressed={on}
+              className={cn(
+                "min-h-8 rounded-md px-2 py-1 text-xs font-semibold text-black transition-[opacity,box-shadow]",
+                on ? "ring-2 ring-white ring-offset-1 ring-offset-[#0c2233]" : "opacity-55 saturate-50 hover:opacity-80",
+              )}
               style={{ background: sq.kind === "prop" ? GROUP_COLORS[sq.group] : "#e5e7eb" }}
             >
+              {on && "✓ "}
               {sq.name}
               {g.deeds[pos].houses > 0 && ` ${g.deeds[pos].houses === MAX_HOUSES ? "🏨" : `🏠${g.deeds[pos].houses}`}`}
               {g.deeds[pos].mortgaged && " (TC)"}
@@ -1835,7 +1850,7 @@ function TradeModal({ g, meId, nameOf, run, onClose }: { g: TPGameView; meId: st
                 setGet([]);
                 setGetCash(0);
               }}
-              className="mt-1 w-full rounded-lg bg-white/10 px-2 py-1.5"
+              className="mt-1 min-h-10 w-full rounded-lg bg-white/10 px-2 py-1.5"
             >
               {others.map((p) => (
                 <option key={p.id} value={p.id} className="text-black">
@@ -1879,7 +1894,7 @@ function CashInput({ value, max, onChange }: { value: number; max: number; onCha
         step={10}
         value={value}
         onChange={(e) => onChange(Math.max(0, Math.min(max, Math.floor(Number(e.target.value) || 0))))}
-        className="w-24 rounded bg-white/10 px-2 py-1 font-mono"
+        className="min-h-9 w-24 rounded-md bg-white/10 px-2 py-1 font-mono"
       />
       <span className="text-white/40">tr (tối đa {money(max)})</span>
     </label>
@@ -1925,184 +1940,12 @@ function Waiting({ view, me, act, nameOf }: { view: TPRoomView; me: TPSeatView |
         </>
       )}
 
-      <SettingsTabs
-        light
-        className="mb-3 text-emerald-950"
-        tabs={[
-          {
-            id: "money",
-            label: "💰 Tiền",
-            content: (
-              <div className="space-y-2">
-                <label className="flex items-center justify-between gap-2">
-                  <span>Tiền khởi đầu</span>
-                  <select
-                    value={view.settings.startCash}
-                    disabled={!isHost}
-                    onChange={(e) => void act({ type: "settings", startCash: Number(e.target.value) })}
-                    className="rounded-md border border-emerald-900/20 bg-white px-2 py-0.5"
-                  >
-                    {START_CASH_OPTIONS.map((v) => (
-                      <option key={v} value={v}>
-                        {money(v)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <SettingSelect
-                  label="Qua Khởi hành nhận"
-                  value={view.settings.goSalary ?? GO_SALARY}
-                  options={GO_SALARY_OPTIONS.map((v) => [v, money(v)])}
-                  disabled={!isHost}
-                  onChange={(v) => void act({ type: "settings", goSalary: v })}
-                />
-                <Toggle
-                  label={`Dừng đúng Khởi hành nhận gấp đôi (${money((view.settings.goSalary ?? GO_SALARY) * 2)})`}
-                  checked={!!view.settings.doubleGo}
-                  disabled={!isHost}
-                  onChange={(v) => void act({ type: "settings", doubleGo: v })}
-                />
-                <Toggle
-                  label="Quỹ Nghỉ chân ☕: thuế & tiền phạt dồn vào, ai dừng đó hốt hết"
-                  checked={!!view.settings.parkingPot}
-                  disabled={!isHost}
-                  onChange={(v) => void act({ type: "settings", parkingPot: v })}
-                />
-                <SettingSelect
-                  label="Phí chuộc thế chấp"
-                  value={view.settings.unmortgageFee ?? 10}
-                  options={UNMORTGAGE_FEE_OPTIONS.map((v) => [v, v ? `+${v}%` : "Không phí"])}
-                  disabled={!isHost}
-                  onChange={(v) => void act({ type: "settings", unmortgageFee: v })}
-                />
-                <SettingSelect
-                  label="Bán đất cho ngân hàng được"
-                  value={view.settings.landSalePct ?? 70}
-                  options={LAND_SALE_OPTIONS.map((v) => [v, `${v}% giá đất`])}
-                  disabled={!isHost || !view.settings.sellLand}
-                  onChange={(v) => void act({ type: "settings", landSalePct: v })}
-                />
-              </div>
-            ),
-          },
-          {
-            id: "time",
-            label: "⏱️ Lượt",
-            content: (
-              <div className="space-y-2">
-                <label className="flex items-center justify-between gap-2">
-                  <span>Giới hạn ván</span>
-                  <select
-                    value={view.settings.timeLimit}
-                    disabled={!isHost}
-                    onChange={(e) => void act({ type: "settings", timeLimit: Number(e.target.value) })}
-                    className="rounded-md border border-emerald-900/20 bg-white px-2 py-0.5"
-                  >
-                    {TIME_LIMIT_OPTIONS.map((v) => (
-                      <option key={v} value={v}>
-                        {v ? `${v} phút` : "Đến khi còn 1 người"}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="flex items-center justify-between gap-2">
-                  <span>Thời gian mỗi bước</span>
-                  <select
-                    value={view.settings.stepSeconds ?? 30}
-                    disabled={!isHost}
-                    onChange={(e) => void act({ type: "settings", stepSeconds: Number(e.target.value) })}
-                    className="rounded-md border border-emerald-900/20 bg-white px-2 py-0.5"
-                  >
-                    {STEP_SECONDS_OPTIONS.map((v) => (
-                      <option key={v} value={v}>
-                        {v} giây
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <Toggle
-                  label="Tung đôi được tung tiếp (đôi 3 lần liền vào tù)"
-                  checked={view.settings.doubleRoll !== false}
-                  disabled={!isHost}
-                  onChange={(v) => void act({ type: "settings", doubleRoll: v })}
-                />
-                <Toggle
-                  label="Đang ở tù vẫn thu tiền thuê"
-                  checked={view.settings.jailRent !== false}
-                  disabled={!isHost}
-                  onChange={(v) => void act({ type: "settings", jailRent: v })}
-                />
-              </div>
-            ),
-          },
-          {
-            id: "house",
-            label: "🏠 Luật nhà",
-            content: (
-              <div className="space-y-2">
-                <label className="flex items-center justify-between gap-2">
-                  <span>Luật xây nhà</span>
-                  <select
-                    value={view.settings.buildRule ?? "even"}
-                    disabled={!isHost}
-                    onChange={(e) => void act({ type: "settings", buildRule: e.target.value as "even" | "chain" })}
-                    className="rounded-md border border-emerald-900/20 bg-white px-2 py-0.5"
-                  >
-                    <option value="even">Xây đều</option>
-                    <option value="chain">Xây theo chuỗi</option>
-                  </select>
-                </label>
-                <p className="text-[11px] leading-snug text-emerald-900/60">{buildRuleText(view.settings)}</p>
-                <Toggle
-                  label="Phải đủ cả nhóm màu mới được xây"
-                  checked={view.settings.needGroup !== false}
-                  disabled={!isHost}
-                  onChange={(v) => void act({ type: "settings", needGroup: v })}
-                />
-                <Toggle
-                  label="Giá nhà tăng dần (căn sau +25%, khách sạn ×2)"
-                  checked={view.settings.risingCost !== false}
-                  disabled={!isHost}
-                  onChange={(v) => void act({ type: "settings", risingCost: v })}
-                />
-                <Toggle
-                  label={`Cho bán đất cho ngân hàng (${view.settings.landSalePct ?? 70}% giá, đất về chợ)`}
-                  checked={!!view.settings.sellLand}
-                  disabled={!isHost}
-                  onChange={(v) => void act({ type: "settings", sellLand: v })}
-                />
-                <label className="flex items-center justify-between gap-2">
-                  <span>Đất của người phá sản</span>
-                  <select
-                    value={view.settings.bankruptTo ?? "bank"}
-                    disabled={!isHost}
-                    onChange={(e) => void act({ type: "settings", bankruptTo: e.target.value as "bank" | "creditor" })}
-                    className="rounded-md border border-emerald-900/20 bg-white px-2 py-0.5"
-                  >
-                    <option value="bank">Về ngân hàng — mua lại được</option>
-                    <option value="creditor">Về tay chủ nợ</option>
-                  </select>
-                </label>
-              </div>
-            ),
-          },
-          {
-            id: "points",
-            label: "🏆 Điểm",
-            content: (
-              <RankPointsPicker
-                first={view.settings.first ?? 2}
-                second={view.settings.second ?? 1}
-                players={count}
-                editable={isHost}
-                onChange={(v) => void act({ type: "settings", ...v })}
-                className="[&_select]:bg-white [&_select]:text-emerald-950"
-              />
-            ),
-          },
-        ]}
-      />
-      {!isHost && <p className="-mt-2 mb-2 text-xs text-emerald-900/50">Chỉ chủ bàn đổi được luật.</p>}
+      {/* Small boards (phones): the rules live beside / below the board instead of in its tiny centre. */}
+      <TableSettings view={view} isHost={isHost} act={act} className="mb-3 max-sm:hidden short:hidden" />
+      <p className="mb-2 hidden text-[11px] text-emerald-900/70 max-sm:block short:block">
+        ⚙️ Luật bàn ở <span className="short:hidden">bên dưới ↓</span>
+        <span className="hidden short:inline">bên phải →</span>
+      </p>
 
       {isHost ? (
         <button
@@ -2118,6 +1961,195 @@ function Waiting({ view, me, act, nameOf }: { view: TPRoomView; me: TPSeatView |
     </div>
   );
 }
+
+/** The table rules (host edits, everyone else reads). */
+function TableSettings({ view, isHost, act, className }: { view: TPRoomView; isHost: boolean; act: Act; className?: string }) {
+  const count = view.seats.filter(Boolean).length;
+  return (
+    <div className={className}>
+        <SettingsTabs
+          light
+          className="text-emerald-950"
+          tabs={[
+            {
+              id: "money",
+              label: "💰 Tiền",
+              content: (
+                <div className="space-y-2">
+                  <label className="flex items-center justify-between gap-2">
+                    <span>Tiền khởi đầu</span>
+                    <select
+                      value={view.settings.startCash}
+                      disabled={!isHost}
+                      onChange={(e) => void act({ type: "settings", startCash: Number(e.target.value) })}
+                      className={SELECT}
+                    >
+                      {START_CASH_OPTIONS.map((v) => (
+                        <option key={v} value={v}>
+                          {money(v)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <SettingSelect
+                    label="Qua Khởi hành nhận"
+                    value={view.settings.goSalary ?? GO_SALARY}
+                    options={GO_SALARY_OPTIONS.map((v) => [v, money(v)])}
+                    disabled={!isHost}
+                    onChange={(v) => void act({ type: "settings", goSalary: v })}
+                  />
+                  <Toggle
+                    label={`Dừng đúng Khởi hành nhận gấp đôi (${money((view.settings.goSalary ?? GO_SALARY) * 2)})`}
+                    checked={!!view.settings.doubleGo}
+                    disabled={!isHost}
+                    onChange={(v) => void act({ type: "settings", doubleGo: v })}
+                  />
+                  <Toggle
+                    label="Quỹ Nghỉ chân ☕: thuế & tiền phạt dồn vào, ai dừng đó hốt hết"
+                    checked={!!view.settings.parkingPot}
+                    disabled={!isHost}
+                    onChange={(v) => void act({ type: "settings", parkingPot: v })}
+                  />
+                  <SettingSelect
+                    label="Phí chuộc thế chấp"
+                    value={view.settings.unmortgageFee ?? 10}
+                    options={UNMORTGAGE_FEE_OPTIONS.map((v) => [v, v ? `+${v}%` : "Không phí"])}
+                    disabled={!isHost}
+                    onChange={(v) => void act({ type: "settings", unmortgageFee: v })}
+                  />
+                  <SettingSelect
+                    label="Bán đất cho ngân hàng được"
+                    value={view.settings.landSalePct ?? 70}
+                    options={LAND_SALE_OPTIONS.map((v) => [v, `${v}% giá đất`])}
+                    disabled={!isHost || !view.settings.sellLand}
+                    onChange={(v) => void act({ type: "settings", landSalePct: v })}
+                  />
+                </div>
+              ),
+            },
+            {
+              id: "time",
+              label: "⏱️ Lượt",
+              content: (
+                <div className="space-y-2">
+                  <label className="flex items-center justify-between gap-2">
+                    <span>Giới hạn ván</span>
+                    <select
+                      value={view.settings.timeLimit}
+                      disabled={!isHost}
+                      onChange={(e) => void act({ type: "settings", timeLimit: Number(e.target.value) })}
+                      className={SELECT}
+                    >
+                      {TIME_LIMIT_OPTIONS.map((v) => (
+                        <option key={v} value={v}>
+                          {v ? `${v} phút` : "Đến khi còn 1 người"}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex items-center justify-between gap-2">
+                    <span>Thời gian mỗi bước</span>
+                    <select
+                      value={view.settings.stepSeconds ?? 30}
+                      disabled={!isHost}
+                      onChange={(e) => void act({ type: "settings", stepSeconds: Number(e.target.value) })}
+                      className={SELECT}
+                    >
+                      {STEP_SECONDS_OPTIONS.map((v) => (
+                        <option key={v} value={v}>
+                          {v} giây
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <Toggle
+                    label="Tung đôi được tung tiếp (đôi 3 lần liền vào tù)"
+                    checked={view.settings.doubleRoll !== false}
+                    disabled={!isHost}
+                    onChange={(v) => void act({ type: "settings", doubleRoll: v })}
+                  />
+                  <Toggle
+                    label="Đang ở tù vẫn thu tiền thuê"
+                    checked={view.settings.jailRent !== false}
+                    disabled={!isHost}
+                    onChange={(v) => void act({ type: "settings", jailRent: v })}
+                  />
+                </div>
+              ),
+            },
+            {
+              id: "house",
+              label: "🏠 Luật nhà",
+              content: (
+                <div className="space-y-2">
+                  <label className="flex items-center justify-between gap-2">
+                    <span>Luật xây nhà</span>
+                    <select
+                      value={view.settings.buildRule ?? "even"}
+                      disabled={!isHost}
+                      onChange={(e) => void act({ type: "settings", buildRule: e.target.value as "even" | "chain" })}
+                      className={SELECT}
+                    >
+                      <option value="even">Xây đều</option>
+                      <option value="chain">Xây theo chuỗi</option>
+                    </select>
+                  </label>
+                  <p className="text-[11px] leading-snug text-emerald-900/60">{buildRuleText(view.settings)}</p>
+                  <Toggle
+                    label="Phải đủ cả nhóm màu mới được xây"
+                    checked={view.settings.needGroup !== false}
+                    disabled={!isHost}
+                    onChange={(v) => void act({ type: "settings", needGroup: v })}
+                  />
+                  <Toggle
+                    label="Giá nhà tăng dần (căn sau +25%, khách sạn ×2)"
+                    checked={view.settings.risingCost !== false}
+                    disabled={!isHost}
+                    onChange={(v) => void act({ type: "settings", risingCost: v })}
+                  />
+                  <Toggle
+                    label={`Cho bán đất cho ngân hàng (${view.settings.landSalePct ?? 70}% giá, đất về chợ)`}
+                    checked={!!view.settings.sellLand}
+                    disabled={!isHost}
+                    onChange={(v) => void act({ type: "settings", sellLand: v })}
+                  />
+                  <label className="flex items-center justify-between gap-2">
+                    <span>Đất của người phá sản</span>
+                    <select
+                      value={view.settings.bankruptTo ?? "bank"}
+                      disabled={!isHost}
+                      onChange={(e) => void act({ type: "settings", bankruptTo: e.target.value as "bank" | "creditor" })}
+                      className={SELECT}
+                    >
+                      <option value="bank">Về ngân hàng — mua lại được</option>
+                      <option value="creditor">Về tay chủ nợ</option>
+                    </select>
+                  </label>
+                </div>
+              ),
+            },
+            {
+              id: "points",
+              label: "🏆 Điểm",
+              content: (
+                <RankPointsPicker
+                  first={view.settings.first ?? 2}
+                  second={view.settings.second ?? 1}
+                  players={count}
+                  editable={isHost}
+                  onChange={(v) => void act({ type: "settings", ...v })}
+                  className="[&_select]:bg-white [&_select]:text-emerald-950"
+                />
+              ),
+            },
+          ]}
+        />
+      {!isHost && <p className="mt-1 text-xs text-emerald-900/50">Chỉ chủ bàn đổi được luật.</p>}
+    </div>
+  );
+}
+
+const SELECT = "rounded-md border border-emerald-900/20 bg-white px-2 py-0.5 disabled:opacity-60 max-sm:min-h-9 short:min-h-8";
 
 function SettingSelect({
   label,
@@ -2139,7 +2171,7 @@ function SettingSelect({
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="rounded-md border border-emerald-900/20 bg-white px-2 py-0.5 disabled:opacity-50"
+        className={SELECT}
       >
         {options.map(([v, text]) => (
           <option key={v} value={v}>

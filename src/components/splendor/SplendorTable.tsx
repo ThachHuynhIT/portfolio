@@ -25,7 +25,7 @@ import {
 import { SPLENDOR_WS_PATH, type SPGameView, type SPPlayerView, type SPRoomView, type SPSeatView } from "@/lib/splendor/protocol";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
-import { BonusPip, CardBack, DevCardView, GemCount, GemIcon, NobleTile, TokenChip } from "./Pieces";
+import { BonusPip, CardBack, DevCardView, GemCount, GemIcon, MD_CARD_W, NobleTile, TokenChip } from "./Pieces";
 
 type Act = (msg: Record<string, unknown> & { type: string }) => Promise<boolean>;
 
@@ -189,7 +189,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
   const secondsLeft = g?.deadline ? Math.max(0, Math.ceil((g.deadline - now) / 1000)) : null;
 
   return (
-    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-24 pt-2 sm:px-4 sm:pt-3 lg:pb-2 short:gap-2 short:pt-1.5">
+    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-24 pt-2 sm:px-4 sm:pt-3 lg:pb-2 xl:max-w-[100rem] short:gap-2 short:pt-1.5">
       <GameHeader
         primary={
           <>
@@ -238,12 +238,12 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
           <Waiting view={view} me={me} act={act} nameOf={nameOf} />
         </div>
       ) : (
-        <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_19rem] short:grid-cols-2 short:gap-2">
+        <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_19rem] short:grid-cols-[minmax(0,1fr)_16rem] short:gap-2">
           {/* Market */}
           <div className="relative flex min-w-0 flex-col gap-3 rounded-3xl lg:gap-2 border border-amber-200/10 bg-[radial-gradient(ellipse_at_top,#3b1d5c_0%,#1a0f2b_70%)] p-3 shadow-[inset_0_0_60px_rgba(0,0,0,0.5)] sm:p-4 short:gap-2 short:self-start short:p-2">
             <SpectatorReactions reactions={live.filter((r) => !r.playerId)} />
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex gap-2">
+              <div className="flex gap-2 lg:hidden short:hidden">
                 {g.nobleRow.map((n) => (
                   <NobleTile key={n} id={n} />
                 ))}
@@ -255,55 +255,67 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
               </p>
             </div>
 
-            {[3, 2, 1].map((tier) => (
-              <div key={tier} className="flex items-center gap-2 overflow-x-auto pb-1 short:gap-1.5 short:pb-0">
-                <CardBack
-                  tier={tier as 1 | 2 | 3}
-                  count={g.deckCounts[tier - 1]}
-                  onClick={g.deckCounts[tier - 1] ? () => setFocus({ tier: tier as 1 | 2 | 3 }) : undefined}
-                />
-                {g.board[tier - 1].map((c, i) =>
-                  c === null ? (
-                    <div key={`e${i}`} className="aspect-[5/7] w-[min(4.8rem,calc((100vw-4.75rem)/5))] shrink-0 rounded-lg border border-dashed border-white/15 sm:w-[6.5rem] short:w-[min(4.4rem,calc((50vw-4.75rem)/5))]" />
-                  ) : (
-                    <motion.div key={c} initial={{ scale: 0.6, opacity: 0, rotateY: 90 }} animate={{ scale: 1, opacity: 1, rotateY: 0 }}>
-                      <DevCardView id={c} onClick={() => setFocus({ card: c })} affordable={myTurn && canAfford(c)} highlight={g.last?.card === c} />
-                    </motion.div>
-                  ),
+            {/* PCs and sideways phones: the noble tiles stand in a column beside the card rows; sideways phones
+                also get the bank as a column on the right, so the whole market fits the short screen. */}
+            <div className="flex min-w-0 flex-wrap gap-3 lg:justify-center xl:gap-x-5 short:flex-nowrap short:gap-2">
+              <div className="flex min-w-0 flex-col gap-3 lg:gap-2 short:gap-2">
+                {[3, 2, 1].map((tier) => (
+                  <div key={tier} className="flex items-center gap-2 overflow-x-auto pb-1 short:gap-1.5 short:pb-0">
+                    <CardBack
+                      tier={tier as 1 | 2 | 3}
+                      count={g.deckCounts[tier - 1]}
+                      onClick={g.deckCounts[tier - 1] ? () => setFocus({ tier: tier as 1 | 2 | 3 }) : undefined}
+                    />
+                    {g.board[tier - 1].map((c, i) =>
+                      c === null ? (
+                        <div key={`e${i}`} className={cn("aspect-[5/7] shrink-0 rounded-lg border border-dashed border-white/15", MD_CARD_W)} />
+                      ) : (
+                        <motion.div key={c} initial={{ scale: 0.6, opacity: 0, rotateY: 90 }} animate={{ scale: 1, opacity: 1, rotateY: 0 }}>
+                          <DevCardView id={c} onClick={() => setFocus({ card: c })} affordable={myTurn && canAfford(c)} highlight={g.last?.card === c} />
+                        </motion.div>
+                      ),
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="hidden shrink-0 flex-col gap-2 lg:flex short:flex short:gap-1.5" aria-label="Quý tộc">
+                <p className="text-center text-[11px] font-semibold uppercase tracking-wide text-amber-200/60">Quý tộc</p>
+                {g.nobleRow.map((n) => (
+                  <NobleTile key={n} id={n} />
+                ))}
+              </div>
+
+              {/* Bank */}
+              <div className="flex basis-full flex-wrap items-center gap-2 rounded-2xl bg-black/30 p-2 min-[400px]:gap-3 short:grid short:basis-auto short:grid-cols-2 short:gap-1.5 short:self-start short:p-1.5">
+                {TOKENS.map((t) => (
+                  <TokenChip
+                    key={t}
+                    gem={t}
+                    count={g.bank[t]}
+                    size="lg"
+                    selected={t === "gold" ? 0 : pick[t as Gem]}
+                    dimmed={g.bank[t] === 0}
+                    onClick={t === "gold" ? undefined : () => togglePick(t as Gem)}
+                    title={t === "gold" ? "Vàng — chỉ lấy khi giữ thẻ" : `${GEM_NAMES[t]} — bấm để chọn (bấm lần 2 để lấy 2 viên nếu còn ≥ 4)`}
+                  />
+                ))}
+                {myTurn && g.phase === "turn" && (
+                  <div className="ml-auto flex gap-2 short:col-span-2 short:ml-0 short:flex-col short:gap-1">
+                    <button
+                      onClick={() => void doTake()}
+                      disabled={!picked.length || busy}
+                      className="rounded-lg bg-amber-400 px-4 py-2 font-bold text-black hover:bg-amber-300 disabled:opacity-40 short:whitespace-nowrap short:px-2 short:py-1.5 short:text-xs"
+                    >
+                      💎 Lấy {picked.length ? picked.length : ""} đá
+                    </button>
+                    {!!picked.length && (
+                      <button onClick={() => setPick(emptyPick())} className="rounded-lg border border-white/25 px-3 py-2 text-sm short:px-2 short:py-1.5 short:text-xs">
+                        Bỏ chọn
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
-            ))}
-
-            {/* Bank */}
-            <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-black/30 p-2 min-[400px]:gap-3">
-              {TOKENS.map((t) => (
-                <TokenChip
-                  key={t}
-                  gem={t}
-                  count={g.bank[t]}
-                  size="lg"
-                  selected={t === "gold" ? 0 : pick[t as Gem]}
-                  dimmed={g.bank[t] === 0}
-                  onClick={t === "gold" ? undefined : () => togglePick(t as Gem)}
-                  title={t === "gold" ? "Vàng — chỉ lấy khi giữ thẻ" : `${GEM_NAMES[t]} — bấm để chọn (bấm lần 2 để lấy 2 viên nếu còn ≥ 4)`}
-                />
-              ))}
-              {myTurn && g.phase === "turn" && (
-                <div className="ml-auto flex gap-2">
-                  <button
-                    onClick={() => void doTake()}
-                    disabled={!picked.length || busy}
-                    className="rounded-lg bg-amber-400 px-4 py-2 font-bold text-black hover:bg-amber-300 disabled:opacity-40"
-                  >
-                    💎 Lấy {picked.length ? picked.length : ""} đá
-                  </button>
-                  {!!picked.length && (
-                    <button onClick={() => setPick(emptyPick())} className="rounded-lg border border-white/25 px-3 py-2 text-sm">
-                      Bỏ chọn
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
 
             {myTurn && g.phase === "discard" && mine && <DiscardPanel p={mine} need={g.discardNeed} run={run} busy={busy} secondsLeft={secondsLeft} />}
@@ -475,6 +487,12 @@ function PlayerPanel({
             <span className="flex flex-wrap gap-1 text-[11px] text-white/60">
               {seat && !seat.connected && !seat.kicked && <span className="rounded bg-rose-900/60 px-1 text-rose-200">Mất kết nối</span>}
               {seat?.kicked && <span className="rounded bg-rose-900/60 px-1 text-rose-200">Bị kích</span>}
+              {/* Inline, so it never sits on the score. */}
+              {onKick && (
+                <button onClick={onKick} className="rounded bg-rose-600 px-2 text-[11px] font-semibold text-white hover:bg-rose-500">
+                  Kích
+                </button>
+              )}
               {seat && seat.games > 0 && <span className={cn("font-mono", seat.points > 0 ? "text-emerald-300" : seat.points < 0 ? "text-rose-300" : "")}>{signed(seat.points)}đ</span>}
             </span>
           </span>
@@ -483,11 +501,6 @@ function PlayerPanel({
           <span className="text-xl font-black leading-none text-amber-300 sm:block sm:text-2xl short:inline short:text-xl">{p.prestige}</span>
           <span className="text-[10px] text-white/50"> / {target} điểm</span>
         </span>
-        {onKick && (
-          <button onClick={onKick} className="absolute right-2 top-2 rounded bg-rose-600 px-1.5 text-[11px] font-semibold text-white">
-            Kích
-          </button>
-        )}
       </div>
       {/* Card bonuses and gems share one line when there is room (phones: one short panel per player). */}
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 sm:gap-x-3">
@@ -658,7 +671,10 @@ function CostCompare({ plan, gold }: { plan: ReturnType<typeof paymentPlan>; gol
 function DiscardPanel({ p, need, run, busy, secondsLeft }: { p: SPPlayerView; need: number; run: Act; busy: boolean; secondsLeft: number | null }) {
   const [give, setGive] = useState<Record<Token, number>>(emptyPick);
   const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => ref.current?.scrollIntoView({ behavior: "smooth", block: "center" }), []);
+  useEffect(() => {
+    // Braces: newer browsers return a Promise from scrollIntoView, which an effect must not return.
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, []);
   const total = tokenSum(give);
   const left = need - total;
   const held = TOKENS.filter((t) => p.tokens[t] - give[t] > 0);
@@ -749,14 +765,29 @@ function Waiting({ view, me, act, nameOf }: { view: SPRoomView; me: SPSeatView |
       ) : (
         <>
           <h2 className="mb-1 text-xl font-black text-amber-300">💎 Đá Quý</h2>
-          <p className="mb-4 text-sm text-violet-100/80">{count}/4 người · gửi link mời để bạn bè vào bàn</p>
+          <p className="mb-3 text-sm text-violet-100/80">{count}/4 người · gửi link mời để bạn bè vào bàn</p>
         </>
       )}
+      {/* Who is at the table (there are no player panels between games). */}
+      <ul className="mb-4 flex flex-wrap gap-1.5 text-sm">
+        {view.seats
+          .filter((x): x is SPSeatView => !!x)
+          .map((x) => (
+            <li key={x.id} className={cn("flex items-center gap-1 rounded-full bg-white/10 py-0.5 pl-0.5 pr-2.5", !x.connected && "opacity-50")}>
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-violet-300 to-fuchsia-600 text-xs font-bold text-black">
+                {x.name.charAt(0).toUpperCase()}
+              </span>
+              {x.isHost && <span title="Chủ bàn">👑</span>}
+              <span className="max-w-[9rem] truncate">{x.name}</span>
+              {x.id === view.meId && <span className="text-xs text-white/50">(bạn)</span>}
+            </li>
+          ))}
+      </ul>
       <div className="mb-4 space-y-2 rounded-xl bg-white/5 p-3 text-xs">
         <p className="font-semibold uppercase tracking-wide text-violet-100/60">Luật bàn</p>
         <label className="flex items-center justify-between gap-2">
           <span>Điểm uy tín để thắng</span>
-          <select value={s.target} disabled={!isHost} onChange={(e) => void act({ type: "settings", target: Number(e.target.value) })} className="rounded bg-black/40 px-1 py-0.5">
+          <select value={s.target} disabled={!isHost} onChange={(e) => void act({ type: "settings", target: Number(e.target.value) })} className="min-h-8 rounded bg-black/40 px-1.5 py-0.5 max-sm:min-h-9">
             {TARGET_OPTIONS.map((v) => (
               <option key={v} value={v}>
                 {v} điểm
@@ -766,7 +797,7 @@ function Waiting({ view, me, act, nameOf }: { view: SPRoomView; me: SPSeatView |
         </label>
         <label className="flex items-center justify-between gap-2">
           <span>Thời gian mỗi lượt</span>
-          <select value={s.turnSeconds} disabled={!isHost} onChange={(e) => void act({ type: "settings", turnSeconds: Number(e.target.value) })} className="rounded bg-black/40 px-1 py-0.5">
+          <select value={s.turnSeconds} disabled={!isHost} onChange={(e) => void act({ type: "settings", turnSeconds: Number(e.target.value) })} className="min-h-8 rounded bg-black/40 px-1.5 py-0.5 max-sm:min-h-9">
             {TURN_SECONDS_OPTIONS.map((v) => (
               <option key={v} value={v}>
                 {v} giây
@@ -774,7 +805,7 @@ function Waiting({ view, me, act, nameOf }: { view: SPRoomView; me: SPSeatView |
             ))}
           </select>
         </label>
-        <RankPointsPicker first={s.first} second={s.second} players={count} editable={isHost} onChange={(v) => void act({ type: "settings", ...v })} />
+        <RankPointsPicker first={s.first} second={s.second} players={count} editable={isHost} onChange={(v) => void act({ type: "settings", ...v })} className="[&_select]:min-h-8 max-sm:[&_select]:min-h-9" />
         {!isHost && <p className="text-white/40">Chỉ chủ bàn đổi được luật.</p>}
       </div>
       {isHost ? (
@@ -812,14 +843,38 @@ export function SplendorRules() {
   );
 }
 
+/**
+ * Dialog (same behaviour as Cờ Tỷ Phú's): a bottom sheet on phones with a full-width "Đóng" bar,
+ * centred from `sm` up; the ✕ stays put while the content scrolls; Esc and the backdrop close it.
+ */
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div role="dialog" className="relative max-h-[88dvh] w-full max-w-md overflow-y-auto rounded-2xl border border-white/10 bg-[#1b1030] p-5 text-violet-50 shadow-2xl short:max-h-[94dvh] short:max-w-2xl short:p-4" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-2 top-2 rounded-md px-2 py-0.5 text-sm hover:bg-white/10" aria-label="Đóng">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal
+        className="relative flex max-h-[85dvh] w-full max-w-md flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-[#1b1030] text-violet-50 shadow-2xl sm:max-h-[88dvh] sm:rounded-2xl short:max-h-[94dvh] short:max-w-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute right-2 top-2 z-10 grid size-9 place-items-center rounded-full bg-white/10 text-lg leading-none text-white shadow hover:bg-white/20"
+          aria-label="Đóng"
+        >
           ✕
         </button>
-        {children}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5 short:p-4 [&>h2:first-child]:pr-10">{children}</div>
+        <button
+          onClick={onClose}
+          className="shrink-0 border-t border-white/10 bg-black/20 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-sm font-semibold text-violet-100 sm:hidden"
+        >
+          Đóng
+        </button>
       </div>
     </div>
   );

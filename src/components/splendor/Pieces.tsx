@@ -80,7 +80,7 @@ export function TokenChip({
   title?: string;
 }) {
   // The bank row (6 lg chips) has to fit a 360px-wide phone on one line.
-  const px = size === "lg" ? "h-11 w-11 min-[400px]:h-14 min-[400px]:w-14 sm:h-16 sm:w-16 short:h-12 short:w-12" : size === "md" ? "h-11 w-11" : "h-7 w-7 sm:h-8 sm:w-8";
+  const px = size === "lg" ? "h-11 w-11 min-[400px]:h-14 min-[400px]:w-14 sm:h-16 sm:w-16 short:h-10 short:w-10" : size === "md" ? "h-11 w-11" : "h-7 w-7 sm:h-8 sm:w-8";
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
@@ -104,8 +104,12 @@ export function TokenChip({
 }
 
 const TIER_MARK = { 1: "I", 2: "II", 3: "III" } as const;
-/** Width of an md market card / deck: 5 per row on any phone (page + market padding ≈ 4.75rem). */
-const MD_CARD_W = "w-[min(4.8rem,calc((100vw-4.75rem)/5))] sm:w-[6.5rem] short:w-[min(4.4rem,calc((50vw-4.75rem)/5))]";
+/**
+ * Width of an md market card / deck: 5 per row on any phone (page + market padding ≈ 4.75rem); bigger on
+ * tablets; on PCs the three rows fill the screen height (≈15rem goes to the bar, turn line and bank).
+ */
+export const MD_CARD_W =
+  "w-[min(4.8rem,calc((100vw-4.75rem)/5))] sm:w-[6.5rem] md:w-[7.5rem] lg:w-[clamp(6.5rem,calc((100dvh-15rem)*5/21),11.5rem)] short:w-[min(4.4rem,calc((100dvh-7.5rem)*5/21))]";
 
 /** A development card: illustration, colour frame, points + bonus on top, cost in gems at the bottom. */
 export function DevCardView({
@@ -128,7 +132,8 @@ export function DevCardView({
   // md: a market row (deck + 4 cards) always fits the phone width; smaller when the phone is sideways.
   const w = size === "lg" ? "w-44" : size === "md" ? MD_CARD_W : "w-14";
   const costs = GEMS.filter((g) => card.cost[g]);
-  const gemSize = size === "lg" ? "h-9 w-9 text-lg" : size === "md" ? "h-[1.15rem] w-[1.15rem] text-[11px] sm:h-6 sm:w-6 sm:text-sm" : "h-3 w-3 text-[7px]";
+  const gemSize =
+    size === "lg" ? "h-9 w-9 text-lg" : size === "md" ? "h-[1.15rem] w-[1.15rem] text-[11px] sm:h-6 sm:w-6 sm:text-sm xl:h-7 xl:w-7 xl:text-base short:h-[1.15rem] short:w-[1.15rem] short:text-[11px]" : "h-3 w-3 text-[7px]";
   return (
     <Tag
       onClick={onClick}
@@ -150,12 +155,12 @@ export function DevCardView({
           <span
             className={cn(
               "font-black leading-none text-white [text-shadow:0_2px_3px_#000]",
-              size === "lg" ? "text-4xl" : size === "md" ? "text-lg sm:text-2xl" : "text-xs",
+              size === "lg" ? "text-4xl" : size === "md" ? "text-lg sm:text-2xl xl:text-3xl short:text-lg" : "text-xs",
             )}
           >
             {card.points || ""}
           </span>
-          <GemIcon gem={card.bonus} className={size === "lg" ? "h-11 w-11" : size === "md" ? "h-6 w-6 sm:h-8 sm:w-8" : "h-4 w-4"} />
+          <GemIcon gem={card.bonus} className={size === "lg" ? "h-11 w-11" : size === "md" ? "h-6 w-6 sm:h-8 sm:w-8 xl:h-10 xl:w-10 short:h-6 short:w-6" : "h-4 w-4"} />
         </div>
         {/* Bottom: the cost, as gems. */}
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/75 via-black/40 to-transparent px-0.5 pb-0.5 pt-3">
