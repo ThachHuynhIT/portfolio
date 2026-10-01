@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Games",
-  description: "Các game mình tự làm: Tiến Lên Miền Nam, Mèo Nổ, Cờ Tỷ Phú, Đá Quý và Đấu Súng chơi online cùng bạn bè, cùng Contra phiên bản trình duyệt.",
+  description: "Các game mình tự làm: Tiến Lên Miền Nam, Mèo Nổ, Cờ Tỷ Phú, Đá Quý, Đấu Súng, Cờ Cá Ngựa và Ô Ăn Quan chơi online cùng bạn bè, cùng Contra phiên bản trình duyệt.",
 };
 
 interface GameCard {
@@ -55,6 +55,22 @@ const GAMES: GameCard[] = [
     tagline: "Cảnh sát trưởng, Phó, Kẻ cướp, Kẻ phản bội — vai trò bí mật, 63 nhân vật và 7 bản mở rộng. Chơi 3–8 người.",
     tags: ["Online", "3–8 người", "Vai trò bí mật"],
     gradient: "from-amber-500/30 via-orange-800/20 to-transparent",
+  },
+  {
+    href: "/co-ca-ngua",
+    title: "Cờ Cá Ngựa",
+    emoji: "🐴",
+    tagline: "Gieo xúc xắc, xuất quân, đá ngựa đối thủ về chuồng và leo đủ 6 bậc — luật Việt Nam, chơi 2–4 người.",
+    tags: ["Online", "2–4 người", "Xúc xắc"],
+    gradient: "from-red-500/30 via-yellow-600/20 to-transparent",
+  },
+  {
+    href: "/o-an-quan",
+    title: "Ô Ăn Quan",
+    emoji: "🪨",
+    tagline: "Trò chơi dân gian: bốc sỏi rải từng ô, ăn liên tiếp, giành quan — chọn quan non, giá quan 5 hay 10 dân. Chơi 2 người.",
+    tags: ["Online", "2 người", "Dân gian"],
+    gradient: "from-yellow-600/30 via-amber-800/20 to-transparent",
   },
   {
     href: "/contra",

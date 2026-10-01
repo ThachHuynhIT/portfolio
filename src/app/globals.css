@@ -283,7 +283,7 @@ body {
 
 
 /*
- * Game rooms (/tien-len, /meo-no, /co-ty-phu, /splendor): no double-tap zoom or grey
+ * Game rooms (/tien-len, /meo-no, /co-ty-phu, /splendor, /co-ca-ngua, /o-an-quan): no double-tap zoom or grey
  * tap flash while playing, and inputs at 16px on iOS so focusing them doesn't zoom the page.
  */
 .game-shell {

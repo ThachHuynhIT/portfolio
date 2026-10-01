@@ -29,7 +29,7 @@ npm run build
 npm run start
 ```
 
-Mở trình duyệt tại `http://localhost:3000` để xác nhận các trang hoạt động: `/`, `/blog`, `/projects`, `/photography`, `/music`, `/couple`, `/contra`, `/tools/json-validator`, `/admin` (đăng nhập), `/games` và sảnh từng game `/tien-len`, `/meo-no`, `/co-ty-phu`, `/splendor`, `/bang` (cần be_game đang chạy — xem mục 3.1).
+Mở trình duyệt tại `http://localhost:3000` để xác nhận các trang hoạt động: `/`, `/blog`, `/projects`, `/photography`, `/music`, `/couple`, `/contra`, `/tools/json-validator`, `/admin` (đăng nhập), `/games` và sảnh từng game `/tien-len`, `/meo-no`, `/co-ty-phu`, `/splendor`, `/bang`, `/o-an-quan` (cần be_game đang chạy — xem mục 3.1).
 
 ---
 
@@ -51,15 +51,15 @@ Nội dung (dự án, ảnh, blog, couple...) được sửa qua `/admin` và l�
 
 ---
 
-### 3.1. Game Online (`/games`, `/tien-len`, `/meo-no`, `/co-ty-phu`, `/splendor`, `/bang`)
+### 3.1. Game Online (`/games`, `/tien-len`, `/meo-no`, `/co-ty-phu`, `/splendor`, `/bang`, `/o-an-quan`, `/co-ca-ngua`)
 
-Portfolio chỉ chứa **giao diện** của các game (`src/app/<game>`, `src/components/{games,tienlen,meono,typhu,splendor,bang}`) cùng bản sao luật/dữ liệu + protocol trong `src/lib/<game>` để kiểm tra nước đi phía client. Toàn bộ backend (phòng chơi, WebSocket, Redis) của **cả 5 game** nằm ở repo riêng **[be_game](https://github.com/ThachHuynhIT/be_game)** và được deploy thành một project Vercel khác. Cách deploy xem README của repo đó.
+Portfolio chỉ chứa **giao diện** của các game (`src/app/<game>`, `src/components/{games,tienlen,meono,typhu,splendor,bang,oanquan,cangua}`) cùng bản sao luật/dữ liệu + protocol trong `src/lib/<game>` để kiểm tra nước đi phía client. Toàn bộ backend (phòng chơi, WebSocket, Redis) của **cả 5 game** nằm ở repo riêng **[be_game](https://github.com/ThachHuynhIT/be_game)** và được deploy thành một project Vercel khác. Cách deploy xem README của repo đó.
 
 Sau khi deploy be_game, vào project portfolio trên Vercel → *Settings → Environment Variables* và thêm:
 ```
 NEXT_PUBLIC_TIENLEN_SERVER_URL=https://<be_game>.vercel.app
 ```
-rồi redeploy. Biến này được gắn vào lúc build và dùng chung cho mọi game (Tiến Lên: `/api/ws`, `/api/rooms`, `/api/leaderboard`; game khác: `/api/<meono|typhu|splendor|bang>/ws|rooms|leaderboard`). Nếu be_game đặt `ALLOWED_ORIGIN`, nhớ thêm domain của portfolio vào đó.
+rồi redeploy. Biến này được gắn vào lúc build và dùng chung cho mọi game (Tiến Lên: `/api/ws`, `/api/rooms`, `/api/leaderboard`; game khác: `/api/<meono|typhu|splendor|bang|cangua|oanquan>/ws|rooms|leaderboard`). Nếu be_game đặt `ALLOWED_ORIGIN`, nhớ thêm domain của portfolio vào đó.
 
 Khi chạy local: chạy `npm run dev` trong be_game (cổng 4000) và `npm run dev` trong portfolio. Nếu không đặt biến thì client mặc định kết nối tới `http://localhost:4000`.
 

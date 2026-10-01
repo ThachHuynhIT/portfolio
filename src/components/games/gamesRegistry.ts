@@ -1,6 +1,6 @@
 /** The online games sharing the games layout (top bar tabs, all-rooms panel). */
 export interface OnlineGame {
-  id: "tienlen" | "meono" | "typhu" | "splendor" | "bang";
+  id: "tienlen" | "meono" | "typhu" | "splendor" | "bang" | "cangua" | "oanquan";
   title: string;
   /** Short label for tabs and room rows. */
   short: string;
@@ -18,6 +18,8 @@ export const ONLINE_GAMES: readonly OnlineGame[] = [
   { id: "typhu", title: "Cờ Tỷ Phú", short: "Tỷ Phú", emoji: "🎩", href: "/co-ty-phu", roomsPath: "/api/typhu/rooms", maxPlayers: 6 },
   { id: "splendor", title: "Đá Quý (Splendor)", short: "Đá Quý", emoji: "💎", href: "/splendor", roomsPath: "/api/splendor/rooms", maxPlayers: 4 },
   { id: "bang", title: "Đấu Súng (Bang!)", short: "Đấu Súng", emoji: "🤠", href: "/bang", roomsPath: "/api/bang/rooms", maxPlayers: 8 },
+  { id: "oanquan", title: "Ô Ăn Quan", short: "Ô Ăn Quan", emoji: "🪨", href: "/o-an-quan", roomsPath: "/api/oanquan/rooms", maxPlayers: 2 },
+  { id: "cangua", title: "Cờ Cá Ngựa", short: "Cá Ngựa", emoji: "🐴", href: "/co-ca-ngua", roomsPath: "/api/cangua/rooms", maxPlayers: 4 },
 ];
 
 /** Route prefixes rendered inside the games layout (site header/footer hidden). */

@@ -335,7 +335,7 @@ Toàn site hỗ trợ chuyển đổi giữa **Dark** (giao diện gốc, mặc 
 
 ### 14.2. Phạm Vi Áp Dụng
 - Đã phủ `light:` cho: Navigation/Footer, các section trang chủ (Hero/About/Skills/Projects/Contact/Photo & Blog Preview), Blog (`BlogList`, `BlogPostView`), Music Player, và toàn bộ module Photography (`PhotographyGallery`, `GridLayout`, `MasonryLayout`, `StoryLayout`, `CompareLayout`, `BeforeAfterSlider`, `AlbumDetailView`) cùng trang Projects (`ProjectsGallery`).
-- **Route luôn giữ Dark, không đổi theo lựa chọn người dùng** (`EXCLUDED_ROUTE_PREFIXES` trong `constants.ts`): `/admin`, `/contra`, `/couple`, `/music`, `/games`, `/tien-len`, `/meo-no`, `/co-ty-phu`, `/splendor`, `/bang`.
+- **Route luôn giữ Dark, không đổi theo lựa chọn người dùng** (`EXCLUDED_ROUTE_PREFIXES` trong `constants.ts`): `/admin`, `/contra`, `/couple`, `/music`, `/games`, `/tien-len`, `/meo-no`, `/co-ty-phu`, `/splendor`, `/bang`, `/co-ca-ngua`, `/o-an-quan`.
 - **Ngoại lệ theo component (bất kể route)**: modal xem ảnh toàn màn hình `PhotoLightboxModal.tsx` cố tình **luôn ở chế độ Dark** ("theater mode" để xem ảnh) — quyết định sản phẩm có chủ đích, không phải thiếu sót.
 - Các overlay gradient tối phủ lên trực tiếp ảnh/thumbnail (badge danh mục, caption khi hover, nút play video...) **giữ nguyên không đổi theo theme** ở cả 2 chế độ — vì đây là lớp phủ đảm bảo độ tương phản chữ trên ảnh, không phải "chrome" của trang.
 
@@ -352,11 +352,13 @@ Toàn site hỗ trợ chuyển đổi giữa **Dark** (giao diện gốc, mặc 
 | Cờ Tỷ Phú | `/co-ty-phu` | 2–6 | Địa danh Việt Nam, xây nhà/khách sạn, đổi đất, giới hạn thời gian tuỳ chọn |
 | Đá Quý (Splendor) | `/splendor` | 2–4 | Điểm thắng chọn được (10–21, mặc định 15); ảnh thẻ/quý tộc/đá WebP ở `public/games/splendor/` |
 | Đấu Súng (Bang!) | `/bang` | 3–8 | Vai trò bí mật, 63 nhân vật, 7 bản mở rộng |
+| Ô Ăn Quan | `/o-an-quan` | 2 | Bàn gỗ 10 ô dân + 2 ô quan, diễn hoạt rải từng viên (`lastMove` từ server), ăn liên tiếp, quan non, giá quan 5/10, rải quân/vay khi hết dân |
+| Cờ Cá Ngựa | `/co-ca-ngua` | 2–4 | Bàn chữ thập 15×15, đường 56 ô + chuồng 6 bậc; ngựa đi từng ô, đá ngựa về chuồng; luật tuỳ chọn: xuất quân bằng 1 hoặc 6, không nhảy qua đầu ngựa, lên chuồng theo số, ba lần 6 mất lượt, xếp hạng hết |
 
 - **Khung chung** (`src/components/games/`): `GamesShell` (thanh tab game, tên người chơi + "đổi tên", cổng chọn tên, `AllRoomsPanel` liệt kê bàn đang mở của mọi game — poll mỗi 10 giây, footer gọn), `GameLobby` (tạo/vào bàn bằng mã, danh sách bàn để chơi hoặc xem, bảng xếp hạng, luật), `ChatBox`, `DraggableHand` (tự xếp bài, lưu `sessionStorage`), `SettingsTabs`, `TurnIndicator` (`TurnRing`/`MyTurnBadge`), `RankPointsPicker`; danh sách game + endpoint `/rooms` ở `gamesRegistry.ts`.
 - **Tên người chơi** dùng chung cho mọi game: `localStorage["games:playerName"]` (key cũ `tienlen:name` tự migrate). Token giữ ghế ở `sessionStorage` (reload giữ ghế, mỗi tab là một người).
 - **Ảnh lá bài tùy chọn** (Mèo Nổ, Đấu Súng): ảnh nguồn trong `art/<game>/` (gitignored) → `npm run art:meono` / `npm run art:bang` (`scripts/card-art.mjs`) → `public/games/<game>/cards/*.webp` + `src/lib/<game>/art.ts`; lá chưa có ảnh giữ mặt vẽ emoji. Prompt vẽ: `docs/MEONO_ART_PROMPTS.md`, `docs/BANG_ART_PROMPTS.md`.
-- `src/lib/{tienlen,meono,typhu,splendor,bang}/` là bản sao luật/dữ liệu + protocol từ be_game — sửa luật phải sửa cả 2 repo.
+- `src/lib/{tienlen,meono,typhu,splendor,bang,oanquan,cangua}/` là bản sao luật/dữ liệu + protocol từ be_game — sửa luật phải sửa cả 2 repo.
 
 ---
 

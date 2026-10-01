@@ -80,6 +80,8 @@ Trang `/games` liệt kê các game; mỗi game có sảnh (tạo/vào bàn bằ
 | Cờ Tỷ Phú (địa danh Việt Nam) | `/co-ty-phu` | 2–6 |
 | Đá Quý (kiểu Splendor) | `/splendor` | 2–4 |
 | Đấu Súng (kiểu Bang!, 7 bản mở rộng) | `/bang` | 3–8 |
+| Ô Ăn Quan | `/o-an-quan` | 2 |
+| Cờ Cá Ngựa (luật Việt Nam) | `/co-ca-ngua` | 2–4 |
 
 - Backend (phòng, WebSocket, Redis) nằm ở repo riêng **be_game**; client kết nối qua `NEXT_PUBLIC_TIENLEN_SERVER_URL` (mặc định `http://localhost:4000`).
 - Khung chung `src/components/games/` (`GamesShell`: thanh tab game, chọn tên người chơi một lần cho mọi game, bảng "tất cả các bàn"). Contra cũng được liệt kê ở `/games` nhưng chơi offline.
@@ -124,7 +126,7 @@ portfolio/
 │   │   ├── blog/              # Trang Blog & Chi tiết bài viết (MDX)
 │   │   ├── contra/            # Trang Game 2D Arcade Contra
 │   │   ├── games/             # Trang tổng các game
-│   │   ├── tien-len/, meo-no/, co-ty-phu/, splendor/, bang/   # Sảnh + bàn chơi [room] của từng game online
+│   │   ├── tien-len/, meo-no/, co-ty-phu/, splendor/, bang/, o-an-quan/, co-ca-ngua/   # Sảnh + bàn chơi [room] của từng game online
 │   │   ├── couple/            # Trang Kỷ niệm cặp đôi
 │   │   ├── music/             # Trang Phòng nghe nhạc
 │   │   ├── photography/       # Trang Thư viện ảnh & Chi tiết Album
@@ -139,7 +141,7 @@ portfolio/
 │   │   ├── blog/              # Blog UI Components
 │   │   ├── game/              # Canvas 2D Game Engine (Contra)
 │   │   ├── games/             # Khung chung game online (GamesShell, GameLobby, gameClient, chat,...)
-│   │   ├── tienlen/, meono/, typhu/, splendor/, bang/   # Bàn chơi của từng game
+│   │   ├── tienlen/, meono/, typhu/, splendor/, bang/, oanquan/, cangua/   # Bàn chơi của từng game
 │   │   ├── layout/            # Layout components (GlobalBackground)
 │   │   ├── music/             # Music Player & Audio Visualizer
 │   │   ├── photography/       # Layouts (Masonry, Grid, Compare, Story) & Album Views

@@ -17,7 +17,7 @@ graph TD
         AppRouter --> ContentRoutes["/blog, /projects, /photography, /music, /couple"]
         AppRouter --> AdminRoute["/admin + /api/admin (CMS)"]
         AppRouter --> ContraRoute["/contra (2D Arcade Game)"]
-        AppRouter --> GamesRoute["/games, /tien-len, /meo-no, /co-ty-phu, /splendor, /bang"]
+        AppRouter --> GamesRoute["/games, /tien-len, /meo-no, /co-ty-phu, /splendor, /bang, /o-an-quan, /co-ca-ngua"]
         AppRouter --> ToolRoute["/tools/json-validator"]
     end
 
@@ -65,14 +65,14 @@ portfolio/
 │   │   ├── api/               # admin/**, contact, couple, music/{tracks,upload}
 │   │   ├── blog/, projects/, photography/ (+ album/[slug]), music/, couple/, contra/, tools/json-validator/
 │   │   ├── games/             # Trang tổng các game
-│   │   └── tien-len/, meo-no/, co-ty-phu/, splendor/, bang/   # layout.tsx (GamesShell) + page.tsx (sảnh) + [room]/page.tsx (bàn)
+│   │   └── tien-len/, meo-no/, co-ty-phu/, splendor/, bang/, o-an-quan/, co-ca-ngua/   # layout.tsx (GamesShell) + page.tsx (sảnh) + [room]/page.tsx (bàn)
 │   ├── components/
 │   │   ├── 3d/                # SceneContainer, ParticleField, StarryBackground3D, blackhole/ (BlackHoleCanvas + engine)
 │   │   ├── admin/, blog/, music/, photography/, projects/, sections/, tools/, layout/ (GlobalBackground)
 │   │   ├── ui/                # Button, GlassCard, TiltCard, AnimatedSection, Navigation, Footer, Skeleton, ImageWithSkeleton, ThemeToggle, LanguageSwitcher, Icon,...
 │   │   ├── game/              # ContraGame.tsx
 │   │   ├── games/             # Khung chung game online (xem §3.8)
-│   │   └── tienlen/, meono/, typhu/, splendor/, bang/   # Bàn chơi từng game
+│   │   └── tienlen/, meono/, typhu/, splendor/, bang/, oanquan/, cangua/   # Bàn chơi từng game
 │   ├── context/               # LanguageContext, MusicContext, ThemeContext, ToastContext
 │   ├── generated/prisma/      # Prisma client (sinh bởi prisma generate, gitignored)
 │   ├── lib/
@@ -81,7 +81,7 @@ portfolio/
 │   │   ├── blog.ts, admin-auth.ts, session-token.ts, cloudinary.ts, media-service.ts, rate-limit.ts, seo.ts
 │   │   ├── constants.ts       # EXCLUDED_ROUTE_PREFIXES (route luôn dark)
 │   │   ├── animations.ts, types.ts, utils.ts, content-overrides.ts, section-defaults.ts
-│   │   └── tienlen/, meono/, typhu/, splendor/, bang/   # Bản sao dữ liệu/luật + protocol của be_game
+│   │   └── tienlen/, meono/, typhu/, splendor/, bang/, oanquan/, cangua/   # Bản sao dữ liệu/luật + protocol của be_game
 │   ├── locales/               # en.ts, vi.ts
 │   └── middleware.ts          # Chặn /admin khi chưa đăng nhập
 ├── CLAUDE.md, README.md
@@ -183,7 +183,7 @@ Giao diện gốc của site là **Dark** (không đổi); Light mode được t
 - **Biến thể Tailwind tuỳ biến**: `globals.css` khai báo `@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));` — mọi class tiền tố `light:` chỉ có hiệu lực khi `<html>` (hoặc tổ tiên gần nhất) có `data-theme="light"`. Component chỉ cần **thêm** class `light:` bên cạnh class dark gốc, không xoá/thay class cũ.
 - **`ThemeProvider`** (bọc toàn app ở `layout.tsx`, bên trong `<script>` chống nháy theme): phát hiện theme ưu tiên qua `localStorage["portfolio_theme"]`, fallback `prefers-color-scheme`; tiếp tục lắng nghe sự kiện đổi theme OS nếu người dùng chưa từng chọn thủ công. Ghi `data-theme` lên `document.documentElement` mỗi khi theme đổi.
 - **Chống FOUC (Flash of Unstyled/Incorrect Content)**: một inline script chặn render trong `layout.tsx` (`THEME_INIT_SCRIPT`) chạy **trước khi React hydrate**, set sẵn `data-theme` bằng đúng logic của `ThemeContext.tsx` — 2 nơi này bắt buộc đồng bộ.
-- **Route ngoại lệ luôn Dark**: `EXCLUDED_ROUTE_PREFIXES` (`src/lib/constants.ts`) = `/admin`, `/contra`, `/couple`, `/music`, `/games`, `/tien-len`, `/meo-no`, `/co-ty-phu`, `/splendor`, `/bang` — `resolvedTheme` bị ép về `"dark"` bất kể lựa chọn người dùng khi đang ở các route này.
+- **Route ngoại lệ luôn Dark**: `EXCLUDED_ROUTE_PREFIXES` (`src/lib/constants.ts`) = `/admin`, `/contra`, `/couple`, `/music`, `/games`, `/tien-len`, `/meo-no`, `/co-ty-phu`, `/splendor`, `/bang`, `/o-an-quan`, `/co-ca-ngua` — `resolvedTheme` bị ép về `"dark"` bất kể lựa chọn người dùng khi đang ở các route này.
 - **Ngoại lệ theo component**: modal `PhotoLightboxModal.tsx` trong module Photography chủ đích luôn Dark ("theater mode"), độc lập với theme hiện tại của trang.
 - Design tokens theo theme (`--background`, `--foreground`, `--glass-bg`, `--glow-purple-color`, `--glow-cyan-color`, `--scrollbar-*`, `--selection-*`) được định nghĩa lại trong khối `[data-theme="light"]` — các utility Tailwind theo token (`bg-background`, `text-foreground`) tự đổi màu mà **không** cần tiền tố `light:`.
 
@@ -201,11 +201,11 @@ Giao diện gốc của site là **Dark** (không đổi); Light mode được t
 
 ### 3.8. Game Online (`src/components/games`, backend be_game)
 
-- **Backend**: repo riêng **be_game** (Vercel serverless WebSocket + Redis). Client gọi `serverBase()` = `NEXT_PUBLIC_TIENLEN_SERVER_URL` (mặc định `http://localhost:4000`). Tiến Lên dùng `/api/ws`, `/api/rooms`, `/api/leaderboard`; các game khác dùng `/api/<game>/ws|rooms|leaderboard` với `<game>` = `meono`, `typhu`, `splendor`, `bang`.
+- **Backend**: repo riêng **be_game** (Vercel serverless WebSocket + Redis). Client gọi `serverBase()` = `NEXT_PUBLIC_TIENLEN_SERVER_URL` (mặc định `http://localhost:4000`). Tiến Lên dùng `/api/ws`, `/api/rooms`, `/api/leaderboard`; các game khác dùng `/api/<game>/ws|rooms|leaderboard` với `<game>` = `meono`, `typhu`, `splendor`, `bang`, `oanquan`, `cangua`.
 - **Layout**: `layout.tsx` của `/games` và mỗi game bọc trang trong `GamesShell` — thanh tab game, tên người chơi (đổi tên được), cổng chọn tên (chưa có tên thì hiện trước), `AllRoomsPanel` (cột phải ở hub/sảnh, poll `/rooms` của mọi game mỗi 10 giây) và footer gọn. `Navigation`/`Footer` của site tự ẩn trên các route này (`isGamesRoute()` trong `gamesRegistry.ts`, nơi khai báo danh sách game, route, endpoint `/rooms` và số ghế tối đa).
 - **`gameClient.ts`**: WebSocket dùng chung (`useGameRoom`, `createGameRoom`, `fetchApi`) — ack, ping 10 giây (kiêm heartbeat), reconnect có backoff và chuyển kết nối khi server báo sắp hết thời gian function. Token ghế lưu `sessionStorage` (reload giữ ghế, mỗi tab là một người chơi); tên người chơi dùng chung mọi game ở `localStorage["games:playerName"]` (`getSavedName`/`saveName`/`usePlayerName`, key cũ `tienlen:name` được migrate). Trang bàn chơi cố định tên lúc mount.
 - **Component dùng chung**: `GameLobby` (tạo/vào bàn bằng mã, danh sách bàn, xem, bảng xếp hạng, luật), `ChatBox` (chat nổi cho người chơi & khán giả), `DraggableHand` (tự xếp bài trên tay, chỉ lưu `sessionStorage`), `SettingsTabs` (tab cài đặt phòng chờ), `TurnIndicator` (`TurnRing` + `MyTurnBadge`), `RankPointsPicker` (chủ phòng chọn điểm Nhất/Nhì, các hạng còn lại đối xứng để tổng bằng 0).
-- **Bản sao luật/dữ liệu**: `src/lib/{tienlen,meono,typhu,splendor,bang}/` là bản sao từ be_game (`src/game/` cho Tiến Lên, `src/<game>/cards.ts` hoặc `board.ts` + `protocol.ts`) để kiểm tra nước đi và hiển thị ở client — sửa luật ở be_game thì phải đồng bộ lại.
+- **Bản sao luật/dữ liệu**: `src/lib/{tienlen,meono,typhu,splendor,bang,oanquan,cangua}/` là bản sao từ be_game (`src/game/` cho Tiến Lên, `src/<game>/cards.ts` hoặc `board.ts` + `protocol.ts`) để kiểm tra nước đi và hiển thị ở client — sửa luật ở be_game thì phải đồng bộ lại.
 - **Ảnh lá bài**: Đá Quý dùng ảnh WebP có sẵn trong `public/games/splendor/`. Mèo Nổ và Đấu Súng có art tùy chọn từng lá: ảnh nguồn đặt ở `art/<game>/` (gitignored) → `npm run art:meono` / `npm run art:bang` (`scripts/card-art.mjs`) → `public/games/<game>/cards/*.webp` + `src/lib/<game>/art.ts`; lá chưa có art giữ mặt vẽ bằng emoji. Prompt: `docs/MEONO_ART_PROMPTS.md`, `docs/BANG_ART_PROMPTS.md`.
 
 ---
