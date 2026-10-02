@@ -314,11 +314,8 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
   const live = useLiveReactions(view.reactions);
   const reactionsFor = (id: string): Reaction[] => live.filter((r) => r.playerId === id);
 
+  // The Kích button asks for a second tap itself (ConfirmButton) — window.confirm is blocked in some in-app browsers.
   const kick = async (s: TPSeatView) => {
-    // window.confirm returns false immediately where it's blocked; ask again rather than never kicking.
-    const asked = Date.now();
-    const ok = window.confirm(playing && s.inGame ? `Kích ${s.name}? Họ sẽ bị tính phá sản.` : `Kích ${s.name} khỏi bàn?`);
-    if (!ok && Date.now() - asked > 50) return;
     await act({ type: "kick", playerId: s.id });
   };
 
@@ -1528,9 +1525,14 @@ function PlayerRow({
           </p>
         </div>
         {onKick && (
-          <button onClick={onKick} className="rounded bg-rose-600 px-1.5 text-[11px] font-semibold text-white hover:bg-rose-500">
+          <ConfirmButton
+            onConfirm={onKick}
+            confirmLabel="Chắc chắn?"
+            title={p && !p.bankrupt ? "Kích người mất kết nối — họ bị tính phá sản" : "Mời người mất kết nối ra khỏi bàn"}
+            className="rounded bg-rose-600 px-1.5 text-[11px] font-semibold text-white hover:bg-rose-500 max-sm:min-h-8 max-sm:px-2.5"
+          >
             Kích
-          </button>
+          </ConfirmButton>
         )}
       </div>
       {owned.length > 0 && (
@@ -1636,7 +1638,7 @@ function SquareModal({
                   Thế chấp (+{money(mortgageValue(sq))})
                 </CBtn>
               )}
-              {m && m.sellLand !== "Luật bàn không cho bán đất" && deed.houses === 0 && (
+              {m && settings.sellLand && deed.houses === 0 && (
                 <ConfirmButton
                   onConfirm={() => void run({ type: "sellland", pos })}
                   disabled={busy || !!m.sellLand}
@@ -1723,7 +1725,7 @@ const SQUARE_TEXT: Partial<Record<Square["kind"], (sq: Square) => string>> = {
   chance: () => "Rút một thẻ Cơ hội: có thể được tiền, phải di chuyển, hoặc vào tù.",
   chest: () => "Rút một thẻ Khí vận: phần lớn là tiền thưởng, đôi khi phải chi.",
   tax: (sq) => `Nộp ${money((sq as Extract<Square, { kind: "tax" }>).amount)} cho ngân hàng.`,
-  jail: () => "Chỉ ghé thăm thì không sao. Ở tù: mỗi lượt tung đôi để ra, hoặc nộp 50tr / dùng thẻ ra tù. Sau 3 lượt phải nộp phạt.",
+  jail: () => `Chỉ ghé thăm thì không sao. Ở tù: mỗi lượt tung đôi để ra, hoặc nộp ${money(JAIL_FINE)} / dùng thẻ ra tù. Sau 3 lượt phải nộp phạt.`,
   parking: () => "Nghỉ chân uống ly cà phê — không có gì xảy ra.",
   gotojail: () => "Đi thẳng vào tù, không qua Khởi hành.",
 };
@@ -2209,9 +2211,9 @@ export function TyPhuRules() {
       <li>Phá sản: tiền còn lại về tay chủ nợ; đất trả về ngân hàng để người khác mua như bình thường (hoặc về tay chủ nợ, tuỳ luật bàn).</li>
       <li>Sân bay: càng nhiều sân bay càng thu nhiều (25 → 200tr). Điện / nước: tổng xúc xắc × 4, có cả hai thì × 10.</li>
       <li>Thiếu tiền: bán nhà (được nửa giá) hoặc thế chấp đất (nhận 50% giá, chuộc lại phải trả thêm 10% — chủ bàn chỉnh được). Không xoay nổi thì phá sản.</li>
-      <li>Ở tù: tung đôi để ra, hoặc nộp 50tr / dùng thẻ ra tù trước khi tung. Sau 3 lượt thì phải nộp phạt.</li>
+      <li>Ở tù: tung đôi để ra, hoặc nộp {money(JAIL_FINE)} / dùng thẻ ra tù trước khi tung. Sau 3 lượt thì phải nộp phạt.</li>
       <li>Đổi đất với nhau bất cứ lúc nào (kèm tiền nếu muốn); đất có nhà đổi được, nhà đi theo đất. Người còn lại cuối cùng — hoặc giàu nhất khi hết giờ — thắng.</li>
-      <li>Mỗi bước có 30 giây; hết giờ hoặc mất kết nối thì máy tự đi (không mua gì).</li>
+      <li>Mỗi bước có thời gian chủ bàn chọn (mặc định 30 giây); hết giờ hoặc mất kết nối thì máy tự đi (không mua gì).</li>
     </ul>
   );
 }
