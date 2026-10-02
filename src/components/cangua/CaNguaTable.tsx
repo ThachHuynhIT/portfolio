@@ -1,5 +1,6 @@
 "use client";
 
+import { SeatAvatar } from "@/components/games/PlayerAvatar";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -372,6 +373,7 @@ function PlayerRow({
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1 truncate text-sm font-semibold">
           {seat?.isHost && <span title="Chủ bàn">👑</span>}
+          <SeatAvatar name={name} className="grid size-5 shrink-0 place-items-center rounded-full text-[11px]" fallbackClassName="bg-white/15 font-bold" />
           <span className="truncate">{name}</span>
           {self && <span className="text-xs font-normal text-white/60">(bạn)</span>}
           {rank >= 0 && <span className="ml-1 rounded bg-amber-400 px-1 text-[10px] font-black text-black">#{rank + 1} về đích</span>}

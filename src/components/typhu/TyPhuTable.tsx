@@ -1,5 +1,6 @@
 "use client";
 
+import { SeatAvatar } from "@/components/games/PlayerAvatar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
@@ -1292,7 +1293,7 @@ function AssetPanel({
                         Chuộc −{money(unmortCost)} {fee > 0 && <span className="font-normal opacity-70">(+{fee}%)</span>}
                       </button>
                     )}
-                    {sellLandOn && m && d.houses === 0 && !d.mortgaged && (
+                    {sellLandOn && m && d.houses === 0 && (
                       <ConfirmButton
                         onConfirm={() => void run({ type: "sellland", pos })}
                         disabled={busy || !!m.sellLand}
@@ -1313,7 +1314,7 @@ function AssetPanel({
       </div>
       <p className="mt-2 text-[10px] text-sky-100/45">
         Bán nhà được nửa giá căn đó. Thế chấp nhận 50% giá đất{fee > 0 ? `, chuộc lại phải trả thêm ${fee}%` : ", chuộc lại đúng giá đó"}.
-        {sellLandOn ? ` Bán đất được ${settings.landSalePct ?? 70}% giá${(settings.landSalePct ?? 70) > 50 ? " (hơn thế chấp)" : ""} nhưng mất đất — đất về chợ cho người khác mua.` : ""}
+        {sellLandOn ? ` Bán đất được ${settings.landSalePct ?? 70}% giá${(settings.landSalePct ?? 70) > 50 ? " (hơn thế chấp)" : ""} nhưng mất đất — đất về chợ cho người khác mua. Đất đang thế chấp vẫn bán được, chỉ nhận phần chênh.` : ""}
       </p>
     </section>
   );
@@ -1471,6 +1472,7 @@ function PlayerRow({
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1 truncate text-sm font-semibold">
             {seat.isHost && <span title="Chủ bàn">👑</span>}
+            <SeatAvatar name={seat.name} className="grid size-5 shrink-0 place-items-center rounded-full text-[11px]" fallbackClassName="bg-white/15 font-bold" />
             <span className="truncate">{seat.name}</span>
             {self && <span className="text-xs font-normal text-white/60">(bạn)</span>}
           </p>
