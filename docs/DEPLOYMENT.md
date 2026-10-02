@@ -7,7 +7,7 @@ Tài liệu này hướng dẫn cách build, kiểm thử và deploy ứng dụn
 ## 1. Yêu Cầu Môi Trường (System Requirements)
 
 - **Node.js**: Phiên bản `>= 18.17.0` (Khuyến nghị sử dụng LTS Node 20+).
-- **Package Manager**: `npm` (hoặc `pnpm`, `yarn`, `bun`). Lưu ý: `package-lock.json` đang bị `.gitignore` nên clone mới không có lockfile — dùng `npm install` thay cho `npm ci`.
+- **Package Manager**: `npm` (hoặc `pnpm`, `yarn`, `bun`). `package-lock.json` được commit — dùng `npm ci` để cài đúng phiên bản.
 - **PostgreSQL** (VD: Neon) — mọi trang nội dung đọc từ DB, kể cả lúc build.
 - **Biến môi trường**: xem [`.env.example`](../.env.example) (`DATABASE_URL`, `AUTH_SECRET`, `ADMIN_PASSWORD`, `CLOUDINARY_*`, `RESEND_API_KEY`, `CONTACT_NOTIFICATION_EMAIL`, `NEXT_PUBLIC_TIENLEN_SERVER_URL`). `npm install` tự chạy `prisma generate` (postinstall).
 
@@ -80,7 +80,7 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# package-lock.json đang bị gitignore: dùng npm ci nếu có lockfile, không thì npm install.
+# package-lock.json được commit: npm ci cài đúng phiên bản.
 # postinstall chạy `prisma generate`, nên cần schema + prisma.config.ts ở bước này.
 COPY package.json package-lock.json* prisma.config.ts ./
 COPY prisma ./prisma
