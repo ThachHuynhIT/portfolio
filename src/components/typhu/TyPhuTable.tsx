@@ -7,7 +7,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
 import { GameHeader, HeaderLabel, headerBtn } from "@/components/games/GameHeader";
-import { useGameRoom } from "@/components/games/gameClient";
+import { useGameRoom, useRoomLooks } from "@/components/games/gameClient";
 import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
 import {
@@ -232,7 +232,15 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
   const seatOf = (id: string) => view.seats.find((s) => s?.id === id) ?? null;
   const nameOf = (id: string) =>
     seatOf(id)?.name ?? view.history.flatMap((h) => h.results).find((r) => r.id === id)?.name ?? "?";
-  const tokenOf = (id: string) => TOKENS[(seatOf(id)?.color ?? g?.players.findIndex((p) => p.id === id) ?? 0) % TOKENS.length];
+  const looks = useRoomLooks();
+  const baseTokenOf = (id: string) => TOKENS[(seatOf(id)?.color ?? g?.players.findIndex((p) => p.id === id) ?? 0) % TOKENS.length];
+  /** A player who picked an icon plays with it (on their colour); two players with the same icon: the first keeps it. */
+  const tokenOf = (id: string) => {
+    const look = looks[seatOf(id)?.name ?? ""];
+    if (!look?.icon) return baseTokenOf(id);
+    const taken = view.seats.some((s) => s && s.id !== id && looks[s.name]?.icon === look.icon && view.seats.findIndex((x) => x?.id === s.id) < view.seats.findIndex((x) => x?.id === id));
+    return taken ? baseTokenOf(id) : { emoji: look.icon, color: look.color };
+  };
 
   const shownPos = useWalkingTokens(g);
   const [openSquare, setOpenSquare] = useState<number | null>(null);
@@ -472,7 +480,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
                       p={p ?? null}
                       g={g}
                       self={s.id === view.meId}
-                      token={TOKENS[s.color % TOKENS.length]}
+                      token={tokenOf(s.id)}
                       isTurn={g?.turn === s.id && playing}
                       reactions={reactionsFor(s.id)}
                       onOpen={setOpenSquare}

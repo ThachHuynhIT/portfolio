@@ -385,3 +385,16 @@ export function useLookOf(name: string): PlayerProfile | null {
     () => null,
   );
 }
+
+/** Looks of everyone at the current table by name; re-renders when a state view changes them. */
+export function useRoomLooks(): Record<string, PlayerProfile> {
+  return useSyncExternalStore(
+    (l) => {
+      roomLookListeners.add(l);
+      return () => void roomLookListeners.delete(l);
+    },
+    () => roomLooks,
+    () => EMPTY_LOOKS,
+  );
+}
+const EMPTY_LOOKS: Record<string, PlayerProfile> = {};
