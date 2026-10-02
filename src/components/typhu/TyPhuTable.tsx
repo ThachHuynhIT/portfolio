@@ -7,7 +7,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
 import { GameHeader, HeaderLabel, headerBtn } from "@/components/games/GameHeader";
-import { useGameRoom, useRoomLooks } from "@/components/games/gameClient";
+import { useGameRoom } from "@/components/games/gameClient";
 import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
 import {
@@ -36,7 +36,7 @@ import {
 } from "@/lib/typhu/board";
 import { SettingsTabs } from "@/components/games/SettingsTabs";
 import { RankPointsPicker } from "@/components/games/RankPointsPicker";
-import { STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TPSettings, type TradeSide } from "@/lib/typhu/protocol";
+import { PIECE_COLORS, PIECE_EMOJIS, STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TPSettings, type TradeSide } from "@/lib/typhu/protocol";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { MyTurnBadge, TurnRing } from "@/components/games/TurnIndicator";
@@ -232,18 +232,11 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
   const seatOf = (id: string) => view.seats.find((s) => s?.id === id) ?? null;
   const nameOf = (id: string) =>
     seatOf(id)?.name ?? view.history.flatMap((h) => h.results).find((r) => r.id === id)?.name ?? "?";
-  const looks = useRoomLooks();
-  const baseTokenOf = (id: string) => TOKENS[(seatOf(id)?.color ?? g?.players.findIndex((p) => p.id === id) ?? 0) % TOKENS.length];
-  /** A player who picked an icon plays with it (on their colour); two players with the same icon: the first keeps it. */
-  const tokenOf = (id: string) => {
-    const look = looks[seatOf(id)?.name ?? ""];
-    if (!look?.icon) return baseTokenOf(id);
-    const taken = view.seats.some((s) => s && s.id !== id && looks[s.name]?.icon === look.icon && view.seats.findIndex((x) => x?.id === s.id) < view.seats.findIndex((x) => x?.id === id));
-    return taken ? baseTokenOf(id) : { emoji: look.icon, color: look.color };
-  };
+  const tokenOf = (id: string) => seatOf(id)?.piece ?? TOKENS[(g?.players.findIndex((p) => p.id === id) ?? 0) % TOKENS.length];
 
   const shownPos = useWalkingTokens(g);
   const [openSquare, setOpenSquare] = useState<number | null>(null);
+  const [picking, setPicking] = useState(false);
   const [showTrade, setShowTrade] = useState(false);
   const [showScores, setShowScores] = useState(false);
   const [showRules, setShowRules] = useState(false);
@@ -484,6 +477,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
                       isTurn={g?.turn === s.id && playing}
                       reactions={reactionsFor(s.id)}
                       onOpen={setOpenSquare}
+                      onPick={s.id === view.meId ? () => setPicking(true) : undefined}
                       onKick={me?.isHost && !s.connected && !s.kicked ? () => void kick(s) : undefined}
                     />
                   );
@@ -553,6 +547,8 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
           </motion.div>
         )}
       </AnimatePresence>
+
+      {picking && me && <PiecePicker seats={view.seats} meId={view.meId} act={act} onClose={() => setPicking(false)} />}
 
       {openSquare !== null && (
         <SquareModal
@@ -1452,6 +1448,7 @@ function PlayerRow({
   isTurn,
   reactions,
   onOpen,
+  onPick,
   onKick,
 }: {
   seat: TPSeatView;
@@ -1462,6 +1459,8 @@ function PlayerRow({
   isTurn: boolean;
   reactions: Reaction[];
   onOpen: (pos: number) => void;
+  /** Own row only: opens the token picker. */
+  onPick?: () => void;
   onKick?: () => void;
 }) {
   const owned = g ? Object.entries(g.deeds).filter(([, d]) => d.owner === seat.id).map(([pos]) => Number(pos)) : [];
@@ -1470,12 +1469,20 @@ function PlayerRow({
       <div className="flex items-center gap-2">
         <span className="relative">
           <SeatBubble reactions={reactions} />
-          <span
-            className={cn("flex h-9 w-9 items-center justify-center rounded-full border-2 border-white text-lg", (!seat.connected || seat.kicked) && "grayscale")}
+          <button
+            type="button"
+            disabled={!onPick}
+            onClick={onPick}
+            title={onPick ? "Đổi quân cờ & màu" : undefined}
+            className={cn(
+              "flex h-9 w-9 items-center justify-center rounded-full border-2 border-white text-lg",
+              (!seat.connected || seat.kicked) && "grayscale",
+              onPick && "cursor-pointer ring-amber-300 hover:ring-2 max-sm:min-h-9",
+            )}
             style={{ background: token.color }}
           >
             {token.emoji}
-          </span>
+          </button>
         </span>
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1 truncate text-sm font-semibold">
@@ -2239,6 +2246,73 @@ function Modal({ children, onClose, dark }: { children: React.ReactNode; onClose
         >
           Đóng
         </button>
+      </div>
+    </div>
+  );
+}
+
+/** Pick my token's emoji and colour (also the colour of my houses). Ones another player holds are greyed out. */
+function PiecePicker({ seats, meId, act, onClose }: { seats: (TPSeatView | null)[]; meId: string; act: Act; onClose: () => void }) {
+  const me = seats.find((s) => s?.id === meId);
+  const others = seats.filter((s): s is TPSeatView => !!s && s.id !== meId);
+  const emojiTaken = (e: string) => others.some((o) => o.piece.emoji === e);
+  const colorTaken = (c: string) => others.some((o) => o.piece.color === c);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  if (!me) return null;
+  const choose = (emoji: string, color: string) => void act({ type: "pick", emoji, color });
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" onClick={onClose} role="presentation">
+      <div role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} className="w-full max-w-sm rounded-2xl border border-white/15 bg-[#111013] p-5 text-white shadow-2xl">
+        <h2 className="mb-1 text-lg font-bold text-amber-300">Quân cờ &amp; màu nhà</h2>
+        <p className="mb-3 text-xs text-white/55">Không trùng với người chơi khác — ô mờ là đã có người dùng.</p>
+        <div className="mb-3 flex items-center gap-3">
+          <span className="grid size-12 place-items-center rounded-full border-2 border-white text-2xl" style={{ background: me.piece.color }}>
+            {me.piece.emoji}
+          </span>
+          <span className="text-sm text-white/70">Quân của bạn</span>
+        </div>
+        <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Quân cờ">
+          {PIECE_EMOJIS.map((e) => (
+            <button
+              key={e}
+              type="button"
+              role="radio"
+              aria-checked={me.piece.emoji === e}
+              disabled={emojiTaken(e)}
+              onClick={() => choose(e, me.piece.color)}
+              className={cn("grid size-10 place-items-center rounded-lg border text-xl disabled:cursor-not-allowed disabled:opacity-25", me.piece.emoji === e ? "border-amber-300 bg-amber-400/20" : "border-white/15 hover:bg-white/10")}
+            >
+              {e}
+            </button>
+          ))}
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Màu">
+          {PIECE_COLORS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              role="radio"
+              aria-checked={me.piece.color === c}
+              aria-label={c}
+              disabled={colorTaken(c)}
+              onClick={() => choose(me.piece.emoji, c)}
+              className={cn("size-8 rounded-full border-2 disabled:cursor-not-allowed disabled:opacity-25", me.piece.color === c ? "border-white" : "border-transparent")}
+              style={{ backgroundColor: c }}
+            />
+          ))}
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button type="button" onClick={onClose} className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-black hover:bg-amber-300">
+            Xong
+          </button>
+        </div>
       </div>
     </div>
   );
