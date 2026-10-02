@@ -528,7 +528,7 @@ export function CaNguaRules({ settings }: { settings?: CNRoomView["settings"] })
       </li>
       <li>Không có nước đi thì tự mất lượt. Hết giờ thì máy tự gieo và đi giúp (ưu tiên đá ngựa, rồi lên chuồng, rồi ngựa đi xa nhất).</li>
       <li>
-        Ai đưa đủ 4 ngựa lên chuồng trước thắng. {on(settings?.rankAll, "Chơi tiếp đến khi xếp hạng hết mọi người", "Ván kết thúc ngay khi có người về đích; những người còn lại xếp theo quãng đường đã đi")}.
+        Ai đưa đủ 4 ngựa lên 4 bậc trên cùng của chuồng (bậc 3–6) trước thắng. {on(settings?.rankAll, "Chơi tiếp đến khi xếp hạng hết mọi người", "Ván kết thúc ngay khi có người về đích; những người còn lại xếp theo quãng đường đã đi")}.
       </li>
     </ul>
   );
