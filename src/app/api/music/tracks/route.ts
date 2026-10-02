@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireAdminSession } from "@/lib/admin-auth";
 
 // GET /api/music/tracks — public, fetch all published tracks
 export async function GET() {
@@ -17,6 +18,8 @@ export async function GET() {
 
 // POST /api/music/tracks — admin only, add new track
 export async function POST(req: NextRequest) {
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const body = await req.json();
     const { title, artist, album, duration, audioUrl, thumbnailUrl, genre, order, published } = body;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- one-time migration script over untyped legacy JSON */
 /**
  * One-time migration: content/data/*.json + content/blog/*.mdx -> Postgres (Cms* tables).
  *

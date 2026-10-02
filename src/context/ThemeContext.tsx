@@ -9,7 +9,7 @@ import React, {
   ReactNode,
 } from "react";
 import { usePathname } from "next/navigation";
-import { EXCLUDED_ROUTE_PREFIXES } from "@/lib/constants";
+import { isExcludedRoute } from "@/lib/constants";
 
 export type Theme = "light" | "dark";
 
@@ -27,10 +27,6 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const STORAGE_KEY = "portfolio_theme";
 
-function isExcludedRoute(pathname: string | null): boolean {
-  if (!pathname) return false;
-  return EXCLUDED_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-}
 
 // KEEP IN SYNC WITH the inline blocking script in src/app/layout.tsx —
 // both must resolve the same theme from the same inputs to avoid a

@@ -62,6 +62,14 @@
         "href": "/photography",
         "published": true,
         "order": 1
+      },
+      {
+        "id": "nav-games",
+        "label": "Games",
+        "label_vi": "Trò chơi",
+        "href": "/games",
+        "published": true,
+        "order": 2
       }
     ]
   },

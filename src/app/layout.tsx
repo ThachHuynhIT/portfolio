@@ -10,6 +10,7 @@ import { getPublishedNavLinks } from "@/lib/content/nav-links";
 import { getPublishedSocialLinks } from "@/lib/content/social-links";
 import { getPublishedSiteConfig } from "@/lib/content/site-config";
 import { buildMetadata } from "@/lib/seo";
+import { EXCLUDED_ROUTE_PREFIXES } from "@/lib/constants";
 
 // Floating overlay with no SSR value — mounted on every route, so keep it
 // out of the initial/shared bundle.
@@ -78,9 +79,9 @@ import GlobalBackground from "@/components/layout/GlobalBackground";
 // src/context/ThemeContext.tsx — runs before hydration to set data-theme
 // on <html> pre-paint, avoiding a flash of the wrong theme.
 const THEME_INIT_SCRIPT = `(function(){try{
-  var excluded=["/admin","/contra","/couple","/music"];
+  var excluded=${JSON.stringify(EXCLUDED_ROUTE_PREFIXES)};
   var path=window.location.pathname;
-  if(excluded.some(function(p){return path.indexOf(p)===0})){
+  if(excluded.some(function(p){return path===p||path.indexOf(p+"/")===0})){
     document.documentElement.setAttribute("data-theme","dark");
     return;
   }
