@@ -524,7 +524,7 @@ Luật và protocol: `be_game/docs/games/tienlen.md`.
 |---|---|
 | `tienlen/TienLenTable.tsx` | Default `TienLenTable`. `Table` là toàn bộ bàn. `sortHand` sắp theo `"rank"` hoặc `"suit"`. `useCountdown(deadline)` tick 250 ms. Các phần còn lại: `ActionButton` (`primary`/`big`); **`TurnRing({deadline})` nội bộ** (vòng conic đếm ngược quanh avatar, khác với `TurnRing` dùng chung, vốn được import với tên `MyTurnRing`); `Avatar`; `StatusTags` (👑, hạng, 🔥 Cháy, Bỏ lượt, Kích…); `Opponent` (ghế đối thủ, có biến thể `vertical`); `SeatBadge` (ghế của mình); `WaitingPanel`; `SettingsPanel`; `scoreNote(settings)`. |
 | `tienlen/PlayingCard.tsx` | `PlayingCard({card, selected?, onClick?, size?: "sm"\|"md", className?, style?})` và `CardBack`. Độ rộng lấy từ CSS var `--cw`, `--cw-sm`, `--cw-back`. Thẻ được chọn nhô lên `-translate-y-[28%]`. |
-| `tienlen/MoveHistory.tsx` | `MoveHistory({moves,nameOf,meId,onClose})`: một `Sheet` "📜 Lịch sử ván này", gom nước đi theo vòng, tự cuộn xuống cuối. Nút 📜 chỉ hiện khi server gửi `game.moves`. |
+| `tienlen/MoveHistory.tsx` | `MoveHistory({moves,nameOf,meId,onClose})`: một `Sheet` "📜 Lịch sử ván này", gom nước đi theo vòng, tự cuộn xuống cuối. Nút 📜 hiện khi server gửi `game.moves` (be_game ghi ở `GameState.moves`). |
 | `tienlen/useTienLen.ts` | `useTienLenRoom(code, name, mode)` bọc `useGameRoom(WS_PATH, …, localizeView)` và trả về các hàm `play`, `pass`, `start`, `sendEmoji`, `kick`, `sendChat`, `setSettings`. Cũng có `inviteLink(code)`. Các re-export `createRoom`, `fetchApi`… trong file không còn ai dùng. |
 | `tienlen/Effects.tsx`, `Scoreboard.tsx`, `Sheet.tsx` | Xem §3.9 |
 

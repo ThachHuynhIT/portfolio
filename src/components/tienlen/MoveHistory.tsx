@@ -60,7 +60,7 @@ export function MoveHistory({ moves, nameOf, meId, onClose }: { moves: TLMove[];
                             {m.chop && <span className="font-black text-rose-400">CHẶT!{m.chopPoints ? ` +${m.chopPoints}đ` : ""}</span>}
                           </>
                         )}
-                        {m.kind === "pass" && <span className="text-emerald-100/60">bỏ lượt{m.auto && " (tự bỏ — không chặn được)"}</span>}
+                        {m.kind === "pass" && <span className="text-emerald-100/60">bỏ lượt{m.auto && " (máy bỏ hộ: hết giờ hoặc không chặn được)"}</span>}
                         {m.kind === "out" && <span className="font-semibold text-amber-300">🏁 về {rankTitle(m.rank ?? 0, Infinity)}</span>}
                         {m.kind === "burned" && <span className="font-semibold text-orange-400">🔥 chết cháy</span>}
                         {m.kind === "forfeit" && <span className="text-rose-300">bị kích khỏi ván</span>}
