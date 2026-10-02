@@ -1,5 +1,6 @@
 "use client";
 
+import { SeatAvatar } from "@/components/games/PlayerAvatar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
@@ -35,7 +36,7 @@ import {
 } from "@/lib/typhu/board";
 import { SettingsTabs } from "@/components/games/SettingsTabs";
 import { RankPointsPicker } from "@/components/games/RankPointsPicker";
-import { STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TPSettings, type TradeSide } from "@/lib/typhu/protocol";
+import { PIECE_COLORS, PIECE_EMOJIS, STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TPSettings, type TradeSide } from "@/lib/typhu/protocol";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { MyTurnBadge, TurnRing } from "@/components/games/TurnIndicator";
@@ -43,6 +44,9 @@ import { ConfirmButton } from "@/components/games/ConfirmButton";
 
 const SCORE_NOTE =
   "Điểm theo thứ hạng: người còn trụ lại (hoặc giàu nhất khi hết giờ) Nhất, ai phá sản trước xếp sau. Chủ bàn chọn điểm Nhất / Nhì, các hạng cuối trừ tương ứng, tổng mỗi ván luôn bằng 0.";
+
+/** A seat's token. A server from before token picking sends no `piece`: fall back to the starting token of the seat. */
+export const pieceOfSeat = (seat: TPSeatView) => seat.piece ?? TOKENS[seat.color % TOKENS.length];
 
 export const TOKENS = [
   { emoji: "🛵", color: "#ef4444" },
@@ -231,10 +235,14 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
   const seatOf = (id: string) => view.seats.find((s) => s?.id === id) ?? null;
   const nameOf = (id: string) =>
     seatOf(id)?.name ?? view.history.flatMap((h) => h.results).find((r) => r.id === id)?.name ?? "?";
-  const tokenOf = (id: string) => TOKENS[(seatOf(id)?.color ?? g?.players.findIndex((p) => p.id === id) ?? 0) % TOKENS.length];
+  const tokenOf = (id: string) => {
+    const seat = seatOf(id);
+    return seat ? pieceOfSeat(seat) : TOKENS[(g?.players.findIndex((p) => p.id === id) ?? 0) % TOKENS.length];
+  };
 
   const shownPos = useWalkingTokens(g);
   const [openSquare, setOpenSquare] = useState<number | null>(null);
+  const [picking, setPicking] = useState(false);
   const [showTrade, setShowTrade] = useState(false);
   const [showScores, setShowScores] = useState(false);
   const [showRules, setShowRules] = useState(false);
@@ -471,10 +479,11 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
                       p={p ?? null}
                       g={g}
                       self={s.id === view.meId}
-                      token={TOKENS[s.color % TOKENS.length]}
+                      token={tokenOf(s.id)}
                       isTurn={g?.turn === s.id && playing}
                       reactions={reactionsFor(s.id)}
                       onOpen={setOpenSquare}
+                      onPick={s.id === view.meId ? () => setPicking(true) : undefined}
                       onKick={me?.isHost && !s.connected && !s.kicked ? () => void kick(s) : undefined}
                     />
                   );
@@ -544,6 +553,8 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
           </motion.div>
         )}
       </AnimatePresence>
+
+      {picking && me && <PiecePicker seats={view.seats} meId={view.meId} act={act} onClose={() => setPicking(false)} />}
 
       {openSquare !== null && (
         <SquareModal
@@ -929,7 +940,7 @@ function buildableGroups(g: TPGameView, id: string, needGroup: boolean): Group[]
 const buildRuleText = (st: TPSettings) =>
   (st.buildRule === "chain"
     ? "Xây theo chuỗi: nhà 2 / nhà 3 cần 2 ô trong nhóm có nhà 1 / nhà 2, nhà 4 cần cả nhóm 3 nhà, khách sạn cần cả nhóm 4 nhà."
-    : "Xây đều từng ô trong nhóm; 4 nhà rồi lên khách sạn.") + (st.needGroup === false ? " Không cần đủ nhóm màu." : "");
+    : "Xây đều từng ô trong nhóm; 4 nhà rồi lên khách sạn.") + (st.needGroup === false ? " Không cần đủ nhóm màu, nhưng chưa đủ nhóm thì tối đa 3 nhà (nhà 4 / khách sạn cần đủ nhóm)." : "");
 
 /** Build on every group you can build in, without hunting for the squares on the board. Selling / mortgaging lives in AssetPanel. */
 function BuildPanel({
@@ -1292,7 +1303,7 @@ function AssetPanel({
                         Chuộc −{money(unmortCost)} {fee > 0 && <span className="font-normal opacity-70">(+{fee}%)</span>}
                       </button>
                     )}
-                    {sellLandOn && m && d.houses === 0 && !d.mortgaged && (
+                    {sellLandOn && m && d.houses === 0 && (
                       <ConfirmButton
                         onConfirm={() => void run({ type: "sellland", pos })}
                         disabled={busy || !!m.sellLand}
@@ -1313,7 +1324,7 @@ function AssetPanel({
       </div>
       <p className="mt-2 text-[10px] text-sky-100/45">
         Bán nhà được nửa giá căn đó. Thế chấp nhận 50% giá đất{fee > 0 ? `, chuộc lại phải trả thêm ${fee}%` : ", chuộc lại đúng giá đó"}.
-        {sellLandOn ? ` Bán đất được ${settings.landSalePct ?? 70}% giá${(settings.landSalePct ?? 70) > 50 ? " (hơn thế chấp)" : ""} nhưng mất đất — đất về chợ cho người khác mua.` : ""}
+        {sellLandOn ? ` Bán đất được ${settings.landSalePct ?? 70}% giá${(settings.landSalePct ?? 70) > 50 ? " (hơn thế chấp)" : ""} nhưng mất đất — đất về chợ cho người khác mua. Đất đang thế chấp vẫn bán được, chỉ nhận phần chênh.` : ""}
       </p>
     </section>
   );
@@ -1443,6 +1454,7 @@ function PlayerRow({
   isTurn,
   reactions,
   onOpen,
+  onPick,
   onKick,
 }: {
   seat: TPSeatView;
@@ -1453,6 +1465,8 @@ function PlayerRow({
   isTurn: boolean;
   reactions: Reaction[];
   onOpen: (pos: number) => void;
+  /** Own row only: opens the token picker. */
+  onPick?: () => void;
   onKick?: () => void;
 }) {
   const owned = g ? Object.entries(g.deeds).filter(([, d]) => d.owner === seat.id).map(([pos]) => Number(pos)) : [];
@@ -1461,16 +1475,25 @@ function PlayerRow({
       <div className="flex items-center gap-2">
         <span className="relative">
           <SeatBubble reactions={reactions} />
-          <span
-            className={cn("flex h-9 w-9 items-center justify-center rounded-full border-2 border-white text-lg", (!seat.connected || seat.kicked) && "grayscale")}
+          <button
+            type="button"
+            disabled={!onPick}
+            onClick={onPick}
+            title={onPick ? "Đổi quân cờ & màu" : undefined}
+            className={cn(
+              "flex h-9 w-9 items-center justify-center rounded-full border-2 border-white text-lg",
+              (!seat.connected || seat.kicked) && "grayscale",
+              onPick && "cursor-pointer ring-amber-300 hover:ring-2 max-sm:min-h-9",
+            )}
             style={{ background: token.color }}
           >
             {token.emoji}
-          </span>
+          </button>
         </span>
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1 truncate text-sm font-semibold">
             {seat.isHost && <span title="Chủ bàn">👑</span>}
+            <SeatAvatar name={seat.name} className="grid size-5 shrink-0 place-items-center rounded-full text-[11px]" fallbackClassName="bg-white/15 font-bold" />
             <span className="truncate">{seat.name}</span>
             {self && <span className="text-xs font-normal text-white/60">(bạn)</span>}
           </p>
@@ -2229,6 +2252,74 @@ function Modal({ children, onClose, dark }: { children: React.ReactNode; onClose
         >
           Đóng
         </button>
+      </div>
+    </div>
+  );
+}
+
+/** Pick my token's emoji and colour (also the colour of my houses). Ones another player holds are greyed out. */
+function PiecePicker({ seats, meId, act, onClose }: { seats: (TPSeatView | null)[]; meId: string; act: Act; onClose: () => void }) {
+  const me = seats.find((s) => s?.id === meId);
+  const others = seats.filter((s): s is TPSeatView => !!s && s.id !== meId);
+  const emojiTaken = (e: string) => others.some((o) => pieceOfSeat(o).emoji === e);
+  const colorTaken = (c: string) => others.some((o) => pieceOfSeat(o).color === c);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  if (!me) return null;
+  const mine = pieceOfSeat(me);
+  const choose = (emoji: string, color: string) => void act({ type: "pick", emoji, color });
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" onClick={onClose} role="presentation">
+      <div role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} className="w-full max-w-sm rounded-2xl border border-white/15 bg-[#111013] p-5 text-white shadow-2xl">
+        <h2 className="mb-1 text-lg font-bold text-amber-300">Quân cờ &amp; màu nhà</h2>
+        <p className="mb-3 text-xs text-white/55">Không trùng với người chơi khác — ô mờ là đã có người dùng.</p>
+        <div className="mb-3 flex items-center gap-3">
+          <span className="grid size-12 place-items-center rounded-full border-2 border-white text-2xl" style={{ background: mine.color }}>
+            {mine.emoji}
+          </span>
+          <span className="text-sm text-white/70">Quân của bạn</span>
+        </div>
+        <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Quân cờ">
+          {PIECE_EMOJIS.map((e) => (
+            <button
+              key={e}
+              type="button"
+              role="radio"
+              aria-checked={mine.emoji === e}
+              disabled={emojiTaken(e)}
+              onClick={() => choose(e, mine.color)}
+              className={cn("grid size-10 place-items-center rounded-lg border text-xl disabled:cursor-not-allowed disabled:opacity-25", mine.emoji === e ? "border-amber-300 bg-amber-400/20" : "border-white/15 hover:bg-white/10")}
+            >
+              {e}
+            </button>
+          ))}
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Màu">
+          {PIECE_COLORS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              role="radio"
+              aria-checked={mine.color === c}
+              aria-label={c}
+              disabled={colorTaken(c)}
+              onClick={() => choose(mine.emoji, c)}
+              className={cn("size-8 rounded-full border-2 disabled:cursor-not-allowed disabled:opacity-25", mine.color === c ? "border-white" : "border-transparent")}
+              style={{ backgroundColor: c }}
+            />
+          ))}
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button type="button" onClick={onClose} className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-black hover:bg-amber-300">
+            Xong
+          </button>
+        </div>
       </div>
     </div>
   );

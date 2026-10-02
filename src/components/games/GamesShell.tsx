@@ -7,7 +7,8 @@ import { MAX_NAME_LENGTH } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { AllRoomsPanel } from "./AllRoomsPanel";
 import { FullscreenButton, GAME_HEADER_SLOT_ID } from "./GameHeader";
-import { saveName, usePlayerName } from "./gameClient";
+import { getSavedProfile, saveName, saveProfile, usePlayerName, usePlayerProfile, type PlayerProfile } from "./gameClient";
+import { PlayerAvatar, ProfilePicker } from "./PlayerAvatar";
 import { ONLINE_GAMES, gameOfPath, gamesPageKind } from "./gamesRegistry";
 
 interface GamesShellContext {
@@ -69,6 +70,7 @@ export function GamesShell({ children }: { children: React.ReactNode }) {
 function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: string | null; onRename: () => void }) {
   const pathname = usePathname();
   const active = gameOfPath(pathname);
+  const profile = usePlayerProfile();
 
   return (
     <header
@@ -132,9 +134,7 @@ function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: stri
               compact ? "py-0.5 text-xs" : "py-1 text-sm",
             )}
           >
-            <span className={cn("grid shrink-0 place-items-center rounded-full bg-amber-400 font-bold text-black", compact ? "size-5 text-[10px]" : "size-6 text-xs")} aria-hidden>
-              {name.charAt(0).toUpperCase()}
-            </span>
+            <PlayerAvatar name={name} profile={profile} className={compact ? "size-5 text-[10px]" : "size-6 text-xs"} />
             {/* Tables: the name only on wide screens, the table header needs the room. */}
             <span className={cn("max-w-[10rem] truncate font-medium max-sm:hidden", compact && "hidden xl:inline")}>{name}</span>
             <span className={cn("text-white/50 max-sm:hidden", compact && "hidden xl:inline")} aria-hidden>
@@ -200,13 +200,16 @@ function NameInput({ value, onChange, autoFocus }: { value: string; onChange: (v
 /** First stop of the games section: pick the name used at every table. */
 function NameGate() {
   const [value, setValue] = useState("");
+  const [profile, setProfile] = useState<PlayerProfile>(getSavedProfile);
   const trimmed = value.trim();
   return (
     <main className="flex min-h-[calc(100dvh-3rem)] items-center justify-center px-4 py-10">
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (trimmed) saveName(trimmed);
+          if (!trimmed) return;
+          saveProfile(profile);
+          saveName(trimmed);
         }}
         className="w-full max-w-sm rounded-3xl border border-white/10 bg-black/45 p-6 text-white shadow-2xl backdrop-blur-xl sm:p-8"
       >
@@ -219,6 +222,7 @@ function NameGate() {
           Tên của bạn
         </label>
         <NameInput value={value} onChange={setValue} autoFocus />
+        <ProfilePicker name={trimmed} value={profile} onChange={setProfile} />
         <button
           type="submit"
           disabled={!trimmed}
@@ -238,7 +242,10 @@ function NameGate() {
 
 function RenameDialog({ current, inTable, onClose }: { current: string; inTable: boolean; onClose: () => void }) {
   const [value, setValue] = useState(current);
+  const saved = usePlayerProfile();
+  const [profile, setProfile] = useState<PlayerProfile>(saved);
   const trimmed = value.trim();
+  const changed = trimmed !== current || profile.icon !== saved.icon || profile.color !== saved.color;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -256,23 +263,25 @@ function RenameDialog({ current, inTable, onClose }: { current: string; inTable:
         onSubmit={(e) => {
           e.preventDefault();
           if (!trimmed) return;
+          saveProfile(profile);
           saveName(trimmed);
           onClose();
         }}
         className="w-full max-w-sm rounded-2xl border border-white/15 bg-[#111013] p-5 text-white shadow-2xl"
       >
         <h2 id="games-rename-title" className="mb-3 text-lg font-bold text-amber-300">
-          Đổi tên
+          Đổi tên &amp; biểu tượng
         </h2>
         <NameInput value={value} onChange={setValue} autoFocus />
-        {inTable && <p className="mt-2 text-xs text-white/50">Bàn hiện tại vẫn giữ tên cũ — tên mới dùng từ bàn tiếp theo.</p>}
+        <ProfilePicker name={trimmed} value={profile} onChange={setProfile} />
+        {inTable && <p className="mt-2 text-xs text-white/50">Bàn hiện tại vẫn giữ tên cũ — tên mới dùng từ bàn tiếp theo. Biểu tượng và màu đổi ngay tại bàn.</p>}
         <div className="mt-4 flex justify-end gap-2">
           <button type="button" onClick={onClose} className="rounded-lg border border-white/20 px-4 py-2 text-sm hover:bg-white/10">
             Huỷ
           </button>
           <button
             type="submit"
-            disabled={!trimmed || trimmed === current}
+            disabled={!trimmed || !changed}
             className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-black hover:bg-amber-300 disabled:opacity-40"
           >
             Lưu

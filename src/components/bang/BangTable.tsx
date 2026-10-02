@@ -1,5 +1,6 @@
 "use client";
 
+import { SeatAvatar } from "@/components/games/PlayerAvatar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChatBox } from "@/components/games/ChatBox";
@@ -267,6 +268,7 @@ function Waiting({ view, act, nameOf }: { view: BangRoomView; act: Act; nameOf: 
                   title={seat.connected ? undefined : "Mất kết nối"}
                 >
                   {seat.isHost && <span title="Chủ bàn">👑</span>}
+                  <SeatAvatar name={seat.name} className="grid size-5 shrink-0 place-items-center rounded-full text-[11px]" fallbackClassName="bg-white/15 font-bold" />
                   <span className="truncate">{seat.name}</span>
                   {seat.id === view.meId && <span className="text-xs text-white/60">(bạn)</span>}
                   {!seat.connected && <span aria-label="Mất kết nối">📴</span>}

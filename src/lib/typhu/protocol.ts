@@ -61,6 +61,15 @@ export interface TPSettings {
 
 export const STEP_SECONDS_OPTIONS = [15, 20, 30, 45, 60];
 
+/** A player's token: the emoji that walks the board and the colour of their houses / deeds. */
+export interface TPPiece {
+  emoji: string;
+  color: string;
+}
+/** What a player may pick with `{ type: "pick", emoji, color }` — nobody else at the table may hold the same emoji or colour. */
+export const PIECE_EMOJIS = ["🛵", "🐃", "🚲", "🚤", "🐉", "🎩", "🚗", "🐘", "🦅", "🐅", "🚁", "🐒"];
+export const PIECE_COLORS = ["#ef4444", "#3b82f6", "#22c55e", "#eab308", "#a855f7", "#f97316", "#06b6d4", "#ec4899"];
+
 export interface TPSeatView {
   id: string;
   name: string;
@@ -73,6 +82,8 @@ export interface TPSeatView {
   wins: number;
   /** Token colour index (stable per seat). */
   color: number;
+  /** The piece this player plays with (their pick, else a starting piece nobody else holds). */
+  piece: TPPiece;
 }
 
 export interface TPPlayerView {
@@ -141,6 +152,7 @@ export interface TPRoomSummary {
 export type TPCommand =
   | { type: "start" }
   | { type: "settings"; startCash?: number; timeLimit?: number; stepSeconds?: number; doubleGo?: boolean; parkingPot?: boolean; first?: number; second?: number }
+  | { type: "pick"; emoji: string; color: string }
   | { type: "kick"; playerId: string }
   | { type: "roll" | "buy" | "skip" | "end" | "payjail" | "jailcard" | "paydebt" | "bankrupt" }
   | { type: "build" | "sell" | "sellland" | "mortgage" | "unmortgage"; pos: number }

@@ -1,5 +1,6 @@
 "use client";
 
+import { SeatAvatar } from "@/components/games/PlayerAvatar";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -516,14 +517,14 @@ function Avatar({ seat, isTurn, deadline, reactions }: { seat: SeatView; isTurn:
     <span className="relative inline-flex">
       {isTurn && <TurnRing deadline={deadline} />}
       <SeatBubble reactions={reactions} />
-      <span
+      <SeatAvatar
+        name={seat.name}
         className={cn(
-          "flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-200 to-amber-500 text-base font-bold text-black sm:h-12 sm:w-12 short:h-8 short:w-8 short:text-sm",
+          "flex h-10 w-10 items-center justify-center rounded-full text-base sm:h-12 sm:w-12 short:h-8 short:w-8 short:text-sm",
           (!seat.connected || seat.kicked) && "grayscale opacity-50",
         )}
-      >
-        {seat.name.charAt(0).toUpperCase()}
-      </span>
+        fallbackClassName="bg-gradient-to-br from-amber-200 to-amber-500 font-bold text-black"
+      />
     </span>
   );
 }
