@@ -35,7 +35,7 @@ Tài liệu này dành cho người (hoặc AI) cần **sửa giao diện một 
 | `typhu` | Cờ Tỷ Phú | `/co-ty-phu` → `/co-ty-phu/[room]` | `src/components/typhu/` | `src/lib/typhu/` | `/api/typhu/ws` | 6 |
 | `splendor` | Đá Quý (Splendor) | `/splendor` → `/splendor/[room]` | `src/components/splendor/` | `src/lib/splendor/` | `/api/splendor/ws` | 4 |
 | `bang` | Đấu Súng (Bang!) | `/bang` → `/bang/[room]` | `src/components/bang/` | `src/lib/bang/` | `/api/bang/ws` | 8 |
-| `oanquan` | Ô Ăn Quan | `/o-an-quan` → `/o-an-quan/[room]` | `src/components/oanquan/` | `src/lib/oanquan/` | `/api/oanquan/ws` | 2 |
+| `oanquan` | Ô Ăn Quan | `/o-an-quan` → `/o-an-quan/[room]` | `src/components/oanquan/` | `src/lib/oanquan/` | `/api/oanquan/ws` | 2–4 |
 | `cangua` | Cờ Cá Ngựa | `/co-ca-ngua` → `/co-ca-ngua/[room]` | `src/components/cangua/` | `src/lib/cangua/` | `/api/cangua/ws` | 4 |
 
 Một số đường dẫn khác:
@@ -840,12 +840,14 @@ Luật và protocol: `be_game/docs/games/oanquan.md`.
 
 | File | Vai trò / component chính |
 |---|---|
-| `oanquan/Board.tsx` | `SowFrame` (export): `{seq, dan[], quan[], cell, hand, captured[], pending, player}`. Các hằng `STEP_MS = 180`, `MAX_REPLAY_MS = 6500`, `MAX_QUEUE = 2`. **`useSowReplay(g)`** (export) trả `SowFrame \| null`. Hàm nội bộ `replay(...)`. `layoutFor(bottomSide)` (export) cho các ô theo thứ tự trên màn hình. **`OQBoard({dan,quan,bottomSide,selectable,selected,onSelect,onSow,frame,lastCell})`**. `Pebbles` xếp sỏi theo xoắn ốc góc vàng, cố định cho mỗi số sỏi. Còn có `CountBadge`, `HandBadge` ("✋n"), `Cup` (ô dân; khi được chọn hiện lớp ◀/▶) và `QuanCup` (ô quan nửa tròn). |
-| `oanquan/OAnQuanTable.tsx` | Default `OAnQuanTable`, `Table`. `PlayerStrip` là dải người chơi trên/dưới bàn, với điểm đếm dần theo replay. Còn có `END_REASON`, `Waiting`, `OAnQuanRules()` (export, không nhận props) và `Modal`. |
+| `oanquan/Board.tsx` | `SowFrame` (export): `{seq, dan[], quan[], cell, hand, captured[], pending, player}`. Các hằng `STEP_MS = 180`, `MAX_REPLAY_MS = 6500`, `MAX_QUEUE = 2`. **`useSowReplay(g)`** (export) trả `SowFrame \| null`. Hàm nội bộ `replay(...)`. `layoutFor(bottomSide, players)` (export) cho các ô theo thứ tự trên màn hình (bàn 2 người). `SIDE_COLORS` (export): 4 màu theo chỗ ngồi. **`OQBoard({dan,quan,bottomSide,selectable,selected,onSelect,onSow,frame,lastCell,players})`**: 2 người vẽ bàn 2 hàng; 3–4 người vẽ `RingBoard`. `Pebbles` xếp sỏi theo xoắn ốc góc vàng, cố định cho mỗi số sỏi. Còn có `CountBadge`, `HandBadge` ("✋n"), `Cup` (ô dân; khi được chọn hiện lớp ◀/▶) và `QuanCup` (ô quan nửa tròn, bàn 2 người). `RingBoard` / `QuanDisc` (ô quan tròn) cho 3–4 người. |
+| `oanquan/OAnQuanTable.tsx` | Default `OAnQuanTable`, `Table`. `PlayerStrip` là dải người chơi trên/dưới bàn (biến thể `compact` cho đối thủ khi có 3–4 người), với điểm đếm dần theo replay. Còn có `END_REASON`, `Waiting`, `OAnQuanRules()` (export, không nhận props) và `Modal`. |
 
 **Bố cục**
 - Bàn là grid 7 cột × 2 hàng: `grid-cols-[1.35fr_repeat(5,minmax(0,1fr))_1.35fr]`. Mỗi `Cup` là `aspect-square`; `QuanCup` là `row-span-2`. Mọi thứ bên trong tính theo %, cỡ chữ đếm dùng `clamp(10px,2.6vw,15px)`.
-- Bàn là một dải rộng nên tự thấp. Không cần giới hạn theo `dvh`.
+- Bàn 2 người là một dải rộng nên tự thấp. Không cần giới hạn theo `dvh`.
+- **3–4 người (`RingBoard`)**: vòng khép kín vẽ bằng định vị tuyệt đối trên khung `aspect-ratio 100/h` (tam giác `h = 90`, hình vuông `h = 100`). Mỗi đoạn là một cạnh, ô quan (`QuanDisc`) ở góc đầu cạnh, 5 `Cup` chia đều trên cạnh (kích thước tính theo % bề rộng). Đoạn của mình luôn là cạnh dưới (`pos = (side − bottomSide + n) % n`), chạy trái → phải, vòng đi ngược chiều kim đồng hồ trên màn hình. Mỗi cạnh có dải màu `SIDE_COLORS[side]` (đậm hơn khi đến lượt, mờ khi bị loại) và thẻ tên ở giữa bàn. Khung bàn được giới hạn `max-width: min(100%, max(16rem, (100dvh − 16rem) × tỉ lệ))` để vừa màn hình PC. Chỉ ô của mình mới chọn được nên ◀/▶ luôn khớp trái/phải trên màn hình.
+- Đối thủ khi 3–4 người: lưới `compact` `PlayerStrip` phía trên bàn (`grid-cols-2` / `grid-cols-3`), viền trên theo màu chỗ ngồi; ở `short:` chuyển sang cột bên.
 - Hàng của mình luôn ở dưới (`bottomSide = mine?.side ?? 0`). Khán giả thấy phía 0 ở dưới.
 - **Điện thoại dọc:** một cột. Thứ tự: dải người chơi trên, bàn, thanh hành động (`min-h-11`; có "⬅️ Rải trái", "Bỏ chọn", "Rải phải ➡️"), dải người chơi dưới, thẻ kết quả, rồi `aside` log (`max-h-60`). Phần tử gốc có `pb-24`.
 - **`short:`:** grid `[minmax(0,1fr)_15rem]`. Hai dải người chơi chuyển vào cột phải (`hidden short:flex`). Thẻ kết quả nằm dưới bàn. Log `short:max-h-[34dvh]`.
@@ -868,7 +870,7 @@ Bàn dùng `frame` như sau:
 Thông báo "Rải quân" lấy từ `lastReseed.seq`, hiện 3,2 giây.
 
 **Bản sao lib** (`src/lib/oanquan/`)
-- `board.ts`: `ROWS`, `QUAN_VALUE_OPTIONS`, `QUAN_NON_MIN`, `TURN_SECONDS_OPTIONS`, `nextCell`…
+- `board.ts`: `SEGMENT`, `rowOf`, `quanIndex`, `QUAN_VALUE_OPTIONS`, `QUAN_NON_MIN`, `TURN_SECONDS_OPTIONS`, `nextCell`…
 - `protocol.ts`: `OANQUAN_WS_PATH`, `OQMove`, `OQStep`, `OQGameView`…
 
 Phải khớp be_game `src/oanquan/board.ts` và `protocol.ts`. **Replay phụ thuộc vào cấu trúc `lastMove.steps`**: nếu be_game đổi `OQStep`, phải sửa `replay()`.
@@ -876,7 +878,9 @@ Phải khớp be_game `src/oanquan/board.ts` và `protocol.ts`. **Replay phụ t
 **Cài đặt.** Nằm trong `Waiting`, dùng `SettingsTabs` với ba tab:
 - 🪨 Luật: `quanValue`, `quanNon`
 - ⏱️ Lượt: `turnSeconds`
-- 🏆 Điểm: `RankPointsPicker players={2}`
+- 🏆 Điểm: `RankPointsPicker players={số người trong ván / đang ngồi}`
+
+Sảnh chờ hiện `đang ngồi/4`, nút bắt đầu cần ít nhất 2 người. `OAnQuanRules` mô tả luật 2–4 người (vay nhiều người, bị loại, chung hạng).
 
 **Giới hạn đã biết**
 - Nước bị bỏ khi hàng đợi tràn làm bàn "nhảy".

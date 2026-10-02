@@ -68,8 +68,8 @@ const GAMES: GameCard[] = [
     href: "/o-an-quan",
     title: "Ô Ăn Quan",
     emoji: "🪨",
-    tagline: "Trò chơi dân gian: bốc sỏi rải từng ô, ăn liên tiếp, giành quan — chọn quan non, giá quan 5 hay 10 dân. Chơi 2 người.",
-    tags: ["Online", "2 người", "Dân gian"],
+    tagline: "Trò chơi dân gian: bốc sỏi rải từng ô, ăn liên tiếp, giành quan — chọn quan non, giá quan 5 hay 10 dân. Chơi 2–4 người.",
+    tags: ["Online", "2–4 người", "Dân gian"],
     gradient: "from-yellow-600/30 via-amber-800/20 to-transparent",
   },
   {

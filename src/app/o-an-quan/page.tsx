@@ -8,12 +8,12 @@ export default function OAnQuanLobbyPage() {
   return (
     <GameLobby
       title="Ô Ăn Quan"
-      tagline="Trò chơi dân gian: bốc sỏi rải từng ô, ăn liên tiếp, giành quan — 2 người."
+      tagline="Trò chơi dân gian: bốc sỏi rải từng ô, ăn liên tiếp, giành quan — 2–4 người."
       icons="🪨 🫘 👑 🎋"
       basePath="/o-an-quan"
       wsPath={OANQUAN_WS_PATH}
       apiPrefix="/oanquan"
-      maxPlayers={2}
+      maxPlayers={4}
       rules={<OAnQuanRules />}
     />
   );

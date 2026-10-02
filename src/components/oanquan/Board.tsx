@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ROWS } from "@/lib/oanquan/board";
+import { SEGMENT, quanIndex, rowOf } from "@/lib/oanquan/board";
 import type { OQGameView, OQMove } from "@/lib/oanquan/protocol";
 import { cn } from "@/lib/utils";
 
@@ -133,7 +133,7 @@ function replay(
           f.cell = s.cell;
         } else {
           f.dan[s.cell] = 0;
-          if (s.quan) f.quan[s.cell === 0 ? 0 : 1] = false;
+          if (s.quan) f.quan[quanIndex(s.cell)] = false;
           f.cell = s.cell;
           f.captured = [...f.captured, s.cell];
           f.pending[move.player].dan -= s.dan;
@@ -149,11 +149,22 @@ function replay(
 
 // ─── Board ───────────────────────────────────────────────────────────
 
-/** Squares in screen order for whoever sits at the bottom (side 0 or 1). */
-export function layoutFor(bottomSide: 0 | 1) {
-  const bottom = ROWS[bottomSide].slice();
-  const top = ROWS[1 - bottomSide].slice().reverse();
-  return { top, bottom, left: bottomSide === 0 ? 0 : 6, right: bottomSide === 0 ? 6 : 0 };
+/** Squares in screen order for whoever sits at the bottom (two-player board). */
+export function layoutFor(bottomSide: number, players = 2) {
+  const bottom = rowOf(bottomSide);
+  const top = rowOf((bottomSide + 1) % players).reverse();
+  return { top, bottom, left: bottomSide * SEGMENT, right: ((bottomSide + 1) % players) * SEGMENT };
+}
+
+/** One colour per seat, shared by the ring tint, the name tags and the player strips. */
+export const SIDE_COLORS = ["#fbbf24", "#fb7185", "#38bdf8", "#34d399"] as const;
+
+export interface BoardPlayer {
+  side: number;
+  name: string;
+  isTurn: boolean;
+  out: boolean;
+  self: boolean;
 }
 
 export function OQBoard({
@@ -166,11 +177,12 @@ export function OQBoard({
   onSow,
   frame,
   lastCell,
+  players = [],
 }: {
   dan: number[];
   quan: boolean[];
-  /** Side shown on the bottom row (yours; side 0 for spectators). */
-  bottomSide: 0 | 1;
+  /** Side shown on the bottom (yours; side 0 for spectators). */
+  bottomSide: number;
   /** Squares you may pick right now. */
   selectable: number[];
   selected: number | null;
@@ -180,14 +192,16 @@ export function OQBoard({
   frame: SowFrame | null;
   /** Square the last move started from (subtle marker). */
   lastCell: number | null;
+  /** Names / turn marker per side (drawn on the ring board with 3–4 players). */
+  players?: BoardPlayer[];
 }) {
-  const { top, bottom, left, right } = layoutFor(bottomSide);
-  const cup = (cell: number, row: "top" | "bottom") => (
+  const n = quan.length;
+  const cup = (cell: number, mine: boolean) => (
     <Cup
       key={cell}
       cell={cell}
       count={dan[cell]}
-      mine={row === "bottom"}
+      mine={mine}
       selectable={selectable.includes(cell)}
       selected={selected === cell}
       active={frame?.cell === cell}
@@ -198,20 +212,209 @@ export function OQBoard({
       onSow={onSow}
     />
   );
+  const woodStyle = {
+    background:
+      "repeating-linear-gradient(92deg, rgba(0,0,0,0.07) 0 2px, transparent 2px 9px), repeating-linear-gradient(88deg, rgba(255,230,180,0.05) 0 1px, transparent 1px 23px), linear-gradient(180deg, #a8682f 0%, #8a5023 45%, #6e3c18 100%)",
+  };
+  const shadow =
+    "shadow-[0_18px_40px_rgba(0,0,0,0.55),inset_0_2px_0_rgba(255,220,160,0.25),inset_0_-6px_14px_rgba(0,0,0,0.45)]";
+
+  if (n > 2) {
+    return (
+      <RingBoard
+        n={n}
+        dan={dan}
+        quan={quan}
+        bottomSide={bottomSide}
+        frame={frame}
+        players={players}
+        woodStyle={woodStyle}
+        shadow={shadow}
+        cup={(c) => cup(c, Math.floor(c / SEGMENT) === bottomSide)}
+      />
+    );
+  }
+
+  const { top, bottom, left, right } = layoutFor(bottomSide, n);
+  const quanCup = (cell: number, side: "left" | "right") => (
+    <QuanCup cell={cell} side={side} count={dan[cell]} hasQuan={quan[quanIndex(cell)]} active={frame?.cell === cell} flash={!!frame?.captured.includes(cell)} hand={frame?.cell === cell ? frame.hand : 0} />
+  );
   return (
     <div
-      className="relative grid w-full select-none grid-cols-[1.35fr_repeat(5,minmax(0,1fr))_1.35fr] grid-rows-2 gap-[1.2%] rounded-[1.6rem] p-[2.2%] shadow-[0_18px_40px_rgba(0,0,0,0.55),inset_0_2px_0_rgba(255,220,160,0.25),inset_0_-6px_14px_rgba(0,0,0,0.45)] sm:rounded-[2.4rem]"
-      style={{
-        background:
-          "repeating-linear-gradient(92deg, rgba(0,0,0,0.07) 0 2px, transparent 2px 9px), repeating-linear-gradient(88deg, rgba(255,230,180,0.05) 0 1px, transparent 1px 23px), linear-gradient(180deg, #a8682f 0%, #8a5023 45%, #6e3c18 100%)",
-      }}
+      className={cn("relative grid w-full select-none grid-cols-[1.35fr_repeat(5,minmax(0,1fr))_1.35fr] grid-rows-2 gap-[1.2%] rounded-[1.6rem] p-[2.2%] sm:rounded-[2.4rem]", shadow)}
+      style={woodStyle}
     >
-      <QuanCup cell={left} side="left" count={dan[left]} hasQuan={quan[left === 0 ? 0 : 1]} active={frame?.cell === left} flash={!!frame?.captured.includes(left)} hand={frame?.cell === left ? frame.hand : 0} />
-      {top.map((c) => cup(c, "top"))}
-      <QuanCup cell={right} side="right" count={dan[right]} hasQuan={quan[right === 0 ? 0 : 1]} active={frame?.cell === right} flash={!!frame?.captured.includes(right)} hand={frame?.cell === right ? frame.hand : 0} />
-      {bottom.map((c) => cup(c, "bottom"))}
+      {quanCup(left, "left")}
+      {top.map((c) => cup(c, false))}
+      {quanCup(right, "right")}
+      {bottom.map((c) => cup(c, true))}
       {/* Divider groove between the two rows. */}
       <span aria-hidden className="pointer-events-none absolute inset-x-[16%] top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-black/25 shadow-[0_1px_0_rgba(255,220,160,0.18)]" />
+    </div>
+  );
+}
+
+/**
+ * 3–4 players: the ring is a triangle / square. Segment i runs from corner i (its ô quan) to corner i+1;
+ * the segment of the player at the bottom is the bottom edge, running left → right, and the ring continues
+ * counter-clockwise on screen — so "phải" is always left → right on your own edge.
+ */
+function RingBoard({
+  n,
+  dan,
+  quan,
+  bottomSide,
+  frame,
+  players,
+  woodStyle,
+  shadow,
+  cup,
+}: {
+  n: number;
+  dan: number[];
+  quan: boolean[];
+  bottomSide: number;
+  frame: SowFrame | null;
+  players: BoardPlayer[];
+  woodStyle: React.CSSProperties;
+  shadow: string;
+  cup: (cell: number) => React.ReactNode;
+}) {
+  // Board space: 100 wide, `h` tall (cups are sized in the same units, i.e. % of the width).
+  const tri = n === 3;
+  const h = tri ? 90 : 100;
+  const verts: [number, number][] = tri
+    ? [
+        [8, 81],
+        [92, 81],
+        [50, 8.3],
+      ]
+    : [
+        [10, 90],
+        [90, 90],
+        [90, 10],
+        [10, 10],
+      ];
+  const CUP = tri ? 11.5 : 11;
+  const QUAN = tri ? 14.5 : 14;
+  const cx = verts.reduce((t, v) => t + v[0], 0) / n;
+  const cy = verts.reduce((t, v) => t + v[1], 0) / n;
+  const pos = (side: number) => (side - bottomSide + n) % n;
+  const point = (cell: number): [number, number] => {
+    const side = Math.floor(cell / SEGMENT);
+    const k = cell % SEGMENT;
+    const p = pos(side);
+    const a = verts[p];
+    const b = verts[(p + 1) % n];
+    return [a[0] + ((b[0] - a[0]) * k) / SEGMENT, a[1] + ((b[1] - a[1]) * k) / SEGMENT];
+  };
+  const place = (cell: number, size: number) => {
+    const [x, y] = point(cell);
+    return { left: `${x}%`, top: `${(y / h) * 100}%`, width: `${size}%`, transform: "translate(-50%, -50%)" } as const;
+  };
+  return (
+    <div
+      className={cn("relative w-full select-none rounded-[1.6rem] sm:rounded-[2.4rem]", shadow)}
+      style={{ ...woodStyle, aspectRatio: `100 / ${h}` }}
+    >
+      {/* Coloured track + name tag per player. */}
+      <svg aria-hidden viewBox={`0 0 100 ${h}`} className="pointer-events-none absolute inset-0 h-full w-full">
+        {Array.from({ length: n }, (_, side) => {
+          const p = pos(side);
+          const a = verts[p];
+          const b = verts[(p + 1) % n];
+          const pl = players.find((x) => x.side === side);
+          return (
+            <line
+              key={side}
+              x1={a[0]}
+              y1={a[1]}
+              x2={b[0]}
+              y2={b[1]}
+              stroke={SIDE_COLORS[side]}
+              strokeWidth={CUP * 1.25}
+              strokeLinecap="round"
+              opacity={pl?.out ? 0.08 : pl?.isTurn ? 0.5 : 0.2}
+            />
+          );
+        })}
+      </svg>
+      {players.map((pl) => {
+        const p = pos(pl.side);
+        const a = verts[p];
+        const b = verts[(p + 1) % n];
+        const mx = (a[0] + b[0]) / 2;
+        const my = (a[1] + b[1]) / 2;
+        // Pull the tag towards the middle of the board, away from the cups.
+        const dx = cx - mx;
+        const dy = cy - my;
+        const len = Math.hypot(dx, dy) || 1;
+        const off = 13;
+        const x = mx + (dx / len) * off;
+        const y = my + (dy / len) * off;
+        return (
+          <span
+            key={pl.side}
+            className={cn(
+              "pointer-events-none absolute max-w-[30%] -translate-x-1/2 -translate-y-1/2 truncate rounded-full px-2 py-0.5 text-[clamp(9px,2.6vw,13px)] font-bold leading-tight text-black shadow",
+              pl.out && "opacity-40 grayscale",
+              pl.isTurn && "ring-2 ring-white",
+            )}
+            style={{ left: `${x}%`, top: `${(y / h) * 100}%`, background: SIDE_COLORS[pl.side] }}
+          >
+            {pl.isTurn && "▶ "}
+            {pl.self ? "Bạn" : pl.name}
+            {pl.out && " ✕"}
+          </span>
+        );
+      })}
+      {Array.from({ length: n * SEGMENT }, (_, c) =>
+        c % SEGMENT === 0 ? (
+          <div key={c} className="absolute" style={place(c, QUAN)}>
+            <QuanDisc
+              cell={c}
+              count={dan[c]}
+              hasQuan={quan[quanIndex(c)]}
+              active={frame?.cell === c}
+              flash={!!frame?.captured.includes(c)}
+              hand={frame?.cell === c ? frame.hand : 0}
+            />
+          </div>
+        ) : (
+          <div key={c} className="absolute" style={place(c, CUP)}>
+            {cup(c)}
+          </div>
+        ),
+      )}
+    </div>
+  );
+}
+
+/** Round ô quan for the ring board (the two-player board uses the half-moon `QuanCup`). */
+function QuanDisc({ cell, count, hasQuan, active, flash, hand }: { cell: number; count: number; hasQuan: boolean; active: boolean; flash: boolean; hand: number }) {
+  return (
+    <div className="relative aspect-square" aria-label={`Ô quan ${cell}: ${hasQuan ? "còn quan, " : ""}${count} dân`}>
+      <div
+        className={cn(
+          "absolute inset-0 overflow-hidden rounded-full shadow-[inset_0_8px_16px_rgba(0,0,0,0.7),inset_0_-2px_5px_rgba(255,210,150,0.18),0_1px_0_rgba(255,220,160,0.25)]",
+          "bg-[radial-gradient(circle_at_50%_45%,#4f2d12,#2a1506_78%)]",
+          active && "ring-[3px] ring-sky-300",
+          flash && "ring-[3px] ring-emerald-300 bg-emerald-900/60",
+        )}
+      >
+        {hasQuan && (
+          <span
+            aria-hidden
+            className="absolute left-1/2 top-[14%] h-[34%] w-[62%] -translate-x-1/2 rounded-[48%_52%_45%_55%] shadow-[0_3px_5px_rgba(0,0,0,0.7),inset_-3px_-4px_7px_rgba(0,0,0,0.45),inset_3px_3px_5px_rgba(255,255,255,0.45)]"
+            style={{ background: "radial-gradient(circle at 35% 30%, #f3e3b4, #b8955a 55%, #7a5a2c)" }}
+          />
+        )}
+        <div className={cn("absolute inset-x-[10%]", hasQuan ? "bottom-[8%] top-[50%]" : "inset-y-[14%]")}>
+          <Pebbles n={count} max={14} spread={30} size={hasQuan ? 26 : 22} />
+        </div>
+      </div>
+      <CountBadge n={count} className="-bottom-[6%] -right-[6%]" />
+      <HandBadge n={hand} />
     </div>
   );
 }

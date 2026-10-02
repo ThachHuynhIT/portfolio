@@ -11,16 +11,16 @@ import { MyTurnBadge, TurnRing, TurnTimerBorder } from "@/components/games/TurnI
 import { useGameRoom } from "@/components/games/gameClient";
 import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
-import { QUAN_NON_MIN, QUAN_VALUE_OPTIONS, ROWS, TURN_SECONDS_OPTIONS } from "@/lib/oanquan/board";
+import { QUAN_NON_MIN, QUAN_VALUE_OPTIONS, TURN_SECONDS_OPTIONS, rowOf } from "@/lib/oanquan/board";
 import { OANQUAN_WS_PATH, type OQGameView, type OQPlayerView, type OQRoomView, type OQSeatView } from "@/lib/oanquan/protocol";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
-import { OQBoard, type SowFrame, useSowReplay } from "./Board";
+import { type BoardPlayer, OQBoard, SIDE_COLORS, type SowFrame, useSowReplay } from "./Board";
 
 type Act = (msg: Record<string, unknown> & { type: string }) => Promise<boolean>;
 
 const SCORE_NOTE =
-  "Điểm theo thứ hạng: người thắng ván nhận điểm Nhất, người thua bị trừ tương ứng; hoà thì không ai được trừ điểm. Chủ bàn chọn điểm Nhất.";
+  "Điểm theo thứ hạng (xếp theo điểm ván, bằng điểm thì chung hạng): hạng nhất nhận điểm Nhất, hạng nhì điểm Nhì, các hạng cuối bị trừ tương ứng; hai người hoà thì không ai được trừ điểm. Chủ bàn chọn điểm Nhất / Nhì.";
 
 function localize(view: OQRoomView): OQRoomView {
   const g = view.current;
@@ -111,7 +111,8 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
   if (reseedSeq !== reseedSeen) {
     setReseedSeen(reseedSeq);
     const r = g?.lastReseed;
-    if (r) setNotice(`${r.player === view.meId ? "Bạn" : nameOf(r.player)} hết dân trên hàng — rải quân 5 dân${r.borrowed ? ` (vay ${r.borrowed})` : ""}`);
+    const via = r?.lenders?.map((l) => `${nameOf(l.id)} ${l.n}`).join(", ");
+    if (r) setNotice(`${r.player === view.meId ? "Bạn" : nameOf(r.player)} hết dân trên hàng — rải quân 5 dân${r.borrowed ? ` (vay ${via || r.borrowed})` : ""}`);
   }
 
   const live = useLiveReactions(view.reactions);
@@ -130,7 +131,7 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
   };
 
   const kick = async (s: OQSeatView) => {
-    if (!window.confirm(playing && s.inGame ? `Kích ${s.name}? Bạn sẽ thắng ván này.` : `Kích ${s.name} khỏi bàn?`)) return;
+    if (!window.confirm(playing && s.inGame ? (g && g.players.length > 2 ? `Kích ${s.name}? Người này bị loại khỏi ván.` : `Kích ${s.name}? Bạn sẽ thắng ván này.`) : `Kích ${s.name} khỏi bàn?`)) return;
     await act({ type: "kick", playerId: s.id });
   };
 
@@ -142,10 +143,19 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
     if (ok) setSelected(null);
   };
 
-  const bottomSide: 0 | 1 = mine?.side ?? 0;
+  const n = g?.players.length ?? 2;
+  const bottomSide = mine?.side ?? 0;
   const bottomPlayer = g?.players.find((p) => p.side === bottomSide) ?? null;
-  const topPlayer = g?.players.find((p) => p.side !== bottomSide) ?? null;
-  const selectable = canMove && g && mine && !busy ? ROWS[mine.side].filter((c) => g.dan[c] > 0) : [];
+  /** Everyone else, in turn order after the bottom player. */
+  const others = (g?.players ?? []).filter((p) => p.side !== bottomSide).sort((a, b) => ((a.side - bottomSide + n) % n) - ((b.side - bottomSide + n) % n));
+  const selectable = canMove && g && mine && !busy ? rowOf(mine.side).filter((c) => g.dan[c] > 0) : [];
+  const boardPlayers: BoardPlayer[] = (g?.players ?? []).map((p) => ({
+    side: p.side,
+    name: nameOf(p.id),
+    isTurn: playing && g?.turn === p.id,
+    out: p.out,
+    self: p.id === view.meId,
+  }));
   const ended = g?.status === "ended";
   const showResult = ended && !animating;
   const turnMs = view.settings.turnSeconds * 1000;
@@ -156,13 +166,14 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
   }, [showResult]);
 
   /** Player strips sit above/below the board; on sideways phones they move to the side column. */
-  const panel = (p: OQPlayerView | null, className: string) => {
+  const panel = (p: OQPlayerView | null, className: string, compact = false) => {
     if (!p || !g) return null;
     const seat = view.seats.find((s) => s?.id === p.id) ?? null;
     return (
       <PlayerStrip
         key={p.id}
         className={className}
+        compact={compact}
         p={p}
         g={g}
         name={nameOf(p.id)}
@@ -234,11 +245,14 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
         <div className="grid flex-1 content-start gap-3 lg:grid-cols-[minmax(0,1fr)_20rem] 2xl:grid-cols-[minmax(0,1fr)_22rem] short:grid-cols-[minmax(0,1fr)_15rem] short:gap-2">
           <section className="relative flex min-w-0 flex-col gap-2.5 short:gap-1.5">
             <SpectatorReactions reactions={live.filter((r) => !r.playerId)} />
-            {panel(topPlayer, "short:hidden")}
+            {n > 2 ? <div className={cn("grid gap-1.5 short:hidden", n === 3 ? "grid-cols-2" : "grid-cols-3")}>{others.map((p) => panel(p, "", true))}</div> : panel(others[0] ?? null, "short:hidden")}
 
-            <div className="relative px-0.5 py-2 short:py-1">
+            <div
+              className="relative mx-auto w-full px-0.5 py-2 short:py-1"
+              style={n > 2 ? { maxWidth: `min(100%, max(16rem, calc((100dvh - 16rem) * ${n === 3 ? 1.11 : 1})))` } : undefined}
+            >
               {canMove && <TurnTimerBorder deadline={g.deadline} totalMs={turnMs} now={now} radius={28} />}
-              <TurnRing active={canMove} className="rounded-[2rem]" />
+              <TurnRing active={canMove} className={n > 2 ? "rounded-[1.8rem]" : "rounded-[2rem]"} />
               <OQBoard
                 dan={frame?.dan ?? g.dan}
                 quan={frame?.quan ?? g.quan}
@@ -249,6 +263,7 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
                 onSow={(d) => void sow(d)}
                 frame={frame}
                 lastCell={g.lastMove?.cell ?? null}
+                players={boardPlayers}
               />
             </div>
 
@@ -308,7 +323,7 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
                 <Waiting view={view} me={me} act={act} nameOf={nameOf} />
               </div>
             )}
-            {panel(topPlayer, "hidden short:flex")}
+            {others.map((p) => panel(p, "hidden short:flex"))}
             {panel(bottomPlayer, "hidden short:flex")}
             <div className="rounded-2xl bg-black/35 p-3 short:p-2">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-100/60">Diễn biến</p>
@@ -379,6 +394,7 @@ function PlayerStrip({
   frame,
   reactions,
   className,
+  compact,
   onKick,
 }: {
   p: OQPlayerView;
@@ -391,6 +407,8 @@ function PlayerStrip({
   frame: SowFrame | null;
   reactions: Reaction[];
   className?: string;
+  /** Narrow card for the opponents when 3–4 play. */
+  compact?: boolean;
   onKick?: () => void;
 }) {
   // While a move replays, the mover's pile counts up as each capture lands.
@@ -400,14 +418,75 @@ function PlayerStrip({
   const score = p.score - pending.dan - pending.quan * g.quanValue;
   const myTurn = self && isTurn;
   const winner = g.status === "ended" && g.winner === p.id;
+  const multi = g.players.length > 2;
+  const color = SIDE_COLORS[p.side];
+  const tags = (
+    <>
+      {p.borrowed > 0 && (
+        <span className="rounded bg-rose-900/60 px-1 text-rose-200" title="Dân vay người khác để rải quân (trừ khi tính điểm)">
+          vay {p.borrowed}
+        </span>
+      )}
+      {p.lent > 0 && (
+        <span className="rounded bg-emerald-900/60 px-1 text-emerald-200" title="Dân cho người khác vay (cộng khi tính điểm)">
+          cho vay {p.lent}
+        </span>
+      )}
+      {p.out && <span className="rounded bg-rose-900/60 px-1 text-rose-200" title="Hết dân để rải quân — bỏ lượt, ô còn lại vẫn nằm trên bàn">Bị loại</span>}
+    </>
+  );
+  if (compact) {
+    return (
+      <div
+        className={cn(
+          "relative flex min-w-0 flex-col gap-0.5 rounded-xl px-2 py-1.5",
+          isTurn ? "bg-amber-400/15 ring-1 ring-amber-300/60" : "bg-black/35",
+          p.out && "opacity-55",
+          winner && "ring-2 ring-amber-300",
+          className,
+        )}
+        style={{ borderTop: `3px solid ${color}` }}
+      >
+        <span className="relative flex items-center gap-1 text-xs font-semibold">
+          <SeatBubble reactions={reactions} />
+          {seat?.isHost && <span title="Chủ bàn">👑</span>}
+          <span className="truncate">{name}</span>
+          {winner && <span title="Thắng">🏆</span>}
+        </span>
+        <span className="flex items-end justify-between gap-1">
+          <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] text-white/65">
+            <span title="Dân đã ăn">🫘{dan}</span>
+            <span title="Quan đã ăn">
+              👑{quan}
+              <span className="text-white/40">×{g.quanValue}</span>
+            </span>
+          </span>
+          <span className="text-xl font-black leading-none text-amber-300">{score}</span>
+        </span>
+        <span className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-[10px] text-white/65 empty:hidden">
+          {tags}
+          {seat && !seat.connected && !seat.kicked && <span className="rounded bg-rose-900/60 px-1 text-rose-200">Mất kết nối</span>}
+          {seat?.kicked && <span className="rounded bg-rose-900/60 px-1 text-rose-200">Bị kích</span>}
+          {isTurn && secondsLeft !== null && <span className={cn("font-mono", secondsLeft <= 5 ? "text-rose-300" : "text-amber-100/80")}>⏱ {secondsLeft}s</span>}
+        </span>
+        {onKick && (
+          <button onClick={onKick} className="absolute -top-2 right-1 rounded bg-rose-600 px-1.5 text-[11px] font-semibold text-white">
+            Kích
+          </button>
+        )}
+      </div>
+    );
+  }
   return (
     <div
       className={cn(
         "relative flex items-center gap-2 rounded-2xl px-2.5 py-2 sm:gap-3 sm:px-3 short:py-1.5",
         myTurn ? "bg-rose-500/10" : isTurn ? "bg-amber-400/15 ring-1 ring-amber-300/60" : "bg-black/35",
         winner && "ring-2 ring-amber-300",
+        p.out && "opacity-55",
         className,
       )}
+      style={multi ? { borderLeft: `4px solid ${color}` } : undefined}
     >
       <TurnRing active={myTurn} />
       <span className="relative">
@@ -429,11 +508,7 @@ function PlayerStrip({
             👑 {quan}
             <span className="text-white/40">×{g.quanValue}</span>
           </span>
-          {p.borrowed > 0 && (
-            <span className="rounded bg-rose-900/60 px-1 text-rose-200" title="Dân vay đối thủ để rải quân (trừ khi tính điểm)">
-              vay {p.borrowed}
-            </span>
-          )}
+          {tags}
           {seat && !seat.connected && !seat.kicked && <span className="rounded bg-rose-900/60 px-1 text-rose-200">Mất kết nối</span>}
           {seat?.kicked && <span className="rounded bg-rose-900/60 px-1 text-rose-200">Bị kích</span>}
           {seat && seat.games > 0 && (
@@ -461,15 +536,16 @@ function PlayerStrip({
 }
 
 const END_REASON: Record<string, string> = {
-  board: "Hết quan — mỗi bên thu dân trên hàng mình.",
-  stuck: "Một bên hết dân để rải quân.",
-  forfeit: "Một người đã rời ván.",
+  board: "Hết quan — mỗi người còn trong ván thu dân trên hàng mình.",
+  stuck: "Chỉ còn một người trụ lại — những người hết dân để rải quân đã bị loại.",
+  forfeit: "Những người còn lại thắng — có người đã rời ván.",
   limit: "Quá số nước đi — kéo quân về tính điểm.",
 };
 
 function Waiting({ view, me, act, nameOf }: { view: OQRoomView; me: OQSeatView | null; act: Act; nameOf: (id: string) => string }) {
   const g = view.current;
   const count = view.seats.filter(Boolean).length;
+  const maxSeats = Math.max(view.seats.length, 2);
   const ended = g?.status === "ended";
   const last = view.history[view.history.length - 1];
   const isHost = !!me?.isHost && view.role === "player";
@@ -484,20 +560,20 @@ function Waiting({ view, me, act, nameOf }: { view: OQRoomView; me: OQSeatView |
           <ol className="mb-4 space-y-1.5 text-sm">
             {g.finished.map((id) => {
               const p = g.players.find((x) => x.id === id);
+              const multi = g.players.length > 2;
               const d = last?.results.find((r) => r.id === id)?.delta;
               return (
                 <li key={id} className="flex items-center justify-between gap-2">
                   <span className="min-w-0">
+                    {multi && p?.rank != null && <span className="mr-1 font-mono text-xs text-amber-300">#{p.rank + 1}</span>}
                     <b className="mr-1">{nameOf(id)}</b>
                     {id === view.meId && <span className="text-white/60">(bạn)</span>}
                     {p && (
                       <span className="block text-xs text-white/60">
                         <b className="text-amber-300">{p.score}</b> = {p.captured.dan} dân + {p.captured.quan} quan × {g.quanValue}
                         {p.borrowed ? ` − vay ${p.borrowed}` : ""}
-                        {(() => {
-                          const lent = g.players.find((x) => x.id !== id)?.borrowed ?? 0;
-                          return lent ? ` + cho vay ${lent}` : "";
-                        })()}
+                        {p.lent ? ` + cho vay ${p.lent}` : ""}
+                        {p.out ? " · bị loại" : ""}
                       </span>
                     )}
                   </span>
@@ -510,7 +586,7 @@ function Waiting({ view, me, act, nameOf }: { view: OQRoomView; me: OQSeatView |
       ) : (
         <>
           <h2 className="mb-1 text-xl font-black text-amber-300">🪨 Ô Ăn Quan</h2>
-          <p className="mb-2 text-sm text-amber-100/80">{count}/2 người · gửi link mời để bạn bè vào bàn</p>
+          <p className="mb-2 text-sm text-amber-100/80">{count}/{maxSeats} người (2–{maxSeats}) · gửi link mời để bạn bè vào bàn</p>
           {/* Who is at the table. */}
           <ul className="mb-3 flex flex-wrap gap-1.5 text-sm">
             {view.seats.map(
@@ -535,7 +611,7 @@ function Waiting({ view, me, act, nameOf }: { view: OQRoomView; me: OQSeatView |
                   </li>
                 ),
             )}
-            {count < 2 && <li className="rounded-full border border-dashed border-white/20 px-2.5 py-1 text-white/45">Đang chờ người thứ hai…</li>}
+            {count < 2 && <li className="rounded-full border border-dashed border-white/20 px-2.5 py-1 text-white/45">Đang chờ thêm người…</li>}
           </ul>
         </>
       )}
@@ -591,7 +667,7 @@ function Waiting({ view, me, act, nameOf }: { view: OQRoomView; me: OQSeatView |
           {
             id: "points",
             label: "🏆 Điểm",
-            content: <RankPointsPicker first={s.first} second={s.second} players={2} editable={isHost} onChange={(v) => void act({ type: "settings", ...v })} />,
+            content: <RankPointsPicker first={s.first} second={s.second} players={g ? g.players.length : Math.max(count, 2)} editable={isHost} onChange={(v) => void act({ type: "settings", ...v })} />,
           },
         ]}
       />
@@ -602,7 +678,7 @@ function Waiting({ view, me, act, nameOf }: { view: OQRoomView; me: OQSeatView |
           disabled={count < 2}
           className="w-full rounded-lg bg-amber-400 px-4 py-2 font-bold text-black hover:bg-amber-300 disabled:opacity-40"
         >
-          {count < 2 ? "Cần đủ 2 người" : ended ? "Ván mới" : "Bắt đầu"}
+          {count < 2 ? "Cần ít nhất 2 người" : ended ? "Ván mới" : count > 2 ? `Bắt đầu (${count} người)` : "Bắt đầu"}
         </button>
       ) : (
         <p className="text-sm text-amber-100/70">{view.role === "spectator" ? "Chờ ván mới…" : "Chờ chủ bàn bắt đầu…"}</p>
@@ -615,26 +691,28 @@ export function OAnQuanRules() {
   return (
     <ul className="list-disc space-y-1.5 pl-5 text-sm">
       <li>
-        Bàn có 10 <b>ô dân</b> (mỗi người giữ 5 ô ở hàng phía mình, ban đầu mỗi ô 5 dân) và 2 <b>ô quan</b> hình bán nguyệt ở hai đầu, mỗi ô 1 quan.
+        Chơi <b>2–4 người</b>. Bàn là một vòng khép kín: mỗi người có một đoạn gồm 5 <b>ô dân</b> (ban đầu mỗi ô 5 dân) và một <b>ô quan</b> ở đầu đoạn (1 quan). 2 người: bàn 2 hàng quen thuộc với 2 ô quan hình bán nguyệt;
+        3–4 người: vòng tam giác / hình vuông, mỗi người một cạnh (ô quan ở góc), cạnh của bạn luôn ở phía dưới.
       </li>
       <li>
-        Đến lượt, chọn một ô dân có quân bên mình và hướng <b>trái / phải</b>. Bốc hết quân trong ô, rải lần lượt mỗi ô một viên (kể cả ô quan, đi vòng quanh bàn).
+        Đến lượt (lần lượt theo vòng), chọn một ô dân có quân bên mình và hướng <b>trái / phải</b>. Bốc hết quân trong ô, rải lần lượt mỗi ô một viên (kể cả ô quan và ô của người khác, đi vòng quanh cả bàn).
       </li>
       <li>
-        Rải hết thì xem ô kế tiếp: là <b>ô dân có quân</b> thì bốc lên rải tiếp; là <b>ô quan có quân</b> thì dừng (không được bốc ô quan).
+        Rải hết thì xem ô kế tiếp: là <b>ô dân có quân</b> (của bất kỳ ai) thì bốc lên rải tiếp; là <b>ô quan có quân</b> thì dừng (không được bốc ô quan).
       </li>
       <li>
-        Ô kế tiếp <b>trống</b> mà ô sau nó có quân thì <b>ăn</b> hết ô đó (ăn cả quan nếu là ô quan). Sau đó nếu lại có một ô trống rồi một ô có quân thì <b>ăn tiếp</b> (ăn liên tiếp).
+        Ô kế tiếp <b>trống</b> mà ô sau nó có quân thì <b>ăn</b> hết ô đó (ăn cả quan nếu là ô quan — kể cả của người khác). Sau đó nếu lại có một ô trống rồi một ô có quân thì <b>ăn tiếp</b> (ăn liên tiếp).
         Gặp hai ô trống liền nhau thì mất lượt.
       </li>
       <li>
         <b>Quan non</b> (chủ bàn bật/tắt): ô quan còn quan mà chưa đủ {QUAN_NON_MIN} dân thì chưa được ăn — gặp nó coi như dừng.
       </li>
       <li>
-        Đầu lượt mà cả 5 ô bên mình đều trống thì phải <b>rải quân</b>: lấy 5 dân đã ăn đặt vào mỗi ô một viên. Thiếu thì vay đối thủ (cuối ván trả lại); không đủ để vay thì thua.
+        Đầu lượt mà cả 5 ô bên mình đều trống thì phải <b>rải quân</b>: lấy 5 dân đã ăn đặt vào mỗi ô một viên. Thiếu thì vay người kế tiếp trong vòng lượt (còn thiếu thì vay tiếp người sau nữa) — cuối ván trả lại.
+        Nếu những người còn chơi cũng không đủ dân để cho vay thì bạn <b>bị loại</b>: bỏ lượt, các ô còn lại của bạn vẫn nằm trên bàn (người khác vẫn rải qua và ăn được). Chỉ còn một người thì người đó thắng.
       </li>
       <li>
-        Khi cả hai ô quan đều hết quân thì ván kết thúc, mỗi bên thu dân còn trên hàng mình. Điểm = dân + quan × giá quan (5 hoặc 10 dân). Nhiều điểm hơn thắng, bằng nhau thì hoà.
+        Khi mọi ô quan đều hết quân thì ván kết thúc, mỗi người còn trong ván thu dân còn trên hàng mình. Điểm = dân + quan × giá quan (5 hoặc 10 dân) − dân đã vay + dân đã cho vay. Xếp hạng theo điểm (bằng điểm thì chung hạng), rồi tính điểm xếp hạng Nhất / Nhì.
       </li>
       <li>Hết giờ lượt hoặc mất kết nối thì máy tự rải một ô ngẫu nhiên giúp bạn.</li>
     </ul>
