@@ -302,6 +302,14 @@ export function useGameRoom<V>(
     return ch ? ch.request(msg) : Promise.resolve<Ack>({ ok: false, error: "Mất kết nối máy chủ" });
   }, []);
 
+  // Changing icon/colour at the table reaches everyone at once (the name stays frozen until the next table).
+  useEffect(() => {
+    if (!name) return;
+    return subscribeProfile(() => {
+      void channelRef.current?.request({ type: "look", look: getSavedProfile() });
+    });
+  }, [name]);
+
   return { view, status, error, call };
 }
 

@@ -274,7 +274,7 @@ function RenameDialog({ current, inTable, onClose }: { current: string; inTable:
         </h2>
         <NameInput value={value} onChange={setValue} autoFocus />
         <ProfilePicker name={trimmed} value={profile} onChange={setProfile} />
-        {inTable && <p className="mt-2 text-xs text-white/50">Bàn hiện tại vẫn giữ tên cũ — tên mới dùng từ bàn tiếp theo.</p>}
+        {inTable && <p className="mt-2 text-xs text-white/50">Bàn hiện tại vẫn giữ tên cũ — tên mới dùng từ bàn tiếp theo. Biểu tượng và màu đổi ngay tại bàn.</p>}
         <div className="mt-4 flex justify-end gap-2">
           <button type="button" onClick={onClose} className="rounded-lg border border-white/20 px-4 py-2 text-sm hover:bg-white/10">
             Huỷ
