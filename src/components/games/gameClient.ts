@@ -301,3 +301,61 @@ export function useGameRoom<V>(
 
   return { view, status, error, call };
 }
+
+/** Player look (icon + colour) shown next to the name. Stored per browser; shared with other players once be_game relays it. */
+export interface PlayerProfile {
+  icon: string;
+  color: string;
+}
+export const PROFILE_ICONS = ["😀", "😎", "🤠", "😼", "🐶", "🦊", "🐼", "🐯", "🦄", "🐲", "🐴", "👑", "🎩", "💎", "🔥", "⭐"];
+export const PROFILE_COLORS = ["#fbbf24", "#f87171", "#fb923c", "#a3e635", "#34d399", "#22d3ee", "#60a5fa", "#a78bfa", "#f472b6", "#e5e7eb"];
+export const DEFAULT_PROFILE: PlayerProfile = { icon: "", color: PROFILE_COLORS[0] };
+const PROFILE_KEY = "games:playerProfile";
+
+let cachedProfile: PlayerProfile | null = null;
+const profileListeners = new Set<() => void>();
+
+const validProfile = (p: Partial<PlayerProfile> | null): PlayerProfile => ({
+  icon: p && typeof p.icon === "string" && (PROFILE_ICONS.includes(p.icon) || p.icon === "") ? p.icon : DEFAULT_PROFILE.icon,
+  color: p && typeof p.color === "string" && PROFILE_COLORS.includes(p.color) ? p.color : DEFAULT_PROFILE.color,
+});
+
+export function getSavedProfile(): PlayerProfile {
+  if (cachedProfile) return cachedProfile;
+  let raw: Partial<PlayerProfile> | null = null;
+  try {
+    raw = JSON.parse(localStorage.getItem(PROFILE_KEY) ?? "null");
+  } catch {
+    /* storage unavailable or corrupt — default look */
+  }
+  return (cachedProfile = validProfile(raw));
+}
+
+export function saveProfile(profile: PlayerProfile) {
+  cachedProfile = validProfile(profile);
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(cachedProfile));
+  } catch {
+    /* lasts until the tab closes */
+  }
+  profileListeners.forEach((l) => l());
+}
+
+function subscribeProfile(listener: () => void) {
+  profileListeners.add(listener);
+  const onStorage = (e: StorageEvent) => {
+    if (e.key !== PROFILE_KEY) return;
+    cachedProfile = null;
+    listener();
+  };
+  window.addEventListener("storage", onStorage);
+  return () => {
+    profileListeners.delete(listener);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+/** Live player look; the default during SSR. */
+export function usePlayerProfile(): PlayerProfile {
+  return useSyncExternalStore(subscribeProfile, getSavedProfile, () => DEFAULT_PROFILE);
+}
