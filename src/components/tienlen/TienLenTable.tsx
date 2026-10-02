@@ -31,6 +31,7 @@ import { CardBack, PlayingCard } from "./PlayingCard";
 import { MoveHistory } from "./MoveHistory";
 import { DeltaBadge, ScoreboardModal, rankTitle, signed } from "./Scoreboard";
 import { inviteLink, useTienLenRoom } from "./useTienLen";
+import { ConfirmButton } from "@/components/games/ConfirmButton";
 
 type SortMode = "rank" | "suit";
 
@@ -233,7 +234,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onKick
   const isHost = !!me?.isHost;
   const kickable = (s: SeatView | null) => isHost && !!s && s.id !== meId && !s.connected && !s.kicked;
   const kick = async (s: SeatView) => {
-    if (!window.confirm(playing && s.inGame ? `Kích ${s.name}? Họ sẽ bị xử thua ván này (xếp Bét).` : `Kích ${s.name} khỏi phòng?`)) return;
+    // The Kích button asks for a second tap itself (window.confirm is blocked in some in-app browsers).
     await onKick(s.id);
   };
 
@@ -556,9 +557,9 @@ function StatusTags({
         !seat.connected && <span className="rounded bg-rose-900/60 px-1.5 text-rose-200">Mất kết nối</span>
       )}
       {onKick && (
-        <button onClick={onKick} className="rounded bg-rose-600 px-1.5 font-semibold text-white hover:bg-rose-500">
+        <ConfirmButton onConfirm={onKick} confirmLabel="Chắc chắn?" title="Kích người mất kết nối" className="rounded bg-rose-600 px-1.5 font-semibold text-white hover:bg-rose-500 max-sm:min-h-8 max-sm:px-2.5">
           Kích
-        </button>
+        </ConfirmButton>
       )}
       {seat.games > 0 && (
         <span className={cn("font-mono", seat.points > 0 ? "text-emerald-300" : seat.points < 0 ? "text-rose-300" : "text-emerald-100/60")}>

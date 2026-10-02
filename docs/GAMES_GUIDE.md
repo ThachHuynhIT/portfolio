@@ -226,9 +226,8 @@ Các helper:
 
 ### 2.4. Theme luôn tối
 
-- Mọi route game nằm trong `EXCLUDED_ROUTE_PREFIXES` (`src/lib/constants.ts`). `ThemeContext.isExcludedRoute()` ép các route này về `"dark"`.
-- Mảng prefix được **chép tay** một lần nữa vào `THEME_INIT_SCRIPT` (`src/app/layout.tsx`), để `data-theme="dark"` có ngay trước khi hydrate.
-- Thêm route game mới thì phải sửa **cả hai nơi**.
+- `EXCLUDED_ROUTE_PREFIXES` (`src/lib/constants.ts`) = `/admin`, `/contra`, `/couple`, `/music` + `GAMES_ROUTE_PREFIXES` của `gamesRegistry.ts`, nên game mới đăng ký trong registry là tự được ép tối. `isExcludedRoute()` (cùng file) khớp đúng prefix hoặc `prefix/…` (không khớp `/bangxyz`); `ThemeContext` dùng hàm này.
+- `THEME_INIT_SCRIPT` (`src/app/layout.tsx`) nhận mảng qua `JSON.stringify(EXCLUDED_ROUTE_PREFIXES)` và khớp cùng cách, để `data-theme="dark"` có ngay trước khi hydrate — không còn danh sách chép tay.
 - **Không thêm class `light:`** trong cây component của game.
 
 ---
@@ -554,7 +553,7 @@ Client dùng `detectCombo` / `canBeat` để bật hoặc tắt nút Đánh trư
 **Cài đặt.** `SettingsPanel` nằm trong `WaitingPanel`, chỉ hiện giữa các ván, và chỉ chủ bàn sửa được. Có ba mục: `autoPass` (checkbox), `first` và `second` (hai select tự viết, **không** dùng `RankPointsPicker`), cùng một dòng xem trước tính bằng `tienlenRankPoints`.
 
 **Giới hạn đã biết**
-- Kích người dùng `window.confirm`.
+- Kích người dùng `ConfirmButton` dùng chung (bấm 2 lần).
 - Nút chép link mời có fallback bằng textarea + `execCommand("copy")` cho trang http, rồi tới `window.prompt`.
 - Union `ClientMessage` trong `protocol.ts` thiếu `chat` và `settings`.
 
@@ -604,7 +603,7 @@ Khi số người nằm ngoài khoảng `minPlayers`–`maxPlayers` của chế 
 **Giới hạn đã biết**
 - Header không dùng `HeaderLabel`, nên chữ vẫn hiện ở khoảng `sm`–`lg`.
 - Chép link mời không có fallback cho trang http.
-- Kích dùng `window.confirm`.
+- Kích dùng `ConfirmButton` dùng chung (bấm 2 lần).
 - `MeoCommand` trong `protocol.ts` thiếu `see`, `dig`, `chat` và `settings.preset`.
 - `MeoRules` dùng màu chữ emerald của Tiến Lên.
 
@@ -626,7 +625,7 @@ Luật và protocol: `be_game/docs/games/typhu.md`.
 | `BuyHint` | Dòng dưới nút Mua: tiền thuê, số ô cùng nhóm mình đã có |
 | **`BuildPanel`** | `Modal dark`: mọi nhóm màu và ô xây được, nút "+ Nhà n / Khách sạn", mục "Còn thiếu để xây". Dùng `buildableGroups` và `buildRuleText`. |
 | `CBtn` | Nút ở giữa bàn, biến thể `primary` / `danger` / `build` |
-| **`ConfirmButton`** | Bấm hai lần để xác nhận, tự huỷ sau 3,5 giây. Thay cho `window.confirm`, vốn bị chặn trong một số trình duyệt in-app. **Chỉ có trong file này**, chưa đưa ra thư mục chung. |
+| **`ConfirmButton`** | Bấm hai lần để xác nhận, tự huỷ sau 3,5 giây. Thay cho `window.confirm`, vốn bị chặn trong một số trình duyệt in-app. Giờ nằm ở `src/components/games/ConfirmButton.tsx` (có `as="span"` cho chỗ nằm trong một `<button>`), mọi nút Kích dùng chung. |
 | **`DebtControls`** | Trong `Centre` khi đang nợ: dòng nợ, Trả nợ, nút "💰 Bán / thế chấp ↓" (`lg:hidden short:hidden`, cuộn tới `AssetPanel`) và Phá sản (qua `ConfirmButton`) |
 | **`AssetPanel`** | `<section>` trong cột bên, **không phải modal**. Liệt kê các ô mình sở hữu theo nhóm, rồi "Sân bay & công ty", với các nút Bán nhà / Thế chấp / Chuộc / Bán đất. Khi đang nợ, panel có thêm Trả nợ, Phá sản, đồng hồ, và không có nút ✕. Panel mở khi `mine && myTurn && (showAssets \|\| inDebt)`. `mortgageBlocker()` cho biết vì sao một ô chưa thế chấp được. |
 | `BankruptOverlay` | "PHÁ SẢN!" toàn màn hình, `createPortal` vào `document.body`, tiền bay xuống (`MONEY_BITS`) |
@@ -673,7 +672,7 @@ Phải khớp be_game `src/typhu/board.ts` và `protocol.ts`. Lưu ý: `TyPhuTab
 
 **Giới hạn đã biết**
 - Chưa có đấu giá, chưa có hiệu ứng khi tiền thay đổi.
-- Kích vẫn dùng `window.confirm`. Nếu hộp thoại bị chặn (trả `false` trong dưới 50 ms) thì vẫn kích luôn.
+- Kích dùng `ConfirmButton` (bấm 2 lần).
 - Nhiều chữ viết cứng, không theo cài đặt: "30 giây" trong luật và trong `TradeModal`, "nộp 50tr" trong `SQUARE_TEXT`.
 - `SquareModal` so sánh chuỗi lỗi của server (`m.sellLand !== "Luật bàn không cho bán đất"`) để ẩn nút Bán đất.
 - `TPCommand.settings` trong `protocol.ts` thiếu nhiều trường mà UI vẫn gửi.
@@ -730,7 +729,7 @@ Phải khớp be_game `src/splendor/cards.ts` và `protocol.ts`, và `paymentPla
 - Không có nút cho lệnh `pass`.
 - Chữ viết cứng: "/4 người", "Đá …/10", tối thiểu 2 người.
 - Art không có cache-busting.
-- Kích dùng `window.confirm`.
+- Kích dùng `ConfirmButton` dùng chung (bấm 2 lần).
 
 ### 4.5. Đấu Súng (Bang!)
 
@@ -830,7 +829,7 @@ Phải khớp be_game `src/cangua/board.ts` và `protocol.ts`. Cách mã hoá v�
 - Transition CSS cố định 150 ms, dù bước có thể ngắn tới 70 ms.
 - Chỉ có viền đếm ngược, không có số giây.
 - `ScoreboardModal` dùng màu emerald mặc định, lệch tông nâu của bàn.
-- Kích dùng `window.confirm`.
+- Kích dùng `ConfirmButton` dùng chung (bấm 2 lần).
 
 ### 4.7. Ô Ăn Quan
 
@@ -887,7 +886,7 @@ Sảnh chờ hiện `đang ngồi/4`, nút bắt đầu cần ít nhất 2 ngư�
 - Phần `pending` không tính nước đến giữa chừng.
 - Replay ăn vào thời gian của người đi tiếp, vì deadline phía server vẫn chạy.
 - `OAnQuanRules` không đọc cài đặt.
-- Kích dùng `window.confirm`.
+- Kích dùng `ConfirmButton` dùng chung (bấm 2 lần).
 
 ---
 
@@ -1101,7 +1100,7 @@ Giả sử game có id `xyz` và route `/xyz`.
 1. **Backend trước.** Thêm game ở be_game (`api/[game]`, `src/xyz/`), rồi kiểm tra `/api/xyz/rooms` chạy được. Xem `be_game/docs/GUIDE.md`.
 2. **Bản sao lib.** Chép `be_game/src/xyz/{protocol,board|cards}.ts` sang `src/lib/xyz/`. Giữ comment đầu file "Client-side copy … keep in sync". Export `XYZ_WS_PATH = "/api/xyz/ws"`.
 3. **Registry.** Thêm một dòng vào `ONLINE_GAMES` trong `src/components/games/gamesRegistry.ts`: `id`, `title`, `short`, `emoji`, `href`, `roomsPath`, `maxPlayers`. Union của `OnlineGame["id"]` cũng phải có id mới. Tab, `AllRoomsPanel` và `isGamesRoute` tự cập nhật theo danh sách này.
-4. **Theme tối.** Thêm `"/xyz"` vào `EXCLUDED_ROUTE_PREFIXES` (`src/lib/constants.ts`) **và** vào mảng `excluded` trong `THEME_INIT_SCRIPT` (`src/app/layout.tsx`).
+4. **Theme tối.** Tự có khi game đã nằm trong `ONLINE_GAMES` (`gamesRegistry.ts`) — `EXCLUDED_ROUTE_PREFIXES` và `THEME_INIT_SCRIPT` lấy từ đó.
 5. **Route.** Tạo ba file theo §1.1:
    - `src/app/xyz/layout.tsx`: `metadata`, `div.game-shell` với gradient riêng, `<GamesShell>`.
    - `src/app/xyz/page.tsx`: `<GameLobby …/>`.
@@ -1130,7 +1129,7 @@ Giả sử game có id `xyz` và route `/xyz`.
 - **Hydration và `ssr: false`.** Bàn chơi đọc `sessionStorage`, `localStorage`, `window`, `Date.now()` ngay khi render, nên luôn nạp bằng `dynamic(..., { ssr: false })`. `usePlayerName()` trả `null` khi SSR. Đừng render nội dung khác nhau giữa server và client ở hub/lobby; `GamesShell` đã giữ markup trong `invisible` cho trường hợp này. `useHandOrder` đọc storage trong hàm khởi tạo của `useState` (có kiểm tra `typeof window`), nên chỉ an toàn trong cây đã tắt SSR.
 - **Tên đóng băng khi mount.** `useGameRoom` kết nối lại khi `name` đổi. Vì vậy trang bàn dùng `const [name] = useState(getSavedName)`, **không** dùng `usePlayerName()`. Nếu đổi sang hook live, đổi tên trên thanh games sẽ rời ghế rồi join lại giữa ván. `RenameDialog` đã báo trước điều này cho người chơi.
 - **Log mới nhất ở trên.** Dùng `log.slice().reverse()` (đừng `.reverse()` thẳng trên mảng của view, vì nó sửa state) và render trong `flex flex-col` + `overflow-y-auto`. Không dùng `flex-col-reverse`: nó đảo vị trí bắt đầu cuộn và thứ tự đọc của trình đọc màn hình.
-- **`window.confirm` bị chặn trong trình duyệt in-app** (Messenger, Zalo, Facebook…): hàm trả `false` ngay mà không hiện hộp thoại. Với hành động quan trọng, dùng mẫu **`ConfirmButton`** (bấm hai lần, tự huỷ sau 3,5 giây) trong `typhu/TyPhuTable.tsx`, chép sang hoặc đưa ra `src/components/games/`. Hiện nút Kích của Tiến Lên, Mèo Nổ, Đá Quý, Cá Ngựa và Ô Ăn Quan vẫn dùng `window.confirm`; Tỷ Phú có thêm mẹo "trả `false` trong dưới 50 ms thì coi như bị chặn". `window.prompt` (fallback khi chép link) cũng có thể bị chặn.
+- **`window.confirm` bị chặn trong trình duyệt in-app** (Messenger, Zalo, Facebook…): hàm trả `false` ngay mà không hiện hộp thoại. Với hành động quan trọng, dùng **`ConfirmButton`** dùng chung (`src/components/games/ConfirmButton.tsx`, bấm hai lần, tự huỷ sau 3,5 giây) — mọi nút Kích, Phá sản, Bán đất đều dùng nó. `window.prompt` (fallback khi chép link) cũng có thể bị chặn.
 - **Portal.**
   - `GameHeader` portal vào `#games-header-slot`. Ô này chỉ có khi `GamesShell` ở chế độ bàn, và chỉ tìm được sau khi mount (`useEffect`). Ở lần render đầu, header render tại chỗ rồi nhảy lên thanh. Đừng đặt state quan trọng trong header: nội dung bị mount lại khi chuyển chỗ.
   - Overlay toàn màn hình nằm trong phần tử có `transform` hoặc `backdrop-filter` sẽ bị kẹt trong phần tử đó (`fixed` tính theo phần tử cha). Khi đó dùng `createPortal(…, document.body)`, như `BankruptOverlay`.

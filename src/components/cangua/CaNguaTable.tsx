@@ -16,6 +16,7 @@ import { CANGUA_WS_PATH, type CNGameView, type CNPlayerView, type CNRoomView, ty
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { CaNguaBoard, HORSE_COLORS, HorseChip, RollingDie } from "./Board";
+import { ConfirmButton } from "@/components/games/ConfirmButton";
 
 type Act = (msg: Record<string, unknown> & { type: string }) => Promise<boolean>;
 
@@ -121,7 +122,7 @@ function Table({ view, reconnecting, act, toast }: { view: CNRoomView; reconnect
   };
 
   const kick = async (s: CNSeatView) => {
-    if (!window.confirm(playing && s.inGame ? `Kích ${s.name}? Họ sẽ xếp cuối ván này.` : `Kích ${s.name} khỏi bàn?`)) return;
+    // The Kích button asks for a second tap itself (window.confirm is blocked in some in-app browsers).
     await act({ type: "kick", playerId: s.id });
   };
 
@@ -386,9 +387,9 @@ function PlayerRow({
         </span>
       </span>
       {onKick && (
-        <button onClick={onKick} className="rounded bg-rose-600 px-1.5 text-[11px] font-semibold text-white">
+        <ConfirmButton onConfirm={onKick} confirmLabel="Chắc chắn?" title="Kích người mất kết nối" className="rounded bg-rose-600 px-1.5 text-[11px] font-semibold text-white max-sm:min-h-8 max-sm:px-2.5">
           Kích
-        </button>
+        </ConfirmButton>
       )}
     </div>
   );

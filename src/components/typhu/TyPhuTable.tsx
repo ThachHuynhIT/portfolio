@@ -39,6 +39,7 @@ import { STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { MyTurnBadge, TurnRing } from "@/components/games/TurnIndicator";
+import { ConfirmButton } from "@/components/games/ConfirmButton";
 
 const SCORE_NOTE =
   "Điểm theo thứ hạng: người còn trụ lại (hoặc giàu nhất khi hết giờ) Nhất, ai phá sản trước xếp sau. Chủ bàn chọn điểm Nhất / Nhì, các hạng cuối trừ tương ứng, tổng mỗi ván luôn bằng 0.";
@@ -1084,46 +1085,6 @@ function CBtn({
       )}
     >
       {children}
-    </button>
-  );
-}
-
-/** A button that asks "sure?" on the first tap and acts on the second (window.confirm is blocked in some in-app browsers). */
-function ConfirmButton({
-  children,
-  confirmLabel = "Chắc chắn?",
-  onConfirm,
-  disabled,
-  title,
-  className,
-}: {
-  children: React.ReactNode;
-  confirmLabel?: string;
-  onConfirm: () => void;
-  disabled?: boolean;
-  title?: string;
-  className?: string;
-}) {
-  const [armed, setArmed] = useState(false);
-  useEffect(() => {
-    if (!armed) return;
-    const t = setTimeout(() => setArmed(false), 3500);
-    return () => clearTimeout(t);
-  }, [armed]);
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      title={title}
-      onClick={() => {
-        if (armed) {
-          setArmed(false);
-          onConfirm();
-        } else setArmed(true);
-      }}
-      className={cn(className, armed && "animate-pulse ring-2 ring-rose-400")}
-    >
-      {armed ? confirmLabel : children}
     </button>
   );
 }

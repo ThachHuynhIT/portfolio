@@ -26,6 +26,7 @@ import { SPLENDOR_WS_PATH, type SPGameView, type SPPlayerView, type SPRoomView, 
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { BonusPip, CardBack, DevCardView, GemCount, GemIcon, MD_CARD_W, NobleTile, TokenChip } from "./Pieces";
+import { ConfirmButton } from "@/components/games/ConfirmButton";
 
 type Act = (msg: Record<string, unknown> & { type: string }) => Promise<boolean>;
 
@@ -155,7 +156,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
   };
 
   const kick = async (s: SPSeatView) => {
-    if (!window.confirm(playing && s.inGame ? `Kích ${s.name}? Họ sẽ xếp cuối ván này.` : `Kích ${s.name} khỏi bàn?`)) return;
+    // The Kích button asks for a second tap itself (window.confirm is blocked in some in-app browsers).
     await act({ type: "kick", playerId: s.id });
   };
 
@@ -489,9 +490,9 @@ function PlayerPanel({
               {seat?.kicked && <span className="rounded bg-rose-900/60 px-1 text-rose-200">Bị kích</span>}
               {/* Inline, so it never sits on the score. */}
               {onKick && (
-                <button onClick={onKick} className="rounded bg-rose-600 px-2 text-[11px] font-semibold text-white hover:bg-rose-500">
+                <ConfirmButton onConfirm={onKick} confirmLabel="Chắc chắn?" title="Kích người mất kết nối" className="rounded bg-rose-600 px-2 text-[11px] font-semibold text-white hover:bg-rose-500 max-sm:min-h-8 max-sm:px-2.5">
                   Kích
-                </button>
+                </ConfirmButton>
               )}
               {seat && seat.games > 0 && <span className={cn("font-mono", seat.points > 0 ? "text-emerald-300" : seat.points < 0 ? "text-rose-300" : "")}>{signed(seat.points)}đ</span>}
             </span>

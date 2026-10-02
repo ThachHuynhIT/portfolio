@@ -45,6 +45,7 @@ import { Sheet } from "@/components/tienlen/Sheet";
 import { CardGuide } from "./CardGuide";
 import { MeoCard, ROLES, roleOf } from "./MeoCard";
 import { EventFeed, PlayHistory } from "./PlayHistory";
+import { ConfirmButton } from "@/components/games/ConfirmButton";
 
 const SCORE_NOTE =
   "Điểm theo thứ hạng: người sống sót cuối cùng Nhất, ai bị loại trước xếp sau. Chủ bàn chọn điểm Nhất / Nhì, các hạng cuối trừ tương ứng, tổng mỗi ván luôn bằng 0.";
@@ -380,7 +381,7 @@ function Board({
   const reactionsFor = (id: string): Reaction[] => live.filter((r) => r.playerId === id);
 
   const kick = async (s: MeoSeatView) => {
-    if (!window.confirm(playing && s.inGame ? `Kích ${s.name}? Họ sẽ bị loại khỏi ván này.` : `Kích ${s.name} khỏi bàn?`)) return;
+    // The Kích button asks for a second tap itself (window.confirm is blocked in some in-app browsers).
     await act({ type: "kick", playerId: s.id });
   };
 
@@ -1176,17 +1177,15 @@ function Seat({
         </span>
       )}
       {onKick && (
-        <span
-          role="button"
-          tabIndex={0}
-          onClick={(e) => {
-            e.stopPropagation();
-            onKick();
-          }}
+        <ConfirmButton
+          as="span"
+          onConfirm={onKick}
+          confirmLabel="Chắc chắn?"
+          title="Kích người mất kết nối"
           className="rounded bg-rose-600 px-2 py-0.5 text-[11px] font-semibold text-white hover:bg-rose-500 max-sm:px-3 max-sm:py-1.5"
         >
           Kích
-        </span>
+        </ConfirmButton>
       )}
     </Tag>
   );

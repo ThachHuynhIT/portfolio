@@ -16,6 +16,7 @@ import { OANQUAN_WS_PATH, type OQGameView, type OQPlayerView, type OQRoomView, t
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { type BoardPlayer, OQBoard, SIDE_COLORS, type SowFrame, useSowReplay } from "./Board";
+import { ConfirmButton } from "@/components/games/ConfirmButton";
 
 type Act = (msg: Record<string, unknown> & { type: string }) => Promise<boolean>;
 
@@ -131,7 +132,7 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
   };
 
   const kick = async (s: OQSeatView) => {
-    if (!window.confirm(playing && s.inGame ? (g && g.players.length > 2 ? `Kích ${s.name}? Người này bị loại khỏi ván.` : `Kích ${s.name}? Bạn sẽ thắng ván này.`) : `Kích ${s.name} khỏi bàn?`)) return;
+    // The Kích button asks for a second tap itself (window.confirm is blocked in some in-app browsers).
     await act({ type: "kick", playerId: s.id });
   };
 
@@ -470,9 +471,9 @@ function PlayerStrip({
           {isTurn && secondsLeft !== null && <span className={cn("font-mono", secondsLeft <= 5 ? "text-rose-300" : "text-amber-100/80")}>⏱ {secondsLeft}s</span>}
         </span>
         {onKick && (
-          <button onClick={onKick} className="absolute -top-2 right-1 rounded bg-rose-600 px-1.5 text-[11px] font-semibold text-white">
+          <ConfirmButton onConfirm={onKick} confirmLabel="Chắc chắn?" title="Kích người mất kết nối" className="absolute -top-2 right-1 rounded bg-rose-600 px-1.5 text-[11px] font-semibold text-white max-sm:min-h-8 max-sm:px-2.5">
             Kích
-          </button>
+          </ConfirmButton>
         )}
       </div>
     );
@@ -527,9 +528,9 @@ function PlayerStrip({
         <span className="text-[10px] text-white/50">điểm</span>
       </span>
       {onKick && (
-        <button onClick={onKick} className="absolute -top-2 right-2 rounded bg-rose-600 px-1.5 text-[11px] font-semibold text-white">
+        <ConfirmButton onConfirm={onKick} confirmLabel="Chắc chắn?" title="Kích người mất kết nối" className="absolute -top-2 right-2 rounded bg-rose-600 px-1.5 text-[11px] font-semibold text-white max-sm:min-h-8 max-sm:px-2.5">
           Kích
-        </button>
+        </ConfirmButton>
       )}
     </div>
   );

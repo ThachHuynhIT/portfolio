@@ -49,11 +49,12 @@ const capturesOf = (m: OQMove) => {
  */
 export function useSowReplay(g: OQGameView | null): SowFrame | null {
   const move = g?.lastMove ?? null;
-  const seq = move?.seq ?? null;
-  // Every broadcast brings a new object; key the replay on the move's seq only.
+  // seq restarts every game, so a move is identified by when it was made + its seq.
+  const key = move ? `${move.at ?? 0}:${move.seq}` : null;
+  // Every broadcast brings a new object; key the replay on the move's identity only.
   const moveRef = useRef(move);
   moveRef.current = move;
-  const initial = useRef<number | null>(seq);
+  const initial = useRef<string | null>(key);
   const queue = useRef<OQMove[]>([]);
   const running = useRef<{ timers: ReturnType<typeof setTimeout>[] } | null>(null);
   const [frame, setFrame] = useState<SowFrame | null>(null);
@@ -74,12 +75,12 @@ export function useSowReplay(g: OQGameView | null): SowFrame | null {
 
   useEffect(() => {
     const m = moveRef.current;
-    if (!m || m.seq === initial.current || prefersReducedMotion()) return;
-    if (queue.current.some((q) => q.seq === m.seq)) return;
+    if (!m || key === initial.current || prefersReducedMotion()) return;
+    if (queue.current.some((q) => q.seq === m.seq && q.at === m.at)) return;
     queue.current.push(m);
     if (queue.current.length > MAX_QUEUE) queue.current = queue.current.slice(-1);
     if (!running.current) playNext.current();
-  }, [seq]);
+  }, [key]);
 
   useEffect(
     () => () => {
