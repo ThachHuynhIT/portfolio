@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChatBox } from "@/components/games/ChatBox";
 import { GameHeader, HeaderLabel, headerBtn } from "@/components/games/GameHeader";
+import { RankPointsPicker } from "@/components/games/RankPointsPicker";
 import { SettingsTabs } from "@/components/games/SettingsTabs";
 import { useGameRoom } from "@/components/games/gameClient";
 import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
@@ -35,7 +36,7 @@ type Act = (msg: Record<string, unknown> & { type: string }) => Promise<boolean>
 
 const selectCls = "min-h-8 rounded-md bg-black/40 px-1.5 py-1 text-white disabled:opacity-70";
 
-const SCORE_NOTE = "Phe thắng mỗi người được số điểm chủ bàn chọn; phe thua chia đều phần trừ, tổng mỗi ván bằng 0.";
+const SCORE_NOTE = "Xếp hạng: phe thắng đứng trên (ai sống lâu hơn xếp cao hơn), rồi tới phe thua theo thứ tự chết. Nhất / Nhì do chủ bàn chọn, hai hạng cuối bị trừ tương ứng, tổng mỗi ván bằng 0.";
 
 /**
  * Shift server-clock deadlines onto the local clock.
@@ -340,16 +341,7 @@ function Waiting({ view, act, nameOf }: { view: BangRoomView; act: Act; nameOf: 
               label: "🏆 Điểm",
               content: (
                 <div className="space-y-2 text-sm">
-                  <label className="flex items-center justify-between gap-2">
-                    <span>Điểm mỗi người phe thắng</span>
-                    <select value={s.first} disabled={!isHost} onChange={(e) => void act({ type: "settings", first: Number(e.target.value) })} className={selectCls}>
-                      {[1, 2, 3, 4, 5, 10].map((v) => (
-                        <option key={v} value={v}>
-                          +{v}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <RankPointsPicker first={s.first} second={s.second} players={count} editable={isHost} onChange={(v) => void act({ type: "settings", ...v })} />
                   <p className="text-xs text-white/50">{SCORE_NOTE}</p>
                 </div>
               ),
@@ -583,6 +575,11 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
 
   const prompt = g.prompt;
   const myPrompt = !!me && prompt?.to === me.id;
+  const offline = (id: string) => {
+    const seat = view.seats.find((s) => s?.id === id);
+    return !!seat && !seat.connected && !seat.kicked;
+  };
+  const iAmHost = view.role === "player" && !!view.seats.find((s) => s?.id === view.meId)?.isHost;
   const myTurn = !!me && g.turn === me.id && g.step === "play" && !prompt;
   const reset = useCallback(() => {
     setMode(null);
@@ -850,6 +847,7 @@ function Board({ view, g, act, nameOf, onGuide }: { view: BangRoomView; g: BangG
                 onTap={() => tapPlayer(p)}
                 onChip={(c) => tapChip(p, c)}
                 onChar={() => p.char && setInfo({ kind: "char", key: p.char })}
+                onKick={iAmHost && offline(p.id) ? () => void act({ type: "kick", playerId: p.id }) : undefined}
                 pickedCard={pick?.zone === "play" && target === p.id ? pick.card : null}
               />
             ))}
@@ -1050,7 +1048,7 @@ function promptText(p: PromptView, nameOf: (id: string) => string): string {
     case "pick":
       return `chọn lá của ${nameOf(p.from)} để bỏ`;
     case "keep":
-      return p.cause === "kit" ? "soi bài" : "chọn lá giữ lại";
+      return p.cause === "kit" ? "soi bài" : p.cause === "poker" ? "chọn 2 lá từ ván Xì Phé" : "chọn lá giữ lại";
     case "discard":
       return p.cause === "poker" ? "úp 1 lá cho ván Xì Phé" : `bỏ ${p.count} lá hoặc mất ${p.orLose} máu`;
     case "copy":
@@ -1102,6 +1100,7 @@ function PlayerTile({
   onTap,
   onChip,
   onChar,
+  onKick,
   pickedCard,
 }: {
   p: BangPlayerView;
@@ -1116,9 +1115,17 @@ function PlayerTile({
   onTap: () => void;
   onChip: (card: number) => void;
   onChar: () => void;
+  /** Host only, and only for an offline player: kick them (two taps to confirm). */
+  onKick?: () => void;
   pickedCard: number | null;
 }) {
   const gone = p.dead && !p.ghost;
+  const [sure, setSure] = useState(false);
+  useEffect(() => {
+    if (!sure) return;
+    const id = window.setTimeout(() => setSure(false), 3500);
+    return () => window.clearTimeout(id);
+  }, [sure]);
   return (
     <li
       className={cn(
@@ -1166,6 +1173,21 @@ function PlayerTile({
           </button>
         )}
         {seat && !seat.connected && !seat.kicked && <span className="rounded bg-rose-900/60 px-1 text-rose-200">mất kết nối</span>}
+        {onKick && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (sure) {
+                setSure(false);
+                onKick();
+              } else setSure(true);
+            }}
+            className={cn("rounded px-1 font-semibold", sure ? "bg-rose-600 text-white" : "bg-white/10 text-rose-200 hover:bg-white/20")}
+          >
+            {sure ? "Chắc chắn?" : "Kích"}
+          </button>
+        )}
         {seat && seat.games > 0 && <span className={cn("font-mono", seat.points > 0 ? "text-emerald-300" : seat.points < 0 ? "text-rose-300" : "text-white/50")}>{signed(seat.points)}đ</span>}
       </div>
       {(p.play.length > 0 || p.gear.length > 0) && (
@@ -1472,7 +1494,7 @@ function PromptPanel({ g, me, prompt, sel, target, opt, busy, nameOf, secondsLef
         <>
           {header(
             <>
-              {prompt.cause === "kit" ? "Soi bài" : "Rút 2 bỏ 1"}: chọn {prompt.keep} lá để giữ
+              {prompt.cause === "kit" ? "Soi bài" : prompt.cause === "poker" ? "Xì Phé" : "Rút 2 bỏ 1"}: chọn {prompt.keep} lá để giữ
             </>,
           )}
           <div className="flex flex-wrap gap-1.5">
