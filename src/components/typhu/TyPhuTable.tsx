@@ -940,7 +940,7 @@ function buildableGroups(g: TPGameView, id: string, needGroup: boolean): Group[]
 const buildRuleText = (st: TPSettings) =>
   (st.buildRule === "chain"
     ? "Xây theo chuỗi: nhà 2 / nhà 3 cần 2 ô trong nhóm có nhà 1 / nhà 2, nhà 4 cần cả nhóm 3 nhà, khách sạn cần cả nhóm 4 nhà."
-    : "Xây đều từng ô trong nhóm; 4 nhà rồi lên khách sạn.") + (st.needGroup === false ? " Không cần đủ nhóm màu." : "");
+    : "Xây đều từng ô trong nhóm; 4 nhà rồi lên khách sạn.") + (st.needGroup === false ? " Không cần đủ nhóm màu, nhưng chưa đủ nhóm thì tối đa 3 nhà (nhà 4 / khách sạn cần đủ nhóm)." : "");
 
 /** Build on every group you can build in, without hunting for the squares on the board. Selling / mortgaging lives in AssetPanel. */
 function BuildPanel({
