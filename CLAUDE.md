@@ -37,6 +37,7 @@ npm run art:meono / npm run art:bang   # Rebuild optional card art (see Games be
 
 Detailed documentation (Vietnamese) lives in [`docs/`](docs/):
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/FEATURES.md`](docs/FEATURES.md), [`docs/CUSTOMIZATION_GUIDE.md`](docs/CUSTOMIZATION_GUIDE.md), [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
+- [`docs/GAMES_GUIDE.md`](docs/GAMES_GUIDE.md): games frontend guide (shell, shared components, per-game file map & layout, responsive rules, card-art pipeline, UI testing with bots/Playwright, new-game checklist, pitfalls)
 - Card-art prompt sets: [`docs/MEONO_ART_PROMPTS.md`](docs/MEONO_ART_PROMPTS.md), [`docs/BANG_ART_PROMPTS.md`](docs/BANG_ART_PROMPTS.md)
 
 ---

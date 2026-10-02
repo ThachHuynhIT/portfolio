@@ -1588,7 +1588,7 @@ function SquareModal({
   const group = sq.kind === "prop" ? groupPositions(sq.group) : [];
   const ownsSet = sq.kind === "prop" && !!g && group.every((p) => g.deeds[p]?.owner === meId);
   const m = g?.manage?.[pos];
-  const buildWhy = inDebt ? "Đang nợ — không xây được" : (m?.build ?? (ownsSet ? null : "Sở hữu đủ cả nhóm màu mới được xây nhà."));
+  const buildWhy = inDebt ? "Đang nợ — không xây được" : m ? m.build : ownsSet ? null : "Sở hữu đủ cả nhóm màu mới được xây nhà.";
 
   return (
     <Modal onClose={onClose}>

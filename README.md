@@ -212,6 +212,7 @@ npm run start
 - 🚀 [**Đặc Tả Tính Năng (Features Spec)**](docs/FEATURES.md): Danh mục chi tiết các component và khả năng tương tác.
 - 🎨 [**Hướng Dẫn Tùy Biến (Customization Guide)**](docs/CUSTOMIZATION_GUIDE.md): Các bước chỉnh sửa thông tin cá nhân, cập nhật kỹ năng, thêm dự án mới và viết blog.
 - 🚢 [**Hướng Dẫn Triển Khai (Deployment Guide)**](docs/DEPLOYMENT.md): Hướng dẫn deploy lên Vercel, VPS, Docker container và tối ưu hóa SEO.
+- 🎮 [**Hướng Dẫn Frontend Game Online (Games Guide)**](docs/GAMES_GUIDE.md): Khung games, component dùng chung, bố cục từng game, quy ước responsive, ảnh lá bài và cách kiểm thử UI.
 - 🎨 [`docs/MEONO_ART_PROMPTS.md`](docs/MEONO_ART_PROMPTS.md), [`docs/BANG_ART_PROMPTS.md`](docs/BANG_ART_PROMPTS.md): Prompt vẽ ảnh lá bài (tùy chọn) cho Mèo Nổ / Đấu Súng.
 
 ---
