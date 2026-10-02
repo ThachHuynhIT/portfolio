@@ -45,6 +45,9 @@ import { ConfirmButton } from "@/components/games/ConfirmButton";
 const SCORE_NOTE =
   "Điểm theo thứ hạng: người còn trụ lại (hoặc giàu nhất khi hết giờ) Nhất, ai phá sản trước xếp sau. Chủ bàn chọn điểm Nhất / Nhì, các hạng cuối trừ tương ứng, tổng mỗi ván luôn bằng 0.";
 
+/** A seat's token. A server from before token picking sends no `piece`: fall back to the starting token of the seat. */
+export const pieceOfSeat = (seat: TPSeatView) => seat.piece ?? TOKENS[seat.color % TOKENS.length];
+
 export const TOKENS = [
   { emoji: "🛵", color: "#ef4444" },
   { emoji: "🐃", color: "#3b82f6" },
@@ -232,7 +235,10 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
   const seatOf = (id: string) => view.seats.find((s) => s?.id === id) ?? null;
   const nameOf = (id: string) =>
     seatOf(id)?.name ?? view.history.flatMap((h) => h.results).find((r) => r.id === id)?.name ?? "?";
-  const tokenOf = (id: string) => seatOf(id)?.piece ?? TOKENS[(g?.players.findIndex((p) => p.id === id) ?? 0) % TOKENS.length];
+  const tokenOf = (id: string) => {
+    const seat = seatOf(id);
+    return seat ? pieceOfSeat(seat) : TOKENS[(g?.players.findIndex((p) => p.id === id) ?? 0) % TOKENS.length];
+  };
 
   const shownPos = useWalkingTokens(g);
   const [openSquare, setOpenSquare] = useState<number | null>(null);
@@ -2255,8 +2261,8 @@ function Modal({ children, onClose, dark }: { children: React.ReactNode; onClose
 function PiecePicker({ seats, meId, act, onClose }: { seats: (TPSeatView | null)[]; meId: string; act: Act; onClose: () => void }) {
   const me = seats.find((s) => s?.id === meId);
   const others = seats.filter((s): s is TPSeatView => !!s && s.id !== meId);
-  const emojiTaken = (e: string) => others.some((o) => o.piece.emoji === e);
-  const colorTaken = (c: string) => others.some((o) => o.piece.color === c);
+  const emojiTaken = (e: string) => others.some((o) => pieceOfSeat(o).emoji === e);
+  const colorTaken = (c: string) => others.some((o) => pieceOfSeat(o).color === c);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -2265,6 +2271,7 @@ function PiecePicker({ seats, meId, act, onClose }: { seats: (TPSeatView | null)
   }, [onClose]);
 
   if (!me) return null;
+  const mine = pieceOfSeat(me);
   const choose = (emoji: string, color: string) => void act({ type: "pick", emoji, color });
 
   return (
@@ -2273,8 +2280,8 @@ function PiecePicker({ seats, meId, act, onClose }: { seats: (TPSeatView | null)
         <h2 className="mb-1 text-lg font-bold text-amber-300">Quân cờ &amp; màu nhà</h2>
         <p className="mb-3 text-xs text-white/55">Không trùng với người chơi khác — ô mờ là đã có người dùng.</p>
         <div className="mb-3 flex items-center gap-3">
-          <span className="grid size-12 place-items-center rounded-full border-2 border-white text-2xl" style={{ background: me.piece.color }}>
-            {me.piece.emoji}
+          <span className="grid size-12 place-items-center rounded-full border-2 border-white text-2xl" style={{ background: mine.color }}>
+            {mine.emoji}
           </span>
           <span className="text-sm text-white/70">Quân của bạn</span>
         </div>
@@ -2284,10 +2291,10 @@ function PiecePicker({ seats, meId, act, onClose }: { seats: (TPSeatView | null)
               key={e}
               type="button"
               role="radio"
-              aria-checked={me.piece.emoji === e}
+              aria-checked={mine.emoji === e}
               disabled={emojiTaken(e)}
-              onClick={() => choose(e, me.piece.color)}
-              className={cn("grid size-10 place-items-center rounded-lg border text-xl disabled:cursor-not-allowed disabled:opacity-25", me.piece.emoji === e ? "border-amber-300 bg-amber-400/20" : "border-white/15 hover:bg-white/10")}
+              onClick={() => choose(e, mine.color)}
+              className={cn("grid size-10 place-items-center rounded-lg border text-xl disabled:cursor-not-allowed disabled:opacity-25", mine.emoji === e ? "border-amber-300 bg-amber-400/20" : "border-white/15 hover:bg-white/10")}
             >
               {e}
             </button>
@@ -2299,11 +2306,11 @@ function PiecePicker({ seats, meId, act, onClose }: { seats: (TPSeatView | null)
               key={c}
               type="button"
               role="radio"
-              aria-checked={me.piece.color === c}
+              aria-checked={mine.color === c}
               aria-label={c}
               disabled={colorTaken(c)}
-              onClick={() => choose(me.piece.emoji, c)}
-              className={cn("size-8 rounded-full border-2 disabled:cursor-not-allowed disabled:opacity-25", me.piece.color === c ? "border-white" : "border-transparent")}
+              onClick={() => choose(mine.emoji, c)}
+              className={cn("size-8 rounded-full border-2 disabled:cursor-not-allowed disabled:opacity-25", mine.color === c ? "border-white" : "border-transparent")}
               style={{ backgroundColor: c }}
             />
           ))}
