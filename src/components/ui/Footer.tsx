@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { useTranslation } from "@/context/LanguageContext";
 import Icon, { isKnownIconName } from "@/components/ui/Icon";
 import type { NavLink, SocialLink, SiteConfig } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { border, brand, elevation, gap, motion, radius, surface, text } from "@/lib/design-tokens";
 
 export interface FooterProps {
   navLinks: NavLink[];
@@ -37,7 +39,7 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
   }
 
   return (
-    <footer className="relative border-t border-white/10 light:border-neutral-900/10 bg-black/50 light:bg-white/60 backdrop-blur-xl">
+    <footer className={cn("relative", border.dividerTop, "bg-black/50 light:bg-white/60", elevation.blurStrong)}>
       {/* Gradient line */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
 
@@ -47,28 +49,28 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
           <div className="md:col-span-2">
             <Link
               href="/"
-              className="inline-block text-3xl font-bold bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent mb-4"
+              className={cn("inline-block text-3xl font-bold", brand.gradient, "bg-clip-text text-transparent mb-4")}
             >
               {siteConfig.author.name}
             </Link>
-            <p className="text-white/60 light:text-neutral-600 max-w-md mb-6">
+            <p className={cn(text.muted, "max-w-md mb-6")}>
               {locale === "vi" && siteConfig.author.bio_vi ? siteConfig.author.bio_vi : (t("hero.bio") || siteConfig.author.bio)}
             </p>
-            <div className="flex gap-4">
+            <div className={cn("flex", gap.loose)}>
               {socialLinks.map((social) => (
                 <a
                   key={social.name}
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 flex items-center justify-center text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.08] hover:border-white/20 light:hover:border-neutral-900/20 transition-all duration-300 overflow-hidden p-1.5"
+                  className={cn("w-10 h-10", radius.pill, surface.card, border.subtle, "flex items-center justify-center", text.muted, text.mutedHover, "hover:bg-white/10 light:hover:bg-neutral-900/[0.08] hover:border-white/20 light:hover:border-neutral-900/20", motion.base, "overflow-hidden p-1.5")}
                   aria-label={social.name}
                 >
                   {social.icon && (social.icon.startsWith("http") || social.icon.startsWith("/")) ? (
                     <img
                       src={social.icon}
                       alt={social.name}
-                      className="w-full h-full object-contain rounded-full"
+                      className={cn("w-full h-full object-contain", radius.pill)}
                     />
                   ) : isKnownIconName(social.icon) ? (
                     <Icon name={social.icon} size={20} />
@@ -82,7 +84,7 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-white light:text-neutral-900 font-semibold mb-4">{t("footer.quickLinks")}</h4>
+            <h4 className={cn(text.primary, "font-semibold mb-4")}>{t("footer.quickLinks")}</h4>
             <ul className="space-y-3">
               {navLinks.map((link) => {
                 const resolvedHref = link.href.startsWith("#")
@@ -95,7 +97,7 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
                   <li key={link.id || link.href}>
                     <Link
                       href={resolvedHref}
-                      className="text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 transition-colors duration-300"
+                      className={cn(text.muted, text.mutedHover, "transition-colors duration-300")}
                     >
                       {getNavLabel(link)}
                     </Link>
@@ -107,29 +109,29 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
 
           {/* Contact Info */}
           <div>
-            <h4 className="text-white light:text-neutral-900 font-semibold mb-4">{t("footer.getInTouch")}</h4>
+            <h4 className={cn(text.primary, "font-semibold mb-4")}>{t("footer.getInTouch")}</h4>
             <ul className="space-y-3">
               <li>
                 <a
                   href={`mailto:${siteConfig.author.email}`}
-                  className="text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 transition-colors duration-300"
+                  className={cn(text.muted, text.mutedHover, "transition-colors duration-300")}
                 >
                   {siteConfig.author.email}
                 </a>
               </li>
-              <li className="text-white/60 light:text-neutral-600">{siteConfig.author.location}</li>
+              <li className={cn(text.muted)}>{siteConfig.author.location}</li>
             </ul>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-16 pt-8 border-t border-white/10 light:border-neutral-900/10 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-white/40 light:text-neutral-500 text-sm">
+        <div className={cn("mt-16 pt-8", border.dividerTop, "flex flex-col md:flex-row justify-between items-center", gap.loose)}>
+          <p className={cn(text.subtle, "text-sm")}>
             © {currentYear} {siteConfig.author.name}. {t("footer.rightsReserved")}
           </p>
-          <p className="text-white/40 light:text-neutral-500 text-sm">
+          <p className={cn(text.subtle, "text-sm")}>
             {t("footer.builtWith")}{" "}
-            <span className="text-transparent bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text">
+            <span className={cn("text-transparent", brand.gradient, "bg-clip-text")}>
               Next.js
             </span>{" "}
             {t("footer.and")}{" "}

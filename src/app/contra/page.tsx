@@ -6,11 +6,13 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import Icon from "@/components/ui/Icon";
+import { cn } from "@/lib/utils";
+import { radius } from "@/lib/design-tokens";
 
 const ContraGame = dynamic(() => import("@/components/game/ContraGame"), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center w-full max-w-[800px] aspect-[800/480] mx-auto bg-black border-2 border-gray-700 rounded-lg">
+    <div className={cn("flex items-center justify-center w-full max-w-[800px] aspect-[800/480] mx-auto bg-black border-2 border-gray-700", radius.chip)}>
       <div className="text-center">
         <p className="text-red-500 text-2xl font-mono font-bold animate-pulse">LOADING...</p>
         <p className="text-gray-500 text-sm font-mono mt-2">Preparing battlefield</p>
@@ -40,7 +42,7 @@ export default function ContraPage() {
       <div className="fixed top-4 left-4 right-4 z-50 flex items-center justify-between pointer-events-none">
         <Link
           href="/"
-          className="pointer-events-auto inline-flex items-center gap-1.5 px-4 py-2 bg-gray-800/80 backdrop-blur text-gray-300 rounded-lg text-sm font-mono hover:bg-gray-700 transition-colors border border-gray-700"
+          className={cn("pointer-events-auto inline-flex items-center gap-1.5 px-4 py-2 bg-gray-800/80 backdrop-blur text-gray-300", radius.chip, "text-sm font-mono hover:bg-gray-700 transition-colors border border-gray-700")}
         >
           <Icon name="arrowLeft" size={14} /> {t("common.backToPortfolio")}
         </Link>

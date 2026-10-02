@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useMusic } from "@/context/MusicContext";
 import { useTranslation } from "@/context/LanguageContext";
 import Icon from "@/components/ui/Icon";
+import { cn } from "@/lib/utils";
+import { gap, motion as motionTokens, radius, surface, text } from "@/lib/design-tokens";
 
 export default function GlobalMusicPlayer() {
   const pathname = usePathname();
@@ -50,11 +52,11 @@ export default function GlobalMusicPlayer() {
         transition={{ type: "spring", stiffness: 350, damping: 25 }}
         className="fixed bottom-6 right-6 z-50 max-w-sm"
       >
-        <div className="relative group overflow-hidden rounded-2xl bg-black/80 light:bg-white/90 backdrop-blur-2xl border border-white/15 light:border-neutral-900/15 p-3 shadow-2xl shadow-purple-950/40 text-white light:text-neutral-900 flex items-center gap-3">
+        <div className={cn("relative group overflow-hidden", radius.card, "bg-black/80 light:bg-white/90 backdrop-blur-2xl border border-white/15 light:border-neutral-900/15 p-3 shadow-2xl shadow-purple-950/40", text.primary, "flex items-center", gap.base)}>
           {/* Progress bar line at top */}
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-white/10 light:bg-neutral-900/[0.06] overflow-hidden">
+          <div className={cn("absolute top-0 left-0 right-0 h-[2px]", surface.raised, "overflow-hidden")}>
             <div
-              className="h-full bg-gradient-to-r from-purple-500 via-cyan-400 to-pink-500 transition-all duration-200"
+              className={cn("h-full bg-gradient-to-r from-purple-500 via-cyan-400 to-pink-500", motionTokens.fast)}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -84,7 +86,7 @@ export default function GlobalMusicPlayer() {
             {/* Reactive center dot */}
             {isPlaying && (
               <span
-                className="absolute inset-0 rounded-xl pointer-events-none border border-cyan-400/60"
+                className={cn("absolute inset-0", radius.control, "pointer-events-none border border-cyan-400/60")}
                 style={{
                   boxShadow: `0 0 ${8 + audioMetrics.bass * 12}px rgba(6, 182, 212, ${0.4 + audioMetrics.bass * 0.4})`,
                 }}
@@ -96,7 +98,7 @@ export default function GlobalMusicPlayer() {
           <div className="flex-1 min-w-0 pr-1">
             <Link
               href="/music"
-              className="block text-xs font-semibold text-white light:text-neutral-900 hover:text-cyan-300 transition-colors truncate"
+              className={cn("block text-xs font-semibold", text.primary, "hover:text-cyan-300 transition-colors truncate")}
               title={currentTrack.title}
             >
               {currentTrack.title}
@@ -120,7 +122,7 @@ export default function GlobalMusicPlayer() {
                 return (
                   <span
                     key={i}
-                    className="w-[2px] rounded-full bg-cyan-400/80 transition-all duration-75"
+                    className={cn("w-[2px]", radius.pill, "bg-cyan-400/80 transition-all duration-75")}
                     style={{ height: `${height}px` }}
                   />
                 );
@@ -135,7 +137,7 @@ export default function GlobalMusicPlayer() {
           <div className="flex items-center gap-1">
             <button
               onClick={togglePlay}
-              className="w-8 h-8 rounded-full bg-white/10 light:bg-neutral-900/[0.06] hover:bg-white/20 light:hover:bg-neutral-900/10 active:scale-95 flex items-center justify-center text-white light:text-neutral-900 transition-all shadow-sm"
+              className={cn("w-8 h-8", radius.pill, surface.raised, surface.raisedHover, motionTokens.press, "flex items-center justify-center", text.primary, "transition-all shadow-sm")}
               title={isPlaying ? t("music.playerBar.pauseTooltip", "Pause") : t("music.playerBar.playTooltip", "Play")}
             >
               {isPlaying ? (
@@ -151,7 +153,7 @@ export default function GlobalMusicPlayer() {
 
             <button
               onClick={nextTrack}
-              className="w-7 h-7 rounded-full hover:bg-white/10 light:hover:bg-neutral-900/[0.06] active:scale-95 flex items-center justify-center text-white/70 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 transition-all"
+              className={cn("w-7 h-7", radius.pill, surface.cardHover, motionTokens.press, "flex items-center justify-center text-white/70 light:text-neutral-600", text.mutedHover, "transition-all")}
               title={t("music.playerBar.nextTooltip", "Next Track")}
             >
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
@@ -161,7 +163,7 @@ export default function GlobalMusicPlayer() {
 
             <Link
               href="/music"
-              className="w-7 h-7 rounded-full hover:bg-purple-500/20 text-purple-300 hover:text-purple-200 flex items-center justify-center transition-all text-xs"
+              className={cn("w-7 h-7", radius.pill, "hover:bg-purple-500/20 text-purple-300 hover:text-purple-200 flex items-center justify-center transition-all text-xs")}
               title={t("music.globalMini.openStudio", "Open Full Music Studio")}
             >
               <Icon name="externalLink" size={13} />
@@ -169,7 +171,7 @@ export default function GlobalMusicPlayer() {
 
             <button
               onClick={() => setIsDismissed(true)}
-              className="w-6 h-6 rounded-full text-white/30 light:text-neutral-400 hover:text-white/70 light:hover:text-neutral-600 hover:bg-white/5 light:hover:bg-neutral-900/[0.04] flex items-center justify-center text-xs transition-colors ml-0.5"
+              className={cn("w-6 h-6", radius.pill, "text-white/30 light:text-neutral-400 hover:text-white/70 light:hover:text-neutral-600", surface.faintHover, "flex items-center justify-center text-xs transition-colors ml-0.5")}
               title={t("music.globalMini.hideWidget", "Hide Mini Widget")}
             >
               <Icon name="close" size={13} />

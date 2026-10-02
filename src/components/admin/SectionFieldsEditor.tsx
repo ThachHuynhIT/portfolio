@@ -3,6 +3,8 @@
 import FormField from "@/components/admin/FormField";
 import Icon from "@/components/ui/Icon";
 import type { FieldSpec, Lang } from "@/lib/section-field-specs";
+import { cn } from "@/lib/utils";
+import { radius, text } from "@/lib/design-tokens";
 
 export interface SectionFieldsEditorProps<T extends object> {
   title: string;
@@ -31,9 +33,9 @@ export default function SectionFieldsEditor<T extends object>({
     "w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500";
 
   return (
-    <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
+    <div className={cn("p-6", radius.card, "bg-gray-900 border border-gray-800 space-y-6")}>
       <div className="flex items-center justify-between pb-3 border-b border-gray-800">
-        <h2 className="text-lg font-bold text-white">{title}</h2>
+        <h2 className={cn("text-lg font-bold", text.primaryDark)}>{title}</h2>
         {manageHref && (
           <a
             href={manageHref}

@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import type { PhotoItem } from "@/lib/types";
 import Icon from "@/components/ui/Icon";
 import { useTranslation } from "@/context/LanguageContext";
+import { cn } from "@/lib/utils";
+import { elevation, gap, motion as motionTokens, radius } from "@/lib/design-tokens";
 
 interface GridLayoutProps {
   photos: PhotoItem[];
@@ -15,7 +17,7 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
   const { t, locale } = useTranslation();
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3", gap.grid)}>
       {photos.map((photo, index) => {
         const title = locale === "vi" && photo.title_vi ? photo.title_vi : photo.title;
         const desc = locale === "vi" && photo.description_vi ? photo.description_vi : photo.description;
@@ -39,11 +41,11 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.04, duration: 0.35 }}
-            className="group rounded-2xl overflow-hidden bg-slate-900/50 border border-white/10 hover:border-cyan-500/40 hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-300 cursor-pointer flex flex-col light:bg-white light:border-neutral-900/10 light:shadow-neutral-400/10"
+            className={cn("group", radius.card, "overflow-hidden bg-slate-900/50 border border-white/10 hover:border-cyan-500/40 hover:shadow-2xl hover:shadow-cyan-500/10", motionTokens.base, "cursor-pointer flex flex-col light:bg-white light:border-neutral-900/10 light:shadow-neutral-400/10")}
             onClick={() => onSelectPhoto(photo)}
           >
             {/* Card Image */}
-            <div className="relative w-full aspect-[4/3] overflow-hidden bg-black/40">
+            <div className="relative w-full aspect-[4/3] overflow-hidden bg-black/40 light:bg-slate-100">
               <ImageWithSkeleton
                 src={photo.image}
                 alt={title}
@@ -55,17 +57,17 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
               {/* Category badge */}
               <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
                 {photo.featured && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-black shadow-md flex items-center gap-1">
+                  <span className={cn("px-2 py-0.5", radius.pill, "text-[10px] font-bold bg-amber-400 text-black shadow-md flex items-center gap-1")}>
                     <Icon name="star" size={10} /> {t("photography.featured", "Featured")}
                   </span>
                 )}
                 {photo.category && (
-                  <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-black/60 text-white/90 backdrop-blur-md border border-white/15">
+                  <span className={cn("px-2.5 py-1", radius.pill, "text-[11px] font-medium bg-black/60 text-white/90", elevation.blur, "border border-white/15")}>
                     {photo.category}
                   </span>
                 )}
                 {isVideo && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-500/90 text-black shadow flex items-center gap-1">
+                  <span className={cn("px-2 py-0.5", radius.pill, "text-[10px] font-bold uppercase tracking-wider bg-cyan-500/90 text-black shadow flex items-center gap-1")}>
                     <Icon name="play" size={10} />
                     <span>Video</span>
                   </span>
@@ -75,7 +77,7 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
               {/* Before/After tag */}
               {!isVideo && photo.beforeImage && (
                 <div className="absolute top-3 right-3 z-10">
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-purple-500/90 text-white backdrop-blur-md shadow flex items-center gap-1">
+                  <span className={cn("px-2 py-0.5", radius.pill, "text-[10px] font-semibold uppercase tracking-wider bg-purple-500/90 text-white", elevation.blur, "shadow flex items-center gap-1")}>
                     <Icon name="compare" size={11} />
                     <span>Retouch</span>
                   </span>
@@ -85,7 +87,7 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
               {/* Video Play Overlay */}
               {isVideo && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-md border border-white/30 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-xl">
+                  <div className={cn("w-12 h-12", radius.pill, "bg-black/60", elevation.blur, "border border-white/30 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-xl")}>
                     <Icon name="play" size={18} className="text-cyan-400 translate-x-0.5" />
                   </div>
                 </div>

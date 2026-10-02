@@ -8,6 +8,8 @@ import { useMusic, TabView } from "@/context/MusicContext";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import Icon from "@/components/ui/Icon";
+import { cn } from "@/lib/utils";
+import { gap, radius, surface, text } from "@/lib/design-tokens";
 
 export default function MusicSidebar() {
   const { t } = useTranslation();
@@ -82,7 +84,7 @@ export default function MusicSidebar() {
             {/* Close button for mobile drawer */}
             <button
               onClick={() => setIsMobileSidebarOpen(false)}
-              className="md:hidden p-2 text-white/60 hover:text-white rounded-lg bg-white/5"
+              className={cn("md:hidden p-2", text.mutedDark, "hover:text-white", radius.chip, surface.cardDark)}
               aria-label="Close sidebar"
             >
               <Icon name="close" size={14} />
@@ -217,14 +219,14 @@ export default function MusicSidebar() {
 
       {/* ── 6. Audio Engine Status Indicator Footer ── */}
       <div className="music-sidebar-footer">
-        <div className="flex items-center gap-2">
+        <div className={cn("flex items-center", gap.tight)}>
           <div className="music-status-dot-wrap">
             <span className="music-status-dot" />
             {isPlaying && <span className="music-status-dot-ping" />}
           </div>
           <div className="text-[11px] leading-tight">
             <div className="text-white/80 font-medium">Web Audio Engine</div>
-            <div className="text-white/40">24-bit Lossless Stream</div>
+            <div className={cn(text.subtleDark)}>24-bit Lossless Stream</div>
           </div>
         </div>
       </div>

@@ -9,6 +9,8 @@ import type { CoupleData, CouplePhotoMemory } from "@/lib/types";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import Icon from "@/components/ui/Icon";
+import { cn } from "@/lib/utils";
+import { border, elevation, gap, motion as motionTokens, radius, text } from "@/lib/design-tokens";
 
 // ============================================================
 // 📝 DỮ LIỆU MẶC ĐỊNH (Fallback khi chưa tải xong API)
@@ -602,22 +604,22 @@ function PhotosSection() {
               {/* Story & Details */}
               <div className={styles.lightboxDetails}>
                 <div>
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className={cn("flex items-center", gap.tight, "mb-3")}>
                     {activePhoto.category && (
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                      <span className={cn("px-3 py-1", radius.pill, "text-xs font-semibold bg-pink-500/20 text-pink-300 border border-pink-500/30")}>
                         {activePhoto.category}
                       </span>
                     )}
                     {activePhoto.featured && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                      <span className={cn("inline-flex items-center gap-1 px-2.5 py-1", radius.pill, "text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30")}>
                         <Icon name="heart" size={11} filled /> Featured
                       </span>
                     )}
                   </div>
-                  <h2 className="text-xl md:text-2xl font-bold text-white mb-2 leading-tight">
+                  <h2 className={cn("text-xl md:text-2xl font-bold", text.primaryDark, "mb-2 leading-tight")}>
                     {activePhoto.title}
                   </h2>
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-white/50 mb-4 pb-3 border-b border-white/10">
+                  <div className={cn("flex flex-wrap items-center", gap.base, "text-xs text-white/50 mb-4 pb-3 border-b border-white/10")}>
                     <span className="inline-flex items-center gap-1">
                       <Icon name="calendar" size={12} />
                       {new Date(activePhoto.date).toLocaleDateString("vi-VN", {
@@ -637,11 +639,11 @@ function PhotosSection() {
                       {activePhoto.description}
                     </p>
                   ) : (
-                    <p className="text-white/40 italic text-sm">Khoảnh khắc đáng nhớ của chúng mình.</p>
+                    <p className={cn(text.subtleDark, "italic text-sm")}>Khoảnh khắc đáng nhớ của chúng mình.</p>
                   )}
                 </div>
 
-                <div className="pt-4 text-xs text-white/40 border-t border-white/5 flex justify-between items-center">
+                <div className={cn("pt-4 text-xs", text.subtleDark, "border-t border-white/5 flex justify-between items-center")}>
                   <span>
                     {lightboxIndex !== null ? lightboxIndex + 1 : 1} / {filteredPhotos.length}
                   </span>
@@ -1059,7 +1061,7 @@ export default function CouplePage() {
         <div className="fixed top-4 left-4 right-4 z-40 flex items-center justify-between pointer-events-none">
           <Link
             href="/"
-            className="pointer-events-auto inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/60 hover:bg-black/80 border border-white/10 text-white/80 hover:text-white text-xs backdrop-blur-xl shadow-lg transition-all active:scale-95"
+            className={cn("pointer-events-auto inline-flex items-center gap-1.5 px-3.5 py-1.5", radius.pill, "bg-black/60 hover:bg-black/80", border.subtleDark, "text-white/80 hover:text-white text-xs", elevation.blurStrong, "shadow-lg transition-all", motionTokens.press)}
           >
             <Icon name="arrowLeft" size={12} />
             <span>{t("couple.returnHome")}</span>

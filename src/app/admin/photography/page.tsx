@@ -15,6 +15,8 @@ import type { PhotoItem, PhotoAlbum } from "@/lib/types";
 import { extractImageMetadata } from "@/lib/exif-extractor";
 import Icon from "@/components/ui/Icon";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
+import { cn } from "@/lib/utils";
+import { border, elevation, gap, motion, radius, surface, text } from "@/lib/design-tokens";
 
 const DEFAULT_CATEGORIES = [
   "Street & Urban",
@@ -818,8 +820,8 @@ export default function PhotographyAdminPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Top View Mode Switcher */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white/[0.04] border border-white/10 shadow-inner">
+      <div className={cn("flex flex-wrap items-center justify-between", gap.loose)}>
+        <div className={cn("flex items-center", gap.tight, "p-1.5", radius.card, "bg-white/[0.04]", border.subtleDark, "shadow-inner")}>
           <button
             type="button"
             onClick={() => setAdminView("photos")}
@@ -848,11 +850,11 @@ export default function PhotographyAdminPage() {
 
         {/* Action button & status filter corresponding to view */}
         {adminView === "photos" ? (
-          <div className="flex items-center gap-3">
+          <div className={cn("flex items-center", gap.base)}>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none"
+              className={cn("px-3 py-2 bg-slate-900", border.subtleDark, radius.control, "text-xs text-slate-300 focus:outline-none")}
             >
               <option value="all">{t.admin.photography.filterAll} ({photos.length})</option>
               <option value="published">{t.admin.photography.filterPublished} ({photos.filter((p) => p.published !== false).length})</option>
@@ -861,18 +863,18 @@ export default function PhotographyAdminPage() {
             </select>
             <button
               onClick={openCreateModal}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-semibold hover:opacity-95 shadow-lg shadow-purple-500/20 active:scale-95 transition-all"
+              className={cn("flex items-center", gap.tight, "px-4 py-2", radius.control, "bg-gradient-to-r from-purple-600 to-indigo-600", text.primaryDark, "text-xs font-semibold hover:opacity-95 shadow-lg shadow-purple-500/20", motion.press, "transition-all")}
             >
               <Icon name="plus" size={14} />
               <span>{t.admin.photography.addArtwork}</span>
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-3">
+          <div className={cn("flex items-center", gap.base)}>
             <select
               value={albumStatusFilter}
               onChange={(e) => setAlbumStatusFilter(e.target.value as any)}
-              className="px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none"
+              className={cn("px-3 py-2 bg-slate-900", border.subtleDark, radius.control, "text-xs text-slate-300 focus:outline-none")}
             >
               <option value="all">{t.admin.photography.filterAll} ({albums.length})</option>
               <option value="published">{t.admin.photography.filterPublished} ({albums.filter((a) => a.published !== false).length})</option>
@@ -881,7 +883,7 @@ export default function PhotographyAdminPage() {
             </select>
             <button
               onClick={openCreateAlbumModal}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-semibold hover:opacity-95 shadow-lg shadow-cyan-500/20 active:scale-95 transition-all"
+              className={cn("flex items-center", gap.tight, "px-4 py-2", radius.control, "bg-gradient-to-r from-cyan-500 to-blue-600", text.primaryDark, "text-xs font-semibold hover:opacity-95 shadow-lg shadow-cyan-500/20", motion.press, "transition-all")}
             >
               <Icon name="plus" size={14} />
               <span>{t.admin.photography.addAlbum || "Thêm Album Mới"}</span>
@@ -905,15 +907,15 @@ export default function PhotographyAdminPage() {
               {t.admin.common.loading}
             </div>
           ) : photos.length === 0 ? (
-            <div className="text-center py-20 bg-white/[0.02] border border-white/5 rounded-2xl p-8">
+            <div className={cn("text-center py-20 bg-white/[0.02] border border-white/5", radius.card, "p-8")}>
               <Icon name="camera" size={32} className="text-slate-600 mx-auto mb-3" />
-              <h3 className="text-base font-semibold text-white mb-1">{t.admin.photography.noArtworksTitle}</h3>
+              <h3 className={cn("text-base font-semibold", text.primaryDark, "mb-1")}>{t.admin.photography.noArtworksTitle}</h3>
               <p className="text-xs text-slate-400 mb-4">
                 {t.admin.photography.noArtworksDesc}
               </p>
               <button
                 onClick={openCreateModal}
-                className="px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-medium hover:bg-purple-500 transition-colors"
+                className={cn("px-4 py-2", radius.control, "bg-purple-600", text.primaryDark, "text-xs font-medium hover:bg-purple-500 transition-colors")}
               >
                 {t.admin.photography.addArtwork}
               </button>
@@ -927,13 +929,13 @@ export default function PhotographyAdminPage() {
                 return (
                   <div
                     key={photo.id}
-                    className="rounded-2xl bg-slate-900/60 border border-white/10 overflow-hidden flex flex-col justify-between group hover:border-white/20 transition-all shadow-md"
+                    className={cn(radius.card, "bg-slate-900/60", border.subtleDark, "overflow-hidden flex flex-col justify-between group hover:border-white/20 transition-all shadow-md")}
                   >
                     {/* Preview Thumbnail */}
                     <div className="relative aspect-[16/10] w-full bg-black">
                       {isVideo && (
                         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                          <div className="w-10 h-10 rounded-full bg-black/70 backdrop-blur-md border border-white/20 flex items-center justify-center text-white">
+                          <div className={cn("w-10 h-10", radius.pill, "bg-black/70", elevation.blur, border.strongDark, "flex items-center justify-center", text.primaryDark)}>
                             <Icon name="play" size={16} className="text-cyan-400 translate-x-0.5" />
                           </div>
                         </div>
@@ -948,21 +950,21 @@ export default function PhotographyAdminPage() {
                       />
 
                       <div className="absolute top-2.5 left-2.5 flex flex-wrap items-center gap-1.5 z-10">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-black/70 text-cyan-300 backdrop-blur-md border border-white/10">
+                        <span className={cn("px-2 py-0.5", radius.pill, "text-[10px] font-semibold bg-black/70 text-cyan-300", elevation.blur, border.subtleDark)}>
                           {photo.category}
                         </span>
                         {assignedAlbum && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-600/90 text-white backdrop-blur-md shadow-sm border border-violet-400/30">
+                          <span className={cn("inline-flex items-center gap-1 px-2 py-0.5", radius.pill, "text-[10px] font-semibold bg-violet-600/90", text.primaryDark, elevation.blur, "shadow-sm border border-violet-400/30")}>
                             <Icon name="folder" size={10} /> {assignedAlbum.title_vi || assignedAlbum.title}
                           </span>
                         )}
                         {isVideo && (
-                          <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-cyan-600 text-black shadow">
+                          <span className={cn("px-1.5 py-0.5", radius.pill, "text-[9px] font-bold uppercase tracking-wider bg-cyan-600 text-black shadow")}>
                             Video
                           </span>
                         )}
                         {!isVideo && photo.beforeImage && (
-                          <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-purple-600 text-white shadow">
+                          <span className={cn("px-1.5 py-0.5", radius.pill, "text-[9px] font-bold uppercase tracking-wider bg-purple-600", text.primaryDark, "shadow")}>
                             Before/After
                           </span>
                         )}
@@ -1005,12 +1007,12 @@ export default function PhotographyAdminPage() {
                     {/* Card Meta */}
                     <div className="p-4 flex-1 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-sm font-bold text-white line-clamp-1">
+                        <div className={cn("flex items-center", gap.tight, "mb-1")}>
+                          <h3 className={cn("text-sm font-bold", text.primaryDark, "line-clamp-1")}>
                             {photo.title}
                           </h3>
                           {photo.title_vi && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-cyan-300 font-mono">
+                            <span className={cn("text-[10px] px-1.5 py-0.5 rounded", surface.raisedDark, "text-cyan-300 font-mono")}>
                               VI
                             </span>
                           )}
@@ -1032,14 +1034,14 @@ export default function PhotographyAdminPage() {
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => openEditModal(photo)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-white/5 transition-all"
+                            className={cn("p-1.5", radius.chip, "text-slate-400 hover:text-cyan-300 hover:bg-white/5 transition-all")}
                             title={t.admin.common.edit}
                           >
                             <Icon name="edit" size={15} />
                           </button>
                           <button
                             onClick={() => setDeleteTarget(photo)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                            className={cn("p-1.5", radius.chip, "text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all")}
                             title={t.admin.common.delete}
                           >
                             <Icon name="trash" size={15} />
@@ -1063,9 +1065,9 @@ export default function PhotographyAdminPage() {
               {t.admin.common.loading}
             </div>
           ) : albums.length === 0 ? (
-            <div className="text-center py-20 bg-white/[0.02] border border-white/5 rounded-2xl p-8">
+            <div className={cn("text-center py-20 bg-white/[0.02] border border-white/5", radius.card, "p-8")}>
               <Icon name="grid" size={32} className="text-slate-600 mx-auto mb-3" />
-              <h3 className="text-base font-semibold text-white mb-1">
+              <h3 className={cn("text-base font-semibold", text.primaryDark, "mb-1")}>
                 {t.admin.photography.noAlbumsTitle || "Chưa có Album nào"}
               </h3>
               <p className="text-xs text-slate-400 mb-4">
@@ -1073,7 +1075,7 @@ export default function PhotographyAdminPage() {
               </p>
               <button
                 onClick={openCreateAlbumModal}
-                className="px-4 py-2 rounded-xl bg-cyan-600 text-white text-xs font-medium hover:bg-cyan-500 transition-colors"
+                className={cn("px-4 py-2", radius.control, "bg-cyan-600", text.primaryDark, "text-xs font-medium hover:bg-cyan-500 transition-colors")}
               >
                 {t.admin.photography.addAlbum || "Thêm Album Mới"}
               </button>
@@ -1086,7 +1088,7 @@ export default function PhotographyAdminPage() {
                 return (
                   <div
                     key={album.id}
-                    className="rounded-2xl bg-slate-900/60 border border-white/10 overflow-hidden flex flex-col justify-between group hover:border-cyan-500/40 transition-all shadow-md"
+                    className={cn(radius.card, "bg-slate-900/60", border.subtleDark, "overflow-hidden flex flex-col justify-between group hover:border-cyan-500/40 transition-all shadow-md")}
                   >
                     {/* Album Cover Thumbnail */}
                     <div className="relative aspect-[16/10] w-full bg-slate-950 overflow-hidden">
@@ -1099,7 +1101,7 @@ export default function PhotographyAdminPage() {
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-600 gap-2">
+                        <div className={cn("absolute inset-0 flex flex-col items-center justify-center text-slate-600", gap.tight)}>
                           <Icon name="image" size={32} />
                           <span className="text-xs">Chưa có ảnh bìa</span>
                         </div>
@@ -1107,7 +1109,7 @@ export default function PhotographyAdminPage() {
 
                       {/* Photo Count Badge */}
                       <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 z-10">
-                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-black/75 text-cyan-300 backdrop-blur-md border border-white/10 shadow-sm flex items-center gap-1.5">
+                        <span className={cn("px-2.5 py-1", radius.pill, "text-[11px] font-bold bg-black/75 text-cyan-300", elevation.blur, border.subtleDark, "shadow-sm flex items-center gap-1.5")}>
                           <Icon name="image" size={12} />
                           <span>{photoCount} {t.admin.photography.photosCount || "ảnh"}</span>
                         </span>
@@ -1151,8 +1153,8 @@ export default function PhotographyAdminPage() {
                     {/* Album Meta */}
                     <div className="p-4 flex-1 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-sm font-bold text-white line-clamp-1">
+                        <div className={cn("flex items-center", gap.tight, "mb-1")}>
+                          <h3 className={cn("text-sm font-bold", text.primaryDark, "line-clamp-1")}>
                             {album.title}
                           </h3>
                           {album.title_vi && (
@@ -1189,14 +1191,14 @@ export default function PhotographyAdminPage() {
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => openEditAlbumModal(album)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-300 hover:bg-white/5 transition-all"
+                            className={cn("p-1.5", radius.chip, "text-slate-400 hover:text-cyan-300 hover:bg-white/5 transition-all")}
                             title={t.admin.common.edit}
                           >
                             <Icon name="edit" size={15} />
                           </button>
                           <button
                             onClick={() => setDeleteAlbumTarget(album)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                            className={cn("p-1.5", radius.chip, "text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all")}
                             title={t.admin.common.delete}
                           >
                             <Icon name="trash" size={15} />
@@ -1227,7 +1229,7 @@ export default function PhotographyAdminPage() {
         maxWidth="max-w-2xl"
       >
         {/* Media Type Switcher: Photo vs Video */}
-        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white/[0.03] border border-white/10 mb-6">
+        <div className={cn("flex items-center", gap.tight, "p-1.5", radius.card, "bg-white/[0.03]", border.subtleDark, "mb-6")}>
           <button
             type="button"
             onClick={() => setFormMediaType("image")}
@@ -1259,7 +1261,7 @@ export default function PhotographyAdminPage() {
 
         {/* EXIF notice */}
         {exifNotice && (
-          <div className="mb-6 p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs flex items-center gap-2.5">
+          <div className={cn("mb-6 p-3.5", radius.card, "bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs flex items-center gap-2.5")}>
             <Icon name="aperture" size={16} className="text-cyan-400 flex-shrink-0" />
             <span>{exifNotice}</span>
           </div>
@@ -1268,7 +1270,7 @@ export default function PhotographyAdminPage() {
         <div className="space-y-6">
           {/* Section 1: Upload File & Media to Cloudinary */}
           <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+            <h3 className={cn("text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center", gap.tight)}>
               <Icon name={formMediaType === "video" ? "video" : "image"} size={13} />
               <span>
                 {formMediaType === "video" ? t.admin.photography.section1Video : t.admin.photography.section1Media}
@@ -1276,7 +1278,7 @@ export default function PhotographyAdminPage() {
             </h3>
 
             {formMediaType === "video" && (
-              <div className="rounded-2xl border border-dashed border-cyan-500/30 p-4 bg-cyan-500/[0.02] space-y-3">
+              <div className={cn(radius.card, "border border-dashed border-cyan-500/30 p-4 bg-cyan-500/[0.02] space-y-3")}>
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold text-slate-200">
                     {t.admin.photography.videoFileLabel} <span className="text-red-400">*</span>
@@ -1286,7 +1288,7 @@ export default function PhotographyAdminPage() {
                   </span>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
+                <div className={cn("flex flex-wrap items-center", gap.base)}>
                   <input
                     ref={videoFileInputRef}
                     type="file"
@@ -1299,7 +1301,7 @@ export default function PhotographyAdminPage() {
                     type="button"
                     disabled={uploadingVideo}
                     onClick={() => videoFileInputRef.current?.click()}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-black font-semibold text-xs transition-all disabled:opacity-50"
+                    className={cn("flex items-center", gap.tight, "px-4 py-2.5", radius.control, "bg-cyan-600 hover:bg-cyan-500 text-black font-semibold text-xs transition-all disabled:opacity-50")}
                   >
                     <Icon name="video" size={14} />
                     <span>
@@ -1316,7 +1318,7 @@ export default function PhotographyAdminPage() {
                 </div>
 
                 {formVideoUrl && (
-                  <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden bg-black border border-white/10 mt-2">
+                  <div className={cn("relative w-full aspect-[16/9]", radius.control, "overflow-hidden bg-black", border.subtleDark, "mt-2")}>
                     <video
                       src={formVideoUrl}
                       controls
@@ -1334,14 +1336,14 @@ export default function PhotographyAdminPage() {
                     value={formVideoUrl}
                     onChange={(e) => setFormVideoUrl(e.target.value)}
                     placeholder="https://res.cloudinary.com/... or https://..."
-                    className="w-full px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
+                    className={cn("w-full px-3 py-1.5", radius.control, surface.cardDark, border.subtleDark, "text-xs", text.primaryDark, "focus:outline-none focus:border-cyan-400 font-mono")}
                   />
                 </div>
               </div>
             )}
 
             {/* Main Image Upload Box */}
-            <div className="rounded-2xl border border-dashed border-white/15 p-4 bg-white/[0.02] space-y-3">
+            <div className={cn(radius.card, "border border-dashed border-white/15 p-4 bg-white/[0.02] space-y-3")}>
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-slate-200">
                   {formMediaType === "video" ? t.admin.photography.videoPosterLabel : t.admin.photography.retouchedPhotoLabel}
@@ -1352,7 +1354,7 @@ export default function PhotographyAdminPage() {
                 </span>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
+              <div className={cn("flex flex-wrap items-center", gap.base)}>
                 <input
                   ref={mainFileInputRef}
                   type="file"
@@ -1365,7 +1367,7 @@ export default function PhotographyAdminPage() {
                   type="button"
                   disabled={uploadingImage}
                   onClick={() => mainFileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-all disabled:opacity-50"
+                  className={cn("flex items-center", gap.tight, "px-4 py-2.5", radius.control, "bg-purple-600 hover:bg-purple-500", text.primaryDark, "text-xs font-semibold transition-all disabled:opacity-50")}
                 >
                   <Icon name="camera" size={14} />
                   <span>
@@ -1376,7 +1378,7 @@ export default function PhotographyAdminPage() {
                 <button
                   type="button"
                   onClick={() => setIsMainPickerOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition-all border border-white/10"
+                  className={cn("flex items-center", gap.tight, "px-4 py-2.5", radius.control, "bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition-all", border.subtleDark)}
                 >
                   <Icon name="folder" size={14} />
                   <span>{t.admin.photography.chooseFromCloud}</span>
@@ -1391,7 +1393,7 @@ export default function PhotographyAdminPage() {
               </div>
 
               {formImage && (
-                <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden bg-black border border-white/10 mt-2">
+                <div className={cn("relative w-full aspect-[16/9]", radius.control, "overflow-hidden bg-black", border.subtleDark, "mt-2")}>
                   <Image
                     src={formImage}
                     alt="Preview"
@@ -1401,7 +1403,7 @@ export default function PhotographyAdminPage() {
                   <button
                     type="button"
                     onClick={() => setFormImage("")}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 hover:bg-red-600 text-white transition-colors"
+                    className={cn("absolute top-2 right-2 p-1.5", radius.pill, "bg-black/70 hover:bg-red-600", text.primaryDark, "transition-colors")}
                     title="Remove image"
                   >
                     <Icon name="close" size={14} />
@@ -1418,14 +1420,14 @@ export default function PhotographyAdminPage() {
                   value={formImage}
                   onChange={(e) => setFormImage(e.target.value)}
                   placeholder="https://res.cloudinary.com/... or https://images.unsplash.com/..."
-                  className="w-full px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
+                  className={cn("w-full px-3 py-1.5", radius.control, surface.cardDark, border.subtleDark, "text-xs", text.primaryDark, "focus:outline-none focus:border-cyan-400 font-mono")}
                 />
               </div>
             </div>
 
             {/* Before Image Upload Box */}
             {formMediaType === "image" && (
-              <div className="rounded-2xl border border-dashed border-white/10 p-4 bg-white/[0.01] space-y-3">
+              <div className={cn(radius.card, "border border-dashed border-white/10 p-4 bg-white/[0.01] space-y-3")}>
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold text-slate-300">
                     {t.admin.photography.rawPhotoLabel}
@@ -1435,7 +1437,7 @@ export default function PhotographyAdminPage() {
                   </span>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
+                <div className={cn("flex flex-wrap items-center", gap.base)}>
                   <input
                     ref={beforeFileInputRef}
                     type="file"
@@ -1448,7 +1450,7 @@ export default function PhotographyAdminPage() {
                     type="button"
                     disabled={uploadingBeforeImage}
                     onClick={() => beforeFileInputRef.current?.click()}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all disabled:opacity-50"
+                    className={cn("flex items-center", gap.tight, "px-4 py-2", radius.control, surface.raisedDark, "hover:bg-white/20", text.primaryDark, "text-xs font-semibold transition-all disabled:opacity-50")}
                   >
                     <Icon name="compare" size={14} />
                     <span>
@@ -1459,7 +1461,7 @@ export default function PhotographyAdminPage() {
                   <button
                     type="button"
                     onClick={() => setIsBeforePickerOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition-all border border-white/10"
+                    className={cn("flex items-center", gap.tight, "px-4 py-2", radius.control, "bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold transition-all", border.subtleDark)}
                   >
                     <Icon name="folder" size={14} />
                     <span>{t.admin.photography.chooseFromCloud}</span>
@@ -1474,7 +1476,7 @@ export default function PhotographyAdminPage() {
                 </div>
 
                 {formBeforeImage && (
-                  <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden bg-black border border-white/10 mt-2">
+                  <div className={cn("relative w-full aspect-[16/9]", radius.control, "overflow-hidden bg-black", border.subtleDark, "mt-2")}>
                     <Image
                       src={formBeforeImage}
                       alt="Before Preview"
@@ -1484,7 +1486,7 @@ export default function PhotographyAdminPage() {
                     <button
                       type="button"
                       onClick={() => setFormBeforeImage("")}
-                      className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 hover:bg-red-600 text-white transition-colors"
+                      className={cn("absolute top-2 right-2 p-1.5", radius.pill, "bg-black/70 hover:bg-red-600", text.primaryDark, "transition-colors")}
                       title="Remove RAW image"
                     >
                       <Icon name="close" size={14} />
@@ -1516,7 +1518,7 @@ export default function PhotographyAdminPage() {
 
             {/* English Fields */}
             {photoActiveLang === "en" && (
-              <div className="space-y-4 p-4 rounded-xl bg-slate-900/40 border border-white/5">
+              <div className={cn("space-y-4 p-4", radius.control, "bg-slate-900/40 border border-white/5")}>
                 <FormField label={`${t.admin.photography.fieldTitle} (English)`} id="title-en" required>
                   <input
                     id="title-en"
@@ -1524,7 +1526,7 @@ export default function PhotographyAdminPage() {
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
                     placeholder="e.g. Neon Rain in Shinjuku"
-                    className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                    className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                   />
                 </FormField>
 
@@ -1535,7 +1537,7 @@ export default function PhotographyAdminPage() {
                     value={formLocation}
                     onChange={(e) => setFormLocation(e.target.value)}
                     placeholder="e.g. Shinjuku, Tokyo, Japan"
-                    className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                    className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                   />
                 </FormField>
 
@@ -1546,7 +1548,7 @@ export default function PhotographyAdminPage() {
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
                     placeholder="Story, context, or visual concept behind this artwork..."
-                    className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                    className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                   />
                 </FormField>
               </div>
@@ -1554,7 +1556,7 @@ export default function PhotographyAdminPage() {
 
             {/* Vietnamese Fields */}
             {photoActiveLang === "vi" && (
-              <div className="space-y-4 p-4 rounded-xl bg-cyan-500/[0.03] border border-cyan-500/15">
+              <div className={cn("space-y-4 p-4", radius.control, "bg-cyan-500/[0.03] border border-cyan-500/15")}>
                 <FormField label={`${t.admin.photography.fieldTitleVi || "Tiêu Đề Tác Phẩm"} (Tiếng Việt)`} id="title-vi">
                   <input
                     id="title-vi"
@@ -1562,7 +1564,7 @@ export default function PhotographyAdminPage() {
                     value={formTitleVi}
                     onChange={(e) => setFormTitleVi(e.target.value)}
                     placeholder="ví dụ: Mưa Neon Tại Shinjuku"
-                    className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                    className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                   />
                 </FormField>
 
@@ -1573,7 +1575,7 @@ export default function PhotographyAdminPage() {
                     value={formLocationVi}
                     onChange={(e) => setFormLocationVi(e.target.value)}
                     placeholder="ví dụ: Shinjuku, Tokyo, Nhật Bản / Đà Lạt..."
-                    className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                    className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                   />
                 </FormField>
 
@@ -1584,20 +1586,20 @@ export default function PhotographyAdminPage() {
                     value={formDescriptionVi}
                     onChange={(e) => setFormDescriptionVi(e.target.value)}
                     placeholder="Mô tả bối cảnh, câu chuyện hoặc cảm xúc đằng sau bức ảnh..."
-                    className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                    className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                   />
                 </FormField>
               </div>
             )}
 
             {/* Common Fields: Album Assignment & Category */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.loose, "pt-2")}>
               <FormField label={t.admin.photography.fieldAlbum || "Thuộc Album / Bộ Sưu Tập"} id="photo-album">
                 <select
                   id="photo-album"
                   value={formAlbumId}
                   onChange={(e) => setFormAlbumId(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3.5 py-2", radius.control, "bg-slate-900", border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 >
                   <option value="">{t.admin.photography.fieldAlbumNone || "-- Không gán vào Album nào --"}</option>
                   {albums.map((album) => (
@@ -1613,7 +1615,7 @@ export default function PhotographyAdminPage() {
                   id="category"
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3.5 py-2", radius.control, "bg-slate-900", border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 >
                   <option value="">-- {t.admin.photography.fieldCategory} --</option>
                   {DEFAULT_CATEGORIES.map((cat) => (
@@ -1634,12 +1636,12 @@ export default function PhotographyAdminPage() {
                   value={formCustomCategory}
                   onChange={(e) => setFormCustomCategory(e.target.value)}
                   placeholder="e.g. Travel, Aerial / Drone..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 />
               </FormField>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.loose)}>
               <FormField label={t.admin.photography.fieldAspectRatio} id="aspectRatio">
                 <select
                   id="aspectRatio"
@@ -1647,7 +1649,7 @@ export default function PhotographyAdminPage() {
                   onChange={(e) =>
                     setFormAspectRatio(e.target.value as "portrait" | "landscape" | "square")
                   }
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3.5 py-2", radius.control, "bg-slate-900", border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 >
                   <option value="landscape">{t.admin.photography.ratioLandscape}</option>
                   <option value="portrait">{t.admin.photography.ratioPortrait}</option>
@@ -1661,7 +1663,7 @@ export default function PhotographyAdminPage() {
                   type="date"
                   value={formDate}
                   onChange={(e) => setFormDate(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 />
               </FormField>
             </div>
@@ -1673,12 +1675,12 @@ export default function PhotographyAdminPage() {
                 value={formTags}
                 onChange={(e) => setFormTags(e.target.value)}
                 placeholder={t.admin.photography.fieldTagsPlaceholder}
-                className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
               />
             </FormField>
 
-            <div className="pt-3 border-t border-white/10 flex flex-wrap items-center gap-6">
-              <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+            <div className={cn("pt-3 border-t border-white/10 flex flex-wrap items-center", gap.grid)}>
+              <label className={cn("flex items-center", gap.tight, "cursor-pointer text-sm text-slate-300 select-none")}>
                 <input
                   type="checkbox"
                   checked={formPublished}
@@ -1687,7 +1689,7 @@ export default function PhotographyAdminPage() {
                 />
                 <span>{t.admin.photography.fieldPublished}</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+              <label className={cn("flex items-center", gap.tight, "cursor-pointer text-sm text-slate-300 select-none")}>
                 <input
                   type="checkbox"
                   checked={formFeatured}
@@ -1702,7 +1704,7 @@ export default function PhotographyAdminPage() {
           {/* Section 3: Camera & EXIF Settings */}
           <div className="space-y-4 pt-4 border-t border-white/10">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+              <h3 className={cn("text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center", gap.tight)}>
                 <Icon name="camera" size={13} />
                 <span>{t.admin.photography.section3Exif}</span>
               </h3>
@@ -1711,7 +1713,7 @@ export default function PhotographyAdminPage() {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+            <div className={cn("grid grid-cols-2 sm:grid-cols-3", gap.base, "text-xs")}>
               <FormField label={t.admin.photography.exifCameraMake} id="make">
                 <input
                   id="make"
@@ -1719,7 +1721,7 @@ export default function PhotographyAdminPage() {
                   value={formMake}
                   onChange={(e) => setFormMake(e.target.value)}
                   placeholder={t.admin.photography.exifMakePlaceholder}
-                  className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3 py-1.5", radius.chip, surface.cardDark, border.subtleDark, "text-xs", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 />
               </FormField>
               <FormField label={t.admin.photography.exifCameraModel} id="model">
@@ -1729,7 +1731,7 @@ export default function PhotographyAdminPage() {
                   value={formModel}
                   onChange={(e) => setFormModel(e.target.value)}
                   placeholder={t.admin.photography.exifModelPlaceholder}
-                  className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3 py-1.5", radius.chip, surface.cardDark, border.subtleDark, "text-xs", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 />
               </FormField>
               <FormField label={t.admin.photography.exifLens} id="lens">
@@ -1739,7 +1741,7 @@ export default function PhotographyAdminPage() {
                   value={formLens}
                   onChange={(e) => setFormLens(e.target.value)}
                   placeholder={t.admin.photography.exifLensPlaceholder}
-                  className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3 py-1.5", radius.chip, surface.cardDark, border.subtleDark, "text-xs", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 />
               </FormField>
               <FormField label={t.admin.photography.exifFocalLength} id="focal">
@@ -1749,7 +1751,7 @@ export default function PhotographyAdminPage() {
                   value={formFocalLength}
                   onChange={(e) => setFormFocalLength(e.target.value)}
                   placeholder={t.admin.photography.exifFocalLengthPlaceholder}
-                  className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3 py-1.5", radius.chip, surface.cardDark, border.subtleDark, "text-xs", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 />
               </FormField>
               <FormField label={t.admin.photography.exifAperture} id="aperture">
@@ -1759,7 +1761,7 @@ export default function PhotographyAdminPage() {
                   value={formAperture}
                   onChange={(e) => setFormAperture(e.target.value)}
                   placeholder={t.admin.photography.exifAperturePlaceholder}
-                  className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3 py-1.5", radius.chip, surface.cardDark, border.subtleDark, "text-xs", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 />
               </FormField>
               <FormField label={t.admin.photography.exifShutterSpeed} id="shutter">
@@ -1769,7 +1771,7 @@ export default function PhotographyAdminPage() {
                   value={formShutterSpeed}
                   onChange={(e) => setFormShutterSpeed(e.target.value)}
                   placeholder={t.admin.photography.exifShutterSpeedPlaceholder}
-                  className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3 py-1.5", radius.chip, surface.cardDark, border.subtleDark, "text-xs", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 />
               </FormField>
               <FormField label={t.admin.photography.exifIso} id="iso">
@@ -1779,7 +1781,7 @@ export default function PhotographyAdminPage() {
                   value={formIso}
                   onChange={(e) => setFormIso(e.target.value)}
                   placeholder={t.admin.photography.exifIsoPlaceholder}
-                  className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3 py-1.5", radius.chip, surface.cardDark, border.subtleDark, "text-xs", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 />
               </FormField>
             </div>
@@ -1787,12 +1789,12 @@ export default function PhotographyAdminPage() {
 
           {/* Section 4: Post-Processing & Color Grading */}
           <div className="space-y-4 pt-4 border-t border-white/10">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-2">
+            <h3 className={cn("text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center", gap.tight)}>
               <Icon name="compare" size={13} />
               <span>{t.admin.photography.section4Retouch}</span>
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.loose)}>
               <FormField label={t.admin.photography.retouchSoftware} id="software">
                 <input
                   id="software"
@@ -1800,7 +1802,7 @@ export default function PhotographyAdminPage() {
                   value={formSoftware}
                   onChange={(e) => setFormSoftware(e.target.value)}
                   placeholder={t.admin.photography.retouchSoftwarePlaceholder}
-                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-purple-400"
+                  className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-purple-400")}
                 />
               </FormField>
               <FormField label={t.admin.photography.retouchColorGrade} id="colorGrade">
@@ -1810,7 +1812,7 @@ export default function PhotographyAdminPage() {
                   value={formColorGrade}
                   onChange={(e) => setFormColorGrade(e.target.value)}
                   placeholder={t.admin.photography.retouchColorGradePlaceholder}
-                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-purple-400"
+                  className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-purple-400")}
                 />
               </FormField>
             </div>
@@ -1822,7 +1824,7 @@ export default function PhotographyAdminPage() {
                 value={formRetouchNotes}
                 onChange={(e) => setFormRetouchNotes(e.target.value)}
                 placeholder={t.admin.photography.retouchNotesPlaceholder}
-                className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-purple-400"
+                className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-purple-400")}
               />
             </FormField>
           </div>
@@ -1856,7 +1858,7 @@ export default function PhotographyAdminPage() {
 
           {/* English Album Fields */}
           {albumActiveLang === "en" && (
-            <div className="space-y-4 p-4 rounded-xl bg-slate-900/40 border border-white/5">
+            <div className={cn("space-y-4 p-4", radius.control, "bg-slate-900/40 border border-white/5")}>
               <FormField label={`${t.admin.photography.fieldAlbumTitle || "Album Title"} (English)`} id="album-title-en" required>
                 <input
                   id="album-title-en"
@@ -1864,7 +1866,7 @@ export default function PhotographyAdminPage() {
                   value={formAlbumTitle}
                   onChange={(e) => setFormAlbumTitle(e.target.value)}
                   placeholder="e.g. Cyberpunk Nights & Urban Rain"
-                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 />
               </FormField>
 
@@ -1875,7 +1877,7 @@ export default function PhotographyAdminPage() {
                   value={formAlbumDesc}
                   onChange={(e) => setFormAlbumDesc(e.target.value)}
                   placeholder="Atmospheric summary of this collection..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 />
               </FormField>
             </div>
@@ -1883,7 +1885,7 @@ export default function PhotographyAdminPage() {
 
           {/* Vietnamese Album Fields */}
           {albumActiveLang === "vi" && (
-            <div className="space-y-4 p-4 rounded-xl bg-cyan-500/[0.03] border border-cyan-500/15">
+            <div className={cn("space-y-4 p-4", radius.control, "bg-cyan-500/[0.03] border border-cyan-500/15")}>
               <FormField label={`${t.admin.photography.fieldAlbumTitleVi || "Tên Album"} (Tiếng Việt)`} id="album-title-vi">
                 <input
                   id="album-title-vi"
@@ -1891,7 +1893,7 @@ export default function PhotographyAdminPage() {
                   value={formAlbumTitleVi}
                   onChange={(e) => setFormAlbumTitleVi(e.target.value)}
                   placeholder="ví dụ: Đêm Cyberpunk & Mưa Thành Thị"
-                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 />
               </FormField>
 
@@ -1902,14 +1904,14 @@ export default function PhotographyAdminPage() {
                   value={formAlbumDescVi}
                   onChange={(e) => setFormAlbumDescVi(e.target.value)}
                   placeholder="Mô tả bối cảnh, chủ đề và cảm xúc của album..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
+                  className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400")}
                 />
               </FormField>
             </div>
           )}
 
           {/* Album Slug & Options */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.loose)}>
             <FormField label={t.admin.photography.fieldAlbumSlug || "Đường Dẫn URL (Slug)"} id="album-slug">
               <input
                 id="album-slug"
@@ -1917,12 +1919,12 @@ export default function PhotographyAdminPage() {
                 value={formAlbumSlug}
                 onChange={(e) => setFormAlbumSlug(e.target.value)}
                 placeholder="ví dụ: cyberpunk-nights (tự động tạo nếu để trống)"
-                className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400 font-mono text-xs"
+                className={cn("w-full px-3.5 py-2", radius.control, surface.cardDark, border.subtleDark, "text-sm", text.primaryDark, "focus:outline-none focus:border-cyan-400 font-mono text-xs")}
               />
             </FormField>
 
-            <div className="flex items-center gap-6 pt-6">
-              <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+            <div className={cn("flex items-center", gap.grid, "pt-6")}>
+              <label className={cn("flex items-center", gap.tight, "cursor-pointer text-sm text-slate-300 select-none")}>
                 <input
                   type="checkbox"
                   checked={formAlbumPublished}
@@ -1931,7 +1933,7 @@ export default function PhotographyAdminPage() {
                 />
                 <span>{t.admin.photography.publishedPublicly || "Xuất bản công khai"}</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+              <label className={cn("flex items-center", gap.tight, "cursor-pointer text-sm text-slate-300 select-none")}>
                 <input
                   type="checkbox"
                   checked={formAlbumFeatured}
@@ -1947,7 +1949,7 @@ export default function PhotographyAdminPage() {
           <div className="space-y-4 pt-4 border-t border-white/10">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+                <h4 className={cn("text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center", gap.tight)}>
                   <Icon name="image" size={14} />
                   <span>{t.admin.photography.chooseCoverTitle || "Ảnh Trong Album & Chọn Ảnh Bìa Đại Diện"}</span>
                 </h4>
@@ -1955,16 +1957,16 @@ export default function PhotographyAdminPage() {
                   {t.admin.photography.chooseCoverDesc || "Chọn các ảnh thuộc album. Nhấp vào nút 'Đặt làm ảnh bìa' trên bất kỳ ảnh nào để chọn làm ảnh đại diện chính."}
                 </p>
               </div>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+              <span className={cn("text-xs font-semibold px-2.5 py-1", radius.pill, "bg-cyan-500/10 text-cyan-300 border border-cyan-500/20")}>
                 {formAlbumPhotoIds.length} {t.admin.photography.photosCount || "ảnh"}
               </span>
             </div>
 
             {/* Current Cover Image Preview Box */}
             {formAlbumCoverImage && (
-              <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative w-16 h-12 rounded-lg overflow-hidden bg-black border border-amber-500/40 shrink-0">
+              <div className={cn("p-3.5", radius.card, "bg-amber-500/10 border border-amber-500/30 flex items-center justify-between", gap.loose)}>
+                <div className={cn("flex items-center", gap.base)}>
+                  <div className={cn("relative w-16 h-12", radius.chip, "overflow-hidden bg-black border border-amber-500/40 shrink-0")}>
                     <Image
                       src={formAlbumCoverImage}
                       alt="Cover Preview"
@@ -1976,7 +1978,7 @@ export default function PhotographyAdminPage() {
                     <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1">
                       <Icon name="star" size={10} /> {t.admin.photography.coverBadge || "Ảnh Bìa Đại Diện Của Album"}
                     </span>
-                    <span className="text-xs text-white font-medium line-clamp-1">
+                    <span className={cn("text-xs", text.primaryDark, "font-medium line-clamp-1")}>
                       {photos.find((p) => p.id === formAlbumCoverPhotoId || p.image === formAlbumCoverImage)?.title || "Ảnh bìa đã chọn"}
                     </span>
                   </div>
@@ -1993,7 +1995,7 @@ export default function PhotographyAdminPage() {
                 <span className="text-xs font-semibold text-slate-300 block">
                   Danh sách ảnh trong album (nhấp ảnh để đổi ảnh bìa):
                 </span>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-60 overflow-y-auto p-1.5 rounded-xl bg-slate-950/50 border border-white/5">
+                <div className={cn("grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4", gap.base, "max-h-60 overflow-y-auto p-1.5", radius.control, "bg-slate-950/50 border border-white/5")}>
                   {formAlbumPhotoIds.map((photoId) => {
                     const photo = photos.find((p) => p.id === photoId);
                     if (!photo) return null;
@@ -2022,7 +2024,7 @@ export default function PhotographyAdminPage() {
                           {/* Cover badge */}
                           {isCover && (
                             <div className="absolute top-1.5 left-1.5 z-10">
-                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500 text-black shadow">
+                              <span className={cn("inline-flex items-center gap-0.5 px-2 py-0.5", radius.pill, "text-[9px] font-bold bg-amber-500 text-black shadow")}>
                                 <Icon name="star" size={9} /> Ảnh bìa
                               </span>
                             </div>
@@ -2035,7 +2037,7 @@ export default function PhotographyAdminPage() {
                               e.stopPropagation();
                               handleTogglePhotoInAlbum(photo.id);
                             }}
-                            className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/80 hover:bg-red-600 text-white transition-colors z-10"
+                            className={cn("absolute top-1.5 right-1.5 p-1", radius.pill, "bg-black/80 hover:bg-red-600", text.primaryDark, "transition-colors z-10")}
                             title="Bỏ khỏi album"
                           >
                             <Icon name="close" size={11} />
@@ -2050,7 +2052,7 @@ export default function PhotographyAdminPage() {
                                   e.stopPropagation();
                                   handleSetCoverPhoto(photo);
                                 }}
-                                className="px-2 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold shadow transition-all"
+                                className={cn("px-2 py-1", radius.chip, "bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold shadow transition-all")}
                               >
                                 Đặt làm bìa
                               </button>
@@ -2059,7 +2061,7 @@ export default function PhotographyAdminPage() {
                         </div>
 
                         <div className="p-1.5 bg-slate-900/90">
-                          <p className="text-[11px] text-white font-medium truncate">
+                          <p className={cn("text-[11px]", text.primaryDark, "font-medium truncate")}>
                             {photo.title_vi || photo.title}
                           </p>
                         </div>
@@ -2069,14 +2071,14 @@ export default function PhotographyAdminPage() {
                 </div>
               </div>
             ) : (
-              <div className="p-4 rounded-xl bg-white/[0.02] border border-dashed border-white/10 text-center text-xs text-slate-400">
+              <div className={cn("p-4", radius.control, "bg-white/[0.02] border border-dashed border-white/10 text-center text-xs text-slate-400")}>
                 Chưa có ảnh nào trong album này. Hãy chọn các ảnh từ kho thư viện bên dưới.
               </div>
             )}
 
             {/* Picker to add more photos to the album */}
             <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between gap-3">
+              <div className={cn("flex items-center justify-between", gap.base)}>
                 <span className="text-xs font-semibold text-slate-300">
                   {t.admin.photography.selectPhotosForAlbum || "Chọn thêm ảnh từ thư viện:"}
                 </span>
@@ -2085,11 +2087,11 @@ export default function PhotographyAdminPage() {
                   value={photoSearchForAlbum}
                   onChange={(e) => setPhotoSearchForAlbum(e.target.value)}
                   placeholder="Lọc ảnh theo tên, chủ đề..."
-                  className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400 w-48"
+                  className={cn("px-3 py-1", radius.chip, surface.cardDark, border.subtleDark, "text-xs", text.primaryDark, "focus:outline-none focus:border-cyan-400 w-48")}
                 />
               </div>
 
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 max-h-52 overflow-y-auto p-2 rounded-xl bg-slate-950/70 border border-white/10">
+              <div className={cn("grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 max-h-52 overflow-y-auto p-2", radius.control, "bg-slate-950/70", border.subtleDark)}>
                 {photos
                   .filter((p) => {
                     if (!photoSearchForAlbum.trim()) return true;
@@ -2143,7 +2145,7 @@ export default function PhotographyAdminPage() {
                           </span>
                         </div>
                         <div className="absolute bottom-1 left-1 right-1">
-                          <p className="text-[9px] text-white font-medium truncate drop-shadow">
+                          <p className={cn("text-[9px]", text.primaryDark, "font-medium truncate drop-shadow")}>
                             {photo.title_vi || photo.title}
                           </p>
                         </div>

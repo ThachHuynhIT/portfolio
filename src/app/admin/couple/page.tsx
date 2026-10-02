@@ -21,6 +21,8 @@ import type {
   CoupleLoveLetter,
   CoupleFavorite,
 } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { border, elevation, gap, motion, radius, surface, text } from "@/lib/design-tokens";
 
 type TabId =
   | "photos"
@@ -722,7 +724,7 @@ export default function CoupleAdminPage() {
           activeTab === "photos" ? (
             <button
               onClick={openCreatePhoto}
-              className="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02]"
+              className={cn("px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500", text.primaryDark, radius.control, "text-sm font-semibold flex items-center", gap.tight, "shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02]")}
             >
               <span>+</span>
               <span>{t.admin.couple.addPhoto}</span>
@@ -730,7 +732,7 @@ export default function CoupleAdminPage() {
           ) : activeTab === "memories" ? (
             <button
               onClick={openCreateMemory}
-              className="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02]"
+              className={cn("px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500", text.primaryDark, radius.control, "text-sm font-semibold flex items-center", gap.tight, "shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02]")}
             >
               <span>+</span>
               <span>{t.admin.couple.addMemory}</span>
@@ -738,7 +740,7 @@ export default function CoupleAdminPage() {
           ) : activeTab === "bucketList" ? (
             <button
               onClick={openCreateBucket}
-              className="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02]"
+              className={cn("px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500", text.primaryDark, radius.control, "text-sm font-semibold flex items-center", gap.tight, "shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02]")}
             >
               <span>+</span>
               <span>{t.admin.couple.addBucket}</span>
@@ -746,7 +748,7 @@ export default function CoupleAdminPage() {
           ) : activeTab === "loveLetters" ? (
             <button
               onClick={openCreateLetter}
-              className="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02]"
+              className={cn("px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500", text.primaryDark, radius.control, "text-sm font-semibold flex items-center", gap.tight, "shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02]")}
             >
               <span>+</span>
               <span>{t.admin.couple.addLetter}</span>
@@ -754,7 +756,7 @@ export default function CoupleAdminPage() {
           ) : activeTab === "favorites" ? (
             <button
               onClick={openCreateFavorite}
-              className="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02]"
+              className={cn("px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500", text.primaryDark, radius.control, "text-sm font-semibold flex items-center", gap.tight, "shadow-lg shadow-pink-500/20 transition-all hover:scale-[1.02]")}
             >
               <span>+</span>
               <span>{t.admin.couple.addFavorite}</span>
@@ -774,7 +776,7 @@ export default function CoupleAdminPage() {
           }`}
         >
           <span className="inline-flex items-center gap-1"><Icon name="camera" size={13} /> {t.admin.couple.tabs.photos}</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
+          <span className={cn("px-1.5 py-0.2", radius.pill, "text-[10px]", surface.raisedDark, "text-slate-300")}>
             {data?.photos?.length || 0}
           </span>
         </button>
@@ -788,7 +790,7 @@ export default function CoupleAdminPage() {
           }`}
         >
           <span className="inline-flex items-center gap-1"><Icon name="bookOpen" size={13} /> {t.admin.couple.tabs.memories}</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
+          <span className={cn("px-1.5 py-0.2", radius.pill, "text-[10px]", surface.raisedDark, "text-slate-300")}>
             {data?.memories?.length || 0}
           </span>
         </button>
@@ -802,7 +804,7 @@ export default function CoupleAdminPage() {
           }`}
         >
           <span className="inline-flex items-center gap-1"><Icon name="cake" size={13} /> {t.admin.couple.tabs.dates}</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
+          <span className={cn("px-1.5 py-0.2", radius.pill, "text-[10px]", surface.raisedDark, "text-slate-300")}>
             {(data?.birthdays?.length || 0) + (data?.specialDates?.length || 0)}
           </span>
         </button>
@@ -816,7 +818,7 @@ export default function CoupleAdminPage() {
           }`}
         >
           <span className="inline-flex items-center gap-1"><Icon name="checkCircle" size={13} /> {t.admin.couple.tabs.bucketList}</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
+          <span className={cn("px-1.5 py-0.2", radius.pill, "text-[10px]", surface.raisedDark, "text-slate-300")}>
             {data?.bucketList?.length || 0}
           </span>
         </button>
@@ -830,7 +832,7 @@ export default function CoupleAdminPage() {
           }`}
         >
           <span className="inline-flex items-center gap-1"><Icon name="mail" size={13} /> {t.admin.couple.tabs.loveLetters}</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
+          <span className={cn("px-1.5 py-0.2", radius.pill, "text-[10px]", surface.raisedDark, "text-slate-300")}>
             {data?.loveLetters?.length || 0}
           </span>
         </button>
@@ -844,7 +846,7 @@ export default function CoupleAdminPage() {
           }`}
         >
           <span className="inline-flex items-center gap-1"><Icon name="gift" size={13} /> {t.admin.couple.tabs.favorites}</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/10 text-slate-300">
+          <span className={cn("px-1.5 py-0.2", radius.pill, "text-[10px]", surface.raisedDark, "text-slate-300")}>
             {data?.favorites?.length || 0}
           </span>
         </button>
@@ -866,24 +868,24 @@ export default function CoupleAdminPage() {
       ) : activeTab === "photos" ? (
         /* ═════════════════ 1. TAB ẢNH KỶ NIỆM ═════════════════ */
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center bg-slate-900/60 p-4 rounded-2xl border border-white/5">
+          <div className={cn("flex flex-col sm:flex-row", gap.base, "justify-between items-stretch sm:items-center bg-slate-900/60 p-4", radius.card, "border border-white/5")}>
             <div className="relative flex-1 max-w-md">
               <input
                 type="text"
                 placeholder={t.admin.couple.searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-pink-500/50"
+                className={cn("w-full pl-9 pr-4 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "placeholder-slate-500 focus:outline-none focus:border-pink-500/50")}
               />
               <span className="absolute left-3 top-2.5 text-slate-500"><Icon name="search" size={13} /></span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className={cn("flex items-center", gap.tight)}>
               <span className="text-xs text-slate-500 whitespace-nowrap">{t.admin.common.filter}:</span>
               <select
                 value={photoStatusFilter}
                 onChange={(e) => setPhotoStatusFilter(e.target.value as any)}
-                className="bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-pink-500/50"
+                className={cn("bg-slate-950", border.subtleDark, radius.control, "px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-pink-500/50")}
               >
                 <option value="all">{t.admin.common.all} ({data?.photos?.length || 0})</option>
                 <option value="published">{t.admin.common.published} ({(data?.photos || []).filter((p) => p.published !== false).length})</option>
@@ -892,7 +894,7 @@ export default function CoupleAdminPage() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-pink-500/50"
+                className={cn("bg-slate-950", border.subtleDark, radius.control, "px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-pink-500/50")}
               >
                 <option value="all">{t.admin.couple.allCategories}</option>
                 {POPULAR_PHOTO_CATEGORIES.map((cat) => (
@@ -905,12 +907,12 @@ export default function CoupleAdminPage() {
           </div>
 
           {filteredPhotos.length === 0 ? (
-            <div className="py-16 text-center border border-dashed border-white/10 rounded-2xl bg-slate-900/30">
+            <div className={cn("py-16 text-center border border-dashed border-white/10", radius.card, "bg-slate-900/30")}>
               <div className="flex justify-center mb-3"><Icon name="image" size={32} /></div>
               <p className="text-slate-400 text-sm mb-4">{t.admin.common.noData}</p>
               <button
                 onClick={openCreatePhoto}
-                className="px-4 py-2 bg-pink-600/20 text-pink-300 border border-pink-500/30 rounded-xl text-sm font-medium hover:bg-pink-600/30 transition-all"
+                className={cn("px-4 py-2 bg-pink-600/20 text-pink-300 border border-pink-500/30", radius.control, "text-sm font-medium hover:bg-pink-600/30 transition-all")}
               >
                 + {t.admin.couple.addPhoto}
               </button>
@@ -920,7 +922,7 @@ export default function CoupleAdminPage() {
               {filteredPhotos.map((photo) => (
                 <div
                   key={photo.id}
-                  className="bg-slate-900/70 border border-white/8 rounded-2xl overflow-hidden group hover:border-pink-500/30 transition-all duration-200 flex flex-col"
+                  className={cn("bg-slate-900/70 border border-white/8", radius.card, "overflow-hidden group hover:border-pink-500/30", motion.fast, "flex flex-col")}
                 >
                   <div className="relative aspect-video w-full overflow-hidden bg-black/40">
                     <img
@@ -929,13 +931,13 @@ export default function CoupleAdminPage() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     {photo.category && (
-                      <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-black/60 backdrop-blur-md text-pink-300 border border-white/10">
+                      <span className={cn("absolute top-2.5 left-2.5 px-2.5 py-0.5", radius.pill, "text-xs font-medium bg-black/60", elevation.blur, "text-pink-300", border.subtleDark)}>
                         {photo.category}
                       </span>
                     )}
                     <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
                       {photo.featured && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-500 text-white shadow-md">
+                        <span className={cn("inline-flex items-center gap-1 px-2 py-0.5", radius.pill, "text-xs font-semibold bg-rose-500", text.primaryDark, "shadow-md")}>
                           <Icon name="heart" size={11} filled /> {t.admin.common.featured}
                         </span>
                       )}
@@ -953,7 +955,7 @@ export default function CoupleAdminPage() {
                           </span>
                         )}
                       </div>
-                      <h3 className="font-semibold text-white text-base leading-snug line-clamp-1 mb-1">
+                      <h3 className={cn("font-semibold", text.primaryDark, "text-base leading-snug line-clamp-1 mb-1")}>
                         {photo.title}
                       </h3>
                       {photo.description && (
@@ -963,10 +965,10 @@ export default function CoupleAdminPage() {
                       )}
                     </div>
 
-                    <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-white/5">
+                    <div className={cn("flex items-center justify-end", gap.tight, "mt-4 pt-3 border-t border-white/5")}>
                       <button
                         onClick={() => openEditPhoto(photo)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-300 transition-colors"
+                        className={cn("px-3 py-1.5", radius.chip, "text-xs font-medium", surface.cardDark, "hover:bg-white/10 text-slate-300 transition-colors")}
                       >
                         {t.admin.common.edit}
                       </button>
@@ -979,7 +981,7 @@ export default function CoupleAdminPage() {
                             title: photo.title,
                           })
                         }
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 transition-colors"
+                        className={cn("px-3 py-1.5", radius.chip, "text-xs font-medium bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 transition-colors")}
                       >
                         {t.admin.common.delete}
                       </button>
@@ -999,14 +1001,14 @@ export default function CoupleAdminPage() {
             </p>
             <button
               onClick={openCreateMemory}
-              className="px-3.5 py-1.5 bg-pink-600/20 text-pink-300 border border-pink-500/30 rounded-xl text-xs font-semibold hover:bg-pink-600/30 transition-all"
+              className={cn("px-3.5 py-1.5 bg-pink-600/20 text-pink-300 border border-pink-500/30", radius.control, "text-xs font-semibold hover:bg-pink-600/30 transition-all")}
             >
               + {t.admin.couple.addMemory}
             </button>
           </div>
 
           {(data?.memories || []).length === 0 ? (
-            <div className="py-16 text-center border border-dashed border-white/10 rounded-2xl bg-slate-900/30">
+            <div className={cn("py-16 text-center border border-dashed border-white/10", radius.card, "bg-slate-900/30")}>
               <div className="flex justify-center mb-3"><Icon name="bookOpen" size={32} /></div>
               <p className="text-slate-400 text-sm">{t.admin.common.noData}</p>
             </div>
@@ -1015,17 +1017,17 @@ export default function CoupleAdminPage() {
               {data?.memories.map((mem, index) => (
                 <div
                   key={mem.id || index}
-                  className="bg-slate-900/60 border border-white/8 rounded-2xl p-4 flex items-start gap-4 hover:border-pink-500/30 transition-all"
+                  className={cn("bg-slate-900/60 border border-white/8", radius.card, "p-4 flex items-start", gap.loose, "hover:border-pink-500/30 transition-all")}
                 >
-                  <div className="w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-2xl flex-shrink-0">
+                  <div className={cn("w-12 h-12", radius.control, "bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-2xl flex-shrink-0")}>
                     {mem.emoji || "✨"}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                    <div className={cn("flex items-center", gap.base, "mb-1")}>
+                      <span className={cn("px-2.5 py-0.5", radius.pill, "text-xs font-semibold bg-pink-500/20 text-pink-300 border border-pink-500/30")}>
                         {mem.date}
                       </span>
-                      <h3 className="font-bold text-white text-base truncate">{mem.title}</h3>
+                      <h3 className={cn("font-bold", text.primaryDark, "text-base truncate")}>{mem.title}</h3>
                       {renderPublishBadge("memories", mem)}
                     </div>
                     <p className="text-sm text-slate-400 leading-relaxed">{mem.description}</p>
@@ -1033,7 +1035,7 @@ export default function CoupleAdminPage() {
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     <button
                       onClick={() => openEditMemory(mem)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-300"
+                      className={cn("px-3 py-1.5", radius.chip, "text-xs font-medium", surface.cardDark, "hover:bg-white/10 text-slate-300")}
                     >
                       {t.admin.common.edit}
                     </button>
@@ -1047,7 +1049,7 @@ export default function CoupleAdminPage() {
                           title: mem.title,
                         })
                       }
-                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-500/10 hover:bg-rose-500/20 text-rose-300"
+                      className={cn("px-3 py-1.5", radius.chip, "text-xs font-medium bg-rose-500/10 hover:bg-rose-500/20 text-rose-300")}
                     >
                       {t.admin.common.delete}
                     </button>
@@ -1059,19 +1061,19 @@ export default function CoupleAdminPage() {
         </div>
       ) : activeTab === "dates" ? (
         /* ═════════════════ 3. TAB SINH NHẬT & NGÀY ĐẶC BIỆT ═════════════════ */
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className={cn("grid grid-cols-1 lg:grid-cols-2", gap.grid)}>
           {/* Cột Sinh Nhật */}
-          <div className="bg-slate-900/60 border border-white/8 rounded-2xl p-5 space-y-4">
+          <div className={cn("bg-slate-900/60 border border-white/8", radius.card, "p-5 space-y-4")}>
             <div className="flex justify-between items-center border-b border-white/8 pb-3">
               <div>
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <h2 className={cn("text-base font-bold", text.primaryDark, "flex items-center", gap.tight)}>
                   <Icon name="cake" size={16} /> {t.admin.couple.tabs.dates}
                 </h2>
                 <p className="text-xs text-slate-400">{t.admin.couple.description}</p>
               </div>
               <button
                 onClick={openCreateBirthday}
-                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-medium"
+                className={cn("px-3 py-1.5", surface.cardDark, "hover:bg-white/10 text-slate-300", radius.control, "text-xs font-medium")}
               >
                 + {t.admin.couple.addBirthday}
               </button>
@@ -1081,12 +1083,12 @@ export default function CoupleAdminPage() {
               {(data?.birthdays || []).map((b, idx) => (
                 <div
                   key={b.id || idx}
-                  className="bg-slate-950/70 border border-white/5 rounded-xl p-3.5 flex items-center justify-between"
+                  className={cn("bg-slate-950/70 border border-white/5", radius.control, "p-3.5 flex items-center justify-between")}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className={cn("flex items-center", gap.base)}>
                     <span className="text-2xl">{b.emoji || "🎂"}</span>
                     <div>
-                      <div className="font-semibold text-white text-sm">
+                      <div className={cn("font-semibold", text.primaryDark, "text-sm")}>
                         {b.name} <span className="text-pink-400 text-xs font-normal">({b.zodiac})</span>
                       </div>
                       <div className="text-xs text-slate-500">{t.admin.common.date}: {b.date}</div>
@@ -1121,17 +1123,17 @@ export default function CoupleAdminPage() {
           </div>
 
           {/* Cột Ngày Đặc Biệt */}
-          <div className="bg-slate-900/60 border border-white/8 rounded-2xl p-5 space-y-4">
+          <div className={cn("bg-slate-900/60 border border-white/8", radius.card, "p-5 space-y-4")}>
             <div className="flex justify-between items-center border-b border-white/8 pb-3">
               <div>
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <h2 className={cn("text-base font-bold", text.primaryDark, "flex items-center", gap.tight)}>
                   <Icon name="calendar" size={16} /> {t.admin.couple.tabs.dates}
                 </h2>
                 <p className="text-xs text-slate-400">{t.admin.couple.description}</p>
               </div>
               <button
                 onClick={openCreateDate}
-                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-medium"
+                className={cn("px-3 py-1.5", surface.cardDark, "hover:bg-white/10 text-slate-300", radius.control, "text-xs font-medium")}
               >
                 + {t.admin.couple.addDate}
               </button>
@@ -1141,12 +1143,12 @@ export default function CoupleAdminPage() {
               {(data?.specialDates || []).map((d, idx) => (
                 <div
                   key={d.id || idx}
-                  className="bg-slate-950/70 border border-white/5 rounded-xl p-3.5 flex items-center justify-between"
+                  className={cn("bg-slate-950/70 border border-white/5", radius.control, "p-3.5 flex items-center justify-between")}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className={cn("flex items-center", gap.base)}>
                     <span className="text-2xl">{d.emoji || "🎉"}</span>
                     <div>
-                      <div className="font-semibold text-white text-sm">{d.name}</div>
+                      <div className={cn("font-semibold", text.primaryDark, "text-sm")}>{d.name}</div>
                       <div className="text-xs text-slate-500">{t.admin.common.date}: {d.date}</div>
                     </div>
                   </div>
@@ -1181,9 +1183,9 @@ export default function CoupleAdminPage() {
       ) : activeTab === "bucketList" ? (
         /* ═════════════════ 4. TAB BUCKET LIST ═════════════════ */
         <div className="space-y-5">
-          <div className="flex justify-between items-center bg-slate-900/60 p-4 rounded-2xl border border-white/5">
+          <div className={cn("flex justify-between items-center bg-slate-900/60 p-4", radius.card, "border border-white/5")}>
             <div>
-              <p className="text-sm font-semibold text-white">{t.admin.couple.tabs.bucketList}</p>
+              <p className={cn("text-sm font-semibold", text.primaryDark)}>{t.admin.couple.tabs.bucketList}</p>
               <p className="text-xs text-slate-400">
                 {(data?.bucketList || []).filter((b) => b.done).length} /{" "}
                 {data?.bucketList?.length || 0}
@@ -1191,13 +1193,13 @@ export default function CoupleAdminPage() {
             </div>
             <button
               onClick={openCreateBucket}
-              className="px-3.5 py-1.5 bg-pink-600/20 text-pink-300 border border-pink-500/30 rounded-xl text-xs font-semibold hover:bg-pink-600/30"
+              className={cn("px-3.5 py-1.5 bg-pink-600/20 text-pink-300 border border-pink-500/30", radius.control, "text-xs font-semibold hover:bg-pink-600/30")}
             >
               + {t.admin.couple.addBucket}
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.base)}>
             {(data?.bucketList || []).map((item, idx) => (
               <div
                 key={item.id || idx}
@@ -1207,7 +1209,7 @@ export default function CoupleAdminPage() {
                     : "bg-slate-900/80 border-white/8 hover:border-pink-500/30"
                 }`}
               >
-                <div className="flex items-center gap-3 min-w-0">
+                <div className={cn("flex items-center", gap.base, "min-w-0")}>
                   <button
                     type="button"
                     onClick={() => toggleBucketDone(item)}
@@ -1267,7 +1269,7 @@ export default function CoupleAdminPage() {
             </p>
             <button
               onClick={openCreateLetter}
-              className="px-3.5 py-1.5 bg-pink-600/20 text-pink-300 border border-pink-500/30 rounded-xl text-xs font-semibold hover:bg-pink-600/30"
+              className={cn("px-3.5 py-1.5 bg-pink-600/20 text-pink-300 border border-pink-500/30", radius.control, "text-xs font-semibold hover:bg-pink-600/30")}
             >
               + {t.admin.couple.addLetter}
             </button>
@@ -1277,12 +1279,12 @@ export default function CoupleAdminPage() {
             {(data?.loveLetters || []).map((letter, idx) => (
               <div
                 key={letter.id || idx}
-                className="bg-slate-900/70 border border-white/8 rounded-2xl p-5 flex flex-col justify-between hover:border-pink-500/30 transition-all relative group"
+                className={cn("bg-slate-900/70 border border-white/8", radius.card, "p-5 flex flex-col justify-between hover:border-pink-500/30 transition-all relative group")}
               >
                 <div>
                   <div className="flex items-center justify-between text-xs text-pink-400 font-semibold mb-3">
                     <span className="inline-flex items-center gap-1"><Icon name="mail" size={12} /> {letter.from}</span>
-                    <div className="flex items-center gap-2">
+                    <div className={cn("flex items-center", gap.tight)}>
                       <span className="text-slate-500 font-normal">{letter.date}</span>
                       {renderPublishBadge("loveLetters", letter)}
                     </div>
@@ -1292,10 +1294,10 @@ export default function CoupleAdminPage() {
                   </p>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-3 border-t border-white/5">
+                <div className={cn("flex justify-end", gap.tight, "pt-3 border-t border-white/5")}>
                   <button
                     onClick={() => openEditLetter(letter)}
-                    className="px-2.5 py-1 text-xs text-slate-300 bg-white/5 rounded-lg hover:bg-white/10"
+                    className={cn("px-2.5 py-1 text-xs text-slate-300", surface.cardDark, radius.chip, "hover:bg-white/10")}
                   >
                     {t.admin.common.edit}
                   </button>
@@ -1309,7 +1311,7 @@ export default function CoupleAdminPage() {
                         title: `Letter from ${letter.from}`,
                       })
                     }
-                    className="px-2.5 py-1 text-xs text-rose-300 bg-rose-500/10 rounded-lg hover:bg-rose-500/20"
+                    className={cn("px-2.5 py-1 text-xs text-rose-300 bg-rose-500/10", radius.chip, "hover:bg-rose-500/20")}
                   >
                     {t.admin.common.delete}
                   </button>
@@ -1327,24 +1329,24 @@ export default function CoupleAdminPage() {
             </p>
             <button
               onClick={openCreateFavorite}
-              className="px-3.5 py-1.5 bg-pink-600/20 text-pink-300 border border-pink-500/30 rounded-xl text-xs font-semibold hover:bg-pink-600/30"
+              className={cn("px-3.5 py-1.5 bg-pink-600/20 text-pink-300 border border-pink-500/30", radius.control, "text-xs font-semibold hover:bg-pink-600/30")}
             >
               + {t.admin.couple.addFavorite}
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3", gap.loose)}>
             {(data?.favorites || []).map((fav, idx) => (
               <div
                 key={fav.id || idx}
-                className="bg-slate-900/60 border border-white/8 rounded-2xl p-4 flex flex-col justify-between hover:border-pink-500/30 transition-all"
+                className={cn("bg-slate-900/60 border border-white/8", radius.card, "p-4 flex flex-col justify-between hover:border-pink-500/30 transition-all")}
               >
                 <div>
                   <div className="text-3xl mb-2">{fav.emoji || "💝"}</div>
                   <span className="text-[11px] font-semibold text-pink-400 uppercase tracking-wider block mb-1">
                     {fav.category}
                   </span>
-                  <h3 className="font-bold text-white text-base mb-1">{fav.title}</h3>
+                  <h3 className={cn("font-bold", text.primaryDark, "text-base mb-1")}>{fav.title}</h3>
                   <p className="text-xs text-slate-400 leading-relaxed">{fav.description}</p>
                 </div>
 
@@ -1353,7 +1355,7 @@ export default function CoupleAdminPage() {
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => openEditFavorite(fav)}
-                      className="px-2.5 py-1 text-xs text-slate-300 bg-white/5 rounded hover:bg-white/10"
+                      className={cn("px-2.5 py-1 text-xs text-slate-300", surface.cardDark, "rounded hover:bg-white/10")}
                     >
                       {t.admin.common.edit}
                     </button>
@@ -1379,18 +1381,18 @@ export default function CoupleAdminPage() {
         </div>
       ) : (
         /* ═════════════════ 7. TAB CÀI ĐẶT THÔNG TIN CHUNG ═════════════════ */
-        <div className="bg-slate-900/60 border border-white/8 rounded-2xl p-6 backdrop-blur-sm max-w-2xl">
+        <div className={cn("bg-slate-900/60 border border-white/8", radius.card, "p-6 backdrop-blur-sm max-w-2xl")}>
           <form onSubmit={handleSaveInfo} className="space-y-5">
-            <h2 className="text-lg font-bold text-white mb-4">{t.admin.couple.tabs.info}</h2>
+            <h2 className={cn("text-lg font-bold", text.primaryDark, "mb-4")}>{t.admin.couple.tabs.info}</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.loose)}>
               <FormField label={t.admin.couple.person1Label} id="person1" required>
                 <input
                   type="text"
                   id="person1"
                   value={infoForm.person1}
                   onChange={(e) => setInfoForm({ ...infoForm, person1: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+                  className={cn("w-full px-3.5 py-2.5 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
                   required
                 />
               </FormField>
@@ -1401,7 +1403,7 @@ export default function CoupleAdminPage() {
                   id="person2"
                   value={infoForm.person2}
                   onChange={(e) => setInfoForm({ ...infoForm, person2: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+                  className={cn("w-full px-3.5 py-2.5 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
                   required
                 />
               </FormField>
@@ -1418,7 +1420,7 @@ export default function CoupleAdminPage() {
                 id="anniversary"
                 value={infoForm.anniversary}
                 onChange={(e) => setInfoForm({ ...infoForm, anniversary: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50 font-mono"
+                className={cn("w-full px-3.5 py-2.5 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50 font-mono")}
                 placeholder="2025-05-30 21:00:00"
                 required
               />
@@ -1430,7 +1432,7 @@ export default function CoupleAdminPage() {
                 rows={3}
                 value={infoForm.footerQuote}
                 onChange={(e) => setInfoForm({ ...infoForm, footerQuote: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+                className={cn("w-full px-3.5 py-2.5 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
               />
             </FormField>
 
@@ -1438,7 +1440,7 @@ export default function CoupleAdminPage() {
               <button
                 type="submit"
                 disabled={savingInfo}
-                className="px-6 py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-pink-500/20 disabled:opacity-50"
+                className={cn("px-6 py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500", text.primaryDark, radius.control, "text-sm font-semibold transition-all shadow-lg shadow-pink-500/20 disabled:opacity-50")}
               >
                 {savingInfo ? t.admin.couple.savingConfig : t.admin.couple.saveConfig}
               </button>
@@ -1466,14 +1468,14 @@ export default function CoupleAdminPage() {
           subType="photo"
           required
         />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.loose)}>
           <FormField label={t.admin.photography.fieldTitle} id="photoTitle" required>
             <input
               type="text"
               id="photoTitle"
               value={photoForm.title}
               onChange={(e) => setPhotoForm({ ...photoForm, title: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
               placeholder={t.admin.photography.fieldTitlePlaceholder}
               required
             />
@@ -1484,19 +1486,19 @@ export default function CoupleAdminPage() {
               id="photoDate"
               value={photoForm.date}
               onChange={(e) => setPhotoForm({ ...photoForm, date: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
               required
             />
           </FormField>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.loose)}>
           <FormField label={t.admin.photography.fieldLocation} id="photoLocation">
             <input
               type="text"
               id="photoLocation"
               value={photoForm.location}
               onChange={(e) => setPhotoForm({ ...photoForm, location: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
               placeholder={t.admin.photography.fieldLocationPlaceholder}
             />
           </FormField>
@@ -1506,7 +1508,7 @@ export default function CoupleAdminPage() {
               id="photoCategory"
               value={photoForm.category}
               onChange={(e) => setPhotoForm({ ...photoForm, category: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
             />
           </FormField>
         </div>
@@ -1516,12 +1518,12 @@ export default function CoupleAdminPage() {
             rows={3}
             value={photoForm.description}
             onChange={(e) => setPhotoForm({ ...photoForm, description: e.target.value })}
-            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
             placeholder={t.admin.photography.fieldDescriptionPlaceholder}
           />
         </FormField>
-        <div className="flex flex-wrap items-center gap-6">
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+        <div className={cn("flex flex-wrap items-center", gap.grid)}>
+          <label className={cn("flex items-center", gap.tight, "cursor-pointer text-sm text-slate-300 select-none")}>
             <input
               type="checkbox"
               checked={photoForm.published}
@@ -1530,7 +1532,7 @@ export default function CoupleAdminPage() {
             />
             <span>{t.admin.photography.fieldPublished}</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+          <label className={cn("flex items-center", gap.tight, "cursor-pointer text-sm text-slate-300 select-none")}>
             <input
               type="checkbox"
               checked={photoForm.featured}
@@ -1559,34 +1561,34 @@ export default function CoupleAdminPage() {
             id="memTitle"
             value={memoryForm.title}
             onChange={(e) => setMemoryForm({ ...memoryForm, title: e.target.value })}
-            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
             required
           />
         </FormField>
-        <div className="grid grid-cols-2 gap-3">
+        <div className={cn("grid grid-cols-2", gap.base)}>
           <FormField label={t.admin.photography.fieldDate} id="memDate" required>
             <input
               type="text"
               id="memDate"
               value={memoryForm.date}
               onChange={(e) => setMemoryForm({ ...memoryForm, date: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
               required
             />
           </FormField>
           <FormField label="Emoji" id="memEmoji">
-            <div className="flex items-center gap-2">
+            <div className={cn("flex items-center", gap.tight)}>
               <input
                 type="text"
                 id="memEmoji"
                 value={memoryForm.emoji}
                 onChange={(e) => setMemoryForm({ ...memoryForm, emoji: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+                className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
               />
               <button
                 type="button"
                 onClick={() => setEmojiPickerTarget("memory")}
-                className="shrink-0 w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-base transition-all"
+                className={cn("shrink-0 w-9 h-9", radius.control, surface.cardDark, "hover:bg-white/10", border.subtleDark, "flex items-center justify-center text-base transition-all")}
                 title="Chọn emoji"
               >
                 {memoryForm.emoji || <Icon name="sparkles" size={14} />}
@@ -1600,12 +1602,12 @@ export default function CoupleAdminPage() {
             rows={3}
             value={memoryForm.description}
             onChange={(e) => setMemoryForm({ ...memoryForm, description: e.target.value })}
-            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
             required
           />
         </FormField>
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+        <div className={cn("flex items-center", gap.tight)}>
+          <label className={cn("flex items-center", gap.tight, "cursor-pointer text-sm text-slate-300 select-none")}>
             <input
               type="checkbox"
               checked={memoryForm.published}
@@ -1634,7 +1636,7 @@ export default function CoupleAdminPage() {
             id="bdayName"
             value={birthdayForm.name}
             onChange={(e) => setBirthdayForm({ ...birthdayForm, name: e.target.value })}
-            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
             required
           />
         </FormField>
@@ -1644,11 +1646,11 @@ export default function CoupleAdminPage() {
             id="bdayDate"
             value={birthdayForm.date}
             onChange={(e) => setBirthdayForm({ ...birthdayForm, date: e.target.value })}
-            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
             required
           />
         </FormField>
-        <div className="grid grid-cols-2 gap-3">
+        <div className={cn("grid grid-cols-2", gap.base)}>
           <FormField label="Zodiac" id="bdayZodiac">
             <input
               type="text"
@@ -1656,22 +1658,22 @@ export default function CoupleAdminPage() {
               value={birthdayForm.zodiac}
               onChange={(e) => setBirthdayForm({ ...birthdayForm, zodiac: e.target.value })}
               placeholder="e.g. ♑ Capricorn"
-              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
             />
           </FormField>
           <FormField label="Emoji" id="bdayEmoji">
-            <div className="flex items-center gap-2">
+            <div className={cn("flex items-center", gap.tight)}>
               <input
                 type="text"
                 id="bdayEmoji"
                 value={birthdayForm.emoji}
                 onChange={(e) => setBirthdayForm({ ...birthdayForm, emoji: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+                className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
               />
               <button
                 type="button"
                 onClick={() => setEmojiPickerTarget("birthday")}
-                className="shrink-0 w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-base transition-all"
+                className={cn("shrink-0 w-9 h-9", radius.control, surface.cardDark, "hover:bg-white/10", border.subtleDark, "flex items-center justify-center text-base transition-all")}
                 title="Chọn emoji"
               >
                 {birthdayForm.emoji || <Icon name="sparkles" size={14} />}
@@ -1679,8 +1681,8 @@ export default function CoupleAdminPage() {
             </div>
           </FormField>
         </div>
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+        <div className={cn("flex items-center", gap.tight)}>
+          <label className={cn("flex items-center", gap.tight, "cursor-pointer text-sm text-slate-300 select-none")}>
             <input
               type="checkbox"
               checked={birthdayForm.published}
@@ -1710,34 +1712,34 @@ export default function CoupleAdminPage() {
             value={dateForm.name}
             onChange={(e) => setDateForm({ ...dateForm, name: e.target.value })}
             placeholder={t.admin.photography.fieldTitlePlaceholder}
-            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
             required
           />
         </FormField>
-        <div className="grid grid-cols-2 gap-3">
+        <div className={cn("grid grid-cols-2", gap.base)}>
           <FormField label={t.admin.photography.fieldDate} id="dateVal" required>
             <input
               type="date"
               id="dateVal"
               value={dateForm.date}
               onChange={(e) => setDateForm({ ...dateForm, date: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
               required
             />
           </FormField>
           <FormField label="Emoji" id="dateEmoji">
-            <div className="flex items-center gap-2">
+            <div className={cn("flex items-center", gap.tight)}>
               <input
                 type="text"
                 id="dateEmoji"
                 value={dateForm.emoji}
                 onChange={(e) => setDateForm({ ...dateForm, emoji: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+                className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
               />
               <button
                 type="button"
                 onClick={() => setEmojiPickerTarget("date")}
-                className="shrink-0 w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-base transition-all"
+                className={cn("shrink-0 w-9 h-9", radius.control, surface.cardDark, "hover:bg-white/10", border.subtleDark, "flex items-center justify-center text-base transition-all")}
                 title="Chọn emoji"
               >
                 {dateForm.emoji || <Icon name="sparkles" size={14} />}
@@ -1745,8 +1747,8 @@ export default function CoupleAdminPage() {
             </div>
           </FormField>
         </div>
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+        <div className={cn("flex items-center", gap.tight)}>
+          <label className={cn("flex items-center", gap.tight, "cursor-pointer text-sm text-slate-300 select-none")}>
             <input
               type="checkbox"
               checked={dateForm.published}
@@ -1775,31 +1777,31 @@ export default function CoupleAdminPage() {
             id="bucketText"
             value={bucketForm.text}
             onChange={(e) => setBucketForm({ ...bucketForm, text: e.target.value })}
-            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
             required
           />
         </FormField>
         <FormField label="Emoji" id="bucketEmoji">
-          <div className="flex items-center gap-2">
+          <div className={cn("flex items-center", gap.tight)}>
             <input
               type="text"
               id="bucketEmoji"
               value={bucketForm.emoji}
               onChange={(e) => setBucketForm({ ...bucketForm, emoji: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
             />
             <button
               type="button"
               onClick={() => setEmojiPickerTarget("bucket")}
-              className="shrink-0 w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-base transition-all"
+              className={cn("shrink-0 w-9 h-9", radius.control, surface.cardDark, "hover:bg-white/10", border.subtleDark, "flex items-center justify-center text-base transition-all")}
               title="Chọn emoji"
             >
               {bucketForm.emoji || <Icon name="sparkles" size={14} />}
             </button>
           </div>
         </FormField>
-        <div className="flex flex-wrap items-center gap-6">
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+        <div className={cn("flex flex-wrap items-center", gap.grid)}>
+          <label className={cn("flex items-center", gap.tight, "cursor-pointer text-sm text-slate-300 select-none")}>
             <input
               type="checkbox"
               checked={bucketForm.published}
@@ -1808,7 +1810,7 @@ export default function CoupleAdminPage() {
             />
             <span>{t.admin.photography.fieldPublished}</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+          <label className={cn("flex items-center", gap.tight, "cursor-pointer text-sm text-slate-300 select-none")}>
             <input
               type="checkbox"
               checked={bucketForm.done}
@@ -1831,14 +1833,14 @@ export default function CoupleAdminPage() {
         closeLabel={t.admin.common.close}
         maxWidth="max-w-lg"
       >
-        <div className="grid grid-cols-2 gap-3">
+        <div className={cn("grid grid-cols-2", gap.base)}>
           <FormField label={t.admin.couple.person1Label} id="letterFrom" required>
             <input
               type="text"
               id="letterFrom"
               value={letterForm.from}
               onChange={(e) => setLetterForm({ ...letterForm, from: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
               required
             />
           </FormField>
@@ -1848,7 +1850,7 @@ export default function CoupleAdminPage() {
               id="letterDate"
               value={letterForm.date}
               onChange={(e) => setLetterForm({ ...letterForm, date: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
               required
             />
           </FormField>
@@ -1859,12 +1861,12 @@ export default function CoupleAdminPage() {
             rows={4}
             value={letterForm.content}
             onChange={(e) => setLetterForm({ ...letterForm, content: e.target.value })}
-            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
             required
           />
         </FormField>
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+        <div className={cn("flex items-center", gap.tight)}>
+          <label className={cn("flex items-center", gap.tight, "cursor-pointer text-sm text-slate-300 select-none")}>
             <input
               type="checkbox"
               checked={letterForm.published}
@@ -1887,30 +1889,30 @@ export default function CoupleAdminPage() {
         closeLabel={t.admin.common.close}
         maxWidth="max-w-lg"
       >
-        <div className="grid grid-cols-2 gap-3">
+        <div className={cn("grid grid-cols-2", gap.base)}>
           <FormField label={t.admin.photography.fieldCategory} id="favCategory" required>
             <input
               type="text"
               id="favCategory"
               value={favoriteForm.category}
               onChange={(e) => setFavoriteForm({ ...favoriteForm, category: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+              className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
               required
             />
           </FormField>
           <FormField label="Emoji" id="favEmoji">
-            <div className="flex items-center gap-2">
+            <div className={cn("flex items-center", gap.tight)}>
               <input
                 type="text"
                 id="favEmoji"
                 value={favoriteForm.emoji}
                 onChange={(e) => setFavoriteForm({ ...favoriteForm, emoji: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+                className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
               />
               <button
                 type="button"
                 onClick={() => setEmojiPickerTarget("favorite")}
-                className="shrink-0 w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-base transition-all"
+                className={cn("shrink-0 w-9 h-9", radius.control, surface.cardDark, "hover:bg-white/10", border.subtleDark, "flex items-center justify-center text-base transition-all")}
                 title="Chọn emoji"
               >
                 {favoriteForm.emoji || <Icon name="sparkles" size={14} />}
@@ -1925,7 +1927,7 @@ export default function CoupleAdminPage() {
             value={favoriteForm.title}
             onChange={(e) => setFavoriteForm({ ...favoriteForm, title: e.target.value })}
             placeholder={t.admin.photography.fieldTitlePlaceholder}
-            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
             required
           />
         </FormField>
@@ -1935,11 +1937,11 @@ export default function CoupleAdminPage() {
             rows={2}
             value={favoriteForm.description}
             onChange={(e) => setFavoriteForm({ ...favoriteForm, description: e.target.value })}
-            className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+            className={cn("w-full px-3.5 py-2 bg-slate-950", border.subtleDark, radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-pink-500/50")}
           />
         </FormField>
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 select-none">
+        <div className={cn("flex items-center", gap.tight)}>
+          <label className={cn("flex items-center", gap.tight, "cursor-pointer text-sm text-slate-300 select-none")}>
             <input
               type="checkbox"
               checked={favoriteForm.published}

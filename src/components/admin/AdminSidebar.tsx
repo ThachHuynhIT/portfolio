@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Icon from "@/components/ui/Icon";
 import { useTranslation } from "@/context/LanguageContext";
+import { gap, radius, text } from "@/lib/design-tokens";
 
 interface SidebarItemConfig {
   key: string;
@@ -54,7 +55,7 @@ function NavItem({
     >
       {/* Active left border indicator */}
       {isActive && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-violet-400 rounded-full -ml-px" />
+        <span className={cn("absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-violet-400", radius.pill, "-ml-px")} />
       )}
 
       <Icon
@@ -78,7 +79,18 @@ export default function AdminSidebar() {
 
   useEffect(() => {
     const saved = localStorage.getItem("admin_sidebar_collapsed");
-    if (saved === "true") setCollapsed(true);
+    if (saved !== null) {
+      setCollapsed(saved === "true");
+      return;
+    }
+
+    // No explicit preference yet — default to the icon-only rail below the
+    // md breakpoint so the sidebar doesn't eat most of a phone-width screen.
+    const mql = window.matchMedia("(min-width: 768px)");
+    const applyFromViewport = () => setCollapsed(!mql.matches);
+    applyFromViewport();
+    mql.addEventListener("change", applyFromViewport);
+    return () => mql.removeEventListener("change", applyFromViewport);
   }, []);
 
   const toggleCollapsed = () => {
@@ -112,11 +124,11 @@ export default function AdminSidebar() {
       >
         {!collapsed && (
           <Link href="/admin" className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+            <div className={cn("w-7 h-7", radius.chip, "bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center", text.primaryDark, "font-bold text-xs flex-shrink-0")}>
               A
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-white leading-none">Admin CMS</p>
+              <p className={cn("text-sm font-semibold", text.primaryDark, "leading-none")}>Admin CMS</p>
               <p className="text-[10px] text-slate-500 leading-none mt-0.5 truncate">Portfolio</p>
             </div>
           </Link>
@@ -124,7 +136,7 @@ export default function AdminSidebar() {
 
         {collapsed && (
           <Link href="/admin">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center text-white font-bold text-xs">
+            <div className={cn("w-7 h-7", radius.chip, "bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center", text.primaryDark, "font-bold text-xs")}>
               A
             </div>
           </Link>
@@ -134,7 +146,7 @@ export default function AdminSidebar() {
         {!collapsed && (
           <button
             onClick={toggleCollapsed}
-            className="p-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all cursor-pointer"
+            className={cn("p-1", radius.chip, "text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all cursor-pointer")}
             title="Collapse sidebar"
           >
             <Icon name="chevronLeft" size={14} />
@@ -155,7 +167,7 @@ export default function AdminSidebar() {
           )}
         >
           {isActive("/admin") && (
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-violet-400 rounded-full -ml-px" />
+            <span className={cn("absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-violet-400", radius.pill, "-ml-px")} />
           )}
           <Icon
             name="dashboard"
@@ -213,7 +225,7 @@ export default function AdminSidebar() {
         {collapsed && (
           <button
             onClick={toggleCollapsed}
-            className="w-full flex items-center justify-center p-2.5 rounded-xl text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all cursor-pointer"
+            className={cn("w-full flex items-center justify-center p-2.5", radius.control, "text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all cursor-pointer")}
             title="Expand sidebar"
           >
             <Icon name="chevronRight" size={15} />
@@ -224,7 +236,7 @@ export default function AdminSidebar() {
           href="/"
           target="_blank"
           title={collapsed ? t("admin.sidebar.viewSite") : undefined}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-slate-400 hover:text-slate-100 hover:bg-white/5 transition-all group"
+          className={cn("flex items-center", gap.base, "px-3 py-2.5", radius.control, "text-sm text-slate-400 hover:text-slate-100 hover:bg-white/5 transition-all group")}
         >
           <Icon name="globe" size={17} className="text-slate-500 group-hover:text-slate-300" />
           {!collapsed && <span>{t("admin.sidebar.viewSite")}</span>}
@@ -233,7 +245,7 @@ export default function AdminSidebar() {
         <button
           onClick={handleLogout}
           title={collapsed ? t("admin.sidebar.logout") : undefined}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-400/70 hover:text-red-300 hover:bg-red-500/8 transition-all group cursor-pointer"
+          className={cn("w-full flex items-center", gap.base, "px-3 py-2.5", radius.control, "text-sm text-red-400/70 hover:text-red-300 hover:bg-red-500/8 transition-all group cursor-pointer")}
         >
           <Icon name="logout" size={17} className="text-red-400/50 group-hover:text-red-300" />
           {!collapsed && <span>{t("admin.sidebar.logout")}</span>}

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Icon from '@/components/ui/Icon';
+import { cn } from "@/lib/utils";
+import { border, gap, radius, surface, text } from "@/lib/design-tokens";
 
 interface ValidationResult {
   suffix: string;
@@ -205,7 +207,7 @@ export default function JsonValidator() {
       <div className="flex justify-center">
         <button
           onClick={loadSampleData}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          className={cn("px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white", radius.chip, "transition-colors")}
         >
           Load Sample Data
         </button>
@@ -215,27 +217,27 @@ export default function JsonValidator() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`bg-white/10 backdrop-blur-lg rounded-xl p-8 border-2 border-dashed transition-all ${
+        className={`bg-white/10 light:bg-neutral-900/[0.06] backdrop-blur-lg rounded-xl p-8 border-2 border-dashed transition-all ${
           isDragging
             ? 'border-purple-500 bg-purple-500/20'
-            : 'border-white/20 hover:border-white/40'
+            : 'border-white/20 hover:border-white/40 light:border-neutral-900/15 light:hover:border-neutral-900/30'
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <div className="text-center space-y-4">
-          <div className="flex justify-center text-white/70">
+          <div className="flex justify-center text-white/70 light:text-neutral-700">
             <Icon name="folder" size={56} />
           </div>
-          <h2 className="text-2xl font-bold text-white">
+          <h2 className={cn("text-2xl font-bold", text.primary)}>
             Drag and drop files or folder here
           </h2>
-          <p className="text-gray-300">
+          <p className="text-gray-300 light:text-neutral-600">
             Supports multiple JSON files at once. Automatically pairs files based on filename suffix.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+          <div className={cn("flex flex-col sm:flex-row", gap.loose, "justify-center pt-4")}>
             {/* Multiple File Upload */}
             <label className="cursor-pointer">
               <input
@@ -245,7 +247,7 @@ export default function JsonValidator() {
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <div className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors inline-flex items-center gap-2">
+              <div className={cn("px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white", radius.chip, "transition-colors inline-flex items-center", gap.tight)}>
                 <Icon name="fileText" size={16} /> Choose Files
               </div>
             </label>
@@ -261,7 +263,7 @@ export default function JsonValidator() {
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <div className="px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white rounded-lg transition-colors inline-flex items-center gap-2">
+              <div className={cn("px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white", radius.chip, "transition-colors inline-flex items-center", gap.tight)}>
                 <Icon name="folderOpen" size={16} /> Choose Folder
               </div>
             </label>
@@ -274,16 +276,16 @@ export default function JsonValidator() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20"
+          className={cn(surface.raised, "backdrop-blur-lg", radius.control, "p-6", border.strong)}
         >
-          <h3 className="text-xl font-bold text-white mb-4">
+          <h3 className={cn("text-xl font-bold", text.primary, "mb-4")}>
             Selected {files.length} file(s):
           </h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+          <div className={cn("grid md:grid-cols-2 lg:grid-cols-3", gap.tight, "max-h-64 overflow-y-auto")}>
             {files.map((file, index) => (
               <div
                 key={index}
-                className="bg-gray-900/50 rounded px-3 py-2 text-gray-300 text-sm truncate flex items-center gap-1.5"
+                className="bg-gray-900/50 light:bg-neutral-100 rounded px-3 py-2 text-gray-300 light:text-neutral-600 text-sm truncate flex items-center gap-1.5"
                 title={file.name}
               >
                 <Icon name="fileText" size={13} className="shrink-0" /> {file.name}
@@ -293,25 +295,25 @@ export default function JsonValidator() {
 
           {/* File Groups Preview */}
           <div className="mt-6">
-            <h4 className="text-lg font-bold text-white mb-3">
+            <h4 className={cn("text-lg font-bold", text.primary, "mb-3")}>
               Mapped File Pairs:
             </h4>
             {groupFilesBySuffix(files).map((group, index) => (
               <div
                 key={index}
-                className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-lg p-4 mb-3"
+                className={cn("bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 light:border-purple-500/40", radius.chip, "p-4 mb-3")}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="px-3 py-1 bg-purple-600 text-white rounded-full text-sm font-bold">
+                <div className={cn("flex items-center", gap.tight, "mb-2")}>
+                  <span className={cn("px-3 py-1 bg-purple-600 text-white", radius.pill, "text-sm font-bold")}>
                     {group.suffix}
                   </span>
                 </div>
-                <div className="grid md:grid-cols-2 gap-2 text-sm">
-                  <div className="text-red-300 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-red-400 shrink-0" /> {group.exceptionFile?.name}
+                <div className={cn("grid md:grid-cols-2", gap.tight, "text-sm")}>
+                  <div className={cn("text-red-300 light:text-red-700 flex items-center", gap.tight)}>
+                    <span className={cn("w-2 h-2", radius.pill, "bg-red-400 shrink-0")} /> {group.exceptionFile?.name}
                   </div>
-                  <div className="text-green-300 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" /> {group.parameterFile?.name}
+                  <div className={cn("text-green-300 light:text-green-700 flex items-center", gap.tight)}>
+                    <span className={cn("w-2 h-2", radius.pill, "bg-green-400 shrink-0")} /> {group.parameterFile?.name}
                   </div>
                 </div>
               </div>
@@ -323,7 +325,7 @@ export default function JsonValidator() {
             <button
               onClick={validateAllFiles}
               disabled={loading}
-              className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 inline-flex items-center gap-2"
+              className={cn("px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold", radius.chip, "disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 inline-flex items-center", gap.tight)}
             >
               {loading ? (
                 <>
@@ -344,9 +346,9 @@ export default function JsonValidator() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="bg-red-500/20 border border-red-500 rounded-lg p-4"
+          className={cn("bg-red-500/20 border border-red-500", radius.chip, "p-4")}
         >
-          <p className="text-red-300 font-semibold flex items-center gap-2">
+          <p className={cn("text-red-300 light:text-red-700 font-semibold flex items-center", gap.tight)}>
             <Icon name="xCircle" size={16} /> Error: {error}
           </p>
         </motion.div>
@@ -362,24 +364,24 @@ export default function JsonValidator() {
             className="space-y-6"
           >
             {/* Summary */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+            <div className={cn(surface.raised, "backdrop-blur-lg", radius.control, "p-6", border.strong)}>
+              <h2 className={cn("text-2xl font-bold", text.primary, "mb-4 flex items-center", gap.tight)}>
                 <Icon name="activity" size={20} /> Results Summary
               </h2>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="bg-blue-500/20 rounded-lg p-4 border border-blue-500/30">
-                  <p className="text-blue-300 text-sm">Total Pairs</p>
-                  <p className="text-white text-3xl font-bold">{results.length}</p>
+              <div className={cn("grid md:grid-cols-3", gap.loose)}>
+                <div className={cn("bg-blue-500/20", radius.chip, "p-4 border border-blue-500/30 light:border-blue-500/35")}>
+                  <p className="text-blue-300 light:text-blue-700 text-sm">Total Pairs</p>
+                  <p className={cn(text.primary, "text-3xl font-bold")}>{results.length}</p>
                 </div>
-                <div className="bg-green-500/20 rounded-lg p-4 border border-green-500/30">
-                  <p className="text-green-300 text-sm">Valid Pairs</p>
-                  <p className="text-white text-3xl font-bold">
+                <div className={cn("bg-green-500/20", radius.chip, "p-4 border border-green-500/30 light:border-green-500/35")}>
+                  <p className="text-green-300 light:text-green-700 text-sm">Valid Pairs</p>
+                  <p className={cn(text.primary, "text-3xl font-bold")}>
                     {results.filter((r) => r.missingIds.length === 0).length}
                   </p>
                 </div>
-                <div className="bg-red-500/20 rounded-lg p-4 border border-red-500/30">
-                  <p className="text-red-300 text-sm">Pairs with Errors</p>
-                  <p className="text-white text-3xl font-bold">
+                <div className={cn("bg-red-500/20", radius.chip, "p-4 border border-red-500/30 light:border-red-500/35")}>
+                  <p className="text-red-300 light:text-red-700 text-sm">Pairs with Errors</p>
+                  <p className={cn(text.primary, "text-3xl font-bold")}>
                     {results.filter((r) => r.missingIds.length > 0).length}
                   </p>
                 </div>
@@ -393,10 +395,10 @@ export default function JsonValidator() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20"
+                className={cn(surface.raised, "backdrop-blur-lg", radius.control, "p-6", border.strong)}
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-lg font-bold">
+                <div className={cn("flex items-center", gap.base, "mb-4")}>
+                  <span className={cn("px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white", radius.pill, "text-lg font-bold")}>
                     {result.suffix}
                   </span>
                   {result.missingIds.length === 0 ? (
@@ -407,40 +409,40 @@ export default function JsonValidator() {
                 </div>
 
                 <div className="space-y-2 mb-4 text-sm">
-                  <p className="text-red-300 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-red-400 shrink-0" /> Exception: <span className="font-mono">{result.exceptionFile}</span>
+                  <p className={cn("text-red-300 light:text-red-700 flex items-center", gap.tight)}>
+                    <span className={cn("w-2 h-2", radius.pill, "bg-red-400 shrink-0")} /> Exception: <span className="font-mono">{result.exceptionFile}</span>
                   </p>
-                  <p className="text-green-300 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" /> Parameter: <span className="font-mono">{result.parameterFile}</span>
+                  <p className={cn("text-green-300 light:text-green-700 flex items-center", gap.tight)}>
+                    <span className={cn("w-2 h-2", radius.pill, "bg-green-400 shrink-0")} /> Parameter: <span className="font-mono">{result.parameterFile}</span>
                   </p>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-4 mb-4">
-                  <div className="bg-blue-500/20 rounded-lg p-3 border border-blue-500/30">
-                    <p className="text-blue-300 text-xs">Checked IDs</p>
-                    <p className="text-white text-2xl font-bold">{result.totalChecked}</p>
+                <div className={cn("grid md:grid-cols-3", gap.loose, "mb-4")}>
+                  <div className={cn("bg-blue-500/20", radius.chip, "p-3 border border-blue-500/30 light:border-blue-500/35")}>
+                    <p className="text-blue-300 light:text-blue-700 text-xs">Checked IDs</p>
+                    <p className={cn(text.primary, "text-2xl font-bold")}>{result.totalChecked}</p>
                   </div>
-                  <div className="bg-green-500/20 rounded-lg p-3 border border-green-500/30">
-                    <p className="text-green-300 text-xs">Valid IDs</p>
-                    <p className="text-white text-2xl font-bold">{result.totalAvailable}</p>
+                  <div className={cn("bg-green-500/20", radius.chip, "p-3 border border-green-500/30 light:border-green-500/35")}>
+                    <p className="text-green-300 light:text-green-700 text-xs">Valid IDs</p>
+                    <p className={cn(text.primary, "text-2xl font-bold")}>{result.totalAvailable}</p>
                   </div>
-                  <div className="bg-red-500/20 rounded-lg p-3 border border-red-500/30">
-                    <p className="text-red-300 text-xs">Missing IDs</p>
-                    <p className="text-white text-2xl font-bold">{result.missingIds.length}</p>
+                  <div className={cn("bg-red-500/20", radius.chip, "p-3 border border-red-500/30 light:border-red-500/35")}>
+                    <p className="text-red-300 light:text-red-700 text-xs">Missing IDs</p>
+                    <p className={cn(text.primary, "text-2xl font-bold")}>{result.missingIds.length}</p>
                   </div>
                 </div>
 
                 {result.missingIds.length > 0 ? (
                   <div>
-                    <h3 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">
+                    <h3 className={cn("text-lg font-bold text-red-300 light:text-red-700 mb-3 flex items-center", gap.tight)}>
                       <Icon name="alertTriangle" size={18} /> Missing IDs:
                     </h3>
-                    <div className="bg-gray-900/50 rounded-lg p-4 max-h-64 overflow-y-auto">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <div className={cn("bg-gray-900/50 light:bg-neutral-100", radius.chip, "p-4 max-h-64 overflow-y-auto")}>
+                      <div className={cn("grid grid-cols-2 md:grid-cols-4", gap.tight)}>
                         {result.missingIds.map((id) => (
                           <div
                             key={id}
-                            className="bg-red-500/20 border border-red-500/30 rounded px-3 py-2 text-red-300 font-mono text-sm"
+                            className="bg-red-500/20 border border-red-500/30 light:border-red-500/35 rounded px-3 py-2 text-red-300 light:text-red-700 font-mono text-sm"
                           >
                             {id}
                           </div>
@@ -449,8 +451,8 @@ export default function JsonValidator() {
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-green-500/20 border border-green-500 rounded-lg p-4">
-                    <p className="text-green-300 font-semibold text-center flex items-center justify-center gap-2">
+                  <div className={cn("bg-green-500/20 border border-green-500", radius.chip, "p-4")}>
+                    <p className={cn("text-green-300 light:text-green-700 font-semibold text-center flex items-center justify-center", gap.tight)}>
                       <Icon name="checkCircle" size={16} /> All IDs are valid!
                     </p>
                   </div>

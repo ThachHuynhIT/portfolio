@@ -28,6 +28,8 @@ import {
   SKILLS_FIELDS,
 } from "@/lib/section-field-specs";
 import type { SiteConfig } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { gap, radius, text } from "@/lib/design-tokens";
 
 type TabId = "general" | "author" | "hero" | "about" | "skills" | "projects" | "contact";
 
@@ -151,7 +153,7 @@ export default function SiteConfigAdminPage() {
       />
 
       {activeLang === "vi" && (
-        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs mb-6">
+        <div className={cn("flex items-center", gap.tight, "px-4 py-2.5", radius.control, "bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs mb-6")}>
           <FlagIcon locale="vi" width={16} height={11} />
           <span>
             Đang chỉnh sửa bản dịch <strong>Tiếng Việt</strong>. Nếu để trống trường nào, hệ thống sẽ tự động dùng giá trị mặc định của bản Tiếng Anh.
@@ -162,10 +164,10 @@ export default function SiteConfigAdminPage() {
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* General Site Info */}
         {activeTab === "general" && (
-        <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
+        <div className={cn("p-6", radius.card, "bg-gray-900 border border-gray-800 space-y-6")}>
           <div className="flex items-center justify-between pb-3 border-b border-gray-800">
-            <h2 className="text-lg font-bold text-white">{t("admin.siteConfig.tabBasic", "General Information")}</h2>
-            <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/8">
+            <h2 className={cn("text-lg font-bold", text.primaryDark)}>{t("admin.siteConfig.tabBasic", "General Information")}</h2>
+            <span className={cn("inline-flex items-center gap-1.5 text-xs text-slate-400 px-2.5 py-1", radius.pill, "bg-white/[0.04] border border-white/8")}>
               <FlagIcon locale={activeLang} width={14} height={9} />
               {activeLang === "en" ? "English Content" : "Bản Tiếng Việt"}
             </span>
@@ -177,7 +179,7 @@ export default function SiteConfigAdminPage() {
               type="text"
               value={config.name}
               onChange={(e) => setConfig({ ...config, name: e.target.value })}
-              className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+              className={cn("w-full px-4 py-2.5 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
               required
             />
           </FormField>
@@ -190,7 +192,7 @@ export default function SiteConfigAdminPage() {
                   type="text"
                   value={config.title}
                   onChange={(e) => setConfig({ ...config, title: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  className={cn("w-full px-4 py-2.5 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                   required
                 />
               </FormField>
@@ -201,7 +203,7 @@ export default function SiteConfigAdminPage() {
                   rows={3}
                   value={config.description}
                   onChange={(e) => setConfig({ ...config, description: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  className={cn("w-full px-4 py-2.5 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                 />
               </FormField>
             </>
@@ -218,7 +220,7 @@ export default function SiteConfigAdminPage() {
                   value={config.title_vi || ""}
                   placeholder={config.title}
                   onChange={(e) => setConfig({ ...config, title_vi: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  className={cn("w-full px-4 py-2.5 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                 />
               </FormField>
 
@@ -233,20 +235,20 @@ export default function SiteConfigAdminPage() {
                   value={config.description_vi || ""}
                   placeholder={config.description}
                   onChange={(e) => setConfig({ ...config, description_vi: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  className={cn("w-full px-4 py-2.5 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                 />
               </FormField>
             </>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={cn("grid grid-cols-1 md:grid-cols-2", gap.loose)}>
             <FormField label={t("admin.common.url", "Site URL")} id="site-url">
               <input
                 id="site-url"
                 type="url"
                 value={config.url}
                 onChange={(e) => setConfig({ ...config, url: e.target.value })}
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                className={cn("w-full px-4 py-2.5 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
               />
             </FormField>
 
@@ -266,10 +268,10 @@ export default function SiteConfigAdminPage() {
 
         {/* Author Details */}
         {activeTab === "author" && (
-        <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
+        <div className={cn("p-6", radius.card, "bg-gray-900 border border-gray-800 space-y-6")}>
           <div className="flex items-center justify-between pb-3 border-b border-gray-800">
-            <h2 className="text-lg font-bold text-white">{t("admin.siteConfig.tabContact", "Author Profile")}</h2>
-            <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/8">
+            <h2 className={cn("text-lg font-bold", text.primaryDark)}>{t("admin.siteConfig.tabContact", "Author Profile")}</h2>
+            <span className={cn("inline-flex items-center gap-1.5 text-xs text-slate-400 px-2.5 py-1", radius.pill, "bg-white/[0.04] border border-white/8")}>
               <FlagIcon locale={activeLang} width={14} height={9} />
               {activeLang === "en" ? "English Profile" : "Hồ sơ Tiếng Việt"}
             </span>
@@ -286,7 +288,7 @@ export default function SiteConfigAdminPage() {
                   author: { ...config.author, name: e.target.value },
                 })
               }
-              className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+              className={cn("w-full px-4 py-2.5 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
               required
             />
           </FormField>
@@ -304,7 +306,7 @@ export default function SiteConfigAdminPage() {
                       author: { ...config.author, title: e.target.value },
                     })
                   }
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  className={cn("w-full px-4 py-2.5 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                   required
                 />
               </FormField>
@@ -320,7 +322,7 @@ export default function SiteConfigAdminPage() {
                       author: { ...config.author, bio: e.target.value },
                     })
                   }
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  className={cn("w-full px-4 py-2.5 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                 />
               </FormField>
 
@@ -335,7 +337,7 @@ export default function SiteConfigAdminPage() {
                       author: { ...config.author, location: e.target.value },
                     })
                   }
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  className={cn("w-full px-4 py-2.5 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                 />
               </FormField>
             </>
@@ -357,7 +359,7 @@ export default function SiteConfigAdminPage() {
                       author: { ...config.author, title_vi: e.target.value },
                     })
                   }
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  className={cn("w-full px-4 py-2.5 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                 />
               </FormField>
 
@@ -377,7 +379,7 @@ export default function SiteConfigAdminPage() {
                       author: { ...config.author, bio_vi: e.target.value },
                     })
                   }
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  className={cn("w-full px-4 py-2.5 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                 />
               </FormField>
 
@@ -397,7 +399,7 @@ export default function SiteConfigAdminPage() {
                       author: { ...config.author, location_vi: e.target.value },
                     })
                   }
-                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  className={cn("w-full px-4 py-2.5 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                 />
               </FormField>
             </>
@@ -429,7 +431,7 @@ export default function SiteConfigAdminPage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={cn("grid grid-cols-1 md:grid-cols-2", gap.loose)}>
             <FormField label={t("admin.siteConfig.fieldEmail", "Email Address")} id="author-email">
               <input
                 id="author-email"
@@ -441,7 +443,7 @@ export default function SiteConfigAdminPage() {
                     author: { ...config.author, email: e.target.value },
                   })
                 }
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                className={cn("w-full px-4 py-2.5 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
               />
             </FormField>
           </div>

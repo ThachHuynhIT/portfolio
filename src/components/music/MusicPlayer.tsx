@@ -6,6 +6,8 @@ import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMusic, Track, EqPreset } from "@/context/MusicContext";
 import MusicSidebar from "./MusicSidebar";
+import { cn } from "@/lib/utils";
+import { border, elevation, gap, motion as motionTokens, radius, surface, text } from "@/lib/design-tokens";
 
 // Split out of the initial /music bundle — only needed once the user
 // switches into lyrics mode.
@@ -272,9 +274,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
           <MusicSidebar />
           <div className="music-stage-wrapper">
             <main className="music-main-stage flex items-center justify-center min-h-[70vh]">
-              <div className="music-empty-card text-center p-8 rounded-3xl bg-white/5 border border-white/10 max-w-md">
-                <div className="flex justify-center mb-4 text-white/60"><Icon name="headphones" size={44} /></div>
-                <h2 className="text-xl font-bold text-white mb-2">No Tracks Found</h2>
+              <div className={cn("music-empty-card text-center p-8", radius.panel, surface.cardDark, border.subtleDark, "max-w-md")}>
+                <div className={cn("flex justify-center mb-4", text.mutedDark)}><Icon name="headphones" size={44} /></div>
+                <h2 className={cn("text-xl font-bold", text.primaryDark, "mb-2")}>No Tracks Found</h2>
                 <p className="text-white/50 text-sm mb-6">
                   The sound library is currently empty. Add tracks from the Admin Manager.
                 </p>
@@ -314,7 +316,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
             {/* Top Stage Bar (Sticky on Top: Search, Navigation Tabs, Lounge Tools) */}
             <header className="music-top-bar">
               {/* Mobile menu trigger */}
-              <div className="flex items-center gap-2 md:hidden">
+              <div className={cn("flex items-center", gap.tight, "md:hidden")}>
                 <button
                   onClick={() => setIsMobileSidebarOpen(true)}
                   className="music-mobile-menu-btn"
@@ -374,7 +376,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         </span>
                         <button
                           onClick={() => setIsSearchFocused(false)}
-                          className="text-[10px] text-white/40 hover:text-white inline-flex items-center gap-1"
+                          className={cn("text-[10px]", text.subtleDark, "hover:text-white inline-flex items-center gap-1")}
                         >
                           {t("music.search.close", "Close")} <Icon name="close" size={10} />
                         </button>
@@ -387,7 +389,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                             <div className="text-xs text-white/70">
                               {t("music.search.emptyTitle", "No tracks found for")} &quot;{searchQuery}&quot;
                             </div>
-                            <div className="text-[11px] text-white/40">
+                            <div className={cn("text-[11px]", text.subtleDark)}>
                               {t("music.search.emptyDesc", "Try searching by artist, track title, or genre")}
                             </div>
                           </div>
@@ -428,9 +430,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                     }`}
                                   >
                                     {isThisPlaying ? (
-                                      <span className="w-2.5 h-2.5 bg-[#1db954] rounded-full animate-ping" />
+                                      <span className={cn("w-2.5 h-2.5 bg-[#1db954]", radius.pill, "animate-ping")} />
                                     ) : (
-                                      <Icon name="play" size={12} className="text-white" />
+                                      <Icon name="play" size={12} className={cn(text.primaryDark)} />
                                     )}
                                   </div>
                                 </div>
@@ -456,7 +458,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                 </div>
 
                                 {/* Action: Like and Duration */}
-                                <div className="flex items-center gap-2">
+                                <div className={cn("flex items-center", gap.tight)}>
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -471,7 +473,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                   >
                                     <Icon name="heart" size={13} filled={isLiked} />
                                   </button>
-                                  <span className="text-[11px] font-mono text-white/40 tabular-nums">
+                                  <span className={cn("text-[11px] font-mono", text.subtleDark, "tabular-nums")}>
                                     {formatTime(track.duration)}
                                   </span>
                                 </div>
@@ -557,9 +559,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
             {activeTab === "player" && (
               <section className="music-deck-section">
                 {/* ── TRACK CONTROLS TOOLBAR (Chỉ ảnh hưởng bài hát hiện tại) ── */}
-                <div className="w-full flex flex-wrap items-center justify-between gap-3 p-2.5 sm:p-3 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-md">
+                <div className={cn("w-full flex flex-wrap items-center justify-between", gap.base, "p-2.5 sm:p-3", radius.card, "bg-white/[0.03]", border.subtleDark, elevation.blur)}>
                   {/* Deck Mode Toggle: Đĩa Than vs Lời Bài Hát (Karaoke) */}
-                  <div className="flex items-center gap-1.5 p-1 bg-black/40 rounded-xl border border-white/10">
+                  <div className={cn("flex items-center gap-1.5 p-1 bg-black/40", radius.control, border.subtleDark)}>
                     <button
                       onClick={() => setDeckMode("vinyl")}
                       className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
@@ -587,11 +589,11 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                 {deckMode === "lyrics" ? (
                   /* ── IN-DECK KARAOKE LIVE SYNCED LYRICS ── */
-                  <div className="w-full max-w-3xl mx-auto flex flex-col gap-4">
+                  <div className={cn("w-full max-w-3xl mx-auto flex flex-col", gap.loose)}>
                     {/* Compact Playing Track Bar at the top of Lyrics */}
-                    <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
+                    <div className={cn("flex items-center justify-between", gap.loose, "p-4", radius.card, "bg-white/[0.04]", border.subtleDark, elevation.blur)}>
                       <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-white/10 border border-white/10 relative group">
+                        <div className={cn("w-12 h-12", radius.control, "overflow-hidden flex-shrink-0", surface.raisedDark, border.subtleDark, "relative group")}>
                           {currentTrack.thumbnailUrl ? (
                             <Image
                               src={currentTrack.thumbnailUrl}
@@ -605,14 +607,14 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           )}
                           {isPlaying && (
                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+                              <span className={cn("w-2.5 h-2.5", radius.pill, "bg-cyan-400 animate-ping")} />
                             </div>
                           )}
                         </div>
 
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h2 className="text-base font-bold text-white truncate">
+                          <div className={cn("flex items-center", gap.tight)}>
+                            <h2 className={cn("text-base font-bold", text.primaryDark, "truncate")}>
                               {currentTrack.title}
                             </h2>
                             <button
@@ -623,32 +625,32 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               <Icon name="heart" size={14} filled={isCurrentLiked} />
                             </button>
                           </div>
-                          <p className="text-xs text-white/60 truncate">
+                          <p className={cn("text-xs", text.mutedDark, "truncate")}>
                             {currentTrack.artist} {currentTrack.album ? `• ${currentTrack.album}` : ""}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className={cn("flex items-center", gap.tight, "flex-shrink-0")}>
                         {/* Audio pulse bars visual feedback */}
-                        <div className="hidden sm:flex items-center gap-1 h-6 px-2.5 py-1 rounded-lg bg-black/40 border border-white/10">
+                        <div className={cn("hidden sm:flex items-center gap-1 h-6 px-2.5 py-1", radius.chip, "bg-black/40", border.subtleDark)}>
                           <span
-                            className="w-1 bg-cyan-400 rounded-full transition-all duration-75"
+                            className={cn("w-1 bg-cyan-400", radius.pill, "transition-all duration-75")}
                             style={{ height: isPlaying ? `${Math.max(4, audioMetrics.bass * 20)}px` : "4px" }}
                           />
                           <span
-                            className="w-1 bg-purple-400 rounded-full transition-all duration-75"
+                            className={cn("w-1 bg-purple-400", radius.pill, "transition-all duration-75")}
                             style={{ height: isPlaying ? `${Math.max(4, audioMetrics.mid * 20)}px` : "8px" }}
                           />
                           <span
-                            className="w-1 bg-pink-400 rounded-full transition-all duration-75"
+                            className={cn("w-1 bg-pink-400", radius.pill, "transition-all duration-75")}
                             style={{ height: isPlaying ? `${Math.max(4, audioMetrics.treble * 20)}px` : "6px" }}
                           />
                         </div>
 
                         <button
                           onClick={() => setDeckMode("vinyl")}
-                          className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-white/80 hover:text-white border border-white/10 transition-all flex items-center gap-1.5 cursor-pointer"
+                          className={cn("px-3 py-1.5", radius.control, surface.raisedDark, "hover:bg-white/15 text-xs font-semibold text-white/80 hover:text-white", border.subtleDark, "transition-all flex items-center gap-1.5 cursor-pointer")}
                           title={t("music.deck.backToVinyl", "Back to Vinyl")}
                         >
                           <Icon name="disc" size={14} />
@@ -737,7 +739,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                     {/* Track Metadata */}
                     <div className="music-stage-meta">
-                      <div className="flex items-center justify-center gap-3">
+                      <div className={cn("flex items-center justify-center", gap.base)}>
                         <h1 className="music-stage-title">{currentTrack.title}</h1>
                         <button
                           onClick={() => toggleLike(currentTrack.id)}
@@ -750,7 +752,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                       <p className="music-stage-artist">{currentTrack.artist}</p>
 
-                      <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
+                      <div className={cn("flex items-center justify-center", gap.tight, "mt-2 flex-wrap")}>
                         {currentTrack.album && (
                           <span className="music-pill-meta inline-flex items-center gap-1">
                             <Icon name="disc" size={12} /> {currentTrack.album}
@@ -773,13 +775,13 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                     {/* Real-Time Web Audio Visualizer */}
                     <div className="flex items-center justify-between px-2 mb-2 w-full max-w-3xl">
-                      <div className="flex items-center gap-2">
+                      <div className={cn("flex items-center", gap.tight)}>
                         <span className="text-xs font-bold uppercase tracking-wider text-white/70">
                           {t("music.deck.visualizerTitle", "Audio Visualizer")}
                         </span>
-                        {isPlaying && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
+                        {isPlaying && <span className={cn("w-2 h-2", radius.pill, "bg-emerald-400 animate-pulse")} />}
                       </div>
-                      <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/10 text-xs">
+                      <div className={cn("flex items-center gap-1 bg-white/[0.04] p-1", radius.control, border.subtleDark, "text-xs")}>
                         <button
                           onClick={() => setVisualizerStyle("bars")}
                           className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
@@ -823,12 +825,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                 {/* Quick Track Grid / Playlist Preview */}
                 <div className="music-quick-library w-full">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-white/10">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <h3 className="text-sm font-bold text-white/90 uppercase tracking-wider flex items-center gap-2">
+                  <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between", gap.base, "mb-4 pb-3 border-b border-white/10")}>
+                    <div className={cn("flex items-center", gap.base, "flex-wrap")}>
+                      <h3 className={cn("text-sm font-bold text-white/90 uppercase tracking-wider flex items-center", gap.tight)}>
                         <Icon name="music" size={14} />
                         <span>{t("music.collection.title", "Soundtrack Collection")}</span>
-                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-white/60 font-mono font-normal">
+                        <span className={cn("text-xs px-2.5 py-0.5", radius.pill, surface.raisedDark, text.mutedDark, "font-mono font-normal")}>
                           {filteredTracks.length} {t("music.collection.tracksCount", "tracks")}
                         </span>
                       </h3>
@@ -865,8 +867,8 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       </button>
 
                       {/* Sort dropdown */}
-                      <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1">
-                        <span className="text-xs text-white/40">⇅</span>
+                      <div className={cn("flex items-center gap-1.5", surface.cardDark, border.subtleDark, radius.control, "px-2.5 py-1")}>
+                        <span className={cn("text-xs", text.subtleDark)}>⇅</span>
                         <select
                           value={sortBy}
                           onChange={(e) =>
@@ -875,10 +877,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           className="bg-transparent text-xs text-white/90 focus:outline-none cursor-pointer pr-1 py-0.5"
                           aria-label={t("music.collection.sort.label", "Sort:")}
                         >
-                          <option value="default" className="bg-[#121212] text-white">{t("music.collection.sort.default", "Sort: Default")}</option>
-                          <option value="plays" className="bg-[#121212] text-white">{t("music.collection.sort.plays", "Sort: Most Played")}</option>
-                          <option value="title" className="bg-[#121212] text-white">{t("music.collection.sort.title", "Sort: Track Title")}</option>
-                          <option value="duration" className="bg-[#121212] text-white">{t("music.collection.sort.duration", "Sort: Duration")}</option>
+                          <option value="default" className={cn("bg-[#121212]", text.primaryDark)}>{t("music.collection.sort.default", "Sort: Default")}</option>
+                          <option value="plays" className={cn("bg-[#121212]", text.primaryDark)}>{t("music.collection.sort.plays", "Sort: Most Played")}</option>
+                          <option value="title" className={cn("bg-[#121212]", text.primaryDark)}>{t("music.collection.sort.title", "Sort: Track Title")}</option>
+                          <option value="duration" className={cn("bg-[#121212]", text.primaryDark)}>{t("music.collection.sort.duration", "Sort: Duration")}</option>
                         </select>
                       </div>
                     </div>
@@ -929,7 +931,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                             >
                               <Icon name="heart" size={13} filled={isLiked} />
                             </button>
-                            <span className="text-[11px] text-white/40 tabular-nums">
+                            <span className={cn("text-[11px]", text.subtleDark, "tabular-nums")}>
                               {formatTime(t.duration)}
                             </span>
                           </div>
@@ -947,27 +949,27 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 {/* 1. Spotify Hero Billboard Banner */}
                 <div className="spotify-charts-hero">
                   <div className="spotify-charts-hero-backdrop" />
-                  <div className="relative z-10 flex flex-col md:flex-row items-start md:items-end gap-6 p-6 sm:p-8">
+                  <div className={cn("relative z-10 flex flex-col md:flex-row items-start md:items-end", gap.grid, "p-6 sm:p-8")}>
                     {/* Big Chart Cover Artwork / Badge */}
-                    <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl shadow-2xl flex-shrink-0 bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-950 flex flex-col items-center justify-center text-white border border-emerald-400/30 relative overflow-hidden group">
+                    <div className={cn("w-36 h-36 sm:w-44 sm:h-44", radius.card, "shadow-2xl flex-shrink-0 bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-950 flex flex-col items-center justify-center", text.primaryDark, "border border-emerald-400/30 relative overflow-hidden group")}>
                       <div className="absolute inset-0 bg-black/20" />
                       <span className="mb-1 relative z-10"><Icon name="trophy" size={48} /></span>
                       <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-emerald-300 relative z-10">
                         TOP CHARTS
                       </span>
-                      <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-emerald-400/20 rounded-full blur-xl" />
+                      <div className={cn("absolute -bottom-6 -right-6 w-24 h-24 bg-emerald-400/20", radius.pill, "blur-xl")} />
                     </div>
 
                     {/* Chart Meta */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-400 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
+                      <div className={cn("flex items-center", gap.tight, "mb-2")}>
+                        <span className={cn("text-[11px] font-extrabold uppercase tracking-widest text-emerald-400 px-2.5 py-0.5", radius.pill, "bg-emerald-500/10 border border-emerald-500/30")}>
                           {t("music.charts.badge", "TRENDING LEADERBOARD")}
                         </span>
-                        <span className="text-[11px] text-white/40 font-mono">{t("music.charts.edition", "SPOTIFY EDITION")}</span>
+                        <span className={cn("text-[11px]", text.subtleDark, "font-mono")}>{t("music.charts.edition", "SPOTIFY EDITION")}</span>
                       </div>
 
-                      <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight mb-3">
+                      <h1 className={cn("text-2xl sm:text-3xl md:text-5xl font-black", text.primaryDark, "tracking-tight mb-3")}>
                         {t("music.charts.title", "Most Played Soundtracks")}
                       </h1>
 
@@ -975,9 +977,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         {t("music.charts.desc", "A curated collection of the most enjoyed chillout, lofi, and synthwave melodies on Vibe Lounge. Ranked by actual play counts.")}
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-white/80 font-medium">
+                      <div className={cn("flex flex-wrap items-center", gap.base, "text-xs text-white/80 font-medium")}>
                         <div className="flex items-center gap-1.5">
-                          <span className="w-5 h-5 rounded-full bg-gradient-to-tr from-purple-500 to-cyan-400 flex items-center justify-center text-[10px] font-bold text-white">
+                          <span className={cn("w-5 h-5", radius.pill, "bg-gradient-to-tr from-purple-500 to-cyan-400 flex items-center justify-center text-[10px] font-bold", text.primaryDark)}>
                             TH
                           </span>
                           <span>{t("music.charts.curatedBy", "Curated by")} <strong>Thạch Huỳnh</strong></span>
@@ -994,7 +996,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                   {/* Top 3 Quick Podium Badges */}
                   {chartTracks.length >= 3 && (
-                    <div className="px-6 sm:px-8 pb-4 grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-white/10 pt-4 relative z-10">
+                    <div className={cn("px-6 sm:px-8 pb-4 grid grid-cols-1 sm:grid-cols-3", gap.base, "border-t border-white/10 pt-4 relative z-10")}>
                       {chartTracks.slice(0, 3).map((topT, idx) => {
                         const medals = [
                           t("music.charts.top1", "Top 1 Trending"),
@@ -1013,7 +1015,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                 : "border-white/10 hover:border-white/20 hover:bg-white/5"
                             }`}
                           >
-                            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 relative bg-white/10">
+                            <div className={cn("w-10 h-10", radius.chip, "overflow-hidden flex-shrink-0 relative", surface.raisedDark)}>
                               {topT.thumbnailUrl ? (
                                 <Image src={topT.thumbnailUrl} alt={topT.title} fill sizes="40px" className="object-cover" />
                               ) : (
@@ -1021,7 +1023,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               )}
                               {isThisPlaying && (
                                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                                  <span className={cn("w-2 h-2", radius.pill, "bg-emerald-400 animate-ping")} />
                                 </div>
                               )}
                             </div>
@@ -1029,14 +1031,14 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               <span className={`text-[10px] font-bold ${medalColors[idx]} flex items-center gap-1`}>
                                 <Icon name="medal" size={11} /> {medals[idx]}
                               </span>
-                              <div className="text-xs font-bold text-white truncate">{topT.title}</div>
+                              <div className={cn("text-xs font-bold", text.primaryDark, "truncate")}>{topT.title}</div>
                               <span className="text-[11px] text-white/50 truncate block">{topT.artist}</span>
                             </div>
                             <div className="text-right">
                               <span className="text-[10px] text-emerald-400 font-mono font-bold block">
                                 {(topT.playCount ?? 0).toLocaleString()}
                               </span>
-                              <span className="text-[9px] text-white/40 block">{t("music.charts.plays", "plays")}</span>
+                              <span className={cn("text-[9px]", text.subtleDark, "block")}>{t("music.charts.plays", "plays")}</span>
                             </div>
                           </div>
                         );
@@ -1046,12 +1048,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 </div>
 
                 {/* 2. Action Bar: Big Spotify Green Play Button & Filter Pills */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 pt-6">
-                  <div className="flex items-center gap-4">
+                <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between", gap.loose, "p-6 sm:p-8 pt-6")}>
+                  <div className={cn("flex items-center", gap.loose)}>
                     {/* Spotify Iconic Circular Big Green Play Button */}
                     <button
                       onClick={handlePlayChartFromStart}
-                      className="w-14 h-14 rounded-full bg-[#1db954] hover:bg-[#1ed760] text-black flex items-center justify-center shadow-xl shadow-[#1db954]/30 hover:scale-105 active:scale-95 transition-all"
+                      className={cn("w-14 h-14", radius.pill, "bg-[#1db954] hover:bg-[#1ed760] text-black flex items-center justify-center shadow-xl shadow-[#1db954]/30 hover:scale-105", motionTokens.press, "transition-all")}
                       title={t("music.charts.playAll", "Play all from #1")}
                     >
                       <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28" className="translate-x-0.5">
@@ -1072,15 +1074,15 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       <ShuffleIcon />
                     </button>
 
-                    <div className="h-6 w-px bg-white/10" />
+                    <div className={cn("h-6 w-px", surface.raisedDark)} />
 
-                    <span className="text-xs text-white/60">
+                    <span className={cn("text-xs", text.mutedDark)}>
                       {t("music.charts.showing", "Showing")} <strong>{chartTracks.length}</strong> {t("music.charts.tracks", "tracks")}
                     </span>
                   </div>
 
                   {/* Chart Sorting Tabs */}
-                  <div className="flex items-center gap-1.5 p-1 bg-white/[0.04] rounded-xl border border-white/10 self-start sm:self-auto">
+                  <div className={cn("flex items-center gap-1.5 p-1 bg-white/[0.04]", radius.control, border.subtleDark, "self-start sm:self-auto")}>
                     <button
                       onClick={() => setChartFilter("plays")}
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
@@ -1158,7 +1160,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                       playTrackById(track.id);
                                     }
                                   }}
-                                  className="w-7 h-7 rounded-full bg-[#1db954] text-black flex items-center justify-center shadow hover:scale-110 transition-transform"
+                                  className={cn("w-7 h-7", radius.pill, "bg-[#1db954] text-black flex items-center justify-center shadow hover:scale-110 transition-transform")}
                                   title={isThisPlaying ? t("music.charts.pause", "Pause") : t("music.charts.play", "Play Track")}
                                 >
                                   {isThisPlaying ? (
@@ -1189,8 +1191,8 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                             </div>
 
                             {/* Title & Artist & Thumbnail Col */}
-                            <div className="flex-1 min-w-0 flex items-center gap-3 pr-2">
-                              <div className="w-11 h-11 rounded-lg overflow-hidden bg-white/10 flex-shrink-0 shadow relative">
+                            <div className={cn("flex-1 min-w-0 flex items-center", gap.base, "pr-2")}>
+                              <div className={cn("w-11 h-11", radius.chip, "overflow-hidden", surface.raisedDark, "flex-shrink-0 shadow relative")}>
                                 {track.thumbnailUrl ? (
                                   <Image src={track.thumbnailUrl} alt={track.title} fill sizes="44px" className="object-cover" />
                                 ) : (
@@ -1203,9 +1205,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                 }`}>
                                   {track.title}
                                 </div>
-                                <div className="text-xs text-white/50 truncate flex items-center gap-2">
+                                <div className={cn("text-xs text-white/50 truncate flex items-center", gap.tight)}>
                                   <span>{track.artist}</span>
-                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-white/10 text-white/70 font-mono uppercase">
+                                  <span className={cn("text-[9px] px-1.5 py-0.2 rounded", surface.raisedDark, "text-white/70 font-mono uppercase")}>
                                     Lossless
                                   </span>
                                 </div>
@@ -1213,7 +1215,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                             </div>
 
                             {/* Album / Genre Col */}
-                            <div className="hidden md:block w-48 text-xs text-white/60 truncate pr-4">
+                            <div className={cn("hidden md:block w-48 text-xs", text.mutedDark, "truncate pr-4")}>
                               {track.album || track.genre || t("music.infoView.singleRelease", "Single Release")}
                             </div>
 
@@ -1222,16 +1224,16 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               <span className="text-xs font-mono font-medium text-white/80 tabular-nums">
                                 {(track.playCount ?? 0).toLocaleString()} {t("music.charts.plays", "plays")}
                               </span>
-                              <div className="w-20 h-1 rounded-full bg-white/10 mt-1 overflow-hidden">
+                              <div className={cn("w-20 h-1", radius.pill, surface.raisedDark, "mt-1 overflow-hidden")}>
                                 <div
-                                  className="h-full bg-gradient-to-r from-emerald-500 to-[#1db954] rounded-full"
+                                  className={cn("h-full bg-gradient-to-r from-emerald-500 to-[#1db954]", radius.pill)}
                                   style={{ width: `${Math.max(5, playPercent)}%` }}
                                 />
                               </div>
                             </div>
 
                             {/* Duration & Heart Like Col */}
-                            <div className="w-24 flex items-center justify-end gap-3 flex-shrink-0 pr-2">
+                            <div className={cn("w-24 flex items-center justify-end", gap.base, "flex-shrink-0 pr-2")}>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1269,9 +1271,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         "radial-gradient(circle at top left, rgba(244, 63, 94, 0.25) 0%, transparent 70%)",
                     }}
                   />
-                  <div className="relative z-10 flex flex-col md:flex-row items-start md:items-end gap-6 p-6 sm:p-8">
+                  <div className={cn("relative z-10 flex flex-col md:flex-row items-start md:items-end", gap.grid, "p-6 sm:p-8")}>
                     {/* Big Heart Cover Artwork */}
-                    <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-2xl shadow-2xl flex-shrink-0 bg-gradient-to-br from-rose-600 via-pink-600 to-purple-900 flex flex-col items-center justify-center text-white border border-rose-400/40 relative overflow-hidden group shadow-rose-900/40">
+                    <div className={cn("w-36 h-36 sm:w-44 sm:h-44", radius.card, "shadow-2xl flex-shrink-0 bg-gradient-to-br from-rose-600 via-pink-600 to-purple-900 flex flex-col items-center justify-center", text.primaryDark, "border border-rose-400/40 relative overflow-hidden group shadow-rose-900/40")}>
                       <div className="absolute inset-0 bg-black/15" />
                       <span className="mb-1 relative z-10 drop-shadow-md">
                         <Icon name="heart" size={48} filled />
@@ -1279,19 +1281,19 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-rose-200 relative z-10">
                         FAVORITES
                       </span>
-                      <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-rose-400/30 rounded-full blur-xl" />
+                      <div className={cn("absolute -bottom-6 -right-6 w-24 h-24 bg-rose-400/30", radius.pill, "blur-xl")} />
                     </div>
 
                     {/* Meta */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[11px] font-extrabold uppercase tracking-widest text-rose-400 px-2.5 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30">
+                      <div className={cn("flex items-center", gap.tight, "mb-2")}>
+                        <span className={cn("text-[11px] font-extrabold uppercase tracking-widest text-rose-400 px-2.5 py-0.5", radius.pill, "bg-rose-500/15 border border-rose-500/30")}>
                           {t("music.favorites.badge", "FAVORITE COLLECTION")}
                         </span>
-                        <span className="text-[11px] text-white/40 font-mono">{t("music.favorites.edition", "SPOTIFY EDITION")}</span>
+                        <span className={cn("text-[11px]", text.subtleDark, "font-mono")}>{t("music.favorites.edition", "SPOTIFY EDITION")}</span>
                       </div>
 
-                      <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight mb-3">
+                      <h1 className={cn("text-2xl sm:text-3xl md:text-5xl font-black", text.primaryDark, "tracking-tight mb-3")}>
                         {t("music.favorites.title", "Favorite Tracks")}
                       </h1>
 
@@ -1299,9 +1301,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         {t("music.favorites.desc", "All your saved and loved melodies on Vibe Lounge. Automatically synced and stored in your browser.")}
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-white/80 font-medium">
+                      <div className={cn("flex flex-wrap items-center", gap.base, "text-xs text-white/80 font-medium")}>
                         <div className="flex items-center gap-1.5">
-                          <span className="w-5 h-5 rounded-full bg-gradient-to-tr from-rose-500 to-pink-500 flex items-center justify-center text-white">
+                          <span className={cn("w-5 h-5", radius.pill, "bg-gradient-to-tr from-rose-500 to-pink-500 flex items-center justify-center", text.primaryDark)}>
                             <Icon name="heart" size={10} filled />
                           </span>
                           <span>
@@ -1318,8 +1320,8 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 </div>
 
                 {/* 2. Action Bar */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 pt-6">
-                  <div className="flex items-center gap-4">
+                <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between", gap.loose, "p-6 sm:p-8 pt-6")}>
+                  <div className={cn("flex items-center", gap.loose)}>
                     {/* Big Play Button */}
                     <button
                       onClick={() => {
@@ -1354,7 +1356,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           const rand = Math.floor(Math.random() * likedTracks.length);
                           playTrackById(likedTracks[rand].id);
                         }}
-                        className="p-3 rounded-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-all"
+                        className={cn("p-3", radius.pill, surface.cardDark, "hover:bg-white/10 text-white/70 hover:text-white", border.subtleDark, "transition-all")}
                         title={t("music.charts.shuffle", "Shuffle play favorites")}
                       >
                         <Icon name="shuffle" size={16} />
@@ -1362,7 +1364,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     )}
                   </div>
 
-                  <div className="text-xs text-white/40 inline-flex items-center gap-1">
+                  <div className={cn("text-xs", text.subtleDark, "inline-flex items-center gap-1")}>
                     {t("music.favorites.removeTooltip", "Click")} <Icon name="heart" size={11} filled /> {t("music.favorites.removeTooltipSuffix", "to remove from favorites")}
                   </div>
                 </div>
@@ -1370,11 +1372,11 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 {/* 3. Table of Liked Tracks */}
                 <div className="px-4 sm:px-8 pb-12">
                   {likedTracks.length === 0 ? (
-                    <div className="p-12 text-center rounded-2xl bg-white/[0.02] border border-dashed border-white/10 flex flex-col items-center justify-center max-w-md mx-auto my-8">
-                      <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-4 text-rose-400">
+                    <div className={cn("p-12 text-center", radius.card, "bg-white/[0.02] border border-dashed border-white/10 flex flex-col items-center justify-center max-w-md mx-auto my-8")}>
+                      <div className={cn("w-16 h-16", radius.pill, "bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-4 text-rose-400")}>
                         <Icon name="heartCrack" size={28} />
                       </div>
-                      <h3 className="text-base font-bold text-white mb-2">
+                      <h3 className={cn("text-base font-bold", text.primaryDark, "mb-2")}>
                         {t("music.favorites.emptyTitle", "No favorite tracks yet")}
                       </h3>
                       <p className="text-xs text-white/50 mb-6 leading-relaxed">
@@ -1385,16 +1387,16 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           setActiveTab("charts");
                           setShowOnlyLiked(false);
                         }}
-                        className="px-5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2 cursor-pointer"
+                        className={cn("px-5 py-2.5", radius.pill, "bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center", gap.tight, "cursor-pointer")}
                       >
                         <Icon name="trophy" size={13} />
                         <span>{t("music.favorites.exploreBtn", "Explore Soundtracks")}</span>
                       </button>
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur-md overflow-hidden shadow-2xl">
+                    <div className={cn(radius.card, border.subtleDark, "bg-black/30", elevation.blur, "overflow-hidden shadow-2xl")}>
                       {/* Table Header */}
-                      <div className="flex items-center px-4 py-3 text-[11px] font-bold text-white/40 uppercase tracking-wider border-b border-white/10">
+                      <div className={cn("flex items-center px-4 py-3 text-[11px] font-bold", text.subtleDark, "uppercase tracking-wider border-b border-white/10")}>
                         <div className="w-10 text-center">{t("music.charts.table.rank", "#")}</div>
                         <div className="flex-1 min-w-0 pr-2">{t("music.charts.table.title", "TITLE & ARTIST")}</div>
                         <div className="hidden md:block w-48 pr-4">{t("music.charts.table.albumGenre", "ALBUM / GENRE")}</div>
@@ -1425,18 +1427,18 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                     <span style={{ backgroundColor: "#f43f5e" }} />
                                   </div>
                                 ) : (
-                                  <span className="text-xs font-mono text-white/40 group-hover:hidden">
+                                  <span className={cn("text-xs font-mono", text.subtleDark, "group-hover:hidden")}>
                                     {idx + 1}
                                   </span>
                                 )}
-                                <span className="hidden group-hover:inline-block text-white">
+                                <span className={cn("hidden group-hover:inline-block", text.primaryDark)}>
                                   <Icon name="play" size={12} />
                                 </span>
                               </div>
 
                               {/* Title, Artist, Thumb */}
-                              <div className="flex-1 min-w-0 flex items-center gap-3 pr-2">
-                                <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 flex-shrink-0 shadow relative">
+                              <div className={cn("flex-1 min-w-0 flex items-center", gap.base, "pr-2")}>
+                                <div className={cn("w-10 h-10", radius.chip, "overflow-hidden", surface.raisedDark, "flex-shrink-0 shadow relative")}>
                                   {track.thumbnailUrl ? (
                                     <Image
                                       src={track.thumbnailUrl}
@@ -1459,14 +1461,14 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                   >
                                     {track.title}
                                   </div>
-                                  <div className="text-xs text-white/50 truncate flex items-center gap-2">
+                                  <div className={cn("text-xs text-white/50 truncate flex items-center", gap.tight)}>
                                     <span>{track.artist}</span>
                                   </div>
                                 </div>
                               </div>
 
                               {/* Album / Genre */}
-                              <div className="hidden md:block w-48 text-xs text-white/60 truncate pr-4">
+                              <div className={cn("hidden md:block w-48 text-xs", text.mutedDark, "truncate pr-4")}>
                                 {track.album || track.genre || t("music.infoView.singleRelease", "Single Release")}
                               </div>
 
@@ -1476,7 +1478,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               </div>
 
                               {/* Duration & Unlike button */}
-                              <div className="w-24 flex items-center justify-end gap-3 flex-shrink-0 pr-2">
+                              <div className={cn("w-24 flex items-center justify-end", gap.base, "flex-shrink-0 pr-2")}>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -1506,7 +1508,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
               <section className="music-queue-view">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h2 className="text-xl font-bold text-white">{t("music.queueView.title", "Up Next Queue")}</h2>
+                    <h2 className={cn("text-xl font-bold", text.primaryDark)}>{t("music.queueView.title", "Up Next Queue")}</h2>
                     <p className="text-xs text-white/50">
                       {tracks.length} {t("music.queueView.desc", "tracks queued for continuous playback")}
                     </p>
@@ -1524,7 +1526,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         onClick={() => playTrackByIndex(i)}
                         className={`music-queue-item ${isSelected ? "music-queue-item--active" : ""}`}
                       >
-                        <div className="w-8 text-center text-xs text-white/40 font-mono">
+                        <div className={cn("w-8 text-center text-xs", text.subtleDark, "font-mono")}>
                           {isSelected && isPlaying ? (
                             <div className="music-mini-bars">
                               <span />
@@ -1536,7 +1538,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           )}
                         </div>
 
-                        <div className="relative w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 bg-white/10 border border-white/10">
+                        <div className={cn("relative w-11 h-11", radius.control, "overflow-hidden flex-shrink-0", surface.raisedDark, border.subtleDark)}>
                           {track.thumbnailUrl ? (
                             <Image
                               src={track.thumbnailUrl}
@@ -1553,7 +1555,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-semibold text-white truncate">
+                          <div className={cn("text-sm font-semibold", text.primaryDark, "truncate")}>
                             {track.title}
                           </div>
                           <div className="text-xs text-white/50 truncate flex items-center gap-1.5">
@@ -1567,7 +1569,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className={cn("flex items-center", gap.base)}>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1578,7 +1580,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           >
                             <Icon name="heart" size={13} filled={isLiked} />
                           </button>
-                          <div className="text-xs text-white/40 tabular-nums">
+                          <div className={cn("text-xs", text.subtleDark, "tabular-nums")}>
                             {formatTime(track.duration)}
                           </div>
                         </div>
@@ -1593,17 +1595,17 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
             {activeTab === "info" && (
               <section className="music-info-view">
                 <div className="music-info-card">
-                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <h3 className={cn("text-lg font-bold", text.primaryDark, "mb-4 flex items-center", gap.tight)}>
                     <span>ℹ️</span>
                     <span>{t("music.infoView.title", "Audio Specifications & Analog VU Studio")}</span>
                   </h3>
 
                   {/* Dual Stereo Analog VU Meters */}
-                  <div className="p-4 rounded-2xl bg-black/40 border border-white/10 mb-6">
-                    <div className="text-xs font-bold text-white/60 uppercase tracking-wider mb-3 text-center">
+                  <div className={cn("p-4", radius.card, "bg-black/40", border.subtleDark, "mb-6")}>
+                    <div className={cn("text-xs font-bold", text.mutedDark, "uppercase tracking-wider mb-3 text-center")}>
                       {t("music.infoView.stereoVu", "STEREO ANALOG VU METERS (REAL-TIME dB)")}
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className={cn("grid grid-cols-2", gap.loose)}>
                       {/* Left Channel VU */}
                       <div className="music-vu-meter-box">
                         <div className="music-vu-scale">
@@ -1648,35 +1650,35 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-8">
+                  <div className={cn("grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3", gap.loose, "text-sm mb-8")}>
                     <div className="music-info-field">
-                      <span className="text-white/40 text-xs block">{t("music.infoView.trackTitle", "TRACK TITLE")}</span>
-                      <span className="text-white font-medium">{currentTrack.title}</span>
+                      <span className={cn(text.subtleDark, "text-xs block")}>{t("music.infoView.trackTitle", "TRACK TITLE")}</span>
+                      <span className={cn(text.primaryDark, "font-medium")}>{currentTrack.title}</span>
                     </div>
                     <div className="music-info-field">
-                      <span className="text-white/40 text-xs block">{t("music.infoView.artist", "ARTIST")}</span>
-                      <span className="text-white font-medium">{currentTrack.artist}</span>
+                      <span className={cn(text.subtleDark, "text-xs block")}>{t("music.infoView.artist", "ARTIST")}</span>
+                      <span className={cn(text.primaryDark, "font-medium")}>{currentTrack.artist}</span>
                     </div>
                     <div className="music-info-field">
-                      <span className="text-white/40 text-xs block">{t("music.infoView.album", "ALBUM")}</span>
-                      <span className="text-white font-medium">
+                      <span className={cn(text.subtleDark, "text-xs block")}>{t("music.infoView.album", "ALBUM")}</span>
+                      <span className={cn(text.primaryDark, "font-medium")}>
                         {currentTrack.album || t("music.infoView.singleRelease", "Single Release")}
                       </span>
                     </div>
                     <div className="music-info-field">
-                      <span className="text-white/40 text-xs block">{t("music.infoView.genreMood", "GENRE & MOOD")}</span>
-                      <span className="text-white font-medium">
+                      <span className={cn(text.subtleDark, "text-xs block")}>{t("music.infoView.genreMood", "GENRE & MOOD")}</span>
+                      <span className={cn(text.primaryDark, "font-medium")}>
                         {currentTrack.genre || t("music.infoView.uncategorized", "Uncategorized")}
                       </span>
                     </div>
                     <div className="music-info-field">
-                      <span className="text-white/40 text-xs block">{t("music.infoView.activeEq", "ACTIVE EQUALIZER")}</span>
+                      <span className={cn(text.subtleDark, "text-xs block")}>{t("music.infoView.activeEq", "ACTIVE EQUALIZER")}</span>
                       <span className="text-purple-400 font-medium capitalize">
                         {eqPreset.replace("_", " ")} Preset
                       </span>
                     </div>
                     <div className="music-info-field">
-                      <span className="text-white/40 text-xs block">{t("music.infoView.streamEngine", "STREAM ENGINE")}</span>
+                      <span className={cn(text.subtleDark, "text-xs block")}>{t("music.infoView.streamEngine", "STREAM ENGINE")}</span>
                       <span className="text-cyan-400 font-medium">
                         {t("music.infoView.engineDesc", "Web Audio API (5-Band EQ / 64 Bins)")}
                       </span>
@@ -1685,10 +1687,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                   {/* Keyboard Shortcuts Cheat Sheet */}
                   <div className="pt-6 border-t border-white/10">
-                    <h4 className="text-xs font-bold text-white/60 uppercase tracking-wider mb-4">
+                    <h4 className={cn("text-xs font-bold", text.mutedDark, "uppercase tracking-wider mb-4")}>
                       {t("music.infoView.shortcutsTitle", "Studio Keyboard Shortcuts")}
                     </h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs text-white/70">
+                    <div className={cn("grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4", gap.base, "text-xs text-white/70")}>
                       <div>
                         <kbd className="music-kbd">Space</kbd> {t("music.infoView.shortcuts.playPause", "Play / Pause")}
                       </div>
@@ -1803,7 +1805,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   )}
                 </div>
                 <div className="music-bar-meta">
-                  <div className="flex items-center gap-2">
+                  <div className={cn("flex items-center", gap.tight)}>
                     <span className="music-bar-title">{currentTrack.title}</span>
                     <button
                       onClick={() => toggleLike(currentTrack.id)}
@@ -1979,7 +1981,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   <option value="end">{t("music.sleepTimer.endTrack", "Timer: End of Track")}</option>
                 </select>
                 {sleepTimer.remainingSeconds !== null && (
-                  <span className="text-[10px] font-mono font-bold text-cyan-300 bg-cyan-500/20 px-2 py-1 rounded-full border border-cyan-500/40 hidden lg:inline-flex items-center gap-1">
+                  <span className={cn("text-[10px] font-mono font-bold text-cyan-300 bg-cyan-500/20 px-2 py-1", radius.pill, "border border-cyan-500/40 hidden lg:inline-flex items-center gap-1")}>
                     <Icon name="clock" size={10} /> {Math.floor(sleepTimer.remainingSeconds / 60)}:
                     {(sleepTimer.remainingSeconds % 60).toString().padStart(2, "0")}
                   </span>

@@ -2,6 +2,8 @@
 
 import React from "react";
 import { useTranslation } from "@/context/LanguageContext";
+import { cn } from "@/lib/utils";
+import { gap, radius, text } from "@/lib/design-tokens";
 
 export interface ConfirmDialogProps {
   isOpen: boolean;
@@ -42,15 +44,15 @@ export default function ConfirmDialog({
       />
 
       {/* Modal */}
-      <div className="relative z-10 w-full max-w-md bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl">
-        <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
+      <div className={cn("relative z-10 w-full max-w-md bg-gray-900 border border-gray-800", radius.card, "p-6 shadow-2xl")}>
+        <h3 className={cn("text-xl font-bold", text.primaryDark, "mb-2")}>{title}</h3>
         <p className="text-gray-400 text-sm mb-6">{message}</p>
 
-        <div className="flex justify-end gap-3">
+        <div className={cn("flex justify-end", gap.base)}>
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 rounded-xl transition-all"
+            className={cn("px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700", radius.control, "transition-all")}
           >
             {finalCancelLabel}
           </button>
