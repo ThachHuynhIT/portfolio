@@ -1,5 +1,6 @@
 "use client";
 
+import { SeatAvatar } from "@/components/games/PlayerAvatar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -476,9 +477,11 @@ function PlayerPanel({
       <div className="mb-1.5 flex items-center justify-between gap-2 sm:mb-2 short:mb-1">
         <span className="relative flex min-w-0 items-center gap-2">
           <SeatBubble reactions={reactions} />
-          <span className="flex h-8 w-8 shrink-0 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-300 to-fuchsia-600 font-bold text-black">
-            {name.charAt(0).toUpperCase()}
-          </span>
+          <SeatAvatar
+            name={name}
+            className="flex h-8 w-8 shrink-0 sm:h-9 sm:w-9 items-center justify-center rounded-full"
+            fallbackClassName="bg-gradient-to-br from-violet-300 to-fuchsia-600 font-bold text-black"
+          />
           <span className="min-w-0">
             <span className="flex items-center gap-1 truncate text-sm font-semibold">
               {seat?.isHost && <span title="Chủ bàn">👑</span>}
@@ -775,9 +778,11 @@ function Waiting({ view, me, act, nameOf }: { view: SPRoomView; me: SPSeatView |
           .filter((x): x is SPSeatView => !!x)
           .map((x) => (
             <li key={x.id} className={cn("flex items-center gap-1 rounded-full bg-white/10 py-0.5 pl-0.5 pr-2.5", !x.connected && "opacity-50")}>
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-violet-300 to-fuchsia-600 text-xs font-bold text-black">
-                {x.name.charAt(0).toUpperCase()}
-              </span>
+              <SeatAvatar
+                name={x.name}
+                className="flex h-6 w-6 items-center justify-center rounded-full text-xs"
+                fallbackClassName="bg-gradient-to-br from-violet-300 to-fuchsia-600 font-bold text-black"
+              />
               {x.isHost && <span title="Chủ bàn">👑</span>}
               <span className="max-w-[9rem] truncate">{x.name}</span>
               {x.id === view.meId && <span className="text-xs text-white/50">(bạn)</span>}

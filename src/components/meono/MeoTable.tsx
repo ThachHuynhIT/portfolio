@@ -1,5 +1,6 @@
 "use client";
 
+import { SeatAvatar } from "@/components/games/PlayerAvatar";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -708,9 +709,12 @@ function Board({
                           : "border-white/15 bg-black/40 hover:border-rose-300/60 hover:bg-rose-500/20",
                       )}
                     >
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-orange-200 to-orange-500 font-bold text-black">
-                        {s.out ? "💀" : s.name.charAt(0).toUpperCase()}
-                      </span>
+                      <SeatAvatar
+                        name={s.name}
+                        out={s.out}
+                        className="flex h-7 w-7 items-center justify-center rounded-full"
+                        fallbackClassName="bg-gradient-to-br from-orange-200 to-orange-500 font-bold text-black"
+                      />
                       <span>
                         <b className="block leading-tight">{s.name}</b>
                         <span className="text-xs opacity-75">
@@ -731,9 +735,11 @@ function Board({
                 <div className="relative hidden shrink-0 items-center gap-2 border-r border-white/10 pr-3 lg:col-start-1 lg:row-start-1 lg:flex lg:justify-self-start">
                   <span className="relative inline-flex">
                     <SeatBubble reactions={reactionsFor(me.id)} />
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-200 to-orange-500 text-lg font-bold text-black">
-                      {me.name.charAt(0).toUpperCase()}
-                    </span>
+                    <SeatAvatar
+                      name={me.name}
+                      className="flex h-10 w-10 items-center justify-center rounded-full text-lg"
+                      fallbackClassName="bg-gradient-to-br from-orange-200 to-orange-500 font-bold text-black"
+                    />
                   </span>
                   <span className="text-sm leading-tight">
                     <b className="block max-w-[9rem] truncate">{me.name}</b>
@@ -1136,15 +1142,15 @@ function Seat({
           />
         )}
         <SeatBubble reactions={reactions} />
-        <span
+        <SeatAvatar
+          name={seat.name}
+          out={seat.out}
           className={cn(
-            "flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-200 to-orange-500 text-base font-bold text-black sm:h-11 sm:w-11 sm:text-lg 2xl:h-14 2xl:w-14 2xl:text-xl short:h-8 short:w-8 short:text-sm",
+            "flex h-9 w-9 items-center justify-center rounded-full text-base sm:h-11 sm:w-11 sm:text-lg 2xl:h-14 2xl:w-14 2xl:text-xl short:h-8 short:w-8 short:text-sm",
             (!seat.connected || seat.kicked) && "opacity-50 grayscale",
-            seat.out && "from-zinc-500 to-zinc-700",
           )}
-        >
-          {seat.out ? "💀" : seat.name.charAt(0).toUpperCase()}
-        </span>
+          fallbackClassName={cn("bg-gradient-to-br from-orange-200 to-orange-500 font-bold text-black", seat.out && "from-zinc-500 to-zinc-700")}
+        />
       </span>
       <span className={cn("truncate text-xs font-semibold 2xl:text-sm", self ? "max-w-[8rem]" : "max-w-[4rem] sm:max-w-[6rem] 2xl:max-w-[8rem]")}>
         {seat.name}

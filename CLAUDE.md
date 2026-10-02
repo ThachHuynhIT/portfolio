@@ -106,3 +106,4 @@ Path alias `@/*` maps to `./src/*`.
 ## 🔒 Pull Request Rules (Games)
 
 - **PR liên quan tới games (`src/components/games/`, `src/components/<game>/`, `src/lib/<game>/`, `src/app/<game>/`, `docs/GAMES_GUIDE.md`, …) KHÔNG được tự merge.** Chỉ chủ repo (thach) mới được merge. Claude/AI agent chỉ được tạo PR và để mở; không bật auto-merge, không chạy `gh pr merge`, không merge bằng bất kỳ cách nào khác.
+- Icon + màu người chơi: client gửi `look` (`{icon,color}`, `getSavedProfile()`) trong `join`/`watch`; be_game (`src/server/hub.ts`) lưu theo token và gắn `looks` (theo tên) vào mọi state view. Client đọc bằng `useLookOf(name)` / `SeatAvatar` (`src/components/games/PlayerAvatar.tsx`) — game mới nên dùng `SeatAvatar` cho chip avatar ở ghế.

@@ -229,7 +229,10 @@ export function useGameRoom<V>(
       if (disposed) return;
       const ch = new Channel(wsUrl(wsPath));
       ch.onMessage = (msg) => {
-        if (msg.type === "state") setView(localizeRef.current(msg.view as V));
+        if (msg.type === "state") {
+          setRoomLooks((msg.view as { looks?: Record<string, PlayerProfile> }).looks);
+          setView(localizeRef.current(msg.view as V));
+        }
         else if (msg.type === "reconnect" && channelRef.current === ch) void open();
       };
       ch.onClose = () => {
@@ -247,7 +250,7 @@ export function useGameRoom<V>(
         }
         return;
       }
-      const res = await ch.request({ type: mode === "watch" ? "watch" : "join", code, name, token });
+      const res = await ch.request({ type: mode === "watch" ? "watch" : "join", code, name, token, look: getSavedProfile() });
       if (disposed) return ch.close();
       if (!res.ok) {
         ch.close();
@@ -358,4 +361,27 @@ function subscribeProfile(listener: () => void) {
 /** Live player look; the default during SSR. */
 export function usePlayerProfile(): PlayerProfile {
   return useSyncExternalStore(subscribeProfile, getSavedProfile, () => DEFAULT_PROFILE);
+}
+
+/** Looks of everyone at the current table, by player name (relayed by be_game in each state view). */
+let roomLooks: Record<string, PlayerProfile> = {};
+const roomLookListeners = new Set<() => void>();
+
+function setRoomLooks(next: Record<string, PlayerProfile> | undefined) {
+  const clean = next ?? {};
+  if (JSON.stringify(clean) === JSON.stringify(roomLooks)) return;
+  roomLooks = clean;
+  roomLookListeners.forEach((l) => l());
+}
+
+/** The look a player picked, or null when they have none (older client / not in the room). */
+export function useLookOf(name: string): PlayerProfile | null {
+  return useSyncExternalStore(
+    (l) => {
+      roomLookListeners.add(l);
+      return () => void roomLookListeners.delete(l);
+    },
+    () => roomLooks[name] ?? null,
+    () => null,
+  );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { SeatAvatar } from "@/components/games/PlayerAvatar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -492,9 +493,11 @@ function PlayerStrip({
       <TurnRing active={myTurn} />
       <span className="relative">
         <SeatBubble reactions={reactions} />
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-200 to-orange-700 font-bold text-black">
-          {name.charAt(0).toUpperCase()}
-        </span>
+        <SeatAvatar
+          name={name}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+          fallbackClassName="bg-gradient-to-br from-amber-200 to-orange-700 font-bold text-black"
+        />
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1 truncate text-sm font-semibold">
@@ -603,6 +606,7 @@ function Waiting({ view, me, act, nameOf }: { view: OQRoomView; me: OQSeatView |
                     title={seat.connected ? undefined : "Mất kết nối"}
                   >
                     {seat.isHost && <span title="Chủ bàn">👑</span>}
+                    <SeatAvatar name={seat.name} className="grid size-5 shrink-0 place-items-center rounded-full text-[11px]" fallbackClassName="bg-white/15 font-bold" />
                     <span className="truncate">{seat.name}</span>
                     {seat.id === view.meId && <span className="text-xs text-white/60">(bạn)</span>}
                     {!seat.connected && <span aria-label="Mất kết nối">📴</span>}

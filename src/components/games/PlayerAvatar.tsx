@@ -1,13 +1,27 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { PROFILE_COLORS, PROFILE_ICONS, type PlayerProfile } from "./gameClient";
+import { PROFILE_COLORS, PROFILE_ICONS, useLookOf, type PlayerProfile } from "./gameClient";
 
 /** Round badge: the player's icon on their colour, or the name's first letter when no icon is chosen. */
 export function PlayerAvatar({ name, profile, className }: { name: string; profile: PlayerProfile; className?: string }) {
   return (
     <span className={cn("grid shrink-0 place-items-center rounded-full font-bold text-black", className)} style={{ backgroundColor: profile.color }} aria-hidden>
       {profile.icon || name.charAt(0).toUpperCase()}
+    </span>
+  );
+}
+
+/**
+ * A seat's avatar chip: the player's chosen icon on their colour. Without a look (or when `out`) it keeps the
+ * caller's own gradient (`fallbackClassName`), so each game's existing chip stays as it was.
+ */
+export function SeatAvatar({ name, className, fallbackClassName, out }: { name: string; className?: string; fallbackClassName?: string; out?: boolean }) {
+  const look = useLookOf(name);
+  if (!look || out) return <span className={cn(className, fallbackClassName)}>{out ? "💀" : name.charAt(0).toUpperCase()}</span>;
+  return (
+    <span className={cn(className, "font-bold text-black")} style={{ backgroundColor: look.color }}>
+      {look.icon || name.charAt(0).toUpperCase()}
     </span>
   );
 }
