@@ -12,8 +12,12 @@ import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/t
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
 import {
   AIR_RENT,
-  BOARD,
+  BOARD as STD_BOARD,
   GROUP_COLORS,
+  MAP_LABEL,
+  MAP_SIZES,
+  type MapSize,
+  boardOf,
   type Group,
   JAIL_FINE,
   MAX_HOUSES,
@@ -26,7 +30,7 @@ import {
   GO_SALARY_OPTIONS,
   LAND_SALE_OPTIONS,
   UNMORTGAGE_FEE_OPTIONS,
-  groupPositions,
+  groupPositions as groupPositionsIn,
   houseCost,
   houseRefund,
   isOwnable,
@@ -99,9 +103,12 @@ function useNow(active: boolean, every = 500) {
   return now;
 }
 
-/** Grid cell (1-based row/col) of a board position on the 11×11 board, Khởi hành bottom-right. */
-const BOARD_SIZE = 40;
-const GO_TO_JAIL_POS = 30;
+/**
+ * The squares of the table's map. The server picks the map per game (40 / 48 / 56 squares), so this is
+ * switched by the table component before it renders its children; every helper below reads it.
+ */
+let BOARD: Square[] = STD_BOARD;
+const groupPositions = (group: Group) => groupPositionsIn(group, BOARD);
 
 /**
  * The squares a token visits between two positions: forward one square at a time, or a few
@@ -109,6 +116,8 @@ const GO_TO_JAIL_POS = 30;
  * dice put the player there, then jumps to the jail.
  */
 function walkPath(from: number, to: number, enteredJail: boolean, dice: [number, number] | null): number[] {
+  const BOARD_SIZE = BOARD.length;
+  const GO_TO_JAIL_POS = BOARD.findIndex((q) => q.kind === "gotojail");
   const forward = (a: number, b: number) => {
     const steps: number[] = [];
     for (let p = a; p !== b; ) steps.push((p = (p + 1) % BOARD_SIZE));
@@ -159,20 +168,22 @@ function useWalkingTokens(g: TPGameView | null) {
   return (id: string, fallback: number) => shown[id] ?? fallback;
 }
 
-function cellOf(i: number): { row: number; col: number; side: "bottom" | "left" | "top" | "right" | "corner" } {
-  if (i % 10 === 0) {
+/** Grid cell (1-based row/col) of a board position, Khởi hành bottom-right; the ring has `side` squares per edge. */
+function cellOf(i: number, side: number): { row: number; col: number; side: "bottom" | "left" | "top" | "right" | "corner" } {
+  const last = side + 1;
+  if (i % side === 0) {
     const corners = [
-      { row: 11, col: 11 },
-      { row: 11, col: 1 },
+      { row: last, col: last },
+      { row: last, col: 1 },
       { row: 1, col: 1 },
-      { row: 1, col: 11 },
+      { row: 1, col: last },
     ];
-    return { ...corners[i / 10], side: "corner" };
+    return { ...corners[i / side], side: "corner" };
   }
-  if (i < 10) return { row: 11, col: 11 - i, side: "bottom" };
-  if (i < 20) return { row: 11 - (i - 10), col: 1, side: "left" };
-  if (i < 30) return { row: 1, col: 1 + (i - 20), side: "top" };
-  return { row: 1 + (i - 30), col: 11, side: "right" };
+  if (i < side) return { row: last, col: last - i, side: "bottom" };
+  if (i < 2 * side) return { row: last - (i - side), col: 1, side: "left" };
+  if (i < 3 * side) return { row: 1, col: 1 + (i - 2 * side), side: "top" };
+  return { row: 1 + (i - 3 * side), col: last, side: "right" };
 }
 
 export default function TyPhuTable({ code, name, watch }: { code: string; name: string; watch?: boolean }) {
@@ -225,6 +236,7 @@ export default function TyPhuTable({ code, name, watch }: { code: string; name: 
 
 function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnecting: boolean; act: Act; toast: string | null }) {
   const g = view.current;
+  BOARD = boardOf(g?.map ?? view.settings.map);
   const playing = g?.status === "playing";
   const spectator = view.role === "spectator";
   const me = view.seats.find((s) => s?.id === view.meId) ?? null;
@@ -245,6 +257,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
   const [picking, setPicking] = useState(false);
   const [showTrade, setShowTrade] = useState(false);
   const [showScores, setShowScores] = useState(false);
+  const [showLog, setShowLog] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [showAssets, setShowAssets] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -361,6 +374,11 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
               {copied ? "✓" : "🔗"}
               <HeaderLabel>{copied ? "Đã chép link" : "Chép link mời"}</HeaderLabel>
             </button>
+            {g && (
+              <button onClick={() => setShowLog(true)} className={headerBtn} title="Toàn bộ diễn biến ván">
+                📜 <HeaderLabel>Diễn biến</HeaderLabel>
+              </button>
+            )}
             <button onClick={() => setShowScores(true)} className={headerBtn} title="Bảng điểm">
               🏆 <HeaderLabel>Bảng điểm</HeaderLabel>
             </button>
@@ -404,7 +422,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
           <SpectatorReactions reactions={live.filter((r) => !r.playerId)} />
           <div
             className="grid aspect-square w-full gap-[2px] rounded-xl border-4 border-[#1e3a2f] bg-[#1e3a2f] shadow-2xl"
-            style={{ gridTemplateColumns: "1.6fr repeat(9, 1fr) 1.6fr", gridTemplateRows: "1.6fr repeat(9, 1fr) 1.6fr" }}
+            style={{ gridTemplateColumns: `1.6fr repeat(${BOARD.length / 4 - 1}, 1fr) 1.6fr`, gridTemplateRows: `1.6fr repeat(${BOARD.length / 4 - 1}, 1fr) 1.6fr` }}
           >
             {BOARD.map((sq, i) => (
               <Cell
@@ -419,7 +437,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
               />
             ))}
             {/* Centre */}
-            <div className="relative flex flex-col items-center justify-center-safe gap-2 overflow-y-auto overflow-x-hidden bg-[radial-gradient(ellipse_at_center,#d9f2e3_0%,#a7d7b8_100%)] p-2 text-emerald-950 sm:p-4 short:gap-1 short:p-1.5" style={{ gridColumn: "2 / 11", gridRow: "2 / 11" }}>
+            <div className="relative flex flex-col items-center justify-center-safe gap-2 overflow-y-auto overflow-x-hidden bg-[radial-gradient(ellipse_at_center,#d9f2e3_0%,#a7d7b8_100%)] p-2 text-emerald-950 sm:p-4 short:gap-1 short:p-1.5" style={{ gridColumn: `2 / ${BOARD.length / 4 + 1}`, gridRow: `2 / ${BOARD.length / 4 + 1}` }}>
               <CardOverlay card={cardFx} nameOf={nameOf} onClose={() => setCardFx(null)} />
               <BuildOverlay fx={buildFx} />
               <BankruptOverlay fx={bankruptFx} />
@@ -513,28 +531,13 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
 
           {g && (
             <div className="rounded-2xl bg-black/35 p-3">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-100/60">Diễn biến</p>
-              <ul className="flex max-h-64 flex-col gap-1 overflow-y-auto text-xs">
-                {g.log
-                  .slice()
-                  .reverse()
-                  .map((e) => (
-                    <li
-                      key={e.id}
-                      className={cn(
-                        "rounded px-2 py-1",
-                        e.tone === "bad" && "bg-rose-500/15 text-rose-100",
-                        e.tone === "money" && "bg-emerald-500/15 text-emerald-100",
-                        e.tone === "buy" && "bg-sky-500/15 text-sky-100",
-                        e.tone === "jail" && "bg-zinc-500/25",
-                        e.tone === "card" && "bg-amber-500/15 text-amber-100",
-                        (!e.tone || e.tone === "info") && "text-white/75",
-                      )}
-                    >
-                      {e.text}
-                    </li>
-                  ))}
-              </ul>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-sky-100/60">Diễn biến</p>
+                <button onClick={() => setShowLog(true)} className="rounded px-1.5 py-0.5 text-[11px] text-sky-200 hover:bg-white/10 max-sm:min-h-8">
+                  Xem toàn bộ ({g.log.length}) ↗
+                </button>
+              </div>
+              <LogList log={g.log} className="max-h-64" />
             </div>
           )}
 
@@ -570,6 +573,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
         />
       )}
       {showTrade && g && <TradeModal g={g} meId={view.meId} nameOf={nameOf} run={run} onClose={() => setShowTrade(false)} />}
+      {showLog && g && <LogModal log={g.log} onClose={() => setShowLog(false)} />}
       {showScores && <ScoreboardModal view={view} onClose={() => setShowScores(false)} note={SCORE_NOTE} />}
       {showRules && <RulesModal onClose={() => setShowRules(false)} />}
     </div>
@@ -640,7 +644,7 @@ function Cell({
   highlight: boolean;
   onClick: () => void;
 }) {
-  const { row, col, side } = cellOf(index);
+  const { row, col, side } = cellOf(index, BOARD.length / 4);
   const deed = game?.deeds[index];
   const here = game?.players.filter((p) => !p.bankrupt && shownPos(p.id, p.pos) === index) ?? [];
   const band = sq.kind === "prop" ? GROUP_COLORS[sq.group] : null;
@@ -1949,10 +1953,43 @@ function Waiting({ view, me, act, nameOf }: { view: TPRoomView; me: TPSeatView |
 }
 
 /** The table rules (host edits, everyone else reads). */
+/** One-tap rule sets: what the group usually plays with 2 players / with more. */
+const RULE_PRESETS = {
+  two: { label: "⚡ Luật 2 người", hint: "Dừng Khởi hành ×2 · đến khi còn 1 người · 45 giây/bước", rules: { doubleGo: true, timeLimit: 0, stepSeconds: 45 } },
+  many: {
+    label: "⚡ Luật 3+ người",
+    hint: "Như 2 người + ván 45 phút · xây theo chuỗi · không cần đủ nhóm (tối đa 3 nhà)",
+    rules: { doubleGo: true, timeLimit: 45, stepSeconds: 45, buildRule: "chain" as const, needGroup: false },
+  },
+};
+
 function TableSettings({ view, isHost, act, className }: { view: TPRoomView; isHost: boolean; act: Act; className?: string }) {
   const count = view.seats.filter(Boolean).length;
+  const suggested = count > 2 ? "many" : "two";
   return (
     <div className={className}>
+      <div className="mb-2 rounded-lg bg-white/50 p-2 text-emerald-950">
+        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-900/60">Luật nhanh</p>
+        <div className="flex flex-wrap gap-1.5">
+          {(Object.keys(RULE_PRESETS) as (keyof typeof RULE_PRESETS)[]).map((k) => (
+            <button
+              key={k}
+              type="button"
+              disabled={!isHost}
+              title={RULE_PRESETS[k].hint}
+              onClick={() => void act({ type: "settings", ...RULE_PRESETS[k].rules })}
+              className={cn(
+                "rounded-lg border px-2.5 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 max-sm:min-h-9",
+                k === suggested ? "border-emerald-700 bg-emerald-700 text-white enabled:hover:bg-emerald-800" : "border-emerald-900/25 bg-white enabled:hover:bg-emerald-50",
+              )}
+            >
+              {RULE_PRESETS[k].label}
+              {k === suggested && <span className="ml-1 font-normal opacity-80">(hợp với {count} người)</span>}
+            </button>
+          ))}
+        </div>
+        <p className="mt-1 text-[11px] leading-snug text-emerald-900/60">{RULE_PRESETS[suggested].hint}</p>
+      </div>
         <SettingsTabs
           light
           className="text-emerald-950"
@@ -2010,6 +2047,32 @@ function TableSettings({ view, isHost, act, className }: { view: TPRoomView; isH
                     disabled={!isHost || !view.settings.sellLand}
                     onChange={(v) => void act({ type: "settings", landSalePct: v })}
                   />
+                </div>
+              ),
+            },
+            {
+              id: "map",
+              label: "🗺️ Bản đồ",
+              content: (
+                <div className="space-y-2">
+                  <label className="flex items-center justify-between gap-2">
+                    <span>Kích thước bản đồ</span>
+                    <select
+                      value={view.settings.map ?? "std"}
+                      disabled={!isHost}
+                      onChange={(e) => void act({ type: "settings", map: e.target.value as MapSize })}
+                      className={SELECT}
+                    >
+                      {MAP_SIZES.map((m) => (
+                        <option key={m} value={m}>
+                          {MAP_LABEL[m]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <p className="text-[11px] leading-snug text-emerald-900/60">
+                    Bản đồ lớn thêm ô giữa các cạnh: thêm đất cho các nhóm màu (Sóc Trăng, Pleiku, Mộc Châu, Cát Bà… ), thêm ô Cơ hội / Khí vận và thuế. Đổi trước khi bắt đầu ván.
+                  </p>
                 </div>
               ),
             },
@@ -2320,6 +2383,55 @@ function PiecePicker({ seats, meId, act, onClose }: { seats: (TPSeatView | null)
             Xong
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** Game log, newest first, coloured by tone. */
+function LogList({ log, className }: { log: TPGameView["log"]; className?: string }) {
+  return (
+    <ul className={cn("flex flex-col gap-1 overflow-y-auto text-xs", className)}>
+      {log
+        .slice()
+        .reverse()
+        .map((e) => (
+          <li
+            key={e.id}
+            className={cn(
+              "rounded px-2 py-1",
+              e.tone === "bad" && "bg-rose-500/15 text-rose-100",
+              e.tone === "money" && "bg-emerald-500/15 text-emerald-100",
+              e.tone === "buy" && "bg-sky-500/15 text-sky-100",
+              e.tone === "jail" && "bg-zinc-500/25",
+              e.tone === "card" && "bg-amber-500/15 text-amber-100",
+              (!e.tone || e.tone === "info") && "text-white/75",
+            )}
+          >
+            {e.text}
+          </li>
+        ))}
+    </ul>
+  );
+}
+
+/** The whole game log (the server keeps the last 150 lines), newest first. */
+function LogModal({ log, onClose }: { log: TPGameView["log"]; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-3 backdrop-blur-sm" onClick={onClose} role="presentation">
+      <div role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} className="flex max-h-[85dvh] w-full max-w-lg flex-col rounded-2xl border border-white/15 bg-[#111013] p-4 text-white shadow-2xl">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <h2 className="text-lg font-bold text-amber-300">📜 Toàn bộ diễn biến ({log.length})</h2>
+          <button onClick={onClose} className="rounded-lg bg-amber-400 px-3 py-1 text-sm font-semibold text-black hover:bg-amber-300 max-sm:min-h-9">
+            Đóng
+          </button>
+        </div>
+        <LogList log={log} className="min-h-0 flex-1" />
       </div>
     </div>
   );

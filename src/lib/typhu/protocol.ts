@@ -3,8 +3,9 @@
  * src/typhu/protocol.ts + the shared types from src/typhu/game.ts). Keep them in sync.
  */
 import type { ChatMessage, GameRecord, LeaderboardEntry, Reaction } from "@/lib/tienlen";
+import type { MapSize } from "./board";
 
-export type { ChatMessage, GameRecord, LeaderboardEntry, Reaction };
+export type { ChatMessage, GameRecord, LeaderboardEntry, Reaction, MapSize };
 
 export type Phase = "roll" | "buy" | "debt" | "end";
 
@@ -40,6 +41,8 @@ export interface TPSettings {
   doubleGo?: boolean;
   /** Taxes and fines pile up on Nghỉ chân. */
   parkingPot?: boolean;
+  /** Map size (missing from older servers = the standard 40 squares). */
+  map?: MapSize;
   first?: number;
   second?: number;
   /** House rules (missing from older servers = classic). "even": build evenly; "chain": see TyPhuRules. */
@@ -98,6 +101,8 @@ export interface TPPlayerView {
 
 export interface TPGameView {
   status: "playing" | "ended";
+  /** Map this game is played on (missing = standard). */
+  map?: MapSize;
   players: TPPlayerView[];
   deeds: Record<number, Deed>;
   turn: string | null;
@@ -151,7 +156,7 @@ export interface TPRoomSummary {
  */
 export type TPCommand =
   | { type: "start" }
-  | { type: "settings"; startCash?: number; timeLimit?: number; stepSeconds?: number; doubleGo?: boolean; parkingPot?: boolean; first?: number; second?: number }
+  | { type: "settings"; startCash?: number; timeLimit?: number; stepSeconds?: number; doubleGo?: boolean; parkingPot?: boolean; map?: MapSize; first?: number; second?: number }
   | { type: "pick"; emoji: string; color: string }
   | { type: "kick"; playerId: string }
   | { type: "roll" | "buy" | "skip" | "end" | "payjail" | "jailcard" | "paydebt" | "bankrupt" }
