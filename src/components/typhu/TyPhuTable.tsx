@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
 import { GameHeader, HeaderLabel, headerBtn } from "@/components/games/GameHeader";
 import { useGameRoom } from "@/components/games/gameClient";
+import { useHotkeys } from "@/components/games/useHotkeys";
 import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
 import {
@@ -296,6 +297,7 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
   const [showTrade, setShowTrade] = useState(false);
   const [showScores, setShowScores] = useState(false);
   const [showLog, setShowLog] = useState(false);
+  useHotkeys({ l: g ? () => setShowLog((v) => !v) : undefined }, true, ["l"]);
   const [showRules, setShowRules] = useState(false);
   const [showAssets, setShowAssets] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -858,6 +860,28 @@ function Centre({
   const ownsLand = !!mine && Object.values(g.deeds).some((d) => d.owner === mine.id);
   const debt = myTurn && g.phase === "debt" ? g.debt : null;
 
+  // Desktop shortcuts (the buttons below show their key). Space = the main action of the moment.
+  const canBuy = g.phase === "buy" && !!here && isOwnable(here) && !!mine && mine.cash >= here.price;
+  const canBuild = g.phase !== "debt" && fullGroups.length > 0;
+  const doRoll = () => g.phase === "roll" && void run({ type: "roll" });
+  const doBuy = () => canBuy && void run({ type: "buy" });
+  const doEnd = () => g.phase === "end" && void run({ type: "end" });
+  useHotkeys(
+    {
+      r: doRoll,
+      b: doBuy,
+      s: () => g.phase === "buy" && void run({ type: "skip" }),
+      e: doEnd,
+      " ": () => (g.phase === "roll" ? doRoll() : g.phase === "buy" ? doBuy() : doEnd()),
+      x: () => canBuild && setShowBuild(true),
+      a: () => g.phase !== "debt" && ownsLand && !assetsOpen && onOpenAssets(),
+      j: () => g.phase === "roll" && !!mine?.jail && mine.cash >= JAIL_FINE && void run({ type: "payjail" }),
+      k: () => g.phase === "roll" && !!mine?.jail && !!mine.jailCards && void run({ type: "jailcard" }),
+      Escape: showBuild ? () => setShowBuild(false) : undefined,
+    },
+    myTurn && !!mine && !busy,
+  );
+
   return (
     <div className="flex w-full max-w-sm flex-col items-center gap-2 text-center">
       <p className="hidden font-black tracking-tight text-emerald-900 sm:block sm:text-3xl short:hidden">CỜ TỶ PHÚ</p>
@@ -884,16 +908,16 @@ function Centre({
           <div className="flex flex-wrap justify-center gap-2">
             {g.phase === "roll" && (
               <>
-                <CBtn primary onClick={() => void run({ type: "roll" })} disabled={busy}>
+                <CBtn primary hotkey="R" onClick={() => void run({ type: "roll" })} disabled={busy}>
                   🎲 {g.rollAgain ? "Tung tiếp (đôi!)" : "Tung xúc xắc"}
                 </CBtn>
                 {mine.jail > 0 && (
                   <>
-                    <CBtn onClick={() => void run({ type: "payjail" })} disabled={busy || mine.cash < JAIL_FINE}>
+                    <CBtn hotkey="J" onClick={() => void run({ type: "payjail" })} disabled={busy || mine.cash < JAIL_FINE}>
                       Nộp {money(JAIL_FINE)} ra tù
                     </CBtn>
                     {mine.jailCards > 0 && (
-                      <CBtn onClick={() => void run({ type: "jailcard" })} disabled={busy}>
+                      <CBtn hotkey="K" onClick={() => void run({ type: "jailcard" })} disabled={busy}>
                         🗝️ Dùng thẻ ra tù
                       </CBtn>
                     )}
@@ -903,27 +927,27 @@ function Centre({
             )}
             {g.phase === "buy" && here && isOwnable(here) && (
               <>
-                <CBtn primary onClick={() => void run({ type: "buy" })} disabled={busy || mine.cash < here.price}>
+                <CBtn primary hotkey="B" onClick={() => void run({ type: "buy" })} disabled={busy || mine.cash < here.price}>
                   🏷️ Mua {here.name} · {money(here.price)}
                 </CBtn>
-                <CBtn onClick={() => void run({ type: "skip" })} disabled={busy}>
+                <CBtn hotkey="S" onClick={() => void run({ type: "skip" })} disabled={busy}>
                   Bỏ qua
                 </CBtn>
                 <BuyHint g={g} sq={here} meId={mine.id} />
               </>
             )}
             {g.phase === "end" && (
-              <CBtn primary onClick={() => void run({ type: "end" })} disabled={busy}>
+              <CBtn primary hotkey="E" onClick={() => void run({ type: "end" })} disabled={busy}>
                 Kết thúc lượt ➜
               </CBtn>
             )}
             {g.phase !== "debt" && (
-              <CBtn build onClick={() => setShowBuild(true)} disabled={busy || !fullGroups.length} title={fullGroups.length ? undefined : view.settings.needGroup === false ? "Chưa có đất thành phố nào" : "Cần sở hữu đủ cả một nhóm màu"}>
+              <CBtn build hotkey="X" onClick={() => setShowBuild(true)} disabled={busy || !fullGroups.length} title={fullGroups.length ? undefined : view.settings.needGroup === false ? "Chưa có đất thành phố nào" : "Cần sở hữu đủ cả một nhóm màu"}>
                 🏠 Xây nhà{fullGroups.length ? ` (${fullGroups.length} nhóm)` : ""}
               </CBtn>
             )}
             {g.phase !== "debt" && ownsLand && !assetsOpen && (
-              <CBtn onClick={onOpenAssets} disabled={busy}>
+              <CBtn hotkey="A" onClick={onOpenAssets} disabled={busy}>
                 💰 Thế chấp / Bán
               </CBtn>
             )}
@@ -948,7 +972,10 @@ function Centre({
       )}
       {mine?.jail ? <p className="text-xs text-zinc-700">🚔 Bạn đang ở tù — tung đôi, nộp phạt hoặc dùng thẻ để ra.</p> : null}
       {view.role === "player" && mine && !mine.bankrupt && (
-        <p className="hidden text-[11px] text-emerald-900/60 sm:block short:hidden">Bấm vào một ô để xem chi tiết, xây nhà hoặc thế chấp.</p>
+        <p className="hidden text-[11px] text-emerald-900/60 sm:block short:hidden">
+          Bấm vào một ô để xem chi tiết, xây nhà hoặc thế chấp.
+          <span className="hidden lg:inline [@media(pointer:coarse)]:hidden"> Phím tắt: Space = hành động chính · R tung · B mua · S bỏ qua · E kết thúc · X xây · A thế chấp · L diễn biến.</span>
+        </p>
       )}
       {mine?.bankrupt && <p className="text-sm font-semibold text-rose-700">💸 Bạn đã phá sản — xem mọi người chơi tiếp nhé.</p>}
       {showBuild && mine && <BuildPanel g={g} mine={mine} settings={view.settings} busy={busy} run={run} onClose={() => setShowBuild(false)} onOpenAssets={onOpenAssets} />}
@@ -1136,9 +1163,12 @@ function CBtn({
   danger,
   build,
   title,
+  hotkey,
 }: {
   children: React.ReactNode;
   onClick: () => void;
+  /** Keyboard shortcut shown on the button (desktop only). */
+  hotkey?: string;
   disabled?: boolean;
   primary?: boolean;
   danger?: boolean;
@@ -1160,6 +1190,9 @@ function CBtn({
       )}
     >
       {children}
+      {hotkey && (
+        <kbd className="ml-1.5 hidden rounded border border-current/30 bg-black/10 px-1 align-middle font-mono text-[10px] font-normal opacity-70 lg:inline [@media(pointer:coarse)]:hidden">{hotkey}</kbd>
+      )}
     </button>
   );
 }
