@@ -1,7 +1,7 @@
 "use client";
 
 import { SeatAvatar } from "@/components/games/PlayerAvatar";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { createContext, memo, useCallback, useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -40,7 +40,7 @@ import {
 } from "@/lib/typhu/board";
 import { SettingsTabs } from "@/components/games/SettingsTabs";
 import { RankPointsPicker } from "@/components/games/RankPointsPicker";
-import { PIECE_COLORS, PIECE_EMOJIS, STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TPSettings, type TradeSide } from "@/lib/typhu/protocol";
+import { type Deed, PIECE_COLORS, PIECE_EMOJIS, STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TPSettings, type TradeSide } from "@/lib/typhu/protocol";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { MyTurnBadge, TurnRing } from "@/components/games/TurnIndicator";
@@ -91,6 +91,28 @@ function localize(view: TPRoomView): TPRoomView {
       trade: g.trade ? { ...g.trade, deadline: g.trade.deadline + skew } : null,
     },
   };
+}
+
+/**
+ * The clock lives in a context so that only the few components showing a countdown re-render every 500 ms —
+ * not the whole table (board cells, player rows, panels). The provider renders its `children` prop, so React
+ * skips them while only the context value changes.
+ */
+const NowContext = createContext(0);
+
+function NowProvider({ active, children }: { active: boolean; children: React.ReactNode }) {
+  return <NowContext.Provider value={useNow(active)}>{children}</NowContext.Provider>;
+}
+
+/** Whole seconds until `t` (a server-clock deadline already shifted to the local clock), re-evaluated every tick. */
+function useSecondsLeft() {
+  const now = useContext(NowContext);
+  return (t: number | null | undefined) => (t ? Math.max(0, Math.ceil((t - now) / 1000)) : null);
+}
+
+function NowClock({ endsAt }: { endsAt: number }) {
+  const now = useContext(NowContext);
+  return <>{formatClock(endsAt - now)}</>;
 }
 
 function useNow(active: boolean, every = 500) {
@@ -234,7 +256,15 @@ export default function TyPhuTable({ code, name, watch }: { code: string; name: 
   );
 }
 
-function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnecting: boolean; act: Act; toast: string | null }) {
+function Table(props: { view: TPRoomView; reconnecting: boolean; act: Act; toast: string | null }) {
+  return (
+    <NowProvider active={props.view.current?.status === "playing"}>
+      <TableBody {...props} />
+    </NowProvider>
+  );
+}
+
+function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; reconnecting: boolean; act: Act; toast: string | null }) {
   const g = view.current;
   BOARD = boardOf(g?.map ?? view.settings.map);
   const playing = g?.status === "playing";
@@ -242,7 +272,6 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
   const me = view.seats.find((s) => s?.id === view.meId) ?? null;
   const mine = g?.players.find((p) => p.id === view.meId) ?? null;
   const myTurn = !!mine && playing && !mine.bankrupt && g?.turn === view.meId;
-  const now = useNow(!!playing);
 
   const seatOf = (id: string) => view.seats.find((s) => s?.id === id) ?? null;
   const nameOf = (id: string) =>
@@ -253,6 +282,15 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
   };
 
   const shownPos = useWalkingTokens(g);
+  // Who stands on each square right now (walking animation included): the cells only get what they draw.
+  const hereByPos = new Map<number, CellToken[]>();
+  for (const p of g?.players ?? []) {
+    if (p.bankrupt) continue;
+    const pos = shownPos(p.id, p.pos);
+    const list = hereByPos.get(pos) ?? [];
+    list.push({ id: p.id, ...tokenOf(p.id), turn: g?.turn === p.id });
+    hereByPos.set(pos, list);
+  }
   const [openSquare, setOpenSquare] = useState<number | null>(null);
   const [picking, setPicking] = useState(false);
   const [showTrade, setShowTrade] = useState(false);
@@ -353,7 +391,6 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
     }
   };
 
-  const secondsLeft = (t: number | null | undefined) => (t ? Math.max(0, Math.ceil((t - now) / 1000)) : null);
   const incomingTrade = g?.trade && g.trade.to === view.meId ? g.trade : null;
   const outgoingTrade = g?.trade && g.trade.from === view.meId ? g.trade : null;
 
@@ -391,7 +428,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
           <>
             {g?.endsAt && playing && (
               <span className="whitespace-nowrap font-mono" title="Hết giờ thì người giàu nhất thắng">
-                ⏰ {formatClock(g.endsAt - now)}
+                ⏰ <NowClock endsAt={g.endsAt} />
               </span>
             )}
             {view.spectators.length > 0 && (
@@ -424,18 +461,24 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
             className="grid aspect-square w-full gap-[2px] rounded-xl border-4 border-[#1e3a2f] bg-[#1e3a2f] shadow-2xl"
             style={{ gridTemplateColumns: `1.6fr repeat(${BOARD.length / 4 - 1}, 1fr) 1.6fr`, gridTemplateRows: `1.6fr repeat(${BOARD.length / 4 - 1}, 1fr) 1.6fr` }}
           >
-            {BOARD.map((sq, i) => (
-              <Cell
-                key={i}
-                index={i}
-                sq={sq}
-                game={g}
-                tokenOf={tokenOf}
-                shownPos={shownPos}
-                highlight={g?.players.some((p) => p.id === g.turn && shownPos(p.id, p.pos) === i) ?? false}
-                onClick={() => setOpenSquare(i)}
-              />
-            ))}
+            {BOARD.map((sq, i) => {
+              const here = hereByPos.get(i);
+              const deed = g?.deeds[i];
+              return (
+                <Cell
+                  key={i}
+                  index={i}
+                  edge={BOARD.length / 4}
+                  sq={sq}
+                  deed={deed}
+                  pot={sq.kind === "parking" ? g?.pot ?? 0 : 0}
+                  owner={deed ? tokenOf(deed.owner) : null}
+                  here={here ?? NO_TOKENS}
+                  highlight={!!here?.some((t) => t.turn)}
+                  onOpen={setOpenSquare}
+                />
+              );
+            })}
             {/* Centre */}
             <div className="relative flex flex-col items-center justify-center-safe gap-2 overflow-y-auto overflow-x-hidden bg-[radial-gradient(ellipse_at_center,#d9f2e3_0%,#a7d7b8_100%)] p-2 text-emerald-950 sm:p-4 short:gap-1 short:p-1.5" style={{ gridColumn: `2 / ${BOARD.length / 4 + 1}`, gridRow: `2 / ${BOARD.length / 4 + 1}` }}>
               <CardOverlay card={cardFx} nameOf={nameOf} onClose={() => setCardFx(null)} />
@@ -452,7 +495,6 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
                   busy={busy}
                   run={run}
                   nameOf={nameOf}
-                  secondsLeft={secondsLeft}
                   assetsOpen={assetsOpen}
                   onOpenAssets={openAssets}
                 />
@@ -472,7 +514,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
                 settings={view.settings}
                 busy={busy}
                 run={run}
-                seconds={secondsLeft(g.deadline)}
+                deadline={g.deadline}
                 onClose={inDebt ? undefined : () => setShowAssets(false)}
               />
             </div>
@@ -524,7 +566,7 @@ function Table({ view, reconnecting, act, toast }: { view: TPRoomView; reconnect
               nameOf={nameOf}
               incoming={!!incomingTrade}
               outgoing={!!outgoingTrade}
-              seconds={secondsLeft(g.trade.deadline) ?? 0}
+              deadline={g.trade.deadline}
               onAnswer={(accept) => void run({ type: "tradeanswer", accept })}
             />
           )}
@@ -627,28 +669,47 @@ function Buildings({ count, vertical }: { count: number; vertical: boolean }) {
   );
 }
 
-function Cell({
-  index,
-  sq,
-  game,
-  tokenOf,
-  shownPos,
-  highlight,
-  onClick,
-}: {
+interface CellToken {
+  id: string;
+  emoji: string;
+  color: string;
+  turn: boolean;
+}
+const NO_TOKENS: CellToken[] = [];
+
+/** Everything a square draws — the memo below compares these fields, not object identities (every server update brings fresh objects). */
+interface CellProps {
   index: number;
+  /** Squares per edge of the current map (the grid position depends on it). */
+  edge: number;
   sq: Square;
-  game: TPGameView | null;
-  tokenOf: (id: string) => { emoji: string; color: string };
-  shownPos: (id: string, fallback: number) => number;
+  deed: Deed | undefined;
+  /** Nghỉ chân's pot (0 elsewhere). */
+  pot: number;
+  owner: { emoji: string; color: string } | null;
+  here: CellToken[];
   highlight: boolean;
-  onClick: () => void;
-}) {
-  const { row, col, side } = cellOf(index, BOARD.length / 4);
-  const deed = game?.deeds[index];
-  const here = game?.players.filter((p) => !p.bankrupt && shownPos(p.id, p.pos) === index) ?? [];
+  onOpen: (pos: number) => void;
+}
+
+const sameCell = (a: CellProps, b: CellProps) =>
+  a.index === b.index &&
+  a.edge === b.edge &&
+  a.sq === b.sq &&
+  a.pot === b.pot &&
+  a.highlight === b.highlight &&
+  a.onOpen === b.onOpen &&
+  a.deed?.owner === b.deed?.owner &&
+  a.deed?.houses === b.deed?.houses &&
+  a.deed?.mortgaged === b.deed?.mortgaged &&
+  a.owner?.emoji === b.owner?.emoji &&
+  a.owner?.color === b.owner?.color &&
+  a.here.length === b.here.length &&
+  a.here.every((t, i) => t.id === b.here[i].id && t.emoji === b.here[i].emoji && t.color === b.here[i].color && t.turn === b.here[i].turn);
+
+const Cell = memo(function Cell({ index, edge, sq, deed, pot, owner, here, highlight, onOpen }: CellProps) {
+  const { row, col, side } = cellOf(index, edge);
   const band = sq.kind === "prop" ? GROUP_COLORS[sq.group] : null;
-  const owner = deed ? tokenOf(deed.owner) : null;
   const bandSide = side === "bottom" ? "top" : side === "top" ? "bottom" : side === "left" ? "right" : side === "right" ? "left" : null;
   const houses = deed?.houses ?? 0;
   // Owners already there when the page opened don't replay the badge animation.
@@ -659,7 +720,7 @@ function Cell({
 
   return (
     <button
-      onClick={onClick}
+      onClick={() => onOpen(index)}
       style={{
         gridRow: row,
         gridColumn: col,
@@ -702,8 +763,8 @@ function Cell({
         </span>
         {isOwnable(sq) && !deed && <span className="hidden text-[8px] text-emerald-900/70 sm:block short:hidden">{money(sq.price)}</span>}
         {deed?.mortgaged && <span className="text-[6px] font-bold text-rose-700 sm:text-[8px] short:text-[6px]">THẾ CHẤP</span>}
-        {sq.kind === "parking" && !!game?.pot && (
-          <span className="rounded bg-amber-300 px-1 text-[7px] font-bold text-amber-950 sm:text-[10px] short:text-[7px]">💰 {money(game.pot)}</span>
+        {sq.kind === "parking" && !!pot && (
+          <span className="rounded bg-amber-300 px-1 text-[7px] font-bold text-amber-950 sm:text-[10px] short:text-[7px]">💰 {money(pot)}</span>
         )}
       </span>
       {owner && deed && (
@@ -731,18 +792,18 @@ function Cell({
               transition={{ layout: { type: "tween", ease: "easeOut", duration: 0.16 } }}
               className={cn(
                 "flex h-[42%] min-h-[12px] w-auto aspect-square items-center justify-center rounded-full border border-white text-[8px] shadow-md sm:text-sm short:text-[8px]",
-                game?.turn === p.id && "ring-2 ring-amber-400",
+                p.turn && "ring-2 ring-amber-400",
               )}
-              style={{ background: tokenOf(p.id).color }}
+              style={{ background: p.color }}
             >
-              {tokenOf(p.id).emoji}
+              {p.emoji}
             </motion.span>
           ))}
         </span>
       )}
     </button>
   );
-}
+}, sameCell);
 
 // ─── Centre controls ────────────────────────────────────────────────
 
@@ -772,7 +833,6 @@ function Centre({
   busy,
   run,
   nameOf,
-  secondsLeft,
   assetsOpen,
   onOpenAssets,
 }: {
@@ -783,13 +843,13 @@ function Centre({
   busy: boolean;
   run: Act;
   nameOf: (id: string) => string;
-  secondsLeft: (t: number | null | undefined) => number | null;
   assetsOpen: boolean;
   onOpenAssets: () => void;
 }) {
   const turnName = g.turn ? nameOf(g.turn) : "";
   const current = g.players.find((p) => p.id === g.turn);
   const here = current ? BOARD[current.pos] : null;
+  const secondsLeft = useSecondsLeft();
   const secs = secondsLeft(g.deadline);
   // Re-run the dice animation on every new roll (each roll writes a "🎲" log line).
   const rollId = [...g.log].reverse().find((e) => e.text.startsWith("🎲"))?.id ?? 0;
@@ -1169,7 +1229,7 @@ function AssetPanel({
   settings,
   busy,
   run,
-  seconds,
+  deadline,
   onClose,
 }: {
   g: TPGameView;
@@ -1177,10 +1237,11 @@ function AssetPanel({
   settings: TPSettings;
   busy: boolean;
   run: Act;
-  seconds: number | null;
+  deadline: number | null;
   /** Absent while in debt: the panel stays until the debt is settled. */
   onClose?: () => void;
 }) {
+  const seconds = useSecondsLeft()(deadline);
   const debt = g.phase === "debt" ? g.debt : null;
   const short = debt ? Math.max(0, debt.amount - mine.cash) : 0;
   const owned = Object.keys(g.deeds)
@@ -1725,16 +1786,17 @@ function TradeCard({
   nameOf,
   incoming,
   outgoing,
-  seconds,
+  deadline,
   onAnswer,
 }: {
   trade: NonNullable<TPGameView["trade"]>;
   nameOf: (id: string) => string;
   incoming: boolean;
   outgoing: boolean;
-  seconds: number;
+  deadline: number;
   onAnswer: (accept: boolean) => void;
 }) {
+  const seconds = useSecondsLeft()(deadline) ?? 0;
   const side = (s: TradeSide) =>
     [...s.props.map((p) => BOARD[p].name), s.cash ? money(s.cash) : null].filter(Boolean).join(", ") || "không gì";
   return (
