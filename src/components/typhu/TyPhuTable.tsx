@@ -646,6 +646,49 @@ function Building({ hotel, className }: { hotel?: boolean; className?: string })
   return <ArtIcon name={hotel ? "hotel" : "house"} className={cn("drop-shadow-sm", className)} />;
 }
 
+/** Burst over a cell the moment a house / hotel is built there: flash, expanding ring and flying sparks (gold and bigger for a hotel). */
+function BuildBurst({ count }: { count: number }) {
+  const prev = useRef(count);
+  const [burst, setBurst] = useState<{ key: number; hotel: boolean } | null>(null);
+  useEffect(() => {
+    const grew = count > prev.current;
+    prev.current = count;
+    if (!grew) return;
+    setBurst({ key: Date.now(), hotel: count === MAX_HOUSES });
+    const t = setTimeout(() => setBurst(null), 1100);
+    return () => clearTimeout(t);
+  }, [count]);
+  if (!burst) return null;
+  const n = burst.hotel ? 12 : 8;
+  const color = burst.hotel ? "#fbbf24" : "#ffffff";
+  return (
+    <span key={burst.key} className="pointer-events-none absolute inset-0 z-10" aria-hidden>
+      <motion.span className="absolute inset-0" style={{ background: color }} initial={{ opacity: 0.85 }} animate={{ opacity: 0 }} transition={{ duration: 0.5 }} />
+      <motion.span
+        className="absolute left-1/2 top-1/2 aspect-square w-full -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
+        style={{ borderColor: color }}
+        initial={{ scale: 0.2, opacity: 1 }}
+        animate={{ scale: burst.hotel ? 2.6 : 1.8, opacity: 0 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+      />
+      {Array.from({ length: n }, (_, i) => {
+        const angle = (i / n) * Math.PI * 2;
+        const dist = (burst.hotel ? 120 : 90) * (i % 2 ? 1 : 0.65);
+        return (
+          <motion.span
+            key={i}
+            className="absolute left-1/2 top-1/2 size-[5px] rounded-full"
+            style={{ background: i % 3 === 0 ? "#fbbf24" : "#ffffff", boxShadow: "0 0 4px rgba(0,0,0,.5)" }}
+            initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+            animate={{ x: Math.cos(angle) * dist * 0.28, y: Math.sin(angle) * dist * 0.28, opacity: 0, scale: 0.3 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          />
+        );
+      })}
+    </span>
+  );
+}
+
 /** Houses on a colour band; the newest one pops in when built. */
 function Buildings({ count, vertical }: { count: number; vertical: boolean }) {
   // Only buildings added after the page opened get the pop-in.
@@ -662,7 +705,7 @@ function Buildings({ count, vertical }: { count: number; vertical: boolean }) {
           transition={{ type: "spring", stiffness: 420, damping: 14 }}
           className={cn("flex items-center justify-center drop-shadow", vertical ? "w-full" : "h-full", hotel ? (vertical ? "h-[70%]" : "w-[70%]") : vertical ? "h-[30%]" : "w-[30%]")}
         >
-          <Building hotel={hotel} className="h-full w-full" />
+          <Building hotel={hotel} className="h-full w-full [filter:drop-shadow(1px_0_0_#fff)_drop-shadow(-1px_0_0_#fff)_drop-shadow(0_1px_0_#fff)_drop-shadow(0_-1px_0_#fff)]" />
         </motion.span>
       ))}
     </span>
@@ -755,6 +798,7 @@ const Cell = memo(function Cell({ index, edge, sq, deed, pot, owner, here, highl
           <Buildings count={houses} vertical={bandSide === "left" || bandSide === "right"} />
         </span>
       )}
+      {band && <BuildBurst count={houses} />}
       <span className="pointer-events-none flex flex-col items-center px-[2px]">
         {squareImg(sq) ? (
           <ArtIcon name={squareImg(sq)!} className={cn(side === "corner" ? "size-5 sm:size-9 short:size-5" : "size-3.5 sm:size-6 short:size-3.5")} />
