@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { AllRoomsPanel } from "./AllRoomsPanel";
 import { FullscreenButton, GAME_HEADER_SLOT_ID } from "./GameHeader";
 import { Toaster } from "sonner";
+import { gameFont } from "./gameFont";
 import { getSavedProfile, saveName, saveProfile, usePlayerName, usePlayerProfile, type PlayerProfile } from "./gameClient";
 import { PlayerAvatar, ProfilePicker } from "./PlayerAvatar";
 import { ONLINE_GAMES, gameOfPath, gamesPageKind } from "./gamesRegistry";
@@ -58,7 +59,7 @@ export function GamesShell({ children }: { children: React.ReactNode }) {
   return (
     <ShellContext.Provider value={{ openRename: () => setRenaming(true) }}>
       <Toaster theme="dark" position="top-center" richColors visibleToasts={3} toastOptions={{ duration: 2800 }} />
-      <div className={cn("flex min-h-[100dvh] flex-col", table && "games-shell-table")}>
+      <div className={cn("flex min-h-[100dvh] flex-col [&_h1]:[font-family:var(--font-game)] [&_h2]:[font-family:var(--font-game)] [&_h3]:[font-family:var(--font-game)]", gameFont.variable, table && "games-shell-table")}>
         <GamesTopBar compact={table} name={name} onRename={() => setRenaming(true)} />
         {/* The bar is taller on phones (finger-sized buttons): keep the table exactly one screen tall. */}
         <div className={cn("flex-1", table && "games-table max-sm:[--games-bar-h:calc(2.75rem_+_1px)] short:[--games-bar-h:calc(2.75rem_+_1px)]")}>{body}</div>

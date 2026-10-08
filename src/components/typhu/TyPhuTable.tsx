@@ -960,7 +960,7 @@ function Centre({
           />
         </div>
       )}
-      <p className="hidden font-black tracking-tight text-emerald-900 sm:block sm:text-3xl short:hidden">CỜ TỶ PHÚ</p>
+      <p className="hidden font-black tracking-tight [font-family:var(--font-game)] text-emerald-900 sm:block sm:text-3xl short:hidden">CỜ TỶ PHÚ</p>
       <div className={cn("flex items-center gap-2", debt && "max-sm:hidden")}>
         {g.dice ? (
           <>
