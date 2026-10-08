@@ -393,8 +393,6 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
     }
   };
 
-  const incomingTrade = g?.trade && g.trade.to === view.meId ? g.trade : null;
-  const outgoingTrade = g?.trade && g.trade.from === view.meId ? g.trade : null;
 
   return (
     <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-[max(1rem,env(safe-area-inset-bottom))] xl:max-w-none pt-2 sm:px-4 sm:pt-3 short:gap-2 short:pt-1.5">
@@ -455,7 +453,7 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
       )}
 
       {/* Sideways phone: board as tall as the screen allows on the left, the side panel scrolling on the right. */}
-      <div className="grid flex-1 gap-3 lg:grid-cols-[minmax(0,calc(100dvh-5rem))_20rem] lg:justify-center lg:gap-4 xl:grid-cols-[minmax(0,calc(100dvh-5rem))_22rem] short:grid-cols-[auto_minmax(0,1fr)] short:items-start short:gap-2">
+      <div className="grid flex-1 grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-[minmax(0,calc(100dvh-5rem))_20rem] lg:justify-center lg:gap-4 xl:grid-cols-[minmax(0,calc(100dvh-5rem))_22rem] short:grid-cols-[auto_minmax(0,1fr)] short:items-start short:gap-2">
         {/* Board */}
         <div className="relative mx-auto w-full max-w-[min(100%,calc(100dvh-7rem))] lg:max-w-none short:w-[calc(100dvh-3.75rem)] short:max-w-none">
           <SpectatorReactions reactions={live.filter((r) => !r.playerId)} />
@@ -499,6 +497,7 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
                   nameOf={nameOf}
                   assetsOpen={assetsOpen}
                   onOpenAssets={openAssets}
+                  onTrade={() => setShowTrade(true)}
                 />
               )}
             </div>
@@ -551,27 +550,7 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
                   );
                 })}
             </ul>
-            {playing && mine && !mine.bankrupt && (
-              <button
-                onClick={() => setShowTrade(true)}
-                disabled={!!g?.trade}
-                className="mt-3 w-full rounded-lg border border-amber-300/40 bg-amber-400/10 px-3 py-1.5 text-sm font-semibold text-amber-200 hover:bg-amber-400/20 disabled:opacity-40"
-              >
-                🤝 Đổi đất / mua bán
-              </button>
-            )}
           </div>
-
-          {g?.trade && (
-            <TradeCard
-              trade={g.trade}
-              nameOf={nameOf}
-              incoming={!!incomingTrade}
-              outgoing={!!outgoingTrade}
-              deadline={g.trade.deadline}
-              onAnswer={(accept) => void run({ type: "tradeanswer", accept })}
-            />
-          )}
 
           {g && (
             <div className="rounded-2xl bg-black/35 p-3">
@@ -837,6 +816,7 @@ function Centre({
   nameOf,
   assetsOpen,
   onOpenAssets,
+  onTrade,
 }: {
   g: TPGameView;
   view: TPRoomView;
@@ -847,6 +827,7 @@ function Centre({
   nameOf: (id: string) => string;
   assetsOpen: boolean;
   onOpenAssets: () => void;
+  onTrade: () => void;
 }) {
   const turnName = g.turn ? nameOf(g.turn) : "";
   const current = g.players.find((p) => p.id === g.turn);
@@ -882,8 +863,22 @@ function Centre({
     myTurn && !!mine && !busy,
   );
 
+  const trade = g.trade;
+  const canTrade = view.role === "player" && !!mine && !mine.bankrupt;
   return (
     <div className="flex w-full max-w-sm flex-col items-center gap-2 text-center">
+      {trade && (
+        <div className="w-full text-left">
+          <TradeCard
+            trade={trade}
+            nameOf={nameOf}
+            incoming={trade.to === view.meId}
+            outgoing={trade.from === view.meId}
+            deadline={trade.deadline}
+            onAnswer={(accept) => void run({ type: "tradeanswer", accept })}
+          />
+        </div>
+      )}
       <p className="hidden font-black tracking-tight text-emerald-900 sm:block sm:text-3xl short:hidden">CỜ TỶ PHÚ</p>
       <div className={cn("flex items-center gap-2", debt && "max-sm:hidden")}>
         {g.dice ? (
@@ -955,6 +950,11 @@ function Centre({
           </div>
         )}
       </div>
+      {canTrade && !trade && (
+        <button onClick={onTrade} className="rounded-lg border border-emerald-900/30 bg-white/60 px-3 py-1 text-xs font-semibold text-emerald-950 hover:bg-white/80 max-sm:min-h-9">
+          🤝 Đổi đất / mua bán
+        </button>
+      )}
       {!myTurn && g.phase === "buy" && here && <p className="text-xs text-emerald-900/70">{turnName} đang cân nhắc mua {here.name}…</p>}
       {!myTurn && g.phase === "debt" && g.debt && (
         <p className="text-xs text-rose-700">
@@ -1684,6 +1684,12 @@ function SquareModal({
         </div>
         <div className="space-y-2 p-4 text-sm">
           {isOwnable(sq) ? <OwnableInfo sq={sq} settings={settings} /> : <p>{SQUARE_TEXT[sq.kind]?.(sq)}</p>}
+          {sq.kind === "parking" && settings.parkingPot && (
+            <p className="mt-2 rounded-lg bg-amber-300/90 px-3 py-2 font-semibold text-amber-950">
+              💰 Quỹ đang giữ: {money(g?.pot ?? 0)}
+              <span className="mt-0.5 block text-xs font-normal">Tiền phạt/thuế dồn vào đây — ai dừng ở Nghỉ chân sẽ lấy hết.</span>
+            </p>
+          )}
           {deed && (
             <p className="rounded bg-white/70 px-2 py-1">
               Chủ: <b>{nameOf(deed.owner)}</b>
@@ -1808,7 +1814,7 @@ const SQUARE_TEXT: Partial<Record<Square["kind"], (sq: Square) => string>> = {
   chest: () => "Rút một thẻ Khí vận: phần lớn là tiền thưởng, đôi khi phải chi.",
   tax: (sq) => `Nộp ${money((sq as Extract<Square, { kind: "tax" }>).amount)} cho ngân hàng.`,
   jail: () => `Chỉ ghé thăm thì không sao. Ở tù: mỗi lượt tung đôi để ra, hoặc nộp ${money(JAIL_FINE)} / dùng thẻ ra tù. Sau 3 lượt phải nộp phạt.`,
-  parking: () => "Nghỉ chân uống ly cà phê — không có gì xảy ra.",
+  parking: () => "Nghỉ chân uống ly cà phê.",
   gotojail: () => "Đi thẳng vào tù, không qua Khởi hành.",
 };
 
@@ -1836,7 +1842,7 @@ function TradeCard({
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className={cn("rounded-2xl p-3 text-sm", incoming ? "bg-amber-400/20 ring-2 ring-amber-300" : "bg-black/35")}
+      className={cn("rounded-2xl p-3 text-sm text-white shadow-lg", incoming ? "bg-amber-950/95 ring-2 ring-amber-300" : "bg-emerald-950/90")}
     >
       <p className="mb-1 font-semibold">
         🤝 {nameOf(trade.from)} → {nameOf(trade.to)} <span className="font-mono text-xs text-white/60">({seconds}s)</span>
@@ -1849,10 +1855,10 @@ function TradeCard({
       </p>
       {incoming && (
         <div className="mt-2 flex gap-2">
-          <button onClick={() => onAnswer(true)} className="flex-1 rounded-lg bg-emerald-500 px-3 py-1 font-semibold text-black hover:bg-emerald-400">
+          <button onClick={() => onAnswer(true)} className="flex-1 rounded-lg bg-emerald-500 px-3 py-1 font-semibold max-sm:min-h-10 text-black hover:bg-emerald-400">
             Đồng ý
           </button>
-          <button onClick={() => onAnswer(false)} className="flex-1 rounded-lg border border-white/30 px-3 py-1 hover:bg-white/10">
+          <button onClick={() => onAnswer(false)} className="flex-1 rounded-lg border border-white/30 px-3 py-1 hover:bg-white/10 max-sm:min-h-10">
             Từ chối
           </button>
         </div>

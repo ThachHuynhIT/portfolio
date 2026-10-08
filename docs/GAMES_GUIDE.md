@@ -694,7 +694,7 @@ Luật và protocol: `be_game/docs/games/typhu.md`.
 | **`SquareModal`** + `OwnableInfo` + `SQUARE_TEXT` | `Modal` nền sáng: thông tin ô (bảng tiền thuê và giá xây), và các nút quản lý khi tới lượt mình |
 | **`PiecePicker`** | Hộp "Quân cờ & màu nhà": 12 quân + 8 màu, mục đã có người dùng bị làm mờ; bấm → `act({type:"pick", emoji, color})`. Mở khi bấm quân tròn của chính mình ở `PlayerRow` (`onPick`). Đổi được cả giữa ván. |
 | `LogList`, **`LogModal`** | Danh sách log (mới nhất ở trên, tô màu theo `tone`) dùng ở panel "Diễn biến" và hộp "Toàn bộ diễn biến" (nút 📜 trên thanh trên, phím `L`). Server giữ 150 dòng. |
-| `TradeCard`, `TradeModal`, `CashInput` | Giao dịch: thẻ trong cột bên (Đồng ý / Từ chối / Rút lời mời) và modal soạn đề nghị (có `Picker` lồng bên trong) |
+| `TradeCard`, `TradeModal`, `CashInput` | Giao dịch: thẻ **ở giữa bàn cờ**, trong `Centre` (Đồng ý / Từ chối / Rút lời mời — điện thoại thấy ngay không phải cuộn xuống), nút 🤝 cũng ở `Centre`, và modal soạn đề nghị (có `Picker` lồng bên trong) |
 | `Waiting` | Giữa bàn trước ván (số người/6) hoặc sau ván (kết quả với `DeltaBadge`), nút Bắt đầu / Ván mới |
 | **`TableSettings`**, `RULE_PRESETS`, `SettingSelect`, `Toggle`, `SELECT` | Luật bàn trong `SettingsTabs light`, với hàng nút **"Luật nhanh"** phía trên (xem Cài đặt) |
 | `TyPhuRules` (export), `RulesModal` | Luật, cũng dùng ở lobby |
@@ -710,7 +710,7 @@ Luật và protocol: `be_game/docs/games/typhu.md`.
 - **`short:`:** grid `[auto_minmax(0,1fr)]`. Bàn cờ bên trái, vuông `calc(100dvh-3.75rem)`. `aside` bên phải tự cuộn. Chữ trong ô `short:text-[6px]`/`[8px]`, xúc xắc `short:h-8`.
 - **`lg:`:** grid `[minmax(0,calc(100dvh-5rem))_20rem]` căn giữa. `AssetPanel` cuộn với `lg:max-h-[calc(100dvh-16rem)]`.
 - **`xl:`:** cột bên `22rem`, bỏ `max-w`, tên ô `xl:text-[10px]`.
-- Thứ tự trong `aside`: `AssetPanel` (khi mở), thẻ luật (điện thoại / `short:`), "Người chơi" + nút 🤝, `TradeCard`, "Diễn biến" (`max-h-64`).
+- Thứ tự trong `aside`: `AssetPanel` (khi mở), thẻ luật (điện thoại / `short:`), "Người chơi", "Diễn biến" (`max-h-64`).
 
 **Hiệu ứng** (framer-motion, không có keyframes riêng)
 - Quân đi từng ô (`motion.span layoutId`, tween 0,16 giây).
