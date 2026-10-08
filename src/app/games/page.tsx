@@ -36,7 +36,7 @@ const GAMES: GameCard[] = [
     href: "/co-ty-phu",
     title: "Cờ Tỷ Phú",
     emoji: "🎩",
-    tagline: "Mua đất Hạ Long, Hội An, Phú Quốc… xây nhà, thu tiền thuê, đổi đất với bạn bè. Chơi 2–6 người.",
+    tagline: "Mua đất các tỉnh thành từ Quảng Ninh, Quảng Nam đến Kiên Giang… xây nhà, thu tiền thuê, đổi đất với bạn bè. Chơi 2–6 người.",
     tags: ["Online", "2–6 người", "Địa danh Việt Nam"],
     gradient: "from-lime-500/30 via-teal-700/20 to-transparent",
   },

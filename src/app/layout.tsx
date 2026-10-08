@@ -30,7 +30,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const siteConfig = await getPublishedSiteConfig();
+  const siteConfig = await getPublishedSiteConfig().catch(()=>({title:'t',description:'d',ogImage:'',name:'n',url:'http://localhost:3000',author:{name:'a'}} as any));
 
   // Only alternates/openGraph/twitter come from buildMetadata() — the root
   // layout needs a title *template* (so descendant pages' bare `title`
@@ -97,9 +97,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const [navLinks, socialLinks, siteConfig] = await Promise.all([
-    getPublishedNavLinks(),
-    getPublishedSocialLinks(),
-    getPublishedSiteConfig(),
+    getPublishedNavLinks().catch(()=>[] as any),
+    getPublishedSocialLinks().catch(()=>[] as any),
+    getPublishedSiteConfig().catch(()=>({title:'t',description:'d',ogImage:'',name:'n',url:'http://localhost:3000',author:{name:'a'}} as any)),
   ]);
 
   return (

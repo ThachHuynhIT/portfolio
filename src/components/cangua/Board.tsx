@@ -281,6 +281,14 @@ export function CaNguaBoard({
               {canPick && <span aria-hidden className="absolute -inset-[22%] rounded-full ring-[0.6cqw] ring-white shadow-[0_0_2cqw_white]" />}
               {/* Bigger invisible hit area: tokens are only ~22px wide on phones. */}
               {canPick && <span aria-hidden className="absolute left-1/2 top-1/2 h-[150%] min-h-11 w-[150%] min-w-11 -translate-x-1/2 -translate-y-1/2 rounded-full" />}
+              {canPick && (
+                <kbd
+                  aria-hidden
+                  className="absolute -right-[18%] -top-[18%] z-10 hidden size-[42%] min-w-3 place-items-center rounded-full bg-white font-mono text-[2.2cqw] font-black leading-none text-black shadow lg:grid [@media(pointer:coarse)]:hidden"
+                >
+                  {legal.indexOf(h) + 1}
+                </kbd>
+              )}
               <span className={cn("relative drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]", isFly && "motion-safe:animate-spin", p.id === meId && !canPick && isTurn && "motion-safe:animate-bounce")}>
                 🐴
               </span>

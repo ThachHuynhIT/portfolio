@@ -1,5 +1,6 @@
 "use client";
 
+import { SeatAvatar } from "@/components/games/PlayerAvatar";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -32,6 +33,8 @@ import { MoveHistory } from "./MoveHistory";
 import { DeltaBadge, ScoreboardModal, rankTitle, signed } from "./Scoreboard";
 import { inviteLink, useTienLenRoom } from "./useTienLen";
 import { ConfirmButton } from "@/components/games/ConfirmButton";
+import { useHotkeys } from "@/components/games/useHotkeys";
+import { WinCelebration } from "@/components/games/WinCelebration";
 
 type SortMode = "rank" | "suit";
 
@@ -206,6 +209,24 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onKick
     setBusy(false);
   };
 
+  const cycleSort = () => {
+    if (handOrder.isCustom) handOrder.reset();
+    else setSortMode((m) => (m === "rank" ? "suit" : "rank"));
+  };
+  const showHand = !spectator && playing && hand.length > 0;
+  // Desktop shortcuts; same guards as the buttons (Enter is skipped on a focused card button, which is a click already).
+  useHotkeys(
+    {
+      d: () => canPlay && void doPlay(),
+      Enter: () => canPlay && void doPlay(),
+      p: () => canPass && void doPass(),
+      b: () => selected.length > 0 && setSelected([]),
+      s: cycleSort,
+      Escape: !showScores && !showMoves && selected.length > 0 ? () => setSelected([]) : undefined,
+    },
+    showHand,
+  );
+
   const [copied, setCopied] = useState(false);
   const copyInvite = async () => {
     const inviteUrl = inviteLink(view.code);
@@ -268,6 +289,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onKick
         } as React.CSSProperties
       }
     >
+      <WinCelebration show={game?.status === "ended"} playing={game?.status === "playing"} won={!!meId && (game?.instantWin?.playerId ?? game?.finished[0]) === meId} title={game?.status === "ended" ? `🏆 ${nameOf(game.instantWin?.playerId ?? game.finished[0])} thắng` : undefined} />
       <GameHeader
         primary={
           <>
@@ -386,13 +408,13 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onKick
           {/* After a game the leftover hand stays on show, without the (then useless) play buttons. */}
           {!spectator && playing && hand.length > 0 && (
             <div className="flex items-center justify-center gap-2">
-              <ActionButton onClick={doPass} disabled={!canPass}>
+              <ActionButton onClick={doPass} disabled={!canPass} hotkey="P">
                 Bỏ lượt
               </ActionButton>
-              <ActionButton onClick={doPlay} disabled={!canPlay} primary big>
+              <ActionButton onClick={doPlay} disabled={!canPlay} primary big hotkey="D">
                 {anytimeChop && !myTurn ? "CHẶT! 💥" : "ĐÁNH 🃏"}
               </ActionButton>
-              <ActionButton onClick={() => setSelected([])} disabled={!selected.length}>
+              <ActionButton onClick={() => setSelected([])} disabled={!selected.length} hotkey="B">
                 Bỏ chọn
               </ActionButton>
             </div>
@@ -426,14 +448,12 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onKick
 
         {!spectator && playing && hand.length > 0 && (
           <div className="flex items-center justify-center gap-2">
-            <ActionButton
-              onClick={() => {
-                if (handOrder.isCustom) handOrder.reset();
-                else setSortMode((m) => (m === "rank" ? "suit" : "rank"));
-              }}
-            >
+            <ActionButton onClick={cycleSort} hotkey="S">
               Xếp: {handOrder.isCustom ? "tự do ✋" : sortMode === "rank" ? "số" : "chất"}
             </ActionButton>
+            <span className="hidden text-[11px] text-emerald-100/50 lg:inline [@media(pointer:coarse)]:hidden">
+              Phím tắt: D / Enter = đánh · P = bỏ lượt · B / Esc = bỏ chọn · S = xếp bài
+            </span>
           </div>
         )}
       </div>
@@ -460,12 +480,14 @@ function ActionButton({
   disabled,
   primary,
   big,
+  hotkey,
 }: {
   children: React.ReactNode;
   onClick: () => void;
   disabled?: boolean;
   primary?: boolean;
   big?: boolean;
+  hotkey?: string;
 }) {
   return (
     <button
@@ -480,6 +502,9 @@ function ActionButton({
       )}
     >
       {children}
+      {hotkey && (
+        <kbd className="ml-1.5 hidden rounded border border-current/30 bg-black/10 px-1 align-middle font-mono text-[10px] font-normal opacity-70 lg:inline [@media(pointer:coarse)]:hidden">{hotkey}</kbd>
+      )}
     </button>
   );
 }
@@ -516,14 +541,14 @@ function Avatar({ seat, isTurn, deadline, reactions }: { seat: SeatView; isTurn:
     <span className="relative inline-flex">
       {isTurn && <TurnRing deadline={deadline} />}
       <SeatBubble reactions={reactions} />
-      <span
+      <SeatAvatar
+        name={seat.name}
         className={cn(
-          "flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-200 to-amber-500 text-base font-bold text-black sm:h-12 sm:w-12 short:h-8 short:w-8 short:text-sm",
+          "flex h-10 w-10 items-center justify-center rounded-full text-base sm:h-12 sm:w-12 short:h-8 short:w-8 short:text-sm",
           (!seat.connected || seat.kicked) && "grayscale opacity-50",
         )}
-      >
-        {seat.name.charAt(0).toUpperCase()}
-      </span>
+        fallbackClassName="bg-gradient-to-br from-amber-200 to-amber-500 font-bold text-black"
+      />
     </span>
   );
 }
@@ -632,6 +657,8 @@ function WaitingPanel({
   const ended = game?.status === "ended";
   const last = view.history[view.history.length - 1];
   const deltaOf = (id: string) => last?.results.find((r) => r.id === id)?.delta;
+  // Enter starts / restarts, like the visible host button (hook skips Enter on a focused button, and while a dialog is open).
+  useHotkeys({ Enter: () => void onStart() }, view.role === "player" && !!me?.isHost && count >= 2);
 
   return (
     // Portrait phones: the centre cell between the side seats is too narrow, so the panel floats over the whole felt.
@@ -698,6 +725,9 @@ function WaitingPanel({
           className="w-full rounded-lg bg-amber-400 px-4 py-2 font-semibold text-black transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {count < 2 ? "Cần ít nhất 2 người" : ended ? "Ván mới" : "Bắt đầu"}
+          {count >= 2 && (
+            <kbd className="ml-1.5 hidden rounded border border-current/30 bg-black/10 px-1 align-middle font-mono text-[10px] font-normal opacity-70 lg:inline [@media(pointer:coarse)]:hidden">Enter</kbd>
+          )}
         </button>
       ) : (
         <p className="text-sm text-emerald-100/70">Chờ chủ phòng bắt đầu…</p>

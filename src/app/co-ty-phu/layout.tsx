@@ -3,7 +3,7 @@ import { GamesShell } from "@/components/games/GamesShell";
 
 export const metadata: Metadata = {
   title: "Cờ Tỷ Phú Việt Nam — chơi online",
-  description: "Cờ Tỷ Phú với các địa danh Việt Nam: mua đất Hạ Long, Hội An, Phú Quốc… xây nhà, thu tiền thuê, chơi online 2–6 người.",
+  description: "Cờ Tỷ Phú với các địa danh Việt Nam: mua đất các tỉnh thành từ Quảng Ninh, Quảng Nam đến Kiên Giang… xây nhà, thu tiền thuê, chơi online 2–6 người.",
 };
 
 export default function CoTyPhuLayout({ children }: { children: React.ReactNode }) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { SeatAvatar } from "@/components/games/PlayerAvatar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChatBox } from "@/components/games/ChatBox";
@@ -7,6 +8,8 @@ import { GameHeader, HeaderLabel, headerBtn } from "@/components/games/GameHeade
 import { RankPointsPicker } from "@/components/games/RankPointsPicker";
 import { SettingsTabs } from "@/components/games/SettingsTabs";
 import { useGameRoom } from "@/components/games/gameClient";
+import { useHotkeys } from "@/components/games/useHotkeys";
+import { WinCelebration } from "@/components/games/WinCelebration";
 import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
 import {
@@ -33,6 +36,16 @@ import { cn } from "@/lib/utils";
 import { BangGuide, CardBack, CardFace, CharAvatar, CharCard, EventArt, EventBanner, GearChip, Hearts, PlayChip, RoleBadge, Sheet } from "./Pieces";
 
 type Act = (msg: Record<string, unknown> & { type: string }) => Promise<boolean>;
+
+/** Small key hint on a button; hidden on small and touch screens. */
+function Kbd({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd className="ml-1.5 hidden rounded border border-current/30 bg-black/10 px-1 align-middle font-mono text-[10px] font-normal opacity-70 lg:inline [@media(pointer:coarse)]:hidden">{children}</kbd>
+  );
+}
+
+/** True while a dialog (card info, scoreboard, guide…) is open — those own Esc. */
+const dialogOpen = () => typeof document !== "undefined" && !!document.querySelector("[role='dialog']");
 
 const selectCls = "min-h-8 rounded-md bg-black/40 px-1.5 py-1 text-white disabled:opacity-70";
 
@@ -150,6 +163,7 @@ function Table({ view, reconnecting, act }: { view: BangRoomView; reconnecting: 
   const cornerReactions = g?.status === "playing" ? live.filter((r) => !r.playerId) : live;
   return (
     <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col gap-2 px-2 pb-20 pt-2 sm:gap-3 sm:px-4 sm:pt-3 lg:pb-6 2xl:max-w-7xl">
+      <WinCelebration show={g?.status === "ended"} playing={!!g && g.status !== "ended"} won={!!view.meId && !!g?.winners.includes(view.meId)} title={g?.status === "ended" && g.winners.length ? `🏆 ${g.winners.map(nameOf).join(", ")} thắng` : undefined} />
       <GameHeader
         primary={
           <>
@@ -267,6 +281,7 @@ function Waiting({ view, act, nameOf }: { view: BangRoomView; act: Act; nameOf: 
                   title={seat.connected ? undefined : "Mất kết nối"}
                 >
                   {seat.isHost && <span title="Chủ bàn">👑</span>}
+                  <SeatAvatar name={seat.name} className="grid size-5 shrink-0 place-items-center rounded-full text-[11px]" fallbackClassName="bg-white/15 font-bold" />
                   <span className="truncate">{seat.name}</span>
                   {seat.id === view.meId && <span className="text-xs text-white/60">(bạn)</span>}
                   {!seat.connected && <span aria-label="Mất kết nối">📴</span>}
@@ -1251,10 +1266,38 @@ const primary = cn(btn, "bg-amber-400 text-black hover:bg-amber-300");
 const ghost = cn(btn, "border border-white/20 bg-white/5 hover:bg-white/10");
 const danger = cn(btn, "bg-rose-600 text-white hover:bg-rose-500");
 
+/** "Phím tắt" hint per prompt kind (only shows keys that exist for it). */
+const PROMPT_HINT: Record<PromptView["kind"], string | null> = {
+  react: "Enter = đỡ / né · P = bỏ qua (khi hỏi né)",
+  save: "Enter = cứu · P = bỏ qua",
+  keep: "Enter = giữ",
+  discard: "Enter = bỏ / úp lá đã chọn",
+  draw: "D hoặc Enter = rút bình thường",
+  store: null,
+  pick: null,
+  copy: null,
+};
+
 function ActionPanel(props: PanelProps) {
   const { me, prompt, myTurn, mode, busy, over, goldrush, abilities, setMode, run } = props;
+  // Desktop shortcut: E = the visible "Kết thúc lượt" button (same guards: my turn, no prompt, no form open, not busy).
+  const endTurn = () => {
+    if (over > 0 || goldrush) setMode({ kind: "end" });
+    else void run({ type: "end", discard: [] });
+  };
+  useHotkeys({ e: !prompt && myTurn && !mode && !busy ? endTurn : undefined });
+  const hint = prompt
+    ? PROMPT_HINT[prompt.kind]
+    : mode
+      ? "Enter = xác nhận · Esc = huỷ"
+      : myTurn
+        ? "E = kết thúc lượt"
+        : null;
   const shell = (children: React.ReactNode, tone = "border-white/10 bg-black/40") => (
-    <div className={cn("sticky bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-30 space-y-2 rounded-2xl border p-2 pr-14 backdrop-blur sm:p-3 sm:pr-14 lg:static lg:pr-3 short:static", tone)}>{children}</div>
+    <div className={cn("sticky bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-30 space-y-2 rounded-2xl border p-2 pr-14 backdrop-blur sm:p-3 sm:pr-14 lg:static lg:pr-3 short:static", tone)}>
+      {children}
+      {hint && <p className="hidden text-[11px] text-white/45 lg:block [@media(pointer:coarse)]:hidden">Phím tắt: {hint}.</p>}
+    </div>
   );
 
   if (prompt) return shell(<PromptPanel {...props} prompt={prompt} />, "border-sky-400/50 bg-sky-950/80");
@@ -1295,12 +1338,10 @@ function ActionPanel(props: PanelProps) {
         <button
           className={cn(primary, "ml-auto")}
           disabled={busy}
-          onClick={() => {
-            if (over > 0 || goldrush) setMode({ kind: "end" });
-            else void run({ type: "end", discard: [] });
-          }}
+          onClick={endTurn}
         >
           Kết thúc lượt ⏭
+          <Kbd>E</Kbd>
         </button>
       </div>
     </>,
@@ -1308,6 +1349,12 @@ function ActionPanel(props: PanelProps) {
 }
 
 function ModeForm({ g, mode, needs, missing, sel, target, target2, pick, opt, asBang, canAsBang, busy, over, limit, goldrush, nameOf, setOpt, setPick, setAsBang, confirm, reset }: PanelProps) {
+  const ready = !!mode && (mode.kind === "end" ? sel.length >= over : !missing);
+  // Enter = the primary confirm button (same guard: not busy, ready); Esc = the ✕ (leaves it to an open dialog).
+  useHotkeys({
+    Enter: mode && !busy && ready ? confirm : undefined,
+    Escape: mode ? () => !dialogOpen() && reset() : undefined,
+  });
   if (!mode) return null;
   let title = "";
   let text = "";
@@ -1327,7 +1374,6 @@ function ModeForm({ g, mode, needs, missing, sel, target, target2, pick, opt, as
     text = over > 0 ? `Bạn giữ tối đa ${limit} lá: chọn ít nhất ${over} lá để bỏ.` : goldrush ? "Có thể bỏ thêm lá để lấy vàng (mỗi lá 1 vàng), hoặc qua lượt luôn." : "";
   }
   const targetPlayer = target ? g.players.find((p) => p.id === target) : null;
-  const ready = mode.kind === "end" ? sel.length >= over : !missing;
   return (
     <>
       <div className="flex items-start justify-between gap-2">
@@ -1384,6 +1430,7 @@ function ModeForm({ g, mode, needs, missing, sel, target, target2, pick, opt, as
       <div className="flex flex-wrap items-center gap-2">
         <button className={primary} disabled={busy || !ready} onClick={confirm}>
           {mode.kind === "end" ? `Bỏ ${sel.length} lá & qua lượt` : mode.kind === "buy" ? "Mua" : "Xác nhận"}
+          <Kbd>Enter</Kbd>
         </button>
         {missing && mode.kind !== "end" && <span className="text-xs text-white/60">{missing}</span>}
       </div>
@@ -1393,6 +1440,18 @@ function ModeForm({ g, mode, needs, missing, sel, target, target2, pick, opt, as
 
 function PromptPanel({ g, me, prompt, sel, target, opt, busy, nameOf, secondsLeft, setOpt, setSel, run }: PanelProps & { prompt: PromptView }) {
   const left = secondsLeft(prompt.deadline);
+  // Desktop shortcuts mirror the visible buttons and their disabled conditions. Taking damage / losing life
+  // ("Chịu", "Mất máu") and picking a single card from a list have no key on purpose.
+  const respondCards = () => void run({ type: "respond", cards: sel });
+  let promptKeys: Record<string, (() => void) | undefined> = {};
+  if (!busy) {
+    if (prompt.kind === "react") promptKeys = { Enter: sel.length ? respondCards : undefined, p: prompt.answer === "evade" ? () => void run({ type: "respond", take: true }) : undefined };
+    else if (prompt.kind === "save") promptKeys = { Enter: () => void run({ type: "respond" }), p: () => void run({ type: "respond", take: true }) };
+    else if (prompt.kind === "keep") promptKeys = { Enter: sel.length === prompt.keep ? respondCards : undefined };
+    else if (prompt.kind === "discard")
+      promptKeys = { Enter: prompt.cause === "poker" ? (sel.length === 1 ? () => void run({ type: "respond", card: sel[0] }) : undefined) : sel.length === prompt.count ? respondCards : undefined };
+  }
+  useHotkeys(promptKeys);
   const header = (text: React.ReactNode) => (
     <p className="text-sm">
       {text} <span className={cn("font-mono", (left ?? 99) <= 5 && "text-rose-400")}>⏱ {left}s</span>
@@ -1429,9 +1488,11 @@ function PromptPanel({ g, me, prompt, sel, target, opt, busy, nameOf, secondsLef
           <div className="flex flex-wrap gap-2">
             <button className={primary} disabled={busy || !sel.length} onClick={() => void run({ type: "respond", cards: sel })}>
               {prompt.answer === "evade" ? "🏃 Né" : `Đỡ (${sel.length}/${prompt.need})`}
+              <Kbd>Enter</Kbd>
             </button>
             <button className={prompt.answer === "evade" ? ghost : danger} disabled={busy} onClick={() => void run({ type: "respond", take: true })}>
               {prompt.answer === "evade" ? "Bỏ qua" : `Chịu ${prompt.dmg} máu`}
+              {prompt.answer === "evade" && <Kbd>P</Kbd>}
             </button>
           </div>
         </>
@@ -1448,9 +1509,11 @@ function PromptPanel({ g, me, prompt, sel, target, opt, busy, nameOf, secondsLef
           <div className="flex gap-2">
             <button className={primary} disabled={busy} onClick={() => void run({ type: "respond" })}>
               😇 Cứu
+              <Kbd>Enter</Kbd>
             </button>
             <button className={ghost} disabled={busy} onClick={() => void run({ type: "respond", take: true })}>
               Bỏ qua
+              <Kbd>P</Kbd>
             </button>
           </div>
         </>
@@ -1504,6 +1567,7 @@ function PromptPanel({ g, me, prompt, sel, target, opt, busy, nameOf, secondsLef
           </div>
           <button className={primary} disabled={busy || sel.length !== prompt.keep} onClick={() => void run({ type: "respond", cards: sel })}>
             Giữ {sel.length}/{prompt.keep}
+            <Kbd>Enter</Kbd>
           </button>
         </>
       );
@@ -1514,6 +1578,7 @@ function PromptPanel({ g, me, prompt, sel, target, opt, busy, nameOf, secondsLef
           {header(<>Xì Phé: úp 1 lá trên tay (không có lá A thì người đánh lấy tối đa 2 lá)</>)}
           <button className={primary} disabled={busy || sel.length !== 1} onClick={() => void run({ type: "respond", card: sel[0] })}>
             Úp lá đã chọn
+            <Kbd>Enter</Kbd>
           </button>
         </>
       ) : (
@@ -1526,6 +1591,7 @@ function PromptPanel({ g, me, prompt, sel, target, opt, busy, nameOf, secondsLef
           <div className="flex gap-2">
             <button className={primary} disabled={busy || sel.length !== prompt.count} onClick={() => void run({ type: "respond", cards: sel })}>
               Bỏ {sel.length}/{prompt.count} lá
+              <Kbd>Enter</Kbd>
             </button>
             <button className={danger} disabled={busy} onClick={() => void run({ type: "respond", take: true })}>
               Mất {prompt.orLose} máu
@@ -1587,6 +1653,9 @@ function DrawPanel({
   const [evelyn, setEvelyn] = useState<string[]>([]);
   const extra = { ...(swap ? { swap: true } : {}), ...(blood ? { blood } : {}) };
   const living = g.players.filter((p) => p.id !== me.id && !p.dead);
+  // D = the "Rút bình thường" button (Enter too while no special draw is being set up).
+  const drawNormal = !busy && prompt.options.includes("normal") ? () => void run({ type: "draw", mode: "normal", ...extra }) : undefined;
+  useHotkeys({ d: drawNormal, Enter: opt ? undefined : drawNormal });
   return (
     <>
       {header(<>Giai đoạn rút bài</>)}
@@ -1613,6 +1682,7 @@ function DrawPanel({
         {prompt.options.map((m) => (
           <button key={m} className={cn(btn, opt === m ? "bg-amber-400 text-black" : m === "normal" ? "bg-amber-400/90 text-black" : "border border-white/20 bg-white/5")} disabled={busy} onClick={() => (m === "normal" || m === "pedro" || m === "liquor" ? void run({ type: "draw", mode: m, ...extra }) : setOpt(m))}>
             {DRAW_LABEL[m]}
+            {m === "normal" && <Kbd>D</Kbd>}
           </button>
         ))}
       </div>

@@ -179,14 +179,14 @@ Các helper:
    - Ở hub và lobby, tab của game hiện tại có nhãn từ `sm`; mọi tab có nhãn từ `xl`.
 3. **Ô portal** `<div id="games-header-slot">` (`GAME_HEADER_SLOT_ID`), **chỉ có ở trang bàn**. `GameHeader` của bàn được đưa vào đây.
 4. `FullscreenButton`.
-5. Nút tên người chơi, bấm vào để đổi tên. Ở trang bàn, chữ tên chỉ hiện từ `xl`.
+5. Nút người chơi: `PlayerAvatar` (icon + màu đã chọn, hoặc chữ cái đầu) và tên, bấm vào để đổi tên / biểu tượng. Ở trang bàn, chữ tên chỉ hiện từ `xl`.
 6. Link "↩ Trang chính".
 
 Ở trang bàn, thanh trên là `relative`, cao `h-9`, và cao `h-11` trên điện thoại (`max-sm:` và `short:`). Ở hub và lobby, nó `sticky top-0 h-12`.
 
 **Cổng chọn tên.**
 - Khi `usePlayerName()` còn là `null` (SSR hoặc first paint): trang bàn chưa render gì; hub và lobby render `children` trong `invisible` để giữ markup SSR.
-- Khi tên là `""`: hiện `NameGate`, một form "Chào mừng tới Games!" gọi `saveName`.
+- Khi tên là `""`: hiện `NameGate`, một form "Chào mừng tới Games!" có ô tên và `ProfilePicker` (icon + màu), gọi `saveProfile` rồi `saveName`.
 - **Bàn chơi chỉ được render khi đã có tên**, nên `getSavedName()` trong `[room]/page.tsx` luôn trả về tên hợp lệ.
 
 **Hub và lobby.**
@@ -198,9 +198,9 @@ Các helper:
 - Không có footer và không có `AllRoomsPanel`.
 - Khối bọc ngoài có class `games-shell-table`. Khối body có class `games-table` và đặt lại `--games-bar-h` khi thanh trên cao hơn: `max-sm:[--games-bar-h:calc(2.75rem_+_1px)] short:[--games-bar-h:calc(2.75rem_+_1px)]`.
 
-**Đổi tên.**
-- `RenameDialog` hỗ trợ Esc, bấm nền để đóng, và hai nút Huỷ / Lưu.
-- Ở trang bàn, dialog ghi chú rằng bàn hiện tại vẫn giữ tên cũ.
+**Đổi tên và biểu tượng.**
+- `RenameDialog` ("Đổi tên & biểu tượng") hỗ trợ Esc, bấm nền để đóng, và hai nút Huỷ / Lưu; nó có cả `ProfilePicker`. Nút Lưu bật khi tên **hoặc** icon / màu đổi.
+- Ở trang bàn, dialog ghi chú rằng bàn hiện tại vẫn giữ tên cũ, **nhưng icon và màu đổi ngay** (xem §3.11).
 - Component con mở dialog qua `useGamesShell().openRename()`. `GameLobby` dùng cách này.
 
 ### 2.3. CSS trong `src/app/globals.css`
@@ -229,6 +229,7 @@ Các helper:
 - `EXCLUDED_ROUTE_PREFIXES` (`src/lib/constants.ts`) = `/admin`, `/contra`, `/couple`, `/music` + `GAMES_ROUTE_PREFIXES` của `gamesRegistry.ts`, nên game mới đăng ký trong registry là tự được ép tối. `isExcludedRoute()` (cùng file) khớp đúng prefix hoặc `prefix/…` (không khớp `/bangxyz`); `ThemeContext` dùng hàm này.
 - `THEME_INIT_SCRIPT` (`src/app/layout.tsx`) nhận mảng qua `JSON.stringify(EXCLUDED_ROUTE_PREFIXES)` và khớp cùng cách, để `data-theme="dark"` có ngay trước khi hydrate — không còn danh sách chép tay.
 - **Không thêm class `light:`** trong cây component của game.
+- **Nền sao 3D** (`GlobalBackground`, WebGL toàn màn hình + chunk three.js khoảng 165 KB) **không được dựng** trên route game và `/contra` (`isGamesRoute()`, `startsWith("/contra")`): các trang này có nền đặc và giao diện thời gian thực riêng, nên một canvas thứ hai phía sau chỉ tốn GPU. Bàn mới không cần làm gì thêm vì `isGamesRoute` đọc từ registry.
 
 ---
 
@@ -500,6 +501,45 @@ Mỗi game cài đặt riêng mẫu này:
 
 Dialog mới thì nên dùng `tienlen/Sheet` hoặc chép `Modal` của game gần nhất, đừng viết từ đầu.
 
+### 3.11. Hồ sơ người chơi: icon và màu (`PlayerAvatar.tsx`, `gameClient.ts`)
+
+Mỗi người chọn một icon (16 lựa chọn, hoặc chữ cái đầu của tên) và một màu (10 màu) ở cổng tên hoặc hộp "Đổi tên & biểu tượng". Mọi người cùng bàn thấy nhau.
+
+**Phía client (`gameClient.ts`)**
+- `PlayerProfile = {icon, color}`, `PROFILE_ICONS` (14 biểu tượng mèo ở đầu danh sách: 🐱 🐈 🐈‍⬛ 😺 😸 😹 😻 😼 😽 🙀 😿 😾 🐆 🦁), `PROFILE_COLORS`, `DEFAULT_PROFILE`.
+- `getSavedProfile()` / `saveProfile()` / `usePlayerProfile()`: lưu ở `localStorage["games:playerProfile"]`, có đồng bộ giữa các tab (sự kiện `storage`) và kiểm tra giá trị (`validProfile`).
+- `useGameRoom` gửi `look: getSavedProfile()` trong `join` / `watch`, và **khi hồ sơ đổi giữa chừng** gửi `{type:"look", look}` qua kết nối đang mở — nên đổi icon / màu có hiệu lực ngay tại bàn, không cần vào lại. Tên thì vẫn đóng băng khi mount.
+- Mỗi state view có thể kèm `looks: { [tên]: {icon, color} }` (be_game gắn ở hub, xem `be_game/docs/GUIDE.md`). `useGameRoom` đẩy nó vào một kho module (`setRoomLooks`); đọc bằng `useLookOf(name)` (một người) hoặc `useRoomLooks()` (cả bàn).
+
+**Component (`PlayerAvatar.tsx`)**
+- `PlayerAvatar({name, profile, className})`: chip tròn icon trên nền màu (dùng ở thanh trên và bộ chọn).
+- **`SeatAvatar({name, className, fallbackClassName, out?})`**: chip ở ghế của một game. Có `look` thì dùng icon + màu của người đó; chưa có (server cũ, hoặc `out`) thì giữ nguyên kiểu cũ của game qua `fallbackClassName`. Game mới nên dùng nó cho mọi chip avatar ở ghế.
+- `ProfilePicker({name, value, onChange})`: lưới icon + hàng màu, dùng ở `NameGate` và `RenameDialog`.
+
+Đã gắn `SeatAvatar` ở: Tiến Lên, Mèo Nổ, Ô Ăn Quan, Đá Quý (ghế và danh sách), Đấu Súng và Ô Ăn Quan (danh sách ghế chờ), Cờ Tỷ Phú và Cờ Cá Ngựa (cạnh tên; quân cờ của hai game này là thứ nhận ra người chơi trên bàn nên giữ nguyên). **Cờ Tỷ Phú có riêng** quân cờ + màu nhà chọn trong bàn (`pick`, không được trùng nhau, xem §4.3).
+
+### 3.11b. Hiệu ứng chiến thắng (`WinCelebration.tsx`)
+
+`<WinCelebration show playing won title? />`: lớp phủ `fixed inset-0 z-40 pointer-events-none` (dưới modal), pháo giấy canvas + banner "🏆 Bạn thắng!" cho người thắng; người thua/khán giả chỉ thấy banner nhỏ `title` ("🏆 <tên> thắng"). Chạy ~4 giây rồi mờ dần. `prefers-reduced-motion`: chỉ banner, không canvas. `show` = ván đã kết thúc, `playing` = đang có ván chưa kết thúc; hiệu ứng **chỉ chạy khi component đang mount thấy `playing` chuyển sang `show`**, nên tải lại / vào lại phòng đã có ván kết thúc không chạy lại. Đặt nó trong `Table` của mỗi game (đã gắn ở cả 7 game). Người thắng: Tiến Lên `instantWin.playerId ?? finished[0]`, Mèo Nổ / Cờ Tỷ Phú / Đá Quý / Cờ Cá Ngựa `finished[0]`, Đấu Súng `winners.includes(meId)`, Ô Ăn Quan `rank === 0` và có `winner` (hoà thì chỉ banner "Hoà").
+
+### 3.12. Phím tắt trên máy tính (`useHotkeys.ts`)
+
+`useHotkeys(bindings, enabled = true, allowInDialog = [])` gắn **một** listener `keydown` trên `window`. `bindings` là `{ [key]: handler | undefined }` với `key` là `KeyboardEvent.key` (chữ thường: `"r"`, `" "`, `"Enter"`, `"Escape"`, `"1"`…). Handler lấy bản mới nhất ở mỗi lần bấm (lưu trong ref), nên có thể đóng trên state hiện tại.
+
+Hook **bỏ qua** phím khi:
+- đang gõ trong `input`/`textarea`/`select`/`contenteditable` (chat, ô nhập);
+- giữ Ctrl / Alt / Meta, hoặc phím lặp (`e.repeat`);
+- Space / Enter mà tiêu điểm đang ở một nút / link (trình duyệt đã tự "bấm", nếu xử lý nữa sẽ chạy hai lần);
+- có `[role="dialog"]` đang mở — trừ `Escape` và các phím trong `allowInDialog`.
+
+**Quy ước khi thêm phím tắt cho một nút**
+1. Handler lặp lại **đúng điều kiện** của nút (lượt mình, đúng phase, không `busy`, nút không `disabled`). Không bao giờ để phím kích hoạt thứ mà nút không cho làm.
+2. Phím không thể huỷ (mua, kết thúc lượt, phá sản…) chỉ nên gắn khi nó cũng là nút chính đang hiện.
+3. Ghi phím lên nút bằng `<kbd>` với class `hidden … lg:inline [@media(pointer:coarse)]:hidden` (chỉ máy tính, không hiện trên cảm ứng) và thêm một dòng "Phím tắt: …" cùng điều kiện hiển thị.
+4. Trước khi thêm, `grep` các listener `keydown` có sẵn trong file (Esc của dialog thường đã có) để không chạy đôi.
+
+Bảng phím của từng game nằm ở mục "Phím tắt" trong §4.
+
 ---
 
 ## 4. Từng game
@@ -557,6 +597,18 @@ Client dùng `detectCombo` / `canBeat` để bật hoặc tắt nút Đánh trư
 - Nút chép link mời có fallback bằng textarea + `execCommand("copy")` cho trang http, rồi tới `window.prompt`.
 - Union `ClientMessage` trong `protocol.ts` thiếu `chat` và `settings`.
 
+**Phím tắt** (`useHotkeys`, bật khi đang chơi và có bài trên tay; mỗi phím lặp lại điều kiện `canPlay` / `canPass` của nút):
+
+| Phím | Việc |
+|---|---|
+| `D` hoặc `Enter` | ĐÁNH / CHẶT (`Enter` không chạy khi tiêu điểm đang ở một lá bài hoặc nút — dùng `D`) |
+| `P` | Bỏ lượt |
+| `B` hoặc `Esc` | Bỏ chọn (`Esc` chỉ khi bảng điểm và lịch sử đều đóng, để khỏi chạy cùng listener `Esc` của `Sheet`) |
+| `S` | Đổi cách xếp bài (`cycleSort`, rút ra từ nút "Xếp") |
+| `Enter` (ở `WaitingPanel`) | Bắt đầu / Ván mới, chỉ chủ bàn và có ≥2 người |
+
+`ActionButton` có prop `hotkey` hiện `<kbd>`; dòng "Phím tắt:" nằm cạnh nút xếp bài.
+
 ### 4.2. Mèo Nổ
 
 Luật và protocol: `be_game/docs/games/meono.md`.
@@ -607,19 +659,31 @@ Khi số người nằm ngoài khoảng `minPlayers`–`maxPlayers` của chế 
 - `MeoCommand` trong `protocol.ts` thiếu `see`, `dig`, `chat` và `settings.preset`.
 - `MeoRules` dùng màu chữ emerald của Tiến Lên.
 
+**Phím tắt** (`useHotkeys`, chỉ khi còn sống; nút có `DockBtn hotkey` hiện phím):
+
+| Phím | Việc |
+|---|---|
+| `D` | Đánh lá / bộ đang chọn (cùng điều kiện `canPlay`) |
+| `R` | Rút bài (nút xanh RÚT BÀI, `canDraw`) |
+| `N` | "Không!" (`canNope`, không `busy`) |
+| `B` hoặc `Esc` | Bỏ chọn bài, mục tiêu và lá gọi tên (`Esc` chỉ khi hướng dẫn, bảng điểm, chồng bỏ đều đóng) |
+
+Các lời nhắc của `ChoicePanel` (xem bài, cho bài, đào, nhét, đổi) **không** có phím vì chưa có thao tác một phím nào rõ ràng và an toàn. Dòng gợi ý phím nằm cuối dòng hướng dẫn dưới dock (`short:hidden`).
+
 ### 4.3. Cờ Tỷ Phú
 
 Luật và protocol: `be_game/docs/games/typhu.md`.
 
-**File map.** Tất cả nằm trong một file: `typhu/TyPhuTable.tsx` (khoảng 2300 dòng).
+**File map.** Tất cả nằm trong một file: `typhu/TyPhuTable.tsx` (khoảng 2500 dòng).
 
 | Component / hàm | Vai trò |
 |---|---|
-| `TyPhuTable` (default), `Table` | Gốc bàn. State của `Table`: `openSquare`, `showTrade`, `showScores`, `showRules`, `showAssets`, `busy`, `cardFx`, `buildFx`, `bankruptFx`. `run()` bọc `act` và bật `busy` trong lúc chờ. |
-| `TOKENS` (export), `money(n)` (export), `SQUARE_ICON` | 6 quân cờ (🛵 🐃 🚲 🚤 🐉 🎩). `money` định dạng `"1.500tr"`. |
-| `useWalkingTokens(g)`, `walkPath(...)` | Quân đi từng ô. Mỗi bước `max(60, min(220, 2600/len))` ms. Đi lùi khi bị lùi ≤ 3 ô. Vào tù thì đi tới ô 30 rồi nhảy. |
-| `cellOf(i)` | Chỉ số ô → hàng/cột 1-based trên grid 11×11. Ô Khởi hành ở góc dưới phải. |
-| `Cell`, `Building`, `Buildings` | Một ô bàn cờ: dải màu, màu chủ sở hữu, giá, nhãn THẾ CHẤP, quỹ đỗ xe, các quân. Nhà mới có hiệu ứng nảy lên. |
+| `TyPhuTable` (default), `Table`, `TableBody` | `Table` chỉ bọc `NowProvider` quanh `TableBody` (gốc bàn). State của `TableBody`: `openSquare`, `picking`, `showLog`, `showTrade`, `showScores`, `showRules`, `showAssets`, `busy`, `cardFx`, `buildFx`, `bankruptFx`. `run()` bọc `act` và bật `busy` trong lúc chờ. Đầu hàm đặt biến module `BOARD = boardOf(g?.map ?? settings.map)` (xem "Bản đồ" bên dưới). |
+| **`NowProvider`** + `NowContext`, `useSecondsLeft()`, `NowClock` | Đồng hồ 500 ms nằm trong **context**, không phải state của `TableBody`: chỉ các chỗ hiện đếm ngược (`Centre`, `AssetPanel`, `TradeCard`, đồng hồ ván) render lại mỗi nhịp; cả bàn (ô cờ, dòng người chơi…) không còn render lại 2 lần/giây. Provider render `children` là prop nên React bỏ qua cây con khi chỉ giá trị context đổi. Cần đếm ngược ở chỗ mới → `useSecondsLeft()(deadline)`. |
+| `TOKENS` (export), `pieceOfSeat(seat)`, `money(n)` (export), `SQUARE_ICON` | 6 quân khởi đầu (🛵 🐃 🚲 🚤 🐉 🎩). `pieceOfSeat` = `seat.piece` do server gửi, thiếu (server cũ) thì rơi về `TOKENS[seat.color]` — **đừng đọc `seat.piece` trực tiếp**, nó từng làm bàn crash trên server cũ. `money` định dạng `"1.500tr"`. |
+| `useWalkingTokens(g)`, `walkPath(...)` | Quân đi từng ô. Mỗi bước `max(60, min(220, 2600/len))` ms. Đi lùi khi bị lùi ≤ 3 ô. Vào tù thì đi tới ô Vào tù (tìm theo `kind === "gotojail"` trên bản đồ hiện tại) rồi nhảy. |
+| `cellOf(i, side)` | Chỉ số ô → hàng/cột 1-based trên grid `(side+1)²` với `side` = ô mỗi cạnh (10 / 12 / 14). Ô Khởi hành ở góc dưới phải. |
+| **`Cell`** (`memo`), `Building`, `Buildings` | Một ô bàn cờ: dải màu, màu chủ sở hữu, giá, nhãn THẾ CHẤP, quỹ đỗ xe, các quân. Nhà mới có hiệu ứng nảy lên. `Cell` chỉ nhận **dữ liệu nó vẽ** (`CellProps`: `index`, `edge`, `sq`, `deed`, `pot`, `owner`, `here: CellToken[]`, `highlight`, `onOpen`) và `memo` với `sameCell` so từng trường — không so identity vì mỗi state từ server là object mới. Quân đứng trên mỗi ô (kể cả đang đi) do `TableBody` gom vào `hereByPos`. **Mọi thứ ảnh hưởng tới cách vẽ phải nằm trong props** (xem bẫy §9: `edge`). |
 | `Die`, `PIPS` | Xúc xắc |
 | **`Centre`** | Giữa bàn: tiêu đề, xúc xắc, dòng lượt, `TurnRing`/`MyTurnBadge`, các nút theo từng phase (dùng `CBtn`), 1–2 dòng log cuối (chỉ trên điện thoại), gợi ý khi ở tù hoặc phá sản. Nó mở `BuildPanel` và chứa `DebtControls`. |
 | `BuyHint` | Dòng dưới nút Mua: tiền thuê, số ô cùng nhóm mình đã có |
@@ -632,14 +696,18 @@ Luật và protocol: `be_game/docs/games/typhu.md`.
 | `BuildOverlay`, `CardOverlay` | Banner khi xây nhà (log bắt đầu bằng "🏠"). Lá Cơ hội / Khí vận lật ra, bấm để đóng, `pointerEvents:"none"` khi đang thoát. |
 | `PlayerRow` | Dòng người chơi: quân, 👑, tiền, tổng tài sản, tù, thẻ ra tù, điểm, nút Kích, các chip giấy tờ đất (bấm để mở `SquareModal`), `SeatBubble` |
 | **`SquareModal`** + `OwnableInfo` + `SQUARE_TEXT` | `Modal` nền sáng: thông tin ô (bảng tiền thuê và giá xây), và các nút quản lý khi tới lượt mình |
-| `TradeCard`, `TradeModal`, `CashInput` | Giao dịch: thẻ trong cột bên (Đồng ý / Từ chối / Rút lời mời) và modal soạn đề nghị (có `Picker` lồng bên trong) |
+| **`PiecePicker`** | Hộp "Quân cờ & màu nhà": 12 quân + 8 màu, mục đã có người dùng bị làm mờ; bấm → `act({type:"pick", emoji, color})`. Mở khi bấm quân tròn của chính mình ở `PlayerRow` (`onPick`). Đổi được cả giữa ván. |
+| `LogList`, **`LogModal`** | Danh sách log (mới nhất ở trên, tô màu theo `tone`) dùng ở panel "Diễn biến" và hộp "Toàn bộ diễn biến" (nút 📜 trên thanh trên, phím `L`). Server giữ 150 dòng. |
+| `LoanCard`, `LoanModal` | Vay tiền: thẻ xin vay ở giữa bàn (Cho vay / Từ chối / Rút), modal soạn (người cho vay, số tiền, lãi 10 / 20 %, dòng "sau 5 lượt phải trả …"), cột "🏦 Khoản vay" ở panel bên liệt kê các khoản đang nợ |
+| `rentDue()` + `SquareModal` | Bấm vào ô đã có chủ: khung lớn **in đậm số tiền phải trả** khi dừng ở đó (đất trống ×2 nếu đủ nhóm, nhà, sân bay, công ty = tổng xúc xắc × k, 0 nếu thế chấp) và tô đậm đúng hàng trong bảng thuê |
+| `TradeCard`, `TradeModal`, `CashInput` | Giao dịch: thẻ **ở giữa bàn cờ**, trong `Centre` (Đồng ý / Từ chối / Rút lời mời — điện thoại thấy ngay không phải cuộn xuống), nút 🤝 cũng ở `Centre`, và modal soạn đề nghị (có `Picker` lồng bên trong) |
 | `Waiting` | Giữa bàn trước ván (số người/6) hoặc sau ván (kết quả với `DeltaBadge`), nút Bắt đầu / Ván mới |
-| **`TableSettings`**, `SettingSelect`, `Toggle`, `SELECT` | Luật bàn trong `SettingsTabs light` |
+| **`TableSettings`**, `RULE_PRESETS`, `SettingSelect`, `Toggle`, `SELECT` | Luật bàn trong `SettingsTabs light`, với hàng nút **"Luật nhanh"** phía trên (xem Cài đặt) |
 | `TyPhuRules` (export), `RulesModal` | Luật, cũng dùng ở lobby |
 | **`Modal({children,onClose,dark?})`** | Dialog của file (§3.10) |
 
 **Bố cục**
-- Bàn cờ là grid vuông, `gridTemplateColumns/Rows: "1.6fr repeat(9, 1fr) 1.6fr"`. `Centre` chiếm `2 / 11` và tự cuộn (`overflow-y-auto`, `justify-center-safe`).
+- Bàn cờ là grid vuông, `gridTemplateColumns/Rows: 1.6fr repeat(side−1, 1fr) 1.6fr` với `side = BOARD.length / 4` (11×11, 13×13 hoặc 15×15). `Centre` chiếm `2 / side+1` và tự cuộn (`overflow-y-auto`, `justify-center-safe`).
 - **Điện thoại dọc:** một cột. Bàn cờ rộng hết màn hình nhưng không cao quá màn hình (`max-w-[min(100%,calc(100dvh-7rem))]`). Dưới đó là `aside`, với `max-lg:pb-14` để chừa chỗ cho chat.
   - Danh sách người chơi 2 cột.
   - Tiêu đề "CỜ TỶ PHÚ" và giá các ô bị ẩn.
@@ -648,7 +716,7 @@ Luật và protocol: `be_game/docs/games/typhu.md`.
 - **`short:`:** grid `[auto_minmax(0,1fr)]`. Bàn cờ bên trái, vuông `calc(100dvh-3.75rem)`. `aside` bên phải tự cuộn. Chữ trong ô `short:text-[6px]`/`[8px]`, xúc xắc `short:h-8`.
 - **`lg:`:** grid `[minmax(0,calc(100dvh-5rem))_20rem]` căn giữa. `AssetPanel` cuộn với `lg:max-h-[calc(100dvh-16rem)]`.
 - **`xl:`:** cột bên `22rem`, bỏ `max-w`, tên ô `xl:text-[10px]`.
-- Thứ tự trong `aside`: `AssetPanel` (khi mở), thẻ luật (điện thoại / `short:`), "Người chơi" + nút 🤝, `TradeCard`, "Diễn biến" (`max-h-64`).
+- Thứ tự trong `aside`: `AssetPanel` (khi mở), thẻ luật (điện thoại / `short:`), "Người chơi", "Diễn biến" (`max-h-64`).
 
 **Hiệu ứng** (framer-motion, không có keyframes riêng)
 - Quân đi từng ô (`motion.span layoutId`, tween 0,16 giây).
@@ -662,20 +730,40 @@ Luật và protocol: `be_game/docs/games/typhu.md`.
 - `board.ts`: `BOARD`, `GROUP_COLORS`, `houseCost`, `mortgageValue`, `unmortgageCost`, `landSaleValue`, các `*_OPTIONS` của cài đặt…
 - `protocol.ts`: `TYPHU_WS_PATH`, `STEP_SECONDS_OPTIONS` và các view types.
 
-Phải khớp be_game `src/typhu/board.ts` và `protocol.ts`. Lưu ý: `TyPhuTable` tự khai báo lại `BOARD_SIZE = 40` và `GO_TO_JAIL_POS = 30`.
+Phải khớp be_game `src/typhu/board.ts` và `protocol.ts`. `board.ts` là **bản chép nguyên văn** (chép lại mỗi khi be_game đổi): ngoài `BOARD` chuẩn còn có `MapSize`, `MAP_SIZES`, `MAP_LABEL`, `boardOf(map)`, `jailPos`, `CHANCE`/`CHEST`. `protocol.ts` có thêm `TPPiece`, `PIECE_EMOJIS`, `PIECE_COLORS`, `settings.map`, `current.map`.
 
-**Cài đặt.** `TableSettings` (`SettingsTabs light`, mỗi thay đổi gửi `act({type:"settings", …})`) có bốn tab:
+**Bản đồ.** Có 3 cỡ (40 / 48 / 56 ô, `MapSize`). `BOARD` trong `TyPhuTable.tsx` là **biến module** (`let BOARD: Square[] = STD_BOARD`, và `groupPositions` bọc theo nó) được `TableBody` gán lại ở đầu mỗi lần render theo bản đồ của ván — để các hàm ngoài component (`mortgageBlocker`, `buildableGroups`, `walkPath`…) không phải truyền bản đồ. Hệ quả: chỉ có **một** bàn Tỷ Phú trên trang, và component nào phụ thuộc kích thước bản đồ nhưng được `memo` thì phải nhận nó qua props.
+
+**Cài đặt.** `TableSettings` (`SettingsTabs light`, mỗi thay đổi gửi `act({type:"settings", …})`) có năm tab (💰, 🗺️, ⏱️, 🏠, 🏆):
+- **Luật nhanh** (`RULE_PRESETS`, hàng nút phía trên các tab, chỉ chủ bàn bấm được): gửi **một** message `settings` gộp nhiều trường. "⚡ Luật 2 người" = `doubleGo: true`, `timeLimit: 0` (đến khi còn 1 người), `stepSeconds: 45`. "⚡ Luật 3+ người" = như trên + `timeLimit: 45`, `buildRule: "chain"`, `needGroup: false`. Nút hợp với số người đang ngồi được tô đậm và ghi "(hợp với N người)".
 - 💰 Tiền: `startCash`, `goSalary`, `doubleGo`, `parkingPot`, `unmortgageFee`, `landSalePct`
+- 🗺️ Bản đồ: `map` (`MAP_SIZES`, nhãn `MAP_LABEL`)
 - ⏱️ Lượt: `timeLimit`, `stepSeconds`, `doubleRoll`, `jailRent`
-- 🏠 Luật nhà: `buildRule` (`"even"`/`"chain"`), `needGroup`, `risingCost`, `sellLand`, `bankruptTo`
+- 🏠 Luật nhà: `buildRule` (`"even"`/`"chain"`), `needGroup` (tắt thì chưa đủ nhóm chỉ xây tối đa 3 nhà), `risingCost`, `sellLand` (đất đang thế chấp cũng bán được, chỉ nhận phần chênh), `bankruptTo`
 - 🏆 Điểm: `RankPointsPicker`
+
+**Phím tắt** (`useHotkeys`, lượt của mình; `Centre`):
+
+| Phím | Việc |
+|---|---|
+| `Space` | Hành động chính lúc đó: tung xúc xắc (phase `roll`), mua đất (`buy`), kết thúc lượt (`end`) |
+| `R` / `B` / `S` / `E` | Tung xúc xắc / Mua / Bỏ qua / Kết thúc lượt |
+| `X` | Mở hộp Xây nhà |
+| `A` | Mở Thế chấp / Bán (`AssetPanel`) |
+| `J` / `K` | Nộp phạt ra tù / Dùng thẻ ra tù |
+| `L` | Mở / đóng "Toàn bộ diễn biến" (cả khi chưa tới lượt; nằm ở `TableBody`, `allowInDialog: ["l"]`) |
+| `Esc` | Đóng hộp Xây nhà |
+
+`CBtn` có prop `hotkey` (hiện `<kbd>`). Không bật khi `busy`. Dòng "Phím tắt: …" nằm dưới bàn (`lg:` và không cảm ứng).
 
 **Giới hạn đã biết**
 - Chưa có đấu giá, chưa có hiệu ứng khi tiền thay đổi.
+- Hộp xây nhà ghi "Đất trống · thuê Xtr" theo `rent[0]`, nhưng khi chủ sở hữu cả nhóm thì tiền thu thực tế gấp đôi.
 - Kích dùng `ConfirmButton` (bấm 2 lần).
 - Nhiều chữ viết cứng, không theo cài đặt: "30 giây" trong luật và trong `TradeModal`, "nộp 50tr" trong `SQUARE_TEXT`.
 - `SquareModal` so sánh chuỗi lỗi của server (`m.sellLand !== "Luật bàn không cho bán đất"`) để ẩn nút Bán đất.
 - `TPCommand.settings` trong `protocol.ts` thiếu nhiều trường mà UI vẫn gửi.
+
 
 ### 4.4. Đá Quý (Splendor)
 
@@ -686,7 +774,7 @@ Luật và protocol: `be_game/docs/games/splendor.md`.
 | File | Vai trò / component chính |
 |---|---|
 | `splendor/SplendorTable.tsx` | Default `SplendorTable`. `paymentPlan(cardId, p)` tính số phải trả từ bonus, rồi đá, rồi vàng (bản sao `paymentFor` của be_game). **`Table`** gồm market, cột người chơi, toast và các modal. `PlayerPanel` hiện avatar, uy tín, `BonusPip`, đá, thẻ đang giữ (kéo để xếp được bằng `DraggableRow` + `useHandOrder`, key `` `splendor:order:${code}:${meId}` ``), quý tộc và nút Kích. `CardModal` có nút Mua / Giữ và `CostCompare` (bảng giá so với "Bạn có"). `DiscardPanel` dùng khi phải trả bớt đá xuống 10. `Waiting` là phòng chờ, kết quả và luật bàn. `SplendorRules` được export. `Modal` ở cuối file. |
-| `splendor/Pieces.tsx` | `GemIcon`, `GemCount`, `TokenChip` (`sm`/`md`/`lg`, `selected`, `dimmed`, `count`), `DevCardView` (`sm`/`md`/`lg`, `affordable` cho viền xanh, `highlight` cho viền vàng), `CardBack` (chồng theo tier), `NobleTile`, `BonusPip`, `GEM_STYLE`. `MD_CARD_W` là chuỗi class responsive cho độ rộng lá. |
+| `splendor/Pieces.tsx` | `GemIcon`, `GemCount`, `TokenChip` (`sm`/`md`/`lg`, `selected`, `dimmed`, `count`), `DevCardView` (`sm`/`md`/`lg`/`fluid`, `affordable` cho viền xanh, `highlight` cho viền vàng), `CardBack` (chồng theo tier; `sm`/`md`/`fluid`), `NobleTile`, `BonusPip`, `GEM_STYLE`. `MD_CARD_W` là chuỗi class responsive cho độ rộng lá; `MD_SLOT` là cùng độ rộng nhưng cho phép co lại (`min-w-0 shrink grow-0`), dùng bọc từng lá `size="fluid"` trong hàng chợ. |
 
 **Art.** Ảnh WebP có sẵn trong repo ở `public/games/splendor/`, **không** đi qua script art. URL được dựng trong `Pieces.tsx`, không có query version:
 
@@ -700,7 +788,7 @@ Mặt sau của chồng bài dùng lại art của lá (`BACKS`), làm mờ vớ
 
 **Bố cục**
 - **Điện thoại dọc:** một cột.
-  - Hàng quý tộc ở trên (`lg:hidden short:hidden`), rồi 3 hàng tier (chồng bài + 4 lá, `overflow-x-auto`). `MD_CARD_W` = `w-[min(4.8rem,calc((100vw-4.75rem)/5))]`, vừa 5 lá một hàng.
+  - Hàng quý tộc ở trên (`lg:hidden short:hidden`), rồi 3 hàng tier (chồng bài + 4 lá). **Hàng chợ không cuộn ngang**: mỗi lá nằm trong một ô `MD_SLOT` (rộng đúng `MD_CARD_W`, nhưng được co lại khi cột hẹp hơn 5 lá) và `DevCardView`/`CardBack` dùng `size="fluid"` (`w-full`) — chiều cao theo `aspect-[5/7]`. Độ rộng của ô phải là `width` xác định (không phải `basis`) để cột lấy được kích thước tự nhiên; dùng `basis` làm cột co về 0. `MD_CARD_W` = `w-[min(4.8rem,calc((100vw-4.75rem)/5))]`, vừa 5 lá một hàng trên điện thoại.
   - Ngân hàng đá wrap: `TokenChip lg` cao `h-11`, `min-[400px]:h-14`, `sm:h-16`.
   - Cột người chơi nằm dưới market, panel của mình lên đầu (`max-lg:order-first`).
   - Phần tử gốc có `pb-24` để chừa chỗ cho chat.
@@ -730,6 +818,19 @@ Phải khớp be_game `src/splendor/cards.ts` và `protocol.ts`, và `paymentPla
 - Chữ viết cứng: "/4 người", "Đá …/10", tối thiểu 2 người.
 - Art không có cache-busting.
 - Kích dùng `ConfirmButton` dùng chung (bấm 2 lần).
+
+**Phím tắt** (`useHotkeys`; nút có `<kbd>`, `TokenChip` có prop `hotkey`):
+
+| Chỗ | Phím | Việc |
+|---|---|---|
+| Kho đá, lượt mình | `W` `U` `G` `R` `K` | Chọn đá trắng / xanh dương / xanh lá / đỏ / đen như bấm vào viên đá; bấm lần hai cùng phím = lấy 2 viên |
+| | `Enter` hoặc `Space` | "Lấy đá". Khi cảnh báo quá 10 viên: `Enter` = "OK, lấy đá", `Esc` = "Chọn lại" |
+| | `Esc` | Bỏ chọn (chỉ khi không có dialog) |
+| Modal một thẻ | `B` / `G` | Mua / Giữ (`Esc` đóng modal như cũ) |
+| Panel bỏ bớt đá | `W` `U` `G` `R` `K` `V` | Trả lại 1 viên màu đó (`V` = vàng) |
+| | `Enter` / `Esc` | "Trả lại" / "Chọn lại" |
+
+Lưu ý `G` nghĩa là xanh lá ở kho đá nhưng là "Giữ" trong modal thẻ.
 
 ### 4.5. Đấu Súng (Bang!)
 
@@ -777,6 +878,18 @@ Phải khớp be_game `src/bang/cards.ts` và `protocol.ts`.
 - Chưa có hiệu ứng đánh lá, trúng đạn hay chết.
 - Toast là một div tĩnh ở `bottom-20`.
 - Nhân vật hoặc lá chưa có art thì hiện emoji. Hiện còn thiếu art cho một vài lá, nhân vật và sự kiện; script in ra danh sách khi chạy.
+
+**Phím tắt** (`useHotkeys`):
+
+| Chỗ | Phím | Việc |
+|---|---|---|
+| Lượt mình | `E` | Kết thúc lượt |
+| Form hành động | `Enter` / `Esc` | Xác nhận / Mua / "Bỏ N lá & qua lượt" · Huỷ |
+| Giai đoạn rút | `D` (hoặc `Enter` khi không có kiểu rút đặc biệt) | "Rút bình thường" |
+| Lời nhắc phản ứng | `Enter` | Đỡ / Né / Cứu / Giữ / Úp / "Bỏ N lá" |
+| | `P` | "Bỏ qua" (chỉ với né và cứu) |
+
+**Cố ý không có phím:** "Chịu máu" / "Mất máu", các lựa chọn một lá (cửa hàng, nhặt, chép), chọn nhân vật, và các kiểu rút đặc biệt — những thứ không thể hoàn tác hoặc cần nhìn kỹ.
 
 ### 4.6. Cờ Cá Ngựa
 
@@ -830,6 +943,17 @@ Phải khớp be_game `src/cangua/board.ts` và `protocol.ts`. Cách mã hoá v�
 - Chỉ có viền đếm ngược, không có số giây.
 - `ScoreboardModal` dùng màu emerald mặc định, lệch tông nâu của bàn.
 - Kích dùng `ConfirmButton` dùng chung (bấm 2 lần).
+
+**Phím tắt** (`useHotkeys`; thay listener Space/Enter cũ, nên không còn chạy khi dialog mở hoặc tiêu điểm ở nút):
+
+| Phím | Việc |
+|---|---|
+| `Space`, `Enter` hoặc `R` | Tung xúc xắc (lượt mình, phase `roll`, không `busy`) |
+| `1`–`4` | Đi con ngựa đang sáng thứ N, theo thứ tự `g.legal`; số hiện trên quân (huy hiệu `<kbd>`, chỉ máy tính) |
+| `Space` / `Enter` | Đi luôn khi chỉ có đúng một nước hợp lệ |
+| `Esc` | Đóng `Modal` (listener có sẵn của `Modal` được giữ) |
+
+Nút tung có huy hiệu `Space`; câu hướng dẫn nước đi ghi "(phím 1–N)".
 
 ### 4.7. Ô Ăn Quan
 
@@ -887,6 +1011,17 @@ Sảnh chờ hiện `đang ngồi/4`, nút bắt đầu cần ít nhất 2 ngư�
 - Replay ăn vào thời gian của người đi tiếp, vì deadline phía server vẫn chạy.
 - `OAnQuanRules` không đọc cài đặt.
 - Kích dùng `ConfirmButton` dùng chung (bấm 2 lần).
+
+**Phím tắt** (`useHotkeys`):
+
+| Phím | Việc |
+|---|---|
+| `1`–`5` | Chọn ô trên hàng của mình, đếm từ trái sang phải; bấm lại ô đang chọn = bỏ chọn. Huy hiệu số hiện trên các ô chọn được |
+| `←` / `A` | Rải trái (hướng −1) |
+| `→` / `D` | Rải phải (hướng +1) |
+| `Esc` | Bỏ chọn (chỉ khi có ô đang chọn và không có bảng điểm / luật; `Modal` vẫn tự đóng bằng `Esc`) |
+
+Điều kiện: lượt mình, không đang animation (`canMove`), không `busy`. Nút Rải trái / Rải phải / Bỏ chọn có huy hiệu `←`, `→`, `Esc`. Dòng "Phím tắt:" hiện khi chưa chọn ô. Với 3–4 người (bàn vòng), `1`–`5` vẫn chạy từ trái sang phải dọc **cạnh của mình**.
 
 ---
 
@@ -990,6 +1125,10 @@ npm run build            # build đầy đủ (bắt cả lỗi của next)
 ```
 
 Lưu ý: nhiều bàn gửi lệnh qua `act(msg: Record<string, unknown>)`, nên type check **không** bắt được lệnh sai tên hoặc thiếu trường. Phải chạy thử với server thật.
+
+### 7.0. Chạy bàn cục bộ khi không có database
+
+Layout gốc đọc cấu hình site từ Postgres, nên `npm run dev` không có DB sẽ lỗi trước cả khi tới trang game. Để thử riêng giao diện game: tạo `.env.local` với `DATABASE_URL` giả (`postgresql://x:x@127.0.0.1:1/x`), `NEXT_PUBLIC_TIENLEN_SERVER_URL=http://localhost:4000`, `AUTH_SECRET=test`; chạy `npx prisma generate` một lần; và **tạm** bọc ba lời gọi trong `src/app/layout.tsx` (`getPublishedNavLinks/SocialLinks/SiteConfig`) bằng `.catch(() => …)` trả giá trị mẫu — **đừng commit** chỗ này (`git checkout src/app/layout.tsx` khi xong). Trang chủ vẫn lỗi (cần DB), nhưng `/games` và mọi bàn chạy được. Chạy be_game (`npm start` trong repo be_game) ở cổng 4000 rồi dùng bot (§7.1).
 
 ### 7.1. Bot qua WebSocket
 
@@ -1138,4 +1277,15 @@ Giả sử game có id `xyz` và route `/xyz`.
 - **Deadline phải qua `localize`.** So `deadline` của server trực tiếp với `Date.now()` của client thì sai khi đồng hồ hai máy lệch nhau. Luôn dời deadline trong `localize`, và khi thêm trường deadline mới, nhớ thêm nó vào đó.
 - **Bản sao lib bị lệch.** Đổi luật hoặc protocol ở be_game mà quên chép sang `src/lib/<game>/` thì UI vẫn compile nhưng hiển thị hoặc cho phép sai. Danh sách lá của script art cũng đọc từ `src/lib/<game>/cards.ts`.
 - **iOS tự zoom khi focus input.** Font của input phải ≥ 16px. Rule `.game-shell input` đã lo việc này; input đặt ngoài `.game-shell` (ví dụ trong portal ra `document.body`) sẽ không được hưởng.
+- **Biến module và `memo`.** `TyPhuTable` giữ `BOARD` (bản đồ hiện tại) ở biến module. Một component `memo` mà cách vẽ phụ thuộc vào nó (vị trí lưới của `Cell`) nhưng không nhận nó qua props sẽ **không vẽ lại khi đổi bản đồ** (từng làm các ô đứng sai chỗ khi đổi 40 → 56 ô). Mọi thứ ảnh hưởng tới hiển thị phải nằm trong props và trong hàm so sánh của `memo`.
+- **Đồng hồ trong state của gốc bàn.** Đừng `setState` mỗi 500 ms ở component gốc của một bàn lớn: nó vẽ lại toàn bộ cây. Dùng context như `NowProvider` của Tỷ Phú.
+- **Đọc trường mới của server không phòng thủ.** Frontend và be_game deploy tách rời; client mới có thể nói chuyện với server cũ (và ngược lại). Trường thêm sau (`seat.piece`, `looks`, `current.map`) có thể thiếu: luôn có giá trị dự phòng (`pieceOfSeat`, `?? "std"`), đừng `seat.piece.emoji` trực tiếp.
+- **Phím tắt chạy đôi.** Space / Enter trên nút đang focus đã được trình duyệt xử lý; `useHotkeys` bỏ qua trường hợp này. Nếu file đã có listener `keydown` riêng (Esc của dialog…), đừng thêm một binding trùng — kiểm tra `grep keydown` trước.
 - **`short:` và `lg:` cùng khớp.** Xem §5.1: tablet hoặc điện thoại ngang có thể vừa `sm:`/`md:` vừa `short:`, nên phải kiểm tra cả hai.
+
+- **Tỷ Phú: `Modal` phải render qua portal.** Giữa bàn cờ có lớp có `overflow` / `backdrop-filter`; một phần tử `fixed` nằm trong đó bị kẹt trong khung đó (hộp thoại "Xây nhà" từng chỉ hiện trong khu trung tâm và không đóng được trên tablet / điện thoại). `Modal` trong `TyPhuTable.tsx` dùng `createPortal(…, document.body)`, nên mở từ đâu cũng nằm trên cùng. Khung xanh ở giữa bàn chỉ vừa nội dung (`max-w-md`, nền mờ 85 %) để ảnh nền `public/games/typhu/center.webp` lộ ra xung quanh.
+- **Tỷ Phú: hiệu ứng xây.** `BuildBurst` (trong `Cell`) nổ ngay trên ô khi số nhà tăng — chớp sáng, vòng sóng lan ra và tia lửa (khách sạn: vàng, to hơn). Nhà / khách sạn trên bản đồ có viền trắng mỏng (`drop-shadow` 4 hướng) để nổi trên dải màu. Banner giữa bàn (`BuildOverlay`) vẫn giữ.
+- **Thư viện dùng chung cho game** (đã thêm vào `package.json`): `@number-flow/react` (số tiền nhảy mượt — `PlayerRow` của Tỷ Phú), `@formkit/auto-animate` (`useAutoAnimate` cho danh sách log / người chơi / khoản vay), `sonner` (một `<Toaster>` trong `GamesShell`; lỗi lệnh và lời mời đổi / vay gửi cho mình hiện bằng `toast()`), `canvas-confetti` (nạp động trong `WinCelebration`, pháo từ hai góc + pháo hoa) và `@use-gesture/react` (`PinchZoom.tsx`: pinch-zoom 1×–2,6× và kéo để di chuyển bàn Tỷ Phú dưới `lg`, nút "🔍 Thu nhỏ"; ở 1× một ngón vẫn cuộn trang, chạm vào ô vẫn mở được). Bàn game khác cần zoom thì bọc bằng `PinchZoom`.
+- **Font tiêu đề game**: `gameFont.ts` (Baloo 2, có tiếng Việt) qua `next/font`, đặt biến `--font-game` ở wrapper của `GamesShell`; mọi `h1`/`h2`/`h3` trong các trang game dùng font này, chỗ khác dùng `[font-family:var(--font-game)]`. Chỉ nạp cùng layout games, các trang còn lại của site không bị ảnh hưởng.
+- **Tỷ Phú: tự động chơi (tính năng ẩn).** `Ctrl+Shift+Y` bật / tắt (chỉ lưu trong state, tải lại là tắt; hiện huy hiệu "🤖 Tự động chơi" và toast). Khi tới lượt mình: mỗi bước (tung xúc xắc, mua / bỏ qua, kết thúc lượt) chờ 3 s rồi mới đi (`AUTO_DELAY_MS`); mua ô nếu giá `< AUTO_BUY_BELOW` (300) **và** tiền sau khi mua `> AUTO_KEEP_CASH` (150), không thì bỏ qua. Nợ, xây nhà, thế chấp, đổi đất, vay vẫn thủ công. Logic nằm trong `Centre` (`TyPhuTable.tsx`).
+- **Tỷ Phú: nền toàn màn hình** — ảnh `public/games/typhu/center.webp` làm mờ (`blur-2xl`), phóng `scale-110` và `bg-cover` để phủ kín màn hình theo cạnh dài nhất, phủ thêm lớp đen 55 %. Nằm ở đầu root của `TableBody` (`fixed inset-0 -z-10`, root có `isolate`).

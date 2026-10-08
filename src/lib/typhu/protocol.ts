@@ -3,8 +3,9 @@
  * src/typhu/protocol.ts + the shared types from src/typhu/game.ts). Keep them in sync.
  */
 import type { ChatMessage, GameRecord, LeaderboardEntry, Reaction } from "@/lib/tienlen";
+import type { MapSize } from "./board";
 
-export type { ChatMessage, GameRecord, LeaderboardEntry, Reaction };
+export type { ChatMessage, GameRecord, LeaderboardEntry, Reaction, MapSize };
 
 export type Phase = "roll" | "buy" | "debt" | "end";
 
@@ -19,6 +20,26 @@ export interface TradeSide {
   props: number[];
   cash: number;
 }
+
+/** A request to borrow `amount` from `to`, repaid + rate% after LOAN_TURNS of the borrower's turns. */
+export interface LoanOffer {
+  from: string;
+  to: string;
+  amount: number;
+  rate: number;
+  deadline: number;
+}
+export interface Loan {
+  id: number;
+  lender: string;
+  borrower: string;
+  amount: number;
+  rate: number;
+  owed: number;
+  left: number;
+}
+export const LOAN_TURNS = 5;
+export const LOAN_RATES = [10, 20];
 
 export interface LogEntry {
   id: number;
@@ -40,6 +61,8 @@ export interface TPSettings {
   doubleGo?: boolean;
   /** Taxes and fines pile up on Nghỉ chân. */
   parkingPot?: boolean;
+  /** Map size (missing from older servers = the standard 40 squares). */
+  map?: MapSize;
   first?: number;
   second?: number;
   /** House rules (missing from older servers = classic). "even": build evenly; "chain": see TyPhuRules. */
@@ -61,6 +84,15 @@ export interface TPSettings {
 
 export const STEP_SECONDS_OPTIONS = [15, 20, 30, 45, 60];
 
+/** A player's token: the emoji that walks the board and the colour of their houses / deeds. */
+export interface TPPiece {
+  emoji: string;
+  color: string;
+}
+/** What a player may pick with `{ type: "pick", emoji, color }` — nobody else at the table may hold the same emoji or colour. */
+export const PIECE_EMOJIS = ["🛵", "🐃", "🚲", "🚤", "🐉", "🎩", "🚗", "🐘", "🦅", "🐅", "🚁", "🐒", "🐱", "🐈", "🐈‍⬛", "😺", "😻", "😼", "🙀", "🦁", "🐆"];
+export const PIECE_COLORS = ["#ef4444", "#3b82f6", "#22c55e", "#eab308", "#a855f7", "#f97316", "#06b6d4", "#ec4899"];
+
 export interface TPSeatView {
   id: string;
   name: string;
@@ -73,6 +105,8 @@ export interface TPSeatView {
   wins: number;
   /** Token colour index (stable per seat). */
   color: number;
+  /** The piece this player plays with (their pick, else a starting piece nobody else holds). */
+  piece: TPPiece;
 }
 
 export interface TPPlayerView {
@@ -87,6 +121,8 @@ export interface TPPlayerView {
 
 export interface TPGameView {
   status: "playing" | "ended";
+  /** Map this game is played on (missing = standard). */
+  map?: MapSize;
   players: TPPlayerView[];
   deeds: Record<number, Deed>;
   turn: string | null;
@@ -101,6 +137,9 @@ export interface TPGameView {
   endsAt: number | null;
   /** Nghỉ chân pot (null when the rule is off). */
   pot?: number | null;
+  /** Pending request to borrow money, and the loans in force. */
+  loan?: LoanOffer | null;
+  loans?: Loan[];
   log: LogEntry[];
   /** My own lots: why build / sell a house / sell the land is blocked (null = allowed), and the land's sale price. */
   manage?: Record<number, { build: string | null; sell: string | null; sellLand: string | null; landPrice: number }>;
@@ -136,13 +175,17 @@ export interface TPRoomSummary {
  *   { type: "payjail" } · { type: "jailcard" } · { type: "paydebt" } · { type: "bankrupt" }
  *   { type: "build" | "sell" | "mortgage" | "unmortgage", pos }
  *   { type: "trade", to, give: {props, cash}, get: {props, cash} }
+ *   { type: "loan", to, amount, rate: 10 | 20 } · { type: "loananswer", accept }
  *   { type: "tradeanswer", accept }   // the receiver answers; the proposer can withdraw with accept: false
  */
 export type TPCommand =
   | { type: "start" }
-  | { type: "settings"; startCash?: number; timeLimit?: number; stepSeconds?: number; doubleGo?: boolean; parkingPot?: boolean; first?: number; second?: number }
+  | { type: "settings"; startCash?: number; timeLimit?: number; stepSeconds?: number; doubleGo?: boolean; parkingPot?: boolean; map?: MapSize; first?: number; second?: number }
+  | { type: "pick"; emoji: string; color: string }
   | { type: "kick"; playerId: string }
   | { type: "roll" | "buy" | "skip" | "end" | "payjail" | "jailcard" | "paydebt" | "bankrupt" }
   | { type: "build" | "sell" | "sellland" | "mortgage" | "unmortgage"; pos: number }
   | { type: "trade"; to: string; give: TradeSide; get: TradeSide }
+  | { type: "loan"; to: string; amount: number; rate: number }
+  | { type: "loananswer"; accept: boolean }
   | { type: "tradeanswer"; accept: boolean };
