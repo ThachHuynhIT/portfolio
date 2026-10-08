@@ -496,7 +496,7 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
               <CardOverlay card={cardFx} nameOf={nameOf} onClose={() => setCardFx(null)} />
               <BuildOverlay fx={buildFx} />
               <BankruptOverlay fx={bankruptFx} />
-              <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center-safe gap-2 overflow-y-auto rounded-[1.5rem] bg-[#dff1e5]/90 backdrop-blur-[2px] p-2 shadow-xl ring-1 ring-amber-300/50 sm:p-4 short:gap-1 short:p-1.5">
+              <div className="flex max-h-full min-h-0 w-full max-w-md flex-none flex-col items-center justify-center-safe gap-2 overflow-y-auto rounded-[1.5rem] bg-[#dff1e5]/85 p-2 shadow-xl ring-1 ring-amber-300/50 sm:p-4 short:gap-1 short:p-1.5">
               {!g || g.status === "ended" ? (
                 <Waiting view={view} me={me} act={act} nameOf={nameOf} />
               ) : (
@@ -2556,7 +2556,9 @@ function Modal({ children, onClose, dark }: { children: React.ReactNode; onClose
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
-  return (
+  // Portalled to <body>: a dialog opened from inside the board centre must not be trapped by its overflow / filter containing block.
+  if (typeof document === "undefined") return null;
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4" onClick={onClose}>
       <div
         role="dialog"
@@ -2588,7 +2590,8 @@ function Modal({ children, onClose, dark }: { children: React.ReactNode; onClose
           Đóng
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

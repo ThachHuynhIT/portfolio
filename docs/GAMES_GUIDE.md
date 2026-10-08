@@ -1282,3 +1282,6 @@ Giả sử game có id `xyz` và route `/xyz`.
 - **Đọc trường mới của server không phòng thủ.** Frontend và be_game deploy tách rời; client mới có thể nói chuyện với server cũ (và ngược lại). Trường thêm sau (`seat.piece`, `looks`, `current.map`) có thể thiếu: luôn có giá trị dự phòng (`pieceOfSeat`, `?? "std"`), đừng `seat.piece.emoji` trực tiếp.
 - **Phím tắt chạy đôi.** Space / Enter trên nút đang focus đã được trình duyệt xử lý; `useHotkeys` bỏ qua trường hợp này. Nếu file đã có listener `keydown` riêng (Esc của dialog…), đừng thêm một binding trùng — kiểm tra `grep keydown` trước.
 - **`short:` và `lg:` cùng khớp.** Xem §5.1: tablet hoặc điện thoại ngang có thể vừa `sm:`/`md:` vừa `short:`, nên phải kiểm tra cả hai.
+
+- **Tỷ Phú: `Modal` phải render qua portal.** Giữa bàn cờ có lớp có `overflow` / `backdrop-filter`; một phần tử `fixed` nằm trong đó bị kẹt trong khung đó (hộp thoại "Xây nhà" từng chỉ hiện trong khu trung tâm và không đóng được trên tablet / điện thoại). `Modal` trong `TyPhuTable.tsx` dùng `createPortal(…, document.body)`, nên mở từ đâu cũng nằm trên cùng. Khung xanh ở giữa bàn chỉ vừa nội dung (`max-w-md`, nền mờ 85 %) để ảnh nền `public/games/typhu/center.webp` lộ ra xung quanh.
+
