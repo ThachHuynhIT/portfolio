@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import { playSound } from "./sound";
 
 /**
  * "It's your turn" highlight shared by the game tables: a softly pulsing
@@ -25,8 +24,6 @@ export function TurnRing({ active, className }: { active: boolean; className?: s
 
 /** Pill announcing the player's turn (screen readers get it via role="status"). */
 export function MyTurnBadge({ className, children = "Lượt của bạn" }: { className?: string; children?: React.ReactNode }) {
-  // The badge mounts when the turn becomes mine, so this is the "your turn" chime for every game.
-  useEffect(() => playSound("turn"), []);
   return (
     <span
       role="status"

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { playSound } from "./sound";
 
 const DURATION = 4200;
 const COLORS = ["#fbbf24", "#f87171", "#34d399", "#60a5fa", "#a78bfa", "#f472b6", "#fde68a", "#ffffff"];
@@ -32,7 +31,6 @@ export function WinCelebration({ show, playing, won, title }: { show: boolean; p
 }
 
 function Burst({ won, title }: { won: boolean; title?: string }) {
-  useEffect(() => playSound(won ? "win" : "lose"), [won]);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [alive, setAlive] = useState(true);
   const [fading, setFading] = useState(false);
