@@ -9,6 +9,7 @@ import { RankPointsPicker } from "@/components/games/RankPointsPicker";
 import { SettingsTabs } from "@/components/games/SettingsTabs";
 import { useGameRoom } from "@/components/games/gameClient";
 import { useHotkeys } from "@/components/games/useHotkeys";
+import { WinCelebration } from "@/components/games/WinCelebration";
 import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
 import {
@@ -162,6 +163,7 @@ function Table({ view, reconnecting, act }: { view: BangRoomView; reconnecting: 
   const cornerReactions = g?.status === "playing" ? live.filter((r) => !r.playerId) : live;
   return (
     <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col gap-2 px-2 pb-20 pt-2 sm:gap-3 sm:px-4 sm:pt-3 lg:pb-6 2xl:max-w-7xl">
+      <WinCelebration show={g?.status === "ended"} playing={!!g && g.status !== "ended"} won={!!view.meId && !!g?.winners.includes(view.meId)} title={g?.status === "ended" && g.winners.length ? `🏆 ${g.winners.map(nameOf).join(", ")} thắng` : undefined} />
       <GameHeader
         primary={
           <>

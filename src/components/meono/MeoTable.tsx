@@ -48,6 +48,7 @@ import { CardGuide } from "./CardGuide";
 import { MeoCard, ROLES, roleOf } from "./MeoCard";
 import { EventFeed, PlayHistory } from "./PlayHistory";
 import { ConfirmButton } from "@/components/games/ConfirmButton";
+import { WinCelebration } from "@/components/games/WinCelebration";
 
 const SCORE_NOTE =
   "Điểm theo thứ hạng: người sống sót cuối cùng Nhất, ai bị loại trước xếp sau. Chủ bàn chọn điểm Nhất / Nhì, các hạng cuối trừ tương ứng, tổng mỗi ván luôn bằng 0.";
@@ -420,6 +421,7 @@ function Board({
     // One screen tall: the hand + Đánh / Rút always stay in view; the table and the feed scroll inside the middle instead.
     <div className="relative mx-auto flex h-[calc(100dvh-var(--games-bar-h,0px))] w-full max-w-6xl flex-col lg:max-w-[112rem] gap-2 overflow-hidden px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:gap-3 sm:px-4 sm:pt-3 short:gap-1.5 short:pt-1.5">
       {/* The table's own header lives in the games top bar. */}
+      <WinCelebration show={g?.status === "ended"} playing={g?.status === "playing"} won={!!view.meId && g?.finished[0] === view.meId} title={g?.status === "ended" ? `🏆 ${nameOf(g.finished[0])} thắng` : undefined} />
       <GameHeader
         primary={
           <>

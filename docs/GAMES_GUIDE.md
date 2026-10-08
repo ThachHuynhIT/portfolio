@@ -518,6 +518,10 @@ Mỗi người chọn một icon (16 lựa chọn, hoặc chữ cái đầu củ
 
 Đã gắn `SeatAvatar` ở: Tiến Lên, Mèo Nổ, Ô Ăn Quan, Đá Quý (ghế và danh sách), Đấu Súng và Ô Ăn Quan (danh sách ghế chờ), Cờ Tỷ Phú và Cờ Cá Ngựa (cạnh tên; quân cờ của hai game này là thứ nhận ra người chơi trên bàn nên giữ nguyên). **Cờ Tỷ Phú có riêng** quân cờ + màu nhà chọn trong bàn (`pick`, không được trùng nhau, xem §4.3).
 
+### 3.11b. Hiệu ứng chiến thắng (`WinCelebration.tsx`)
+
+`<WinCelebration show playing won title? />`: lớp phủ `fixed inset-0 z-40 pointer-events-none` (dưới modal), pháo giấy canvas + banner "🏆 Bạn thắng!" cho người thắng; người thua/khán giả chỉ thấy banner nhỏ `title` ("🏆 <tên> thắng"). Chạy ~4 giây rồi mờ dần. `prefers-reduced-motion`: chỉ banner, không canvas. `show` = ván đã kết thúc, `playing` = đang có ván chưa kết thúc; hiệu ứng **chỉ chạy khi component đang mount thấy `playing` chuyển sang `show`**, nên tải lại / vào lại phòng đã có ván kết thúc không chạy lại. Đặt nó trong `Table` của mỗi game (đã gắn ở cả 7 game). Người thắng: Tiến Lên `instantWin.playerId ?? finished[0]`, Mèo Nổ / Cờ Tỷ Phú / Đá Quý / Cờ Cá Ngựa `finished[0]`, Đấu Súng `winners.includes(meId)`, Ô Ăn Quan `rank === 0` và có `winner` (hoà thì chỉ banner "Hoà").
+
 ### 3.12. Phím tắt trên máy tính (`useHotkeys.ts`)
 
 `useHotkeys(bindings, enabled = true, allowInDialog = [])` gắn **một** listener `keydown` trên `window`. `bindings` là `{ [key]: handler | undefined }` với `key` là `KeyboardEvent.key` (chữ thường: `"r"`, `" "`, `"Enter"`, `"Escape"`, `"1"`…). Handler lấy bản mới nhất ở mỗi lần bấm (lưu trong ref), nên có thể đóng trên state hiện tại.
@@ -694,6 +698,8 @@ Luật và protocol: `be_game/docs/games/typhu.md`.
 | **`SquareModal`** + `OwnableInfo` + `SQUARE_TEXT` | `Modal` nền sáng: thông tin ô (bảng tiền thuê và giá xây), và các nút quản lý khi tới lượt mình |
 | **`PiecePicker`** | Hộp "Quân cờ & màu nhà": 12 quân + 8 màu, mục đã có người dùng bị làm mờ; bấm → `act({type:"pick", emoji, color})`. Mở khi bấm quân tròn của chính mình ở `PlayerRow` (`onPick`). Đổi được cả giữa ván. |
 | `LogList`, **`LogModal`** | Danh sách log (mới nhất ở trên, tô màu theo `tone`) dùng ở panel "Diễn biến" và hộp "Toàn bộ diễn biến" (nút 📜 trên thanh trên, phím `L`). Server giữ 150 dòng. |
+| `LoanCard`, `LoanModal` | Vay tiền: thẻ xin vay ở giữa bàn (Cho vay / Từ chối / Rút), modal soạn (người cho vay, số tiền, lãi 10 / 20 %, dòng "sau 5 lượt phải trả …"), cột "🏦 Khoản vay" ở panel bên liệt kê các khoản đang nợ |
+| `rentDue()` + `SquareModal` | Bấm vào ô đã có chủ: khung lớn **in đậm số tiền phải trả** khi dừng ở đó (đất trống ×2 nếu đủ nhóm, nhà, sân bay, công ty = tổng xúc xắc × k, 0 nếu thế chấp) và tô đậm đúng hàng trong bảng thuê |
 | `TradeCard`, `TradeModal`, `CashInput` | Giao dịch: thẻ **ở giữa bàn cờ**, trong `Centre` (Đồng ý / Từ chối / Rút lời mời — điện thoại thấy ngay không phải cuộn xuống), nút 🤝 cũng ở `Centre`, và modal soạn đề nghị (có `Picker` lồng bên trong) |
 | `Waiting` | Giữa bàn trước ván (số người/6) hoặc sau ván (kết quả với `DeltaBadge`), nút Bắt đầu / Ván mới |
 | **`TableSettings`**, `RULE_PRESETS`, `SettingSelect`, `Toggle`, `SELECT` | Luật bàn trong `SettingsTabs light`, với hàng nút **"Luật nhanh"** phía trên (xem Cài đặt) |

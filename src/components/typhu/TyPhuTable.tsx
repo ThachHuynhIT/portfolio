@@ -41,11 +41,12 @@ import {
 } from "@/lib/typhu/board";
 import { SettingsTabs } from "@/components/games/SettingsTabs";
 import { RankPointsPicker } from "@/components/games/RankPointsPicker";
-import { type Deed, PIECE_COLORS, PIECE_EMOJIS, STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TPSettings, type TradeSide } from "@/lib/typhu/protocol";
+import { type Deed, LOAN_RATES, LOAN_TURNS, PIECE_COLORS, PIECE_EMOJIS, STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TPSettings, type TradeSide } from "@/lib/typhu/protocol";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { MyTurnBadge, TurnRing } from "@/components/games/TurnIndicator";
 import { ConfirmButton } from "@/components/games/ConfirmButton";
+import { WinCelebration } from "@/components/games/WinCelebration";
 
 const SCORE_NOTE =
   "Điểm theo thứ hạng: người còn trụ lại (hoặc giàu nhất khi hết giờ) Nhất, ai phá sản trước xếp sau. Chủ bàn chọn điểm Nhất / Nhì, các hạng cuối trừ tương ứng, tổng mỗi ván luôn bằng 0.";
@@ -90,6 +91,7 @@ function localize(view: TPRoomView): TPRoomView {
       deadline: shift(g.deadline),
       endsAt: shift(g.endsAt),
       trade: g.trade ? { ...g.trade, deadline: g.trade.deadline + skew } : null,
+      loan: g.loan ? { ...g.loan, deadline: g.loan.deadline + skew } : null,
     },
   };
 }
@@ -295,6 +297,7 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
   const [openSquare, setOpenSquare] = useState<number | null>(null);
   const [picking, setPicking] = useState(false);
   const [showTrade, setShowTrade] = useState(false);
+  const [showLoan, setShowLoan] = useState(false);
   const [showScores, setShowScores] = useState(false);
   const [showLog, setShowLog] = useState(false);
   useHotkeys({ l: g ? () => setShowLog((v) => !v) : undefined }, true, ["l"]);
@@ -498,6 +501,7 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
                   assetsOpen={assetsOpen}
                   onOpenAssets={openAssets}
                   onTrade={() => setShowTrade(true)}
+                  onLoan={() => setShowLoan(true)}
                 />
               )}
             </div>
@@ -552,6 +556,20 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
             </ul>
           </div>
 
+          {g && !!g.loans?.length && (
+            <div className="rounded-2xl bg-black/35 p-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-100/60">🏦 Khoản vay</p>
+              <ul className="space-y-1 text-xs">
+                {g.loans.map((l) => (
+                  <li key={l.id} className={cn("rounded bg-white/5 px-2 py-1", l.borrower === view.meId && "ring-1 ring-rose-300/60")}>
+                    <b>{nameOf(l.borrower)}</b> nợ <b>{nameOf(l.lender)}</b> <b className="text-amber-200">{money(l.owed)}</b>
+                    <span className="text-white/50"> (gốc {money(l.amount)} + {l.rate}%) · còn {l.left} lượt</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {g && (
             <div className="rounded-2xl bg-black/35 p-3">
               <div className="mb-2 flex items-center justify-between gap-2">
@@ -595,9 +613,11 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
           onClose={() => setOpenSquare(null)}
         />
       )}
+      {showLoan && g && <LoanModal g={g} meId={view.meId} nameOf={nameOf} run={run} onClose={() => setShowLoan(false)} />}
       {showTrade && g && <TradeModal g={g} meId={view.meId} nameOf={nameOf} run={run} onClose={() => setShowTrade(false)} />}
       {showLog && g && <LogModal log={g.log} onClose={() => setShowLog(false)} />}
       {showScores && <ScoreboardModal view={view} onClose={() => setShowScores(false)} note={SCORE_NOTE} />}
+      <WinCelebration show={g?.status === "ended"} playing={!!playing} won={!!view.meId && g?.finished[0] === view.meId} title={g?.status === "ended" ? `🏆 ${nameOf(g.finished[0])} thắng` : undefined} />
       {showRules && <RulesModal onClose={() => setShowRules(false)} />}
     </div>
   );
@@ -817,6 +837,7 @@ function Centre({
   assetsOpen,
   onOpenAssets,
   onTrade,
+  onLoan,
 }: {
   g: TPGameView;
   view: TPRoomView;
@@ -828,6 +849,7 @@ function Centre({
   assetsOpen: boolean;
   onOpenAssets: () => void;
   onTrade: () => void;
+  onLoan: () => void;
 }) {
   const turnName = g.turn ? nameOf(g.turn) : "";
   const current = g.players.find((p) => p.id === g.turn);
@@ -864,9 +886,21 @@ function Centre({
   );
 
   const trade = g.trade;
+  const loan = g.loan;
   const canTrade = view.role === "player" && !!mine && !mine.bankrupt;
   return (
     <div className="flex w-full max-w-sm flex-col items-center gap-2 text-center">
+      {loan && (
+        <div className="w-full text-left">
+          <LoanCard
+            loan={loan}
+            nameOf={nameOf}
+            incoming={loan.to === view.meId}
+            outgoing={loan.from === view.meId}
+            onAnswer={(accept) => void run({ type: "loananswer", accept })}
+          />
+        </div>
+      )}
       {trade && (
         <div className="w-full text-left">
           <TradeCard
@@ -950,10 +984,15 @@ function Centre({
           </div>
         )}
       </div>
-      {canTrade && !trade && (
-        <button onClick={onTrade} className="rounded-lg border border-emerald-900/30 bg-white/60 px-3 py-1 text-xs font-semibold text-emerald-950 hover:bg-white/80 max-sm:min-h-9">
-          🤝 Đổi đất / mua bán
-        </button>
+      {canTrade && !trade && !loan && (
+        <div className="flex flex-wrap justify-center gap-2">
+          <button onClick={onTrade} className="rounded-lg border border-emerald-900/30 bg-white/60 px-3 py-1 text-xs font-semibold text-emerald-950 hover:bg-white/80 max-sm:min-h-9">
+            🤝 Đổi đất / mua bán
+          </button>
+          <button onClick={onLoan} className="rounded-lg border border-emerald-900/30 bg-white/60 px-3 py-1 text-xs font-semibold text-emerald-950 hover:bg-white/80 max-sm:min-h-9">
+            🏦 Vay tiền
+          </button>
+        </div>
       )}
       {!myTurn && g.phase === "buy" && here && <p className="text-xs text-emerald-900/70">{turnName} đang cân nhắc mua {here.name}…</p>}
       {!myTurn && g.phase === "debt" && g.debt && (
@@ -1672,6 +1711,7 @@ function SquareModal({
   const group = sq.kind === "prop" ? groupPositions(sq.group) : [];
   const ownsSet = sq.kind === "prop" && !!g && group.every((p) => g.deeds[p]?.owner === meId);
   const m = g?.manage?.[pos];
+  const due = g ? rentDue(g, pos) : null;
   const buildWhy = inDebt ? "Đang nợ — không xây được" : m ? m.build : ownsSet ? null : "Sở hữu đủ cả nhóm màu mới được xây nhà.";
 
   return (
@@ -1683,11 +1723,17 @@ function SquareModal({
           {sq.kind === "prop" && <p className="text-xs">{sq.region}</p>}
         </div>
         <div className="space-y-2 p-4 text-sm">
-          {isOwnable(sq) ? <OwnableInfo sq={sq} settings={settings} /> : <p>{SQUARE_TEXT[sq.kind]?.(sq)}</p>}
+          {isOwnable(sq) ? <OwnableInfo sq={sq} settings={settings} activeRow={due?.row} /> : <p>{SQUARE_TEXT[sq.kind]?.(sq)}</p>}
           {sq.kind === "parking" && settings.parkingPot && (
             <p className="mt-2 rounded-lg bg-amber-300/90 px-3 py-2 font-semibold text-amber-950">
               💰 Quỹ đang giữ: {money(g?.pot ?? 0)}
               <span className="mt-0.5 block text-xs font-normal">Tiền phạt/thuế dồn vào đây — ai dừng ở Nghỉ chân sẽ lấy hết.</span>
+            </p>
+          )}
+          {due && (
+            <p className={cn("rounded-lg px-3 py-2 text-center", due.free ? "bg-emerald-200/70 text-emerald-900" : "bg-rose-100 text-rose-900 ring-1 ring-rose-300")}>
+              <span className="block text-[11px] font-semibold uppercase tracking-wide opacity-70">{deed?.owner === meId ? "Người khác dừng ở đây phải trả" : "Dừng ở đây phải trả"}</span>
+              <b className="text-xl font-black">{due.text}</b>
             </p>
           )}
           {deed && (
@@ -1752,7 +1798,23 @@ function SquareModal({
   );
 }
 
-function OwnableInfo({ sq, settings }: { sq: Ownable; settings: TPSettings }) {
+/** What landing on an owned square costs right now: the amount (null = depends on the dice) and the row of the rent table it comes from. */
+function rentDue(g: TPGameView, pos: number): { text: string; row: number | null; free?: boolean } | null {
+  const d = g.deeds[pos];
+  const b = BOARD[pos];
+  if (!d || !isOwnable(b)) return null;
+  if (d.mortgaged) return { text: "0 — đang thế chấp", row: null, free: true };
+  if (b.kind === "prop") {
+    if (d.houses > 0) return { text: money(b.rent[d.houses]), row: d.houses };
+    const full = groupPositions(b.group).every((p) => g.deeds[p]?.owner === d.owner);
+    return { text: money(full ? b.rent[0] * 2 : b.rent[0]), row: 0 };
+  }
+  const count = Object.entries(g.deeds).filter(([p, x]) => x.owner === d.owner && BOARD[Number(p)].kind === b.kind).length;
+  if (b.kind === "air") return { text: money(AIR_RENT[Math.max(0, count - 1)]), row: count - 1 };
+  return { text: `tổng xúc xắc × ${UTIL_MULT[count >= 2 ? 1 : 0]}`, row: count >= 2 ? 1 : 0 };
+}
+
+function OwnableInfo({ sq, settings, activeRow }: { sq: Ownable; settings: TPSettings; activeRow?: number | null }) {
   if (sq.kind === "prop") {
     const labels = ["Đất trống", "1 nhà", "2 nhà", "3 nhà", "4 nhà", "Khách sạn"];
     return (
@@ -1771,7 +1833,7 @@ function OwnableInfo({ sq, settings }: { sq: Ownable; settings: TPSettings }) {
           </thead>
           <tbody>
             {sq.rent.map((r, i) => (
-              <tr key={i} className="border-b border-emerald-900/10">
+              <tr key={i} className={cn("border-b border-emerald-900/10", activeRow === i && "bg-amber-200/70 font-black")}>
                 <td className="py-0.5">{labels[i]}</td>
                 <td className="py-0.5 text-right font-mono">{money(r)}</td>
                 <td className="py-0.5 text-right font-mono text-emerald-900/70">{i === 0 ? "—" : money(houseCost(sq, i, settings))}</td>
@@ -1792,7 +1854,15 @@ function OwnableInfo({ sq, settings }: { sq: Ownable; settings: TPSettings }) {
         <p>
           Giá <b>{money(sq.price)}</b>
         </p>
-        <p className="text-xs">Tiền thuê theo số sân bay cùng chủ: {AIR_RENT.map((r, i) => `${i + 1} → ${money(r)}`).join(" · ")}</p>
+        <p className="text-xs">
+          Tiền thuê theo số sân bay cùng chủ:{" "}
+          {AIR_RENT.map((r, i) => (
+            <span key={i} className={cn(activeRow === i && "rounded bg-amber-200/70 px-1 font-black")}>
+              {i > 0 && " · "}
+              {i + 1} → {money(r)}
+            </span>
+          ))}
+        </p>
       </>
     );
   }
@@ -1817,6 +1887,107 @@ const SQUARE_TEXT: Partial<Record<Square["kind"], (sq: Square) => string>> = {
   parking: () => "Nghỉ chân uống ly cà phê.",
   gotojail: () => "Đi thẳng vào tù, không qua Khởi hành.",
 };
+
+// ─── Loans ──────────────────────────────────────────────────────────
+
+function LoanCard({ loan, nameOf, incoming, outgoing, onAnswer }: { loan: NonNullable<TPGameView["loan"]>; nameOf: (id: string) => string; incoming: boolean; outgoing: boolean; onAnswer: (accept: boolean) => void }) {
+  const seconds = useSecondsLeft()(loan.deadline) ?? 0;
+  const owed = loan.amount + Math.ceil((loan.amount * loan.rate) / 100);
+  return (
+    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={cn("rounded-2xl p-3 text-sm text-white shadow-lg", incoming ? "bg-amber-950/95 ring-2 ring-amber-300" : "bg-emerald-950/90")}>
+      <p className="mb-1 font-semibold">
+        🏦 {nameOf(loan.from)} xin vay {nameOf(loan.to)} <span className="font-mono text-xs text-white/60">({seconds}s)</span>
+      </p>
+      <p className="text-xs">
+        Vay <b>{money(loan.amount)}</b>, lãi {loan.rate}% — trả <b className="text-amber-200">{money(owed)}</b> sau {LOAN_TURNS} lượt của người vay.
+      </p>
+      {incoming && (
+        <div className="mt-2 flex gap-2">
+          <button onClick={() => onAnswer(true)} className="flex-1 rounded-lg bg-emerald-500 px-3 py-1 font-semibold text-black hover:bg-emerald-400 max-sm:min-h-10">
+            Cho vay
+          </button>
+          <button onClick={() => onAnswer(false)} className="flex-1 rounded-lg border border-white/30 px-3 py-1 hover:bg-white/10 max-sm:min-h-10">
+            Từ chối
+          </button>
+        </div>
+      )}
+      {outgoing && (
+        <button onClick={() => onAnswer(false)} className="mt-2 w-full rounded-lg border border-white/30 px-3 py-1 text-xs hover:bg-white/10 max-sm:min-h-9">
+          Rút lời xin vay
+        </button>
+      )}
+    </motion.div>
+  );
+}
+
+function LoanModal({ g, meId, nameOf, run, onClose }: { g: TPGameView; meId: string; nameOf: (id: string) => string; run: Act; onClose: () => void }) {
+  const others = g.players.filter((p) => p.id !== meId && !p.bankrupt);
+  const [to, setTo] = useState(others[0]?.id ?? "");
+  const [amount, setAmount] = useState(100);
+  const [rate, setRate] = useState(LOAN_RATES[0]);
+  const lender = g.players.find((p) => p.id === to);
+  const open = (g.loans ?? []).filter((l) => l.borrower === meId).length;
+  const owed = amount + Math.ceil((amount * rate) / 100);
+  const bad = !to ? "Chọn người cho vay" : amount < 10 ? "Vay tối thiểu 10tr" : amount > (lender?.cash ?? 0) ? `${nameOf(to)} chỉ có ${money(lender?.cash ?? 0)}` : open >= 2 ? "Bạn đã vay tối đa 2 khoản" : null;
+  const send = async () => {
+    if (await run({ type: "loan", to, amount, rate })) onClose();
+  };
+  return (
+    <Modal onClose={onClose} dark>
+      <h2 className="mb-3 text-lg font-bold text-amber-300">🏦 Vay tiền người chơi</h2>
+      {others.length === 0 ? (
+        <p className="text-sm">Không còn ai để vay.</p>
+      ) : (
+        <div className="space-y-3 text-sm">
+          <label className="block">
+            <span className="text-xs text-white/60">Vay của</span>
+            <select value={to} onChange={(e) => setTo(e.target.value)} className="mt-1 min-h-10 w-full rounded-lg bg-white/10 px-2 py-1.5">
+              {others.map((p) => (
+                <option key={p.id} value={p.id} className="text-black">
+                  {nameOf(p.id)} ({money(p.cash)})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-xs">
+            <span className="text-white/60">Số tiền vay</span>
+            <input
+              type="number"
+              min={10}
+              max={lender?.cash ?? 0}
+              step={10}
+              value={amount}
+              onChange={(e) => setAmount(Math.max(0, Math.floor(Number(e.target.value) || 0)))}
+              className="min-h-9 w-24 rounded-md bg-white/10 px-2 py-1 font-mono text-sm"
+            />
+            <span className="text-white/40">tr</span>
+          </label>
+          <div role="radiogroup" aria-label="Lãi suất" className="flex items-center gap-2 text-xs">
+            <span className="text-white/60">Lãi</span>
+            {LOAN_RATES.map((r) => (
+              <button
+                key={r}
+                role="radio"
+                aria-checked={rate === r}
+                onClick={() => setRate(r)}
+                className={cn("min-h-9 rounded-lg border px-3 font-semibold", rate === r ? "border-amber-300 bg-amber-400/20 text-amber-200" : "border-white/20 hover:bg-white/10")}
+              >
+                {r}%
+              </button>
+            ))}
+          </div>
+          <p className="rounded-lg bg-white/5 px-3 py-2 text-xs">
+            Sau <b>{LOAN_TURNS} lượt</b> của bạn phải trả <b className="text-base text-amber-300">{money(owed)}</b> (gốc {money(amount)} + lãi {money(owed - amount)}). Không đủ tiền thì phải bán / thế chấp hoặc phá sản.
+          </p>
+          {bad && <p className="text-xs text-rose-300">{bad}</p>}
+          <button onClick={() => void send()} disabled={!!bad} className="w-full rounded-lg bg-amber-400 px-4 py-2 font-semibold text-black hover:bg-amber-300 disabled:opacity-40">
+            Gửi lời xin vay
+          </button>
+        </div>
+      )}
+    </Modal>
+  );
+}
 
 // ─── Trading ────────────────────────────────────────────────────────
 

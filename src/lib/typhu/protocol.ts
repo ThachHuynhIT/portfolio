@@ -21,6 +21,26 @@ export interface TradeSide {
   cash: number;
 }
 
+/** A request to borrow `amount` from `to`, repaid + rate% after LOAN_TURNS of the borrower's turns. */
+export interface LoanOffer {
+  from: string;
+  to: string;
+  amount: number;
+  rate: number;
+  deadline: number;
+}
+export interface Loan {
+  id: number;
+  lender: string;
+  borrower: string;
+  amount: number;
+  rate: number;
+  owed: number;
+  left: number;
+}
+export const LOAN_TURNS = 5;
+export const LOAN_RATES = [10, 20];
+
 export interface LogEntry {
   id: number;
   at: number;
@@ -117,6 +137,9 @@ export interface TPGameView {
   endsAt: number | null;
   /** Nghỉ chân pot (null when the rule is off). */
   pot?: number | null;
+  /** Pending request to borrow money, and the loans in force. */
+  loan?: LoanOffer | null;
+  loans?: Loan[];
   log: LogEntry[];
   /** My own lots: why build / sell a house / sell the land is blocked (null = allowed), and the land's sale price. */
   manage?: Record<number, { build: string | null; sell: string | null; sellLand: string | null; landPrice: number }>;
@@ -152,6 +175,7 @@ export interface TPRoomSummary {
  *   { type: "payjail" } · { type: "jailcard" } · { type: "paydebt" } · { type: "bankrupt" }
  *   { type: "build" | "sell" | "mortgage" | "unmortgage", pos }
  *   { type: "trade", to, give: {props, cash}, get: {props, cash} }
+ *   { type: "loan", to, amount, rate: 10 | 20 } · { type: "loananswer", accept }
  *   { type: "tradeanswer", accept }   // the receiver answers; the proposer can withdraw with accept: false
  */
 export type TPCommand =
@@ -162,4 +186,6 @@ export type TPCommand =
   | { type: "roll" | "buy" | "skip" | "end" | "payjail" | "jailcard" | "paydebt" | "bankrupt" }
   | { type: "build" | "sell" | "sellland" | "mortgage" | "unmortgage"; pos: number }
   | { type: "trade"; to: string; give: TradeSide; get: TradeSide }
+  | { type: "loan"; to: string; amount: number; rate: number }
+  | { type: "loananswer"; accept: boolean }
   | { type: "tradeanswer"; accept: boolean };

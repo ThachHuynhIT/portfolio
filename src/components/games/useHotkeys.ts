@@ -20,7 +20,7 @@ export function useHotkeys(bindings: Hotkeys, enabled = true, allowInDialog: str
     if (!enabled) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.altKey || e.metaKey || e.repeat) return;
-      const target = e.target as HTMLElement | null;
+      const target = e.target instanceof Element ? (e.target as HTMLElement) : null;
       if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
       if ((key === " " || key === "Enter") && target?.closest("button, a, summary, [role='button']")) return;

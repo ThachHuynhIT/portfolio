@@ -19,6 +19,7 @@ import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { type BoardPlayer, OQBoard, SIDE_COLORS, type SowFrame, useSowReplay } from "./Board";
 import { ConfirmButton } from "@/components/games/ConfirmButton";
+import { WinCelebration } from "@/components/games/WinCelebration";
 
 type Act = (msg: Record<string, unknown> & { type: string }) => Promise<boolean>;
 
@@ -200,6 +201,7 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
 
   return (
     <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col gap-3 px-2 pb-24 pt-2 sm:px-4 sm:pt-3 lg:pb-3 2xl:max-w-7xl short:gap-2 short:pb-16 short:pt-3">
+      <WinCelebration show={g?.status === "ended"} playing={!!playing} won={!!mine && g?.status === "ended" && mine.rank === 0 && !!g.winner} title={g?.status === "ended" ? (g.winner ? `🏆 ${nameOf(g.winner)} thắng` : "🤝 Hoà") : undefined} />
       <GameHeader
         primary={
           <>

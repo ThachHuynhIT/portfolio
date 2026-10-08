@@ -29,6 +29,7 @@ import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { BonusPip, CardBack, DevCardView, GemCount, GemIcon, MD_SLOT, NobleTile, TokenChip } from "./Pieces";
 import { ConfirmButton } from "@/components/games/ConfirmButton";
+import { WinCelebration } from "@/components/games/WinCelebration";
 
 type Act = (msg: Record<string, unknown> & { type: string }) => Promise<boolean>;
 
@@ -225,6 +226,7 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
 
   return (
     <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-24 pt-2 sm:px-4 sm:pt-3 lg:pb-2 xl:max-w-[100rem] short:gap-2 short:pt-1.5">
+      <WinCelebration show={g?.status === "ended"} playing={!!playing} won={!!view.meId && g?.finished[0] === view.meId} title={g?.status === "ended" ? `🏆 ${nameOf(g.finished[0])} thắng` : undefined} />
       <GameHeader
         primary={
           <>

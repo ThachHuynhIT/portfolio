@@ -34,6 +34,7 @@ import { DeltaBadge, ScoreboardModal, rankTitle, signed } from "./Scoreboard";
 import { inviteLink, useTienLenRoom } from "./useTienLen";
 import { ConfirmButton } from "@/components/games/ConfirmButton";
 import { useHotkeys } from "@/components/games/useHotkeys";
+import { WinCelebration } from "@/components/games/WinCelebration";
 
 type SortMode = "rank" | "suit";
 
@@ -288,6 +289,7 @@ function Table({ view, reconnecting, onPlay, onPass, onStart, onSettings, onKick
         } as React.CSSProperties
       }
     >
+      <WinCelebration show={game?.status === "ended"} playing={game?.status === "playing"} won={!!meId && (game?.instantWin?.playerId ?? game?.finished[0]) === meId} title={game?.status === "ended" ? `🏆 ${nameOf(game.instantWin?.playerId ?? game.finished[0])} thắng` : undefined} />
       <GameHeader
         primary={
           <>
