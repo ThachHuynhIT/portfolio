@@ -45,7 +45,7 @@ import {
 } from "@/lib/typhu/board";
 import { SettingsTabs } from "@/components/games/SettingsTabs";
 import { RankPointsPicker } from "@/components/games/RankPointsPicker";
-import { type Deed, LOAN_RATES, LOAN_TURNS, PIECE_COLORS, PIECE_EMOJIS, STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TPSettings, type TradeSide } from "@/lib/typhu/protocol";
+import { type Deed, type TPCommand, LOAN_RATES, LOAN_TURNS, PIECE_COLORS, PIECE_EMOJIS, STEP_SECONDS_OPTIONS, TYPHU_WS_PATH, type TPGameView, type TPPlayerView, type TPRoomView, type TPSeatView, type TPSettings, type TradeSide } from "@/lib/typhu/protocol";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { MyTurnBadge, TurnRing } from "@/components/games/TurnIndicator";
@@ -86,6 +86,10 @@ function ArtIcon({ name, className }: { name: string; className?: string }) {
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={`/games/typhu/icons/${name}.webp`} alt="" draggable={false} className={cn("inline-block shrink-0 object-contain", className)} />;
 }
+
+/** Hidden auto-play: buy only squares cheaper than this and keep more than AUTO_KEEP_CASH after buying (tr). */
+const AUTO_BUY_BELOW = 300;
+const AUTO_KEEP_CASH = 150;
 
 export const money = (n: number) => `${n.toLocaleString("vi-VN")}tr`;
 
@@ -421,7 +425,12 @@ function TableBody({ view, reconnecting, act }: { view: TPRoomView; reconnecting
 
 
   return (
-    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-[max(1rem,env(safe-area-inset-bottom))] xl:max-w-none pt-2 sm:px-4 sm:pt-3 short:gap-2 short:pt-1.5">
+    <div className="relative isolate mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col gap-3 px-2 pb-[max(1rem,env(safe-area-inset-bottom))] xl:max-w-none pt-2 sm:px-4 sm:pt-3 short:gap-2 short:pt-1.5">
+      {/* Whole-screen backdrop: the board-centre picture, blurred and cropped to cover the screen (its longest side fits). */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#0b1d3a]">
+        <div className="absolute inset-0 scale-110 bg-cover bg-center blur-2xl" style={{ backgroundImage: "url(/games/typhu/center.webp)" }} />
+        <div className="absolute inset-0 bg-black/55" />
+      </div>
       <GameHeader
         primary={
           <>
@@ -932,11 +941,50 @@ function Centre({
     myTurn && !!mine && !busy,
   );
 
+  // Hidden auto-play (Ctrl+Shift+Y toggles): rolls 3 s after my turn starts, buys a square only if it costs under
+  // AUTO_BUY_BELOW and leaves more than AUTO_KEEP_CASH afterwards (otherwise skips), then ends the turn.
+  // Debts and building / selling stay manual.
+  const [auto, setAuto] = useState(false);
+  const autoRef = useRef(false);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey && e.shiftKey && !e.altKey && e.code === "KeyY") || e.repeat) return;
+      e.preventDefault();
+      autoRef.current = !autoRef.current;
+      setAuto(autoRef.current);
+      showToast(autoRef.current ? "🤖 Tự động chơi: BẬT" : "🤖 Tự động chơi: TẮT", { duration: 1800 });
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  const runRef = useRef(run);
+  runRef.current = run;
+  useEffect(() => {
+    if (!auto || !myTurn || !mine || busy || view.role !== "player") return;
+    let msg: TPCommand | null = null;
+    let delay = 1500;
+    if (g.phase === "roll") {
+      msg = { type: "roll" };
+      delay = 3000;
+    } else if (g.phase === "buy" && here && isOwnable(here)) {
+      msg = here.price < AUTO_BUY_BELOW && mine.cash - here.price > AUTO_KEEP_CASH ? { type: "buy" } : { type: "skip" };
+    } else if (g.phase === "end") {
+      msg = { type: "end" };
+    }
+    if (!msg) return;
+    const m = msg;
+    const t = setTimeout(() => void runRef.current(m), delay);
+    return () => clearTimeout(t);
+  }, [auto, myTurn, mine, busy, g.phase, g.turn, g.rollAgain, rollId, here, view.role]);
+
   const trade = g.trade;
   const loan = g.loan;
   const canTrade = view.role === "player" && !!mine && !mine.bankrupt;
   return (
     <div className="flex w-full max-w-sm flex-col items-center gap-2 text-center">
+      {auto && (
+        <p className="rounded-full bg-fuchsia-700 px-3 py-0.5 text-[11px] font-bold text-white shadow">🤖 Tự động chơi · Ctrl+Shift+Y để tắt</p>
+      )}
       {loan && (
         <div className="w-full text-left">
           <LoanCard
