@@ -288,7 +288,8 @@ function Table(props: { view: TPRoomView; reconnecting: boolean; act: Act }) {
 
 function TableBody({ view, reconnecting, act }: { view: TPRoomView; reconnecting: boolean; act: Act }) {
   const g = view.current;
-  BOARD = boardOf(g?.map ?? view.settings.map);
+  // A finished game keeps its own map (the room settings may already point at another one for the next game).
+  BOARD = boardOf(g ? g.map ?? "std" : view.settings.map);
   const playing = g?.status === "playing";
   const spectator = view.role === "spectator";
   const me = view.seats.find((s) => s?.id === view.meId) ?? null;
