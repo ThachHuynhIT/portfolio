@@ -90,6 +90,8 @@ function ArtIcon({ name, className }: { name: string; className?: string }) {
 /** Hidden auto-play: buy only squares cheaper than this and keep more than AUTO_KEEP_CASH after buying (tr). */
 const AUTO_BUY_BELOW = 300;
 const AUTO_KEEP_CASH = 150;
+/** Every automatic step (roll, buy / skip, end turn) waits this long after it becomes available. */
+const AUTO_DELAY_MS = 3000;
 
 export const money = (n: number) => `${n.toLocaleString("vi-VN")}tr`;
 
@@ -942,7 +944,7 @@ function Centre({
     myTurn && !!mine && !busy,
   );
 
-  // Hidden auto-play (Ctrl+Shift+Y toggles): rolls 3 s after my turn starts, buys a square only if it costs under
+  // Hidden auto-play (Ctrl+Shift+Y toggles): rolls, buys / skips and ends the turn each 3 s after the step starts; buys a square only if it costs under
   // AUTO_BUY_BELOW and leaves more than AUTO_KEEP_CASH afterwards (otherwise skips), then ends the turn.
   // Debts and building / selling stay manual.
   const [auto, setAuto] = useState(false);
@@ -963,10 +965,8 @@ function Centre({
   useEffect(() => {
     if (!auto || !myTurn || !mine || busy || view.role !== "player") return;
     let msg: TPCommand | null = null;
-    let delay = 1500;
     if (g.phase === "roll") {
       msg = { type: "roll" };
-      delay = 3000;
     } else if (g.phase === "buy" && here && isOwnable(here)) {
       msg = here.price < AUTO_BUY_BELOW && mine.cash - here.price > AUTO_KEEP_CASH ? { type: "buy" } : { type: "skip" };
     } else if (g.phase === "end") {
@@ -974,7 +974,7 @@ function Centre({
     }
     if (!msg) return;
     const m = msg;
-    const t = setTimeout(() => void runRef.current(m), delay);
+    const t = setTimeout(() => void runRef.current(m), AUTO_DELAY_MS);
     return () => clearTimeout(t);
   }, [auto, myTurn, mine, busy, g.phase, g.turn, g.rollAgain, rollId, here, view.role]);
 
