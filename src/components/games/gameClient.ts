@@ -318,7 +318,8 @@ export interface PlayerProfile {
   icon: string;
   color: string;
 }
-export const PROFILE_ICONS = ["😀", "😎", "🤠", "😼", "🐶", "🦊", "🐼", "🐯", "🦄", "🐲", "🐴", "👑", "🎩", "💎", "🔥", "⭐"];
+/** Avatar icons: a whole row of cats first (several breeds and moods), then the rest. */
+export const PROFILE_ICONS = ["🐱", "🐈", "🐈‍⬛", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "🐆", "🦁", "😀", "😎", "🤠", "🐶", "🦊", "🐼", "🐯", "🦄", "🐲", "🐴", "👑", "🎩", "💎", "🔥", "⭐"];
 export const PROFILE_COLORS = ["#fbbf24", "#f87171", "#fb923c", "#a3e635", "#34d399", "#22d3ee", "#60a5fa", "#a78bfa", "#f472b6", "#e5e7eb"];
 export const DEFAULT_PROFILE: PlayerProfile = { icon: "", color: PROFILE_COLORS[0] };
 const PROFILE_KEY = "games:playerProfile";

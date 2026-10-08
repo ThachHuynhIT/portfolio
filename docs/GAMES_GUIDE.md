@@ -506,7 +506,7 @@ Dialog mới thì nên dùng `tienlen/Sheet` hoặc chép `Modal` của game g�
 Mỗi người chọn một icon (16 lựa chọn, hoặc chữ cái đầu của tên) và một màu (10 màu) ở cổng tên hoặc hộp "Đổi tên & biểu tượng". Mọi người cùng bàn thấy nhau.
 
 **Phía client (`gameClient.ts`)**
-- `PlayerProfile = {icon, color}`, `PROFILE_ICONS`, `PROFILE_COLORS`, `DEFAULT_PROFILE`.
+- `PlayerProfile = {icon, color}`, `PROFILE_ICONS` (14 biểu tượng mèo ở đầu danh sách: 🐱 🐈 🐈‍⬛ 😺 😸 😹 😻 😼 😽 🙀 😿 😾 🐆 🦁), `PROFILE_COLORS`, `DEFAULT_PROFILE`.
 - `getSavedProfile()` / `saveProfile()` / `usePlayerProfile()`: lưu ở `localStorage["games:playerProfile"]`, có đồng bộ giữa các tab (sự kiện `storage`) và kiểm tra giá trị (`validProfile`).
 - `useGameRoom` gửi `look: getSavedProfile()` trong `join` / `watch`, và **khi hồ sơ đổi giữa chừng** gửi `{type:"look", look}` qua kết nối đang mở — nên đổi icon / màu có hiệu lực ngay tại bàn, không cần vào lại. Tên thì vẫn đóng băng khi mount.
 - Mỗi state view có thể kèm `looks: { [tên]: {icon, color} }` (be_game gắn ở hub, xem `be_game/docs/GUIDE.md`). `useGameRoom` đẩy nó vào một kho module (`setRoomLooks`); đọc bằng `useLookOf(name)` (một người) hoặc `useRoomLooks()` (cả bàn).
