@@ -363,11 +363,12 @@ function TableBody({ view, reconnecting, act }: { view: TPRoomView; reconnecting
   const [playersRef] = useAutoAnimate<HTMLUListElement>({ duration: 160 });
   const [loansRef] = useAutoAnimate<HTMLUListElement>({ duration: 160 });
   // An offer addressed to me pops a toast (the card itself sits in the board centre, which may be off-screen on a phone).
-  const offerKey = g?.trade?.to === view.meId ? `t${g.trade.deadline}` : g?.loan?.to === view.meId ? `l${g.loan.deadline}` : "";
+  // The key must not contain the deadline: `localize` shifts it on every state update, which would toast again each time.
+  const offerKey = g?.trade?.to === view.meId ? `t:${g.trade.from}:${JSON.stringify(g.trade.give)}:${JSON.stringify(g.trade.get)}` : g?.loan?.to === view.meId ? `l:${g.loan.from}:${g.loan.amount}:${g.loan.rate}` : "";
   useEffect(() => {
     if (!offerKey) return;
     const loan = offerKey.startsWith("l");
-    showToast(loan ? "🏦 Có lời xin vay tiền gửi cho bạn" : "🤝 Có lời mời đổi đất gửi cho bạn", { description: "Xem thẻ ở giữa bàn cờ" });
+    showToast(loan ? "🏦 Có lời xin vay tiền gửi cho bạn" : "🤝 Có lời mời đổi đất gửi cho bạn", { id: "typhu-offer", description: "Xem thẻ ở giữa bàn cờ" });
   }, [offerKey]);
 
   // "Just built" banner, driven by the 🏠 lines in the log.
