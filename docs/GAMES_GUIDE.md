@@ -768,7 +768,7 @@ Luật và protocol: `be_game/docs/games/splendor.md`.
 | File | Vai trò / component chính |
 |---|---|
 | `splendor/SplendorTable.tsx` | Default `SplendorTable`. `paymentPlan(cardId, p)` tính số phải trả từ bonus, rồi đá, rồi vàng (bản sao `paymentFor` của be_game). **`Table`** gồm market, cột người chơi, toast và các modal. `PlayerPanel` hiện avatar, uy tín, `BonusPip`, đá, thẻ đang giữ (kéo để xếp được bằng `DraggableRow` + `useHandOrder`, key `` `splendor:order:${code}:${meId}` ``), quý tộc và nút Kích. `CardModal` có nút Mua / Giữ và `CostCompare` (bảng giá so với "Bạn có"). `DiscardPanel` dùng khi phải trả bớt đá xuống 10. `Waiting` là phòng chờ, kết quả và luật bàn. `SplendorRules` được export. `Modal` ở cuối file. |
-| `splendor/Pieces.tsx` | `GemIcon`, `GemCount`, `TokenChip` (`sm`/`md`/`lg`, `selected`, `dimmed`, `count`), `DevCardView` (`sm`/`md`/`lg`, `affordable` cho viền xanh, `highlight` cho viền vàng), `CardBack` (chồng theo tier), `NobleTile`, `BonusPip`, `GEM_STYLE`. `MD_CARD_W` là chuỗi class responsive cho độ rộng lá. |
+| `splendor/Pieces.tsx` | `GemIcon`, `GemCount`, `TokenChip` (`sm`/`md`/`lg`, `selected`, `dimmed`, `count`), `DevCardView` (`sm`/`md`/`lg`/`fluid`, `affordable` cho viền xanh, `highlight` cho viền vàng), `CardBack` (chồng theo tier; `sm`/`md`/`fluid`), `NobleTile`, `BonusPip`, `GEM_STYLE`. `MD_CARD_W` là chuỗi class responsive cho độ rộng lá; `MD_SLOT` là cùng độ rộng nhưng cho phép co lại (`min-w-0 shrink grow-0`), dùng bọc từng lá `size="fluid"` trong hàng chợ. |
 
 **Art.** Ảnh WebP có sẵn trong repo ở `public/games/splendor/`, **không** đi qua script art. URL được dựng trong `Pieces.tsx`, không có query version:
 
@@ -782,7 +782,7 @@ Mặt sau của chồng bài dùng lại art của lá (`BACKS`), làm mờ vớ
 
 **Bố cục**
 - **Điện thoại dọc:** một cột.
-  - Hàng quý tộc ở trên (`lg:hidden short:hidden`), rồi 3 hàng tier (chồng bài + 4 lá, `overflow-x-auto`). `MD_CARD_W` = `w-[min(4.8rem,calc((100vw-4.75rem)/5))]`, vừa 5 lá một hàng.
+  - Hàng quý tộc ở trên (`lg:hidden short:hidden`), rồi 3 hàng tier (chồng bài + 4 lá). **Hàng chợ không cuộn ngang**: mỗi lá nằm trong một ô `MD_SLOT` (rộng đúng `MD_CARD_W`, nhưng được co lại khi cột hẹp hơn 5 lá) và `DevCardView`/`CardBack` dùng `size="fluid"` (`w-full`) — chiều cao theo `aspect-[5/7]`. Độ rộng của ô phải là `width` xác định (không phải `basis`) để cột lấy được kích thước tự nhiên; dùng `basis` làm cột co về 0. `MD_CARD_W` = `w-[min(4.8rem,calc((100vw-4.75rem)/5))]`, vừa 5 lá một hàng trên điện thoại.
   - Ngân hàng đá wrap: `TokenChip lg` cao `h-11`, `min-[400px]:h-14`, `sm:h-16`.
   - Cột người chơi nằm dưới market, panel của mình lên đầu (`max-lg:order-first`).
   - Phần tử gốc có `pb-24` để chừa chỗ cho chat.

@@ -117,6 +117,13 @@ const TIER_MARK = { 1: "I", 2: "II", 3: "III" } as const;
 export const MD_CARD_W =
   "w-[min(4.8rem,calc((100vw-4.75rem)/5))] sm:w-[6.5rem] md:w-[7.5rem] lg:w-[clamp(6.5rem,calc((100dvh-15rem)*5/21),11.5rem)] short:w-[min(4.4rem,calc((100dvh-7.5rem)*5/21))]";
 
+/**
+ * Market-row slot: the card keeps its `MD_CARD_W` width (a definite `width`, so the column gets its natural size) but may shrink (never grow) so a row of deck + 4 cards
+ * fits whatever room the column has — no horizontal scrolling. The card inside is `size="fluid"` (fills the slot).
+ */
+export const MD_SLOT =
+  "min-w-0 shrink grow-0 w-[min(4.8rem,calc((100vw-4.75rem)/5))] sm:w-[6.5rem] md:w-[7.5rem] lg:w-[clamp(6.5rem,calc((100dvh-15rem)*5/21),11.5rem)] short:w-[min(4.4rem,calc((100dvh-7.5rem)*5/21))]";
+
 /** A development card: illustration, colour frame, points + bonus on top, cost in gems at the bottom. */
 export function DevCardView({
   id,
@@ -127,7 +134,8 @@ export function DevCardView({
   className,
 }: {
   id: number;
-  size?: "sm" | "md" | "lg";
+  /** `fluid`: as wide as its parent (a market-row slot, see `MD_SLOT`). */
+  size?: "sm" | "md" | "lg" | "fluid";
   onClick?: () => void;
   affordable?: boolean;
   highlight?: boolean;
@@ -136,10 +144,10 @@ export function DevCardView({
   const card = CARD_BY_ID[id];
   const Tag = onClick ? "button" : "div";
   // md: a market row (deck + 4 cards) always fits the phone width; smaller when the phone is sideways.
-  const w = size === "lg" ? "w-44" : size === "md" ? MD_CARD_W : "w-14";
+  const w = size === "lg" ? "w-44" : size === "md" ? MD_CARD_W : size === "fluid" ? "w-full" : "w-14";
   const costs = GEMS.filter((g) => card.cost[g]);
   const gemSize =
-    size === "lg" ? "h-9 w-9 text-lg" : size === "md" ? "h-[1.15rem] w-[1.15rem] text-[11px] sm:h-6 sm:w-6 sm:text-sm xl:h-7 xl:w-7 xl:text-base short:h-[1.15rem] short:w-[1.15rem] short:text-[11px]" : "h-3 w-3 text-[7px]";
+    size === "lg" ? "h-9 w-9 text-lg" : size === "md" || size === "fluid" ? "h-[1.15rem] w-[1.15rem] text-[11px] sm:h-6 sm:w-6 sm:text-sm xl:h-7 xl:w-7 xl:text-base short:h-[1.15rem] short:w-[1.15rem] short:text-[11px]" : "h-3 w-3 text-[7px]";
   return (
     <Tag
       onClick={onClick}
@@ -189,14 +197,14 @@ const BACKS: Record<1 | 2 | 3, { art: string; color: string }> = {
 };
 
 /** A deck of one tier (card back). */
-export function CardBack({ tier, count, onClick, size = "md" }: { tier: 1 | 2 | 3; count?: number; onClick?: () => void; size?: "sm" | "md" }) {
+export function CardBack({ tier, count, onClick, size = "md" }: { tier: 1 | 2 | 3; count?: number; onClick?: () => void; size?: "sm" | "md" | "fluid" }) {
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
       onClick={onClick}
       className={cn(
         "relative aspect-[5/7] shrink-0 rounded-lg p-[3px] shadow-lg",
-        size === "md" ? MD_CARD_W : "w-14",
+        size === "md" ? MD_CARD_W : size === "fluid" ? "w-full" : "w-14",
         onClick && "hover:-translate-y-1",
       )}
       style={{ background: `linear-gradient(145deg,#fde68a,${BACKS[tier].color} 40%,#1c1917 70%,#fbbf24)` }}

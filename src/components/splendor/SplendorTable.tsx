@@ -27,7 +27,7 @@ import {
 import { SPLENDOR_WS_PATH, type SPGameView, type SPPlayerView, type SPRoomView, type SPSeatView } from "@/lib/splendor/protocol";
 import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
-import { BonusPip, CardBack, DevCardView, GemCount, GemIcon, MD_CARD_W, NobleTile, TokenChip } from "./Pieces";
+import { BonusPip, CardBack, DevCardView, GemCount, GemIcon, MD_SLOT, NobleTile, TokenChip } from "./Pieces";
 import { ConfirmButton } from "@/components/games/ConfirmButton";
 
 type Act = (msg: Record<string, unknown> & { type: string }) => Promise<boolean>;
@@ -295,21 +295,26 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
             <div className="flex min-w-0 flex-wrap gap-3 lg:justify-center xl:gap-x-5 short:flex-nowrap short:gap-2">
               <div className="flex min-w-0 flex-col gap-3 lg:gap-2 short:gap-2">
                 {[3, 2, 1].map((tier) => (
-                  <div key={tier} className="flex items-center gap-2 overflow-x-auto pb-1 short:gap-1.5 short:pb-0">
-                    <CardBack
-                      tier={tier as 1 | 2 | 3}
-                      count={g.deckCounts[tier - 1]}
-                      onClick={g.deckCounts[tier - 1] ? () => setFocus({ tier: tier as 1 | 2 | 3 }) : undefined}
-                    />
-                    {g.board[tier - 1].map((c, i) =>
-                      c === null ? (
-                        <div key={`e${i}`} className={cn("aspect-[5/7] shrink-0 rounded-lg border border-dashed border-white/15", MD_CARD_W)} />
-                      ) : (
-                        <motion.div key={c} initial={{ scale: 0.6, opacity: 0, rotateY: 90 }} animate={{ scale: 1, opacity: 1, rotateY: 0 }}>
-                          <DevCardView id={c} onClick={() => setFocus({ card: c })} affordable={myTurn && canAfford(c)} highlight={g.last?.card === c} />
-                        </motion.div>
-                      ),
-                    )}
+                  <div key={tier} className="flex min-w-0 items-center gap-2 pb-1 short:gap-1.5 short:pb-0">
+                    <div className={MD_SLOT}>
+                      <CardBack
+                        size="fluid"
+                        tier={tier as 1 | 2 | 3}
+                        count={g.deckCounts[tier - 1]}
+                        onClick={g.deckCounts[tier - 1] ? () => setFocus({ tier: tier as 1 | 2 | 3 }) : undefined}
+                      />
+                    </div>
+                    {g.board[tier - 1].map((c, i) => (
+                      <div key={c === null ? `e${i}` : c} className={MD_SLOT}>
+                        {c === null ? (
+                          <div className="aspect-[5/7] w-full rounded-lg border border-dashed border-white/15" />
+                        ) : (
+                          <motion.div initial={{ scale: 0.6, opacity: 0, rotateY: 90 }} animate={{ scale: 1, opacity: 1, rotateY: 0 }}>
+                            <DevCardView size="fluid" id={c} onClick={() => setFocus({ card: c })} affordable={myTurn && canAfford(c)} highlight={g.last?.card === c} />
+                          </motion.div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
