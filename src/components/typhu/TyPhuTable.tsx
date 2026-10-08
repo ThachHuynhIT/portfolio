@@ -4,6 +4,9 @@ import { SeatAvatar } from "@/components/games/PlayerAvatar";
 import { createContext, memo, useCallback, useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
+import NumberFlow from "@number-flow/react";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { toast as showToast } from "sonner";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
 import { GameHeader, HeaderLabel, headerBtn } from "@/components/games/GameHeader";
@@ -227,8 +230,9 @@ export default function TyPhuTable({ code, name, watch }: { code: string; name: 
 
   useEffect(() => {
     if (!toast) return;
-    const id = setTimeout(() => setToast(null), 2600);
-    return () => clearTimeout(id);
+    showToast.error(toast);
+    playSound("error");
+    setToast(null);
   }, [toast]);
 
   const act = useCallback<Act>(
@@ -263,13 +267,13 @@ export default function TyPhuTable({ code, name, watch }: { code: string; name: 
   }
   return (
     <>
-      <Table view={view} reconnecting={status === "reconnecting"} act={act} toast={toast} />
+      <Table view={view} reconnecting={status === "reconnecting"} act={act} />
       <ChatBox messages={view.chat} meId={view.meId} myName={name} onSend={(text) => act({ type: "chat", text })} onEmoji={(emoji) => void act({ type: "emoji", emoji })} row />
     </>
   );
 }
 
-function Table(props: { view: TPRoomView; reconnecting: boolean; act: Act; toast: string | null }) {
+function Table(props: { view: TPRoomView; reconnecting: boolean; act: Act }) {
   return (
     <NowProvider active={props.view.current?.status === "playing"}>
       <TableBody {...props} />
@@ -277,7 +281,7 @@ function Table(props: { view: TPRoomView; reconnecting: boolean; act: Act; toast
   );
 }
 
-function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; reconnecting: boolean; act: Act; toast: string | null }) {
+function TableBody({ view, reconnecting, act }: { view: TPRoomView; reconnecting: boolean; act: Act }) {
   const g = view.current;
   BOARD = boardOf(g?.map ?? view.settings.map);
   const playing = g?.status === "playing";
@@ -352,6 +356,17 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
     const t = setTimeout(() => setCardFx(null), 3500);
     return () => clearTimeout(t);
   }, [cardFx]);
+
+  const [playersRef] = useAutoAnimate<HTMLUListElement>({ duration: 160 });
+  const [loansRef] = useAutoAnimate<HTMLUListElement>({ duration: 160 });
+  // An offer addressed to me pops a toast (the card itself sits in the board centre, which may be off-screen on a phone).
+  const offerKey = g?.trade?.to === view.meId ? `t${g.trade.deadline}` : g?.loan?.to === view.meId ? `l${g.loan.deadline}` : "";
+  useEffect(() => {
+    if (!offerKey) return;
+    const loan = offerKey.startsWith("l");
+    showToast(loan ? "🏦 Có lời xin vay tiền gửi cho bạn" : "🤝 Có lời mời đổi đất gửi cho bạn", { description: "Xem thẻ ở giữa bàn cờ" });
+    playSound("coin");
+  }, [offerKey]);
 
   // Sound effects from the new log lines (ignores whatever was already there when the page opened).
   const lastSoundId = useRef(g?.log.at(-1)?.id ?? 0);
@@ -565,7 +580,7 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
           )}
           <div className="rounded-2xl bg-black/35 p-3 short:p-2">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-100/60">Người chơi</p>
-            <ul className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+            <ul ref={playersRef} className="grid grid-cols-2 gap-2 lg:grid-cols-1">
               {view.seats
                 .filter((s): s is TPSeatView => !!s)
                 .map((s) => {
@@ -592,7 +607,7 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
           {g && !!g.loans?.length && (
             <div className="rounded-2xl bg-black/35 p-3">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-100/60">🏦 Khoản vay</p>
-              <ul className="space-y-1 text-xs">
+              <ul ref={loansRef} className="space-y-1 text-xs">
                 {g.loans.map((l) => (
                   <li key={l.id} className={cn("rounded bg-white/5 px-2 py-1", l.borrower === view.meId && "ring-1 ring-rose-300/60")}>
                     <b>{nameOf(l.borrower)}</b> nợ <b>{nameOf(l.lender)}</b> <b className="text-amber-200">{money(l.owed)}</b>
@@ -617,19 +632,6 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
 
         </aside>
       </div>
-
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-lg"
-          >
-            {toast}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {picking && me && <PiecePicker seats={view.seats} meId={view.meId} act={act} onClose={() => setPicking(false)} />}
 
@@ -1701,8 +1703,16 @@ function PlayerRow({
             {self && <span className="text-xs font-normal text-white/60">(bạn)</span>}
           </p>
           <p className="flex flex-wrap items-center gap-1 text-[11px] text-white/70">
-            {p && !p.bankrupt && <span className="font-mono text-emerald-300">💰 {money(p.cash)}</span>}
-            {p && !p.bankrupt && <span className="font-mono text-white/50" title="Tổng tài sản">≈ {money(p.netWorth)}</span>}
+            {p && !p.bankrupt && (
+              <span className="font-mono text-emerald-300">
+                💰 <NumberFlow value={p.cash} locales="vi-VN" suffix="tr" />
+              </span>
+            )}
+            {p && !p.bankrupt && (
+              <span className="font-mono text-white/50" title="Tổng tài sản">
+                ≈ <NumberFlow value={p.netWorth} locales="vi-VN" suffix="tr" />
+              </span>
+            )}
             {p?.jail ? <span className="rounded bg-zinc-600 px-1">🚔 Ở tù</span> : null}
             {p && p.jailCards > 0 && <span title="Thẻ ra tù">🗝️×{p.jailCards}</span>}
             {p?.bankrupt && <span className="rounded bg-rose-900/60 px-1">Phá sản</span>}
@@ -2731,8 +2741,9 @@ function PiecePicker({ seats, meId, act, onClose }: { seats: (TPSeatView | null)
 
 /** Game log, newest first, coloured by tone. */
 function LogList({ log, className }: { log: TPGameView["log"]; className?: string }) {
+  const [listRef] = useAutoAnimate<HTMLUListElement>({ duration: 160 });
   return (
-    <ul className={cn("flex flex-col gap-1 overflow-y-auto text-xs", className)}>
+    <ul ref={listRef} className={cn("flex flex-col gap-1 overflow-y-auto text-xs", className)}>
       {log
         .slice()
         .reverse()

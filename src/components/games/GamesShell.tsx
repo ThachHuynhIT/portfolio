@@ -7,6 +7,7 @@ import { MAX_NAME_LENGTH } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { AllRoomsPanel } from "./AllRoomsPanel";
 import { FullscreenButton, GAME_HEADER_SLOT_ID } from "./GameHeader";
+import { Toaster } from "sonner";
 import { SoundToggle } from "./SoundToggle";
 import { getSavedProfile, saveName, saveProfile, usePlayerName, usePlayerProfile, type PlayerProfile } from "./gameClient";
 import { PlayerAvatar, ProfilePicker } from "./PlayerAvatar";
@@ -57,6 +58,7 @@ export function GamesShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ShellContext.Provider value={{ openRename: () => setRenaming(true) }}>
+      <Toaster theme="dark" position="top-center" richColors visibleToasts={3} toastOptions={{ duration: 2800 }} />
       <div className={cn("flex min-h-[100dvh] flex-col", table && "games-shell-table")}>
         <GamesTopBar compact={table} name={name} onRename={() => setRenaming(true)} />
         {/* The bar is taller on phones (finger-sized buttons): keep the table exactly one screen tall. */}
