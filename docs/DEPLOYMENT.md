@@ -53,13 +53,16 @@ Nội dung (dự án, ảnh, blog, couple...) được sửa qua `/admin` và l�
 
 ### 3.1. Game Online (`/games`, `/tien-len`, `/meo-no`, `/co-ty-phu`, `/splendor`, `/bang`, `/o-an-quan`, `/co-ca-ngua`)
 
-Portfolio chỉ chứa **giao diện** của các game (`src/app/<game>`, `src/components/{games,tienlen,meono,typhu,splendor,bang,oanquan,cangua}`) cùng bản sao luật/dữ liệu + protocol trong `src/lib/<game>` để kiểm tra nước đi phía client. Toàn bộ backend (phòng chơi, WebSocket, Redis) của **cả 5 game** nằm ở repo riêng **[be_game](https://github.com/ThachHuynhIT/be_game)** và được deploy thành một project Vercel khác. Cách deploy xem README của repo đó.
+Portfolio chỉ chứa **giao diện** của các game (`src/app/<game>`, `src/components/{games,tienlen,meono,typhu,splendor,bang,oanquan,cangua}`) cùng bản sao luật/dữ liệu + protocol trong `src/lib/<game>` để kiểm tra nước đi phía client. Toàn bộ backend (phòng chơi, WebSocket, Redis) của **mọi game** nằm ở repo riêng **[be_game](https://github.com/ThachHuynhIT/be_game)**. Có hai cách chạy: một project Vercel khác, hoặc **server riêng** (VPS) bằng Docker Compose gồm be_game + Redis + Caddy (HTTPS tự động). Cách triển khai xem README của repo đó (mục "Tự host").
 
 Sau khi deploy be_game, vào project portfolio trên Vercel → *Settings → Environment Variables* và thêm:
 ```
+# Vercel:
 NEXT_PUBLIC_TIENLEN_SERVER_URL=https://<be_game>.vercel.app
+# Server riêng (Caddy cấp HTTPS cho domain này):
+NEXT_PUBLIC_TIENLEN_SERVER_URL=https://game.<domain-của-bạn>
 ```
-rồi redeploy. Biến này được gắn vào lúc build và dùng chung cho mọi game (Tiến Lên: `/api/ws`, `/api/rooms`, `/api/leaderboard`; game khác: `/api/<meono|typhu|splendor|bang|cangua|oanquan>/ws|rooms|leaderboard`). Nếu be_game đặt `ALLOWED_ORIGIN`, nhớ thêm domain của portfolio vào đó.
+rồi redeploy. Bắt buộc dùng `https://` (client tự đổi thành `wss://`); trang HTTPS không được mở `ws://` do trình duyệt chặn mixed content. Biến này được gắn vào lúc build và dùng chung cho mọi game (Tiến Lên: `/api/ws`, `/api/rooms`, `/api/leaderboard`; game khác: `/api/<meono|typhu|splendor|bang|cangua|oanquan>/ws|rooms|leaderboard`). Nếu be_game đặt `ALLOWED_ORIGIN`, nhớ thêm domain của portfolio vào đó.
 
 Khi chạy local: chạy `npm run dev` trong be_game (cổng 4000) và `npm run dev` trong portfolio. Nếu không đặt biến thì client mặc định kết nối tới `http://localhost:4000`.
 
@@ -128,7 +131,7 @@ CMD ["npm", "run", "start"]
 # Build image
 docker build -t my-portfolio:latest \
   --build-arg DATABASE_URL="postgresql://..." \
-  --build-arg NEXT_PUBLIC_TIENLEN_SERVER_URL="https://<be_game>.vercel.app" .
+  --build-arg NEXT_PUBLIC_TIENLEN_SERVER_URL="https://game.<domain-của-bạn>" .
 
 # Run container (biến runtime lấy từ file env, theo mẫu .env.example)
 docker run -p 3000:3000 -d --env-file .env.production --name portfolio-app my-portfolio:latest
