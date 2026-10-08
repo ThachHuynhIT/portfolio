@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
 import { GameHeader, HeaderLabel, headerBtn } from "@/components/games/GameHeader";
 import { useGameRoom } from "@/components/games/gameClient";
+import { playSound, type SoundName } from "@/components/games/sound";
 import { useHotkeys } from "@/components/games/useHotkeys";
 import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
@@ -351,6 +352,27 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
     const t = setTimeout(() => setCardFx(null), 3500);
     return () => clearTimeout(t);
   }, [cardFx]);
+
+  // Sound effects from the new log lines (ignores whatever was already there when the page opened).
+  const lastSoundId = useRef(g?.log.at(-1)?.id ?? 0);
+  useEffect(() => {
+    if (!g) return;
+    const fresh = g.log.filter((e) => e.id > lastSoundId.current);
+    if (!fresh.length) return;
+    lastSoundId.current = fresh[fresh.length - 1].id;
+    const kinds = new Set<SoundName>();
+    for (const e of fresh) {
+      if (e.text.startsWith("🎲")) kinds.add("roll");
+      else if (e.text.startsWith("🏠")) kinds.add("build");
+      else if (e.tone === "buy") kinds.add("buy");
+      else if (e.tone === "jail") kinds.add("jail");
+      else if (e.tone === "card") kinds.add("card");
+      else if (e.tone === "bad") kinds.add("pay");
+      else if (e.tone === "money") kinds.add("coin");
+    }
+    // Rolling is the main beat; the rest follow it, at most two at a time.
+    [...kinds].sort((a) => (a === "roll" ? -1 : 0)).slice(0, 2).forEach((k, i) => setTimeout(() => playSound(k), i * 450));
+  }, [g?.log.at(-1)?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // "Just built" banner, driven by the 🏠 lines in the log.
   const [buildFx, setBuildFx] = useState<{ id: number; text: string; hotel: boolean } | null>(null);

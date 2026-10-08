@@ -7,6 +7,7 @@ import { MAX_NAME_LENGTH } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { AllRoomsPanel } from "./AllRoomsPanel";
 import { FullscreenButton, GAME_HEADER_SLOT_ID } from "./GameHeader";
+import { SoundToggle } from "./SoundToggle";
 import { getSavedProfile, saveName, saveProfile, usePlayerName, usePlayerProfile, type PlayerProfile } from "./gameClient";
 import { PlayerAvatar, ProfilePicker } from "./PlayerAvatar";
 import { ONLINE_GAMES, gameOfPath, gamesPageKind } from "./gamesRegistry";
@@ -123,6 +124,7 @@ function GamesTopBar({ compact, name, onRename }: { compact: boolean; name: stri
         </ul>
 
         {compact && <div id={GAME_HEADER_SLOT_ID} className="flex min-w-0 flex-1 items-center" />}
+        <SoundToggle />
         <FullscreenButton />
 
         {name && (
