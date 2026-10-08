@@ -10,6 +10,7 @@ import { RankPointsPicker } from "@/components/games/RankPointsPicker";
 import { SettingsTabs } from "@/components/games/SettingsTabs";
 import { MyTurnBadge, TurnRing, TurnTimerBorder } from "@/components/games/TurnIndicator";
 import { useGameRoom } from "@/components/games/gameClient";
+import { useHotkeys } from "@/components/games/useHotkeys";
 import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
 import { GATE, HORSES, MAX_PLAYERS, STABLE, TURN_SECONDS_OPTIONS } from "@/lib/cangua/board";
@@ -277,19 +278,14 @@ function TurnPanel({
   const turnP = g.players.find((p) => p.id === g.turn);
   const roller = g.roll ? g.players.find((p) => p.id === g.roll!.player) : null;
   const rollColor = roller ? HORSE_COLORS[roller.color].fill : undefined;
-  // Roll (or let the timer roll) — keyboard: Space / Enter while it's my roll.
+  // Roll (or let the timer roll) — same guard as the roll button below.
   const canRoll = myTurn && g.phase === "roll" && !busy;
-  useEffect(() => {
-    if (!canRoll) return;
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.key === " " || e.key === "Enter") && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
-        e.preventDefault();
-        void run({ type: "roll" });
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [canRoll, run]);
+  // Move: number keys pick among the glowing horses (badge order = g.legal order); a single option also takes Space / Enter.
+  const canMove = myTurn && g.phase === "move" && !busy;
+  const doRoll = canRoll ? () => void run({ type: "roll" }) : undefined;
+  const moveKey = (i: number) => (canMove && g.legal[i] !== undefined ? () => void run({ type: "move", horse: g.legal[i] }) : undefined);
+  const onlyMove = canMove && g.legal.length === 1 ? moveKey(0) : undefined;
+  useHotkeys({ " ": doRoll ?? onlyMove, Enter: doRoll ?? onlyMove, r: doRoll, "1": moveKey(0), "2": moveKey(1), "3": moveKey(2), "4": moveKey(3) });
 
   return (
     <div className={cn("relative rounded-2xl border border-amber-200/15 bg-black/40 p-3 pt-4", myTurn && "bg-rose-500/10")}>
@@ -329,13 +325,18 @@ function TurnPanel({
           className="mt-3 w-full rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-2.5 text-base font-black text-black shadow-[0_4px_0_#92400e] transition active:translate-y-0.5 active:shadow-[0_2px_0_#92400e] disabled:opacity-50"
         >
           🎲 {g.sixes > 0 ? "Gieo tiếp (được 6!)" : "Gieo xúc xắc"}
+          <kbd className="ml-1.5 hidden rounded border border-current/30 bg-black/10 px-1 align-middle font-mono text-[10px] font-normal opacity-70 lg:inline [@media(pointer:coarse)]:hidden">Space</kbd>
         </button>
       )}
       {myTurn && g.phase === "move" && (
         <p className="mt-3 rounded-lg bg-amber-400/15 px-3 py-2 text-center text-sm text-amber-100 ring-1 ring-amber-300/40">
           Bấm vào ngựa đang sáng để đi <b>{g.die}</b> {g.legal.length === 1 ? "— chỉ có 1 nước" : `— ${g.legal.length} con đi được`}
+          <span className="hidden lg:inline [@media(pointer:coarse)]:hidden"> (phím {g.legal.length === 1 ? "1 hoặc Space" : `1–${g.legal.length}`})</span>
         </p>
       )}
+      <p className="mt-2 hidden text-[11px] text-white/45 lg:block [@media(pointer:coarse)]:hidden">
+        Phím tắt: Space / R = gieo xúc xắc · 1–4 = chọn ngựa đang sáng (theo số trên ngựa) · Esc = đóng hộp thoại.
+      </p>
       {!myTurn && g.phase === "move" && turnP && <p className="mt-2 text-xs text-white/55">Đang chọn ngựa để đi {g.die} bước…</p>}
     </div>
   );

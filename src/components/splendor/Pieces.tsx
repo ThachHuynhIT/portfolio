@@ -70,6 +70,7 @@ export function TokenChip({
   dimmed,
   onClick,
   title,
+  hotkey,
 }: {
   gem: Token;
   count?: number;
@@ -78,6 +79,8 @@ export function TokenChip({
   dimmed?: boolean;
   onClick?: () => void;
   title?: string;
+  /** Keyboard shortcut hint (desktop, non-touch only). */
+  hotkey?: string;
 }) {
   // The bank row (6 lg chips) has to fit a 360px-wide phone on one line.
   const px = size === "lg" ? "h-11 w-11 min-[400px]:h-14 min-[400px]:w-14 sm:h-16 sm:w-16 short:h-10 short:w-10" : size === "md" ? "h-11 w-11" : "h-7 w-7 sm:h-8 sm:w-8";
@@ -93,6 +96,9 @@ export function TokenChip({
         <span className="absolute -bottom-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-black/85 px-1 text-[11px] font-bold text-white ring-1 ring-amber-200/40">
           {count}
         </span>
+      )}
+      {hotkey && (
+        <kbd className="absolute -right-1 -top-1 hidden rounded border border-white/30 bg-black/80 px-1 font-mono text-[10px] font-normal leading-4 text-white/80 lg:inline [@media(pointer:coarse)]:hidden">{hotkey}</kbd>
       )}
       {!!selected && (
         <span className="absolute -left-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1 text-[11px] font-black text-black shadow">

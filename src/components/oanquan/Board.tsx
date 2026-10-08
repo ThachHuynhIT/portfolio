@@ -209,6 +209,7 @@ export function OQBoard({
       flash={!!frame?.captured.includes(cell)}
       hand={frame?.cell === cell ? frame.hand : 0}
       started={!frame && lastCell === cell}
+      hotkey={selectable.includes(cell) ? rowOf(bottomSide).indexOf(cell) + 1 : 0}
       onClick={() => onSelect(selected === cell ? null : cell)}
       onSow={onSow}
     />
@@ -483,6 +484,7 @@ function Cup({
   flash,
   hand,
   started,
+  hotkey,
   onClick,
   onSow,
 }: {
@@ -495,6 +497,8 @@ function Cup({
   flash: boolean;
   hand: number;
   started: boolean;
+  /** Number key (1–5, left → right on your row) that picks this square; 0 = none. Desktop only. */
+  hotkey: number;
   onClick: () => void;
   onSow: (dir: 1 | -1) => void;
 }) {
@@ -520,6 +524,14 @@ function Cup({
       </button>
       <CountBadge n={count} className="bottom-[3%] right-[3%]" />
       <HandBadge n={hand} />
+      {hotkey > 0 && !selected && (
+        <kbd
+          aria-hidden
+          className="pointer-events-none absolute left-[6%] top-[6%] z-10 hidden min-w-[1.3em] rounded bg-amber-300/90 px-1 text-center font-mono text-[11px] font-black leading-[1.3em] text-black shadow lg:block [@media(pointer:coarse)]:hidden"
+        >
+          {hotkey}
+        </kbd>
+      )}
       {selected && (
         <div className="absolute inset-0 z-20 flex overflow-hidden rounded-[30%] ring-[3px] ring-amber-300">
           <button

@@ -9,6 +9,7 @@ import { GameHeader, HeaderLabel, headerBtn } from "@/components/games/GameHeade
 import { DraggableRow, useHandOrder } from "@/components/games/DraggableHand";
 import { RankPointsPicker } from "@/components/games/RankPointsPicker";
 import { useGameRoom } from "@/components/games/gameClient";
+import { useHotkeys } from "@/components/games/useHotkeys";
 import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
 import {
@@ -49,6 +50,16 @@ function useNow(active: boolean, every = 500) {
     return () => clearInterval(id);
   }, [active, every]);
   return now;
+}
+
+/** Desktop shortcut per gem colour (V = Vàng, only used when returning tokens). */
+const GEM_KEYS: Record<Token, string> = { white: "w", blue: "u", green: "g", red: "r", black: "k", gold: "v" };
+
+/** Small key hint on a button; hidden on small and touch screens. */
+function Kbd({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd className="ml-1.5 hidden rounded border border-current/30 bg-black/10 px-1 align-middle font-mono text-[10px] font-normal opacity-70 lg:inline [@media(pointer:coarse)]:hidden">{children}</kbd>
+  );
 }
 
 const emptyPick = (): Record<Token, number> => ({ white: 0, blue: 0, green: 0, red: 0, black: 0, gold: 0 });
@@ -186,6 +197,28 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
     if (await run({ type: "take", gems: picked })) setPick(emptyPick());
   };
 
+  // Desktop shortcuts. Gem keys pick like a click on the bank; Enter / Space = the visible "Lấy đá" button
+  // (or "OK, lấy đá" in the over-10 warning); Esc clears the selection. Dialogs block everything but Enter / Esc.
+  const canTake = myTurn && g?.phase === "turn" && !!picked.length && !busy;
+  const dialogOpen = !!focus || confirmTake || showScores || showRules;
+  const gemKeys: Record<string, (() => void) | undefined> = {};
+  for (const gem of GEMS) gemKeys[GEM_KEYS[gem]] = myTurn && g?.phase === "turn" ? () => togglePick(gem) : undefined;
+  const confirmOrTake = () => {
+    if (confirmTake) {
+      if (myTurn && g?.phase === "turn" && !busy) void doTake(true);
+    } else if (canTake && !dialogOpen) void doTake();
+  };
+  useHotkeys(
+    {
+      ...gemKeys,
+      Enter: confirmOrTake,
+      " ": confirmTake ? undefined : confirmOrTake,
+      Escape: !dialogOpen && picked.length ? () => setPick(emptyPick()) : undefined,
+    },
+    true,
+    ["Enter"],
+  );
+
   const canAfford = (cardId: number) => !!mine && paymentPlan(cardId, mine).missing === 0;
 
   const secondsLeft = g?.deadline ? Math.max(0, Math.ceil((g.deadline - now) / 1000)) : null;
@@ -298,27 +331,35 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
                     selected={t === "gold" ? 0 : pick[t as Gem]}
                     dimmed={g.bank[t] === 0}
                     onClick={t === "gold" ? undefined : () => togglePick(t as Gem)}
+                    hotkey={t !== "gold" && myTurn && g.phase === "turn" ? GEM_KEYS[t].toUpperCase() : undefined}
                     title={t === "gold" ? "Vàng — chỉ lấy khi giữ thẻ" : `${GEM_NAMES[t]} — bấm để chọn (bấm lần 2 để lấy 2 viên nếu còn ≥ 4)`}
                   />
                 ))}
                 {myTurn && g.phase === "turn" && (
-                  <div className="ml-auto flex gap-2 short:col-span-2 short:ml-0 short:flex-col short:gap-1">
+                  <div className="ml-auto flex flex-wrap items-center justify-end gap-2 short:col-span-2 short:ml-0 short:flex-col short:gap-1">
                     <button
                       onClick={() => void doTake()}
                       disabled={!picked.length || busy}
                       className="rounded-lg bg-amber-400 px-4 py-2 font-bold text-black hover:bg-amber-300 disabled:opacity-40 short:whitespace-nowrap short:px-2 short:py-1.5 short:text-xs"
                     >
                       💎 Lấy {picked.length ? picked.length : ""} đá
+                      <Kbd>Enter</Kbd>
                     </button>
                     {!!picked.length && (
                       <button onClick={() => setPick(emptyPick())} className="rounded-lg border border-white/25 px-3 py-2 text-sm short:px-2 short:py-1.5 short:text-xs">
                         Bỏ chọn
+                        <Kbd>Esc</Kbd>
                       </button>
                     )}
                   </div>
                 )}
               </div>
             </div>
+            {myTurn && g.phase === "turn" && (
+              <p className="hidden text-[11px] text-white/45 lg:block [@media(pointer:coarse)]:hidden">
+                Phím tắt: W trắng · U lam · G lục · R đỏ · K đen = chọn đá (bấm lần 2 = lấy 2 viên) · Enter / Space = lấy đá · Esc = bỏ chọn · trong thẻ: B mua · G giữ.
+              </p>
+            )}
 
             {myTurn && g.phase === "discard" && mine && <DiscardPanel p={mine} need={g.discardNeed} run={run} busy={busy} secondsLeft={secondsLeft} />}
           </div>
@@ -407,9 +448,11 @@ function Table({ view, reconnecting, act, toast }: { view: SPRoomView; reconnect
                 className="rounded-lg bg-amber-400 px-4 py-2 font-bold text-black hover:bg-amber-300 disabled:opacity-40"
               >
                 OK, lấy đá
+                <Kbd>Enter</Kbd>
               </button>
               <button onClick={() => setConfirmTake(false)} className="rounded-lg border border-white/25 px-4 py-2 font-semibold hover:bg-white/10">
                 Chọn lại
+                <Kbd>Esc</Kbd>
               </button>
             </div>
           </div>
@@ -580,6 +623,17 @@ function CardModal({
   const reserveFull = (mine?.reserved.length ?? 0) >= MAX_RESERVED;
   const done = (p: Promise<boolean>) => void p.then((ok) => ok && onClose());
   const plan = focus.card !== undefined && mine ? paymentPlan(focus.card, mine) : null;
+  // B = Mua, G = Giữ — same guards as the two buttons below. Only this dialog is open, so the table's own keys are off.
+  const canBuy = canAct && focus.card !== undefined && !busy && canAfford(focus.card);
+  const canReserve = canAct && !focus.reserved && !busy && !reserveFull;
+  useHotkeys(
+    {
+      b: canBuy ? () => done(run({ type: "buy", card: focus.card! })) : undefined,
+      g: canReserve ? () => done(run(focus.card !== undefined ? { type: "reserve", card: focus.card } : { type: "reserve", tier: focus.tier! })) : undefined,
+    },
+    true,
+    ["b", "g"],
+  );
   return (
     <Modal onClose={onClose}>
       {/* Sideways phones: card on the left, cost and buttons beside it, so nothing needs scrolling. */}
@@ -601,6 +655,7 @@ function CardModal({
                   className="rounded-lg bg-emerald-500 px-4 py-2 font-bold text-black hover:bg-emerald-400 disabled:opacity-40"
                 >
                   🛒 Mua
+                  <Kbd>B</Kbd>
                 </button>
               )}
               {!focus.reserved && (
@@ -610,6 +665,7 @@ function CardModal({
                   className="rounded-lg bg-amber-400 px-4 py-2 font-bold text-black hover:bg-amber-300 disabled:opacity-40"
                 >
                   📌 Giữ {focus.card === undefined ? "1 thẻ úp" : ""} {g.bank.gold > 0 ? "+ 1 Vàng" : ""}
+                  <Kbd>G</Kbd>
                 </button>
               )}
             </div>
@@ -685,6 +741,14 @@ function DiscardPanel({ p, need, run, busy, secondsLeft }: { p: SPPlayerView; ne
   const giving = TOKENS.filter((t) => give[t] > 0);
   const add = (t: Token) => setGive((g) => (tokenSum(g) >= need ? g : { ...g, [t]: Math.min(p.tokens[t], g[t] + 1) }));
   const remove = (t: Token) => setGive((g) => ({ ...g, [t]: Math.max(0, g[t] - 1) }));
+  // Gem keys put one held gem in the return pile (like tapping it); Enter = the "Trả lại" button; Esc = "Chọn lại".
+  const discardKeys: Record<string, (() => void) | undefined> = {};
+  for (const t of TOKENS) discardKeys[GEM_KEYS[t]] = left > 0 && held.includes(t) ? () => add(t) : undefined;
+  useHotkeys({
+    ...discardKeys,
+    Enter: !busy && left === 0 ? () => void run({ type: "discard", tokens: give }) : undefined,
+    Escape: total > 0 ? () => setGive(emptyPick()) : undefined,
+  });
   return (
     <div ref={ref} className="rounded-2xl bg-rose-500/15 p-3 ring-2 ring-rose-400/60">
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
@@ -702,6 +766,7 @@ function DiscardPanel({ p, need, run, busy, secondsLeft }: { p: SPPlayerView; ne
             count={p.tokens[t] - give[t]}
             dimmed={left === 0}
             onClick={left > 0 ? () => add(t) : undefined}
+            hotkey={left > 0 ? GEM_KEYS[t].toUpperCase() : undefined}
             title={`Trả 1 ${GEM_NAMES[t]}`}
           />
         ))}
@@ -725,13 +790,16 @@ function DiscardPanel({ p, need, run, busy, secondsLeft }: { p: SPPlayerView; ne
           className="rounded-lg bg-amber-400 px-4 py-2 font-bold text-black hover:bg-amber-300 disabled:opacity-40"
         >
           {left > 0 ? `Chọn thêm ${left} viên` : `Trả lại ${need} viên`}
+          {left === 0 && <Kbd>Enter</Kbd>}
         </button>
         {total > 0 && (
           <button onClick={() => setGive(emptyPick())} className="rounded-lg border border-white/25 px-3 py-2 text-sm hover:bg-white/10">
             Chọn lại
+            <Kbd>Esc</Kbd>
           </button>
         )}
       </div>
+      <p className="mt-2 hidden text-[11px] text-white/50 lg:block [@media(pointer:coarse)]:hidden">Phím tắt: W / U / G / R / K / V = trả 1 đá trắng / lam / lục / đỏ / đen / vàng · Enter = trả lại · Esc = chọn lại.</p>
     </div>
   );
 }

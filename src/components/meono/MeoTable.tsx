@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
 import { DraggableRow, useHandOrder } from "@/components/games/DraggableHand";
 import { GameHeader, headerBtn } from "@/components/games/GameHeader";
+import { useHotkeys } from "@/components/games/useHotkeys";
 import { useGameRoom } from "@/components/games/gameClient";
 import { MyTurnBadge, TurnRing, TurnTimerBorder } from "@/components/games/TurnIndicator";
 import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
@@ -353,6 +354,20 @@ function Board({
       setNamed("");
     }
   };
+
+  const clearSelection = () => (setSelected([]), setTarget(null), setNamed(""));
+  // Desktop shortcuts; same guards as the dock buttons. Draw (R) is the visible green button, never bound to Space/Enter.
+  const noDialog = !showGuide && !showScores && !showDiscard;
+  useHotkeys(
+    {
+      d: () => canPlay && void doPlay(),
+      r: () => canDraw && void run({ type: "draw" }),
+      n: () => canNope && myNope && !busy && void run({ type: "nope", card: myNope.id }),
+      b: () => selected.length > 0 && clearSelection(),
+      Escape: noDialog && selected.length > 0 ? clearSelection : undefined,
+    },
+    meAlive,
+  );
 
   // Explosion / defuse effects from the log.
   const [fx, setFx] = useState<BoomFx | null>(null);
@@ -788,14 +803,14 @@ function Board({
               )}
               <div className="flex flex-wrap items-stretch justify-center gap-2 max-sm:gap-1.5 lg:col-start-2 lg:row-start-1 lg:flex-nowrap">
                 {canNope && myNope && (
-                  <DockBtn tone="nope" onClick={() => void run({ type: "nope", card: myNope.id })}>
+                  <DockBtn tone="nope" hotkey="N" onClick={() => void run({ type: "nope", card: myNope.id })}>
                     🚫 KHÔNG!
                   </DockBtn>
                 )}
-                <DockBtn tone="play" onClick={doPlay} disabled={!canPlay}>
+                <DockBtn tone="play" hotkey="D" onClick={doPlay} disabled={!canPlay}>
                   ▶ ĐÁNH{selected.length > 1 ? ` ${selected.length} LÁ` : ""}
                 </DockBtn>
-                <DockBtn tone="draw" onClick={() => void run({ type: "draw" })} disabled={!canDraw}>
+                <DockBtn tone="draw" hotkey="R" onClick={() => void run({ type: "draw" })} disabled={!canDraw}>
                   🂠 RÚT BÀI
                 </DockBtn>
                 <span className="contents lg:hidden">
@@ -829,7 +844,7 @@ function Board({
                 </span>
               </div>
               <div className="hidden items-center gap-2 lg:col-start-3 lg:row-start-1 lg:flex lg:justify-self-end">
-                <DockBtn tone="ghost" onClick={() => (setSelected([]), setTarget(null), setNamed(""))} disabled={!selected.length}>
+                <DockBtn tone="ghost" hotkey="B" onClick={() => (setSelected([]), setTarget(null), setNamed(""))} disabled={!selected.length}>
                   ✕ Bỏ chọn
                 </DockBtn>
               </div>
@@ -849,6 +864,7 @@ function Board({
                 ) : (
                   "Bấm lá để chọn · kéo ngang để xếp lại"
                 )}
+                <span className="hidden lg:inline [@media(pointer:coarse)]:hidden"> Phím tắt: D = đánh · R = rút · N = Không! · B / Esc = bỏ chọn.</span>
               </p>
               <span className="flex shrink-0 flex-wrap items-center justify-end gap-1.5 text-[11px] sm:gap-2">
                 {handOrder.isCustom && !cursed && (
@@ -986,10 +1002,12 @@ function DockBtn({
   onClick,
   disabled,
   tone,
+  hotkey,
 }: {
   children: React.ReactNode;
   onClick: () => void;
   disabled?: boolean;
+  hotkey?: string;
   tone: "play" | "draw" | "nope" | "ghost";
 }) {
   return (
@@ -1008,6 +1026,9 @@ function DockBtn({
       )}
     >
       {children}
+      {hotkey && (
+        <kbd className="ml-1.5 hidden rounded border border-current/30 bg-black/10 px-1 align-middle font-mono text-[10px] font-normal opacity-70 lg:inline [@media(pointer:coarse)]:hidden">{hotkey}</kbd>
+      )}
     </button>
   );
 }
