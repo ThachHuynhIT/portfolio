@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
 import { GameHeader, HeaderLabel, headerBtn } from "@/components/games/GameHeader";
 import { useGameRoom } from "@/components/games/gameClient";
+import { PinchZoom } from "@/components/games/PinchZoom";
 import { playSound, type SoundName } from "@/components/games/sound";
 import { useHotkeys } from "@/components/games/useHotkeys";
 import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
@@ -506,6 +507,7 @@ function TableBody({ view, reconnecting, act }: { view: TPRoomView; reconnecting
         {/* Board */}
         <div className="relative mx-auto w-full max-w-[min(100%,calc(100dvh-7rem))] lg:max-w-none short:w-[calc(100dvh-3.75rem)] short:max-w-none">
           <SpectatorReactions reactions={live.filter((r) => !r.playerId)} />
+          <PinchZoom className="rounded-xl shadow-2xl">
           <div
             className="grid aspect-square w-full gap-[2px] rounded-xl border-4 border-[#1e3a2f] bg-[#1e3a2f] shadow-2xl"
             style={{ gridTemplateColumns: `1.6fr repeat(${BOARD.length / 4 - 1}, 1fr) 1.6fr`, gridTemplateRows: `1.6fr repeat(${BOARD.length / 4 - 1}, 1fr) 1.6fr` }}
@@ -554,6 +556,7 @@ function TableBody({ view, reconnecting, act }: { view: TPRoomView; reconnecting
               </div>
             </div>
           </div>
+          </PinchZoom>
         </div>
 
         {/* Side panel */}
