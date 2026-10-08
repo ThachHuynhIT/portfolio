@@ -63,16 +63,25 @@ export const TOKENS = [
   { emoji: "🎩", color: "#f97316" },
 ];
 
-const SQUARE_ICON: Partial<Record<Square["kind"], string>> = {
-  go: "🏁",
-  air: "✈️",
-  chance: "❓",
-  chest: "🎁",
-  tax: "💸",
-  jail: "🚔",
-  parking: "☕",
-  gotojail: "👮",
+/** Illustrated icons (public/games/typhu/icons/<name>.webp) for the special squares; the emoji stay as a fallback. */
+const SQUARE_IMG: Partial<Record<Square["kind"], string>> = {
+  go: "go",
+  air: "air",
+  chance: "chance",
+  chest: "chest",
+  tax: "tax",
+  jail: "jail",
+  parking: "parking",
+  gotojail: "gotojail",
 };
+
+/** The picture for a square kind (utilities pick Điện / Nước by name), or null when it has none. */
+const squareImg = (sq: Square): string | null => (sq.kind === "util" ? (sq.name.includes("Điện") ? "electric" : "water") : SQUARE_IMG[sq.kind] ?? null);
+
+function ArtIcon({ name, className }: { name: string; className?: string }) {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={`/games/typhu/icons/${name}.webp`} alt="" draggable={false} className={cn("inline-block shrink-0 object-contain", className)} />;
+}
 
 export const money = (n: number) => `${n.toLocaleString("vi-VN")}tr`;
 
@@ -483,10 +492,11 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
               );
             })}
             {/* Centre */}
-            <div className="relative flex flex-col items-center justify-center-safe gap-2 overflow-y-auto overflow-x-hidden bg-[radial-gradient(ellipse_at_center,#d9f2e3_0%,#a7d7b8_100%)] p-2 text-emerald-950 sm:p-4 short:gap-1 short:p-1.5" style={{ gridColumn: `2 / ${BOARD.length / 4 + 1}`, gridRow: `2 / ${BOARD.length / 4 + 1}` }}>
+            <div className="relative flex flex-col items-center justify-center-safe gap-2 overflow-y-auto overflow-x-hidden bg-[#0b1d3a] bg-cover bg-center p-[5%] text-emerald-950 short:gap-1 short:p-[3%]" style={{ gridColumn: `2 / ${BOARD.length / 4 + 1}`, gridRow: `2 / ${BOARD.length / 4 + 1}`, backgroundImage: "url(/games/typhu/center.webp)" }}>
               <CardOverlay card={cardFx} nameOf={nameOf} onClose={() => setCardFx(null)} />
               <BuildOverlay fx={buildFx} />
               <BankruptOverlay fx={bankruptFx} />
+              <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center-safe gap-2 overflow-y-auto rounded-[1.5rem] bg-[#dff1e5]/90 backdrop-blur-[2px] p-2 shadow-xl ring-1 ring-amber-300/50 sm:p-4 short:gap-1 short:p-1.5">
               {!g || g.status === "ended" ? (
                 <Waiting view={view} me={me} act={act} nameOf={nameOf} />
               ) : (
@@ -504,6 +514,7 @@ function TableBody({ view, reconnecting, act, toast }: { view: TPRoomView; recon
                   onLoan={() => setShowLoan(true)}
                 />
               )}
+              </div>
             </div>
           </div>
         </div>
@@ -630,21 +641,9 @@ const formatClock = (ms: number) => {
 
 // ─── Board cells ────────────────────────────────────────────────────
 
-/** A little house (green) or hotel (red) drawn in SVG so it stays crisp at any board size. */
+/** A little house or hotel (illustrated icons, public/games/typhu/icons/{house,hotel}.webp). */
 function Building({ hotel, className }: { hotel?: boolean; className?: string }) {
-  return hotel ? (
-    <svg viewBox="0 0 20 12" className={className} aria-hidden>
-      <path d="M1 4 L10 0.8 L19 4 V11.5 H1 Z" fill="#dc2626" stroke="#fff" strokeWidth="1" strokeLinejoin="round" />
-      <rect x="4" y="6" width="3" height="3" fill="#fde68a" />
-      <rect x="8.5" y="6" width="3" height="5.5" fill="#fde68a" />
-      <rect x="13" y="6" width="3" height="3" fill="#fde68a" />
-    </svg>
-  ) : (
-    <svg viewBox="0 0 12 12" className={className} aria-hidden>
-      <path d="M6 0.8 L11.3 5.6 H9.8 V11.4 H2.2 V5.6 H0.7 Z" fill="#16a34a" stroke="#fff" strokeWidth="1" strokeLinejoin="round" />
-      <rect x="5" y="7.6" width="2" height="3.8" fill="#fef3c7" />
-    </svg>
-  );
+  return <ArtIcon name={hotel ? "hotel" : "house"} className={cn("drop-shadow-sm", className)} />;
 }
 
 /** Houses on a colour band; the newest one pops in when built. */
@@ -757,8 +756,9 @@ const Cell = memo(function Cell({ index, edge, sq, deed, pot, owner, here, highl
         </span>
       )}
       <span className="pointer-events-none flex flex-col items-center px-[2px]">
-        {SQUARE_ICON[sq.kind] && <span className={cn(side === "corner" ? "text-base sm:text-2xl short:text-base" : "text-[10px] sm:text-sm short:text-[10px]")}>{SQUARE_ICON[sq.kind]}</span>}
-        {sq.kind === "util" && <span className="text-[10px] sm:text-sm short:text-[10px]">{sq.name.includes("Điện") ? "💡" : "🚰"}</span>}
+        {squareImg(sq) ? (
+          <ArtIcon name={squareImg(sq)!} className={cn(side === "corner" ? "size-5 sm:size-9 short:size-5" : "size-3.5 sm:size-6 short:size-3.5")} />
+        ) : null}
         <span className={cn("line-clamp-2 font-semibold", side === "corner" ? "text-[8px] sm:text-xs short:text-[8px]" : "text-[6px] sm:text-[9px] xl:text-[10px] short:text-[6px]")}>
           {sq.kind === "air" ? sq.name.replace("Sân bay ", "SB ") : sq.name}
         </span>
@@ -1568,7 +1568,7 @@ function CardOverlay({ card, nameOf, onClose }: { card: TPGameView["lastCard"]; 
               card.deck === "chance" ? "border-orange-400 bg-orange-50" : "border-sky-400 bg-sky-50",
             )}
           >
-            <p className="text-3xl">{card.deck === "chance" ? "❓" : "🎁"}</p>
+            <p className="flex justify-center"><ArtIcon name={card.deck === "chance" ? "chance" : "chest"} className="size-14" /></p>
             <p className="text-sm font-black uppercase tracking-wide">{card.deck === "chance" ? "Cơ hội" : "Khí vận"}</p>
             <p className="mt-2 text-sm">{card.text}</p>
             <p className="mt-2 text-xs text-black/50">— {nameOf(card.player)}</p>
@@ -1718,7 +1718,7 @@ function SquareModal({
     <Modal onClose={onClose}>
       <div className="overflow-hidden rounded-xl bg-[#f4efe1] text-emerald-950">
         <div className="p-3 text-center" style={{ background: sq.kind === "prop" ? GROUP_COLORS[sq.group] : "#cfe8d8" }}>
-          <p className="text-2xl">{SQUARE_ICON[sq.kind] ?? (sq.kind === "util" ? (sq.name.includes("Điện") ? "💡" : "🚰") : "📍")}</p>
+          <p className="flex justify-center text-2xl">{squareImg(sq) ? <ArtIcon name={squareImg(sq)!} className="size-12" /> : "📍"}</p>
           <p className="text-lg font-black">{sq.name}</p>
           {sq.kind === "prop" && <p className="text-xs">{sq.region}</p>}
         </div>
