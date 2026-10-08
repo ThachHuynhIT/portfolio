@@ -349,7 +349,7 @@ Toàn site hỗ trợ chuyển đổi giữa **Dark** (giao diện gốc, mặc 
 |---|---|---|---|
 | Tiến Lên Miền Nam | `/tien-len` | 2–4 | Chặt heo, tới trắng, chết cháy; chủ phòng chọn điểm Nhất/Nhì (`RankPointsPicker`), tổng điểm mỗi ván bằng 0 |
 | Mèo Nổ | `/meo-no` | 2–7 | 6 gói mở rộng (Tự Huỷ, Chạy Rông, Sủa, Tấn Công, Phòng Thủ, Xác Sống), 16 combo dựng sẵn hoặc tự chọn; số người tối đa tuỳ gói; không được "Không!" lá của chính mình; hướng dẫn từng lá (`CardGuide`) |
-| Cờ Tỷ Phú | `/co-ty-phu` | 2–6 | Các tỉnh thành Việt Nam, 3 cỡ bản đồ (40 / 48 / 56 ô), ~63 thẻ Cơ hội / Khí vận, xây nhà/khách sạn, đổi đất, bán đất đang thế chấp, chọn quân cờ + màu nhà không trùng nhau, "Luật nhanh" cho 2 người / 3+ người, xem toàn bộ diễn biến, phím tắt |
+| Cờ Tỷ Phú | `/co-ty-phu` | 2–6 | Địa danh Việt Nam (bản 48 / 56 ô gọi theo tỉnh), 3 cỡ bản đồ (40 / 48 / 56 ô), ~63 thẻ Cơ hội / Khí vận, xây nhà/khách sạn, đổi đất, bán đất đang thế chấp, chọn quân cờ + màu nhà không trùng nhau, "Luật nhanh" cho 2 người / 3+ người, xem toàn bộ diễn biến, phím tắt |
 | Đá Quý (Splendor) | `/splendor` | 2–4 | Điểm thắng chọn được (10–21, mặc định 15); ảnh thẻ/quý tộc/đá WebP ở `public/games/splendor/` |
 | Đấu Súng (Bang!) | `/bang` | 3–8 | Vai trò bí mật, 63 nhân vật, 7 bản mở rộng |
 | Ô Ăn Quan | `/o-an-quan` | 2 | Bàn gỗ 10 ô dân + 2 ô quan, diễn hoạt rải từng viên (`lastMove` từ server), ăn liên tiếp, quan non, giá quan 5/10, rải quân/vay khi hết dân |
