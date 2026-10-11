@@ -150,6 +150,8 @@ export interface TPRoomView {
   code: string;
   meId: string;
   role: "player" | "spectator";
+  /** Only in your own view: your auto-play (Ctrl+Shift+Y) is on and the server plays your turns. */
+  auto?: boolean;
   serverTime: number;
   settings: TPSettings;
   seats: (TPSeatView | null)[];
@@ -177,6 +179,7 @@ export interface TPRoomSummary {
  *   { type: "trade", to, give: {props, cash}, get: {props, cash} }
  *   { type: "loan", to, amount, rate: 10 | 20 } · { type: "loananswer", accept }
  *   { type: "tradeanswer", accept }   // the receiver answers; the proposer can withdraw with accept: false
+ *   { type: "auto", on }   // your own auto-play: the server plays your turns (buys squares under 300tr, builds), keeping 150tr
  */
 export type TPCommand =
   | { type: "start" }
@@ -188,4 +191,5 @@ export type TPCommand =
   | { type: "trade"; to: string; give: TradeSide; get: TradeSide }
   | { type: "loan"; to: string; amount: number; rate: number }
   | { type: "loananswer"; accept: boolean }
-  | { type: "tradeanswer"; accept: boolean };
+  | { type: "tradeanswer"; accept: boolean }
+  | { type: "auto"; on: boolean };
