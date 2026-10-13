@@ -1,11 +1,13 @@
 "use client";
 
+import { SeatAvatar } from "@/components/games/PlayerAvatar";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatBox } from "@/components/games/ChatBox";
 import { DraggableRow, useHandOrder } from "@/components/games/DraggableHand";
 import { GameHeader, headerBtn } from "@/components/games/GameHeader";
+import { useHotkeys } from "@/components/games/useHotkeys";
 import { useGameRoom } from "@/components/games/gameClient";
 import { MyTurnBadge, TurnRing, TurnTimerBorder } from "@/components/games/TurnIndicator";
 import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
@@ -46,6 +48,7 @@ import { CardGuide } from "./CardGuide";
 import { MeoCard, ROLES, roleOf } from "./MeoCard";
 import { EventFeed, PlayHistory } from "./PlayHistory";
 import { ConfirmButton } from "@/components/games/ConfirmButton";
+import { WinCelebration } from "@/components/games/WinCelebration";
 
 const SCORE_NOTE =
   "Điểm theo thứ hạng: người sống sót cuối cùng Nhất, ai bị loại trước xếp sau. Chủ bàn chọn điểm Nhất / Nhì, các hạng cuối trừ tương ứng, tổng mỗi ván luôn bằng 0.";
@@ -353,6 +356,20 @@ function Board({
     }
   };
 
+  const clearSelection = () => (setSelected([]), setTarget(null), setNamed(""));
+  // Desktop shortcuts; same guards as the dock buttons. Draw (R) is the visible green button, never bound to Space/Enter.
+  const noDialog = !showGuide && !showScores && !showDiscard;
+  useHotkeys(
+    {
+      d: () => canPlay && void doPlay(),
+      r: () => canDraw && void run({ type: "draw" }),
+      n: () => canNope && myNope && !busy && void run({ type: "nope", card: myNope.id }),
+      b: () => selected.length > 0 && clearSelection(),
+      Escape: noDialog && selected.length > 0 ? clearSelection : undefined,
+    },
+    meAlive,
+  );
+
   // Explosion / defuse effects from the log.
   const [fx, setFx] = useState<BoomFx | null>(null);
   const lastLog = useRef<number | null>(null);
@@ -404,6 +421,7 @@ function Board({
     // One screen tall: the hand + Đánh / Rút always stay in view; the table and the feed scroll inside the middle instead.
     <div className="relative mx-auto flex h-[calc(100dvh-var(--games-bar-h,0px))] w-full max-w-6xl flex-col lg:max-w-[112rem] gap-2 overflow-hidden px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:gap-3 sm:px-4 sm:pt-3 short:gap-1.5 short:pt-1.5">
       {/* The table's own header lives in the games top bar. */}
+      <WinCelebration show={g?.status === "ended"} playing={g?.status === "playing"} won={!!view.meId && g?.finished[0] === view.meId} title={g?.status === "ended" ? `🏆 ${nameOf(g.finished[0])} thắng` : undefined} />
       <GameHeader
         primary={
           <>
@@ -708,9 +726,12 @@ function Board({
                           : "border-white/15 bg-black/40 hover:border-rose-300/60 hover:bg-rose-500/20",
                       )}
                     >
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-orange-200 to-orange-500 font-bold text-black">
-                        {s.out ? "💀" : s.name.charAt(0).toUpperCase()}
-                      </span>
+                      <SeatAvatar
+                        name={s.name}
+                        out={s.out}
+                        className="flex h-7 w-7 items-center justify-center rounded-full"
+                        fallbackClassName="bg-gradient-to-br from-orange-200 to-orange-500 font-bold text-black"
+                      />
                       <span>
                         <b className="block leading-tight">{s.name}</b>
                         <span className="text-xs opacity-75">
@@ -731,9 +752,11 @@ function Board({
                 <div className="relative hidden shrink-0 items-center gap-2 border-r border-white/10 pr-3 lg:col-start-1 lg:row-start-1 lg:flex lg:justify-self-start">
                   <span className="relative inline-flex">
                     <SeatBubble reactions={reactionsFor(me.id)} />
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-200 to-orange-500 text-lg font-bold text-black">
-                      {me.name.charAt(0).toUpperCase()}
-                    </span>
+                    <SeatAvatar
+                      name={me.name}
+                      className="flex h-10 w-10 items-center justify-center rounded-full text-lg"
+                      fallbackClassName="bg-gradient-to-br from-orange-200 to-orange-500 font-bold text-black"
+                    />
                   </span>
                   <span className="text-sm leading-tight">
                     <b className="block max-w-[9rem] truncate">{me.name}</b>
@@ -782,14 +805,14 @@ function Board({
               )}
               <div className="flex flex-wrap items-stretch justify-center gap-2 max-sm:gap-1.5 lg:col-start-2 lg:row-start-1 lg:flex-nowrap">
                 {canNope && myNope && (
-                  <DockBtn tone="nope" onClick={() => void run({ type: "nope", card: myNope.id })}>
+                  <DockBtn tone="nope" hotkey="N" onClick={() => void run({ type: "nope", card: myNope.id })}>
                     🚫 KHÔNG!
                   </DockBtn>
                 )}
-                <DockBtn tone="play" onClick={doPlay} disabled={!canPlay}>
+                <DockBtn tone="play" hotkey="D" onClick={doPlay} disabled={!canPlay}>
                   ▶ ĐÁNH{selected.length > 1 ? ` ${selected.length} LÁ` : ""}
                 </DockBtn>
-                <DockBtn tone="draw" onClick={() => void run({ type: "draw" })} disabled={!canDraw}>
+                <DockBtn tone="draw" hotkey="R" onClick={() => void run({ type: "draw" })} disabled={!canDraw}>
                   🂠 RÚT BÀI
                 </DockBtn>
                 <span className="contents lg:hidden">
@@ -823,7 +846,7 @@ function Board({
                 </span>
               </div>
               <div className="hidden items-center gap-2 lg:col-start-3 lg:row-start-1 lg:flex lg:justify-self-end">
-                <DockBtn tone="ghost" onClick={() => (setSelected([]), setTarget(null), setNamed(""))} disabled={!selected.length}>
+                <DockBtn tone="ghost" hotkey="B" onClick={() => (setSelected([]), setTarget(null), setNamed(""))} disabled={!selected.length}>
                   ✕ Bỏ chọn
                 </DockBtn>
               </div>
@@ -843,6 +866,7 @@ function Board({
                 ) : (
                   "Bấm lá để chọn · kéo ngang để xếp lại"
                 )}
+                <span className="hidden lg:inline [@media(pointer:coarse)]:hidden"> Phím tắt: D = đánh · R = rút · N = Không! · B / Esc = bỏ chọn.</span>
               </p>
               <span className="flex shrink-0 flex-wrap items-center justify-end gap-1.5 text-[11px] sm:gap-2">
                 {handOrder.isCustom && !cursed && (
@@ -980,10 +1004,12 @@ function DockBtn({
   onClick,
   disabled,
   tone,
+  hotkey,
 }: {
   children: React.ReactNode;
   onClick: () => void;
   disabled?: boolean;
+  hotkey?: string;
   tone: "play" | "draw" | "nope" | "ghost";
 }) {
   return (
@@ -1002,6 +1028,9 @@ function DockBtn({
       )}
     >
       {children}
+      {hotkey && (
+        <kbd className="ml-1.5 hidden rounded border border-current/30 bg-black/10 px-1 align-middle font-mono text-[10px] font-normal opacity-70 lg:inline [@media(pointer:coarse)]:hidden">{hotkey}</kbd>
+      )}
     </button>
   );
 }
@@ -1136,15 +1165,15 @@ function Seat({
           />
         )}
         <SeatBubble reactions={reactions} />
-        <span
+        <SeatAvatar
+          name={seat.name}
+          out={seat.out}
           className={cn(
-            "flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-200 to-orange-500 text-base font-bold text-black sm:h-11 sm:w-11 sm:text-lg 2xl:h-14 2xl:w-14 2xl:text-xl short:h-8 short:w-8 short:text-sm",
+            "flex h-9 w-9 items-center justify-center rounded-full text-base sm:h-11 sm:w-11 sm:text-lg 2xl:h-14 2xl:w-14 2xl:text-xl short:h-8 short:w-8 short:text-sm",
             (!seat.connected || seat.kicked) && "opacity-50 grayscale",
-            seat.out && "from-zinc-500 to-zinc-700",
           )}
-        >
-          {seat.out ? "💀" : seat.name.charAt(0).toUpperCase()}
-        </span>
+          fallbackClassName={cn("bg-gradient-to-br from-orange-200 to-orange-500 font-bold text-black", seat.out && "from-zinc-500 to-zinc-700")}
+        />
       </span>
       <span className={cn("truncate text-xs font-semibold 2xl:text-sm", self ? "max-w-[8rem]" : "max-w-[4rem] sm:max-w-[6rem] 2xl:max-w-[8rem]")}>
         {seat.name}

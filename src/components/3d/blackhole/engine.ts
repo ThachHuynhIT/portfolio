@@ -104,6 +104,9 @@ export class BlackHoleEngine {
   private count: number;
   private elapsed = 0;
   private resizeObserver: ResizeObserver | null = null;
+  /** False while the canvas is scrolled out of view: the loop skips rendering (saves the GPU for the page below). */
+  private onScreen = true;
+  private visibilityObserver: IntersectionObserver | null = null;
   private lowPower: boolean;
   private minFrameMs: number;
   private lastFrame = 0;
@@ -242,6 +245,14 @@ export class BlackHoleEngine {
     this.composer.addPass(new OutputPass());
 
     // --- listeners ---
+    if (typeof IntersectionObserver !== "undefined") {
+      this.visibilityObserver = new IntersectionObserver((entries) => {
+        const wasOff = !this.onScreen;
+        this.onScreen = entries[entries.length - 1]?.isIntersecting ?? true;
+        if (wasOff && this.onScreen) this.last = performance.now(); // no huge dt after a long pause
+      });
+      this.visibilityObserver.observe(opts.container ?? canvas);
+    }
     if (opts.container) {
       this.resizeObserver = new ResizeObserver(this.onResize);
       this.resizeObserver.observe(opts.container);
@@ -381,6 +392,7 @@ export class BlackHoleEngine {
     this.lastFrame = now;
     let dt = (now - this.last) / 1000;
     this.last = now;
+    if (document.hidden || !this.onScreen) return;
     dt = clamp(dt, 0.0001, 0.05);
     this.elapsed += dt;
 
@@ -494,6 +506,7 @@ export class BlackHoleEngine {
     this.disposed = true;
     cancelAnimationFrame(this.raf);
     this.resizeObserver?.disconnect();
+    this.visibilityObserver?.disconnect();
     window.removeEventListener("resize", this.onResize);
     window.removeEventListener("pointermove", this.onPointerMove);
     window.removeEventListener("pointerup", this.onPointerUp);

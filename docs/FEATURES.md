@@ -349,13 +349,16 @@ Toàn site hỗ trợ chuyển đổi giữa **Dark** (giao diện gốc, mặc 
 |---|---|---|---|
 | Tiến Lên Miền Nam | `/tien-len` | 2–4 | Chặt heo, tới trắng, chết cháy; chủ phòng chọn điểm Nhất/Nhì (`RankPointsPicker`), tổng điểm mỗi ván bằng 0 |
 | Mèo Nổ | `/meo-no` | 2–7 | 6 gói mở rộng (Tự Huỷ, Chạy Rông, Sủa, Tấn Công, Phòng Thủ, Xác Sống), 16 combo dựng sẵn hoặc tự chọn; số người tối đa tuỳ gói; không được "Không!" lá của chính mình; hướng dẫn từng lá (`CardGuide`) |
-| Cờ Tỷ Phú | `/co-ty-phu` | 2–6 | Địa danh Việt Nam, xây nhà/khách sạn, đổi đất, giới hạn thời gian tuỳ chọn |
+| Cờ Tỷ Phú | `/co-ty-phu` | 2–6 | Địa danh Việt Nam, 3 cỡ bản đồ (40 / 48 / 56 ô), ~63 thẻ Cơ hội / Khí vận, xây nhà/khách sạn, đổi đất, bán đất đang thế chấp, chọn quân cờ + màu nhà không trùng nhau, "Luật nhanh" cho 2 người / 3+ người, xem toàn bộ diễn biến, phím tắt |
 | Đá Quý (Splendor) | `/splendor` | 2–4 | Điểm thắng chọn được (10–21, mặc định 15); ảnh thẻ/quý tộc/đá WebP ở `public/games/splendor/` |
 | Đấu Súng (Bang!) | `/bang` | 3–8 | Vai trò bí mật, 63 nhân vật, 7 bản mở rộng |
 | Ô Ăn Quan | `/o-an-quan` | 2 | Bàn gỗ 10 ô dân + 2 ô quan, diễn hoạt rải từng viên (`lastMove` từ server), ăn liên tiếp, quan non, giá quan 5/10, rải quân/vay khi hết dân |
 | Cờ Cá Ngựa | `/co-ca-ngua` | 2–4 | Bàn chữ thập 15×15, đường 56 ô + chuồng 6 bậc; ngựa đi từng ô, đá ngựa về chuồng; luật tuỳ chọn: xuất quân bằng 1 hoặc 6, không nhảy qua đầu ngựa, lên chuồng theo số, ba lần 6 mất lượt, xếp hạng hết |
 
 - **Khung chung** (`src/components/games/`): `GamesShell` (thanh tab game, tên người chơi + "đổi tên", cổng chọn tên, `AllRoomsPanel` liệt kê bàn đang mở của mọi game — poll mỗi 10 giây, footer gọn), `GameLobby` (tạo/vào bàn bằng mã, danh sách bàn để chơi hoặc xem, bảng xếp hạng, luật), `ChatBox`, `DraggableHand` (tự xếp bài, lưu `sessionStorage`), `SettingsTabs`, `TurnIndicator` (`TurnRing`/`MyTurnBadge`), `RankPointsPicker`; danh sách game + endpoint `/rooms` ở `gamesRegistry.ts`.
+- **Icon + màu người chơi** (chọn ở cổng tên / "Đổi tên & biểu tượng", đổi được ngay giữa ván): `localStorage["games:playerProfile"]`; be_game chuyển cho cả bàn (`looks`), hiện bằng `SeatAvatar`.
+- **Phím tắt trên máy tính** cho cả 7 game (`useHotkeys`; mỗi nút có huy hiệu phím, ẩn trên cảm ứng). Bảng phím: `docs/GAMES_GUIDE.md` §3.12 và §4.
+- **Hiệu năng**: route game và `/contra` không dựng nền sao 3D; hố đen ở trang chủ tạm dừng khi cuộn khỏi màn hình; bàn Tỷ Phú không vẽ lại cả bàn theo nhịp đồng hồ.
 - **Tên người chơi** dùng chung cho mọi game: `localStorage["games:playerName"]` (key cũ `tienlen:name` tự migrate). Token giữ ghế ở `sessionStorage` (reload giữ ghế, mỗi tab là một người).
 - **Ảnh lá bài tùy chọn** (Mèo Nổ, Đấu Súng): ảnh nguồn trong `art/<game>/` (gitignored) → `npm run art:meono` / `npm run art:bang` (`scripts/card-art.mjs`) → `public/games/<game>/cards/*.webp` + `src/lib/<game>/art.ts`; lá chưa có ảnh giữ mặt vẽ emoji. Prompt vẽ: `docs/MEONO_ART_PROMPTS.md`, `docs/BANG_ART_PROMPTS.md`.
 - `src/lib/{tienlen,meono,typhu,splendor,bang,oanquan,cangua}/` là bản sao luật/dữ liệu + protocol từ be_game — sửa luật phải sửa cả 2 repo.

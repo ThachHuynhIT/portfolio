@@ -1,5 +1,6 @@
 "use client";
 
+import { SeatAvatar } from "@/components/games/PlayerAvatar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -9,6 +10,7 @@ import { RankPointsPicker } from "@/components/games/RankPointsPicker";
 import { SettingsTabs } from "@/components/games/SettingsTabs";
 import { MyTurnBadge, TurnRing, TurnTimerBorder } from "@/components/games/TurnIndicator";
 import { useGameRoom } from "@/components/games/gameClient";
+import { useHotkeys } from "@/components/games/useHotkeys";
 import { SeatBubble, SpectatorReactions, useLiveReactions } from "@/components/tienlen/Effects";
 import { DeltaBadge, ScoreboardModal, signed } from "@/components/tienlen/Scoreboard";
 import { QUAN_NON_MIN, QUAN_VALUE_OPTIONS, TURN_SECONDS_OPTIONS, rowOf } from "@/lib/oanquan/board";
@@ -17,6 +19,7 @@ import type { Reaction } from "@/lib/tienlen";
 import { cn } from "@/lib/utils";
 import { type BoardPlayer, OQBoard, SIDE_COLORS, type SowFrame, useSowReplay } from "./Board";
 import { ConfirmButton } from "@/components/games/ConfirmButton";
+import { WinCelebration } from "@/components/games/WinCelebration";
 
 type Act = (msg: Record<string, unknown> & { type: string }) => Promise<boolean>;
 
@@ -150,6 +153,13 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
   /** Everyone else, in turn order after the bottom player. */
   const others = (g?.players ?? []).filter((p) => p.side !== bottomSide).sort((a, b) => ((a.side - bottomSide + n) % n) - ((b.side - bottomSide + n) % n));
   const selectable = canMove && g && mine && !busy ? rowOf(mine.side).filter((c) => g.dan[c] > 0) : [];
+  // Keyboard (desktop): 1–5 pick a square on your row (left → right), ←/A and →/D sow left/right (same guards as the
+  // direction buttons), Esc clears the selection. Nothing fires while a dialog is open or a move is replaying.
+  const myRow = mine ? rowOf(mine.side) : [];
+  const pickKey = (i: number) => (myRow[i] !== undefined && selectable.includes(myRow[i]) ? () => setSelected((cur) => (cur === myRow[i] ? null : myRow[i])) : undefined);
+  const sowKey = (dir: 1 | -1) => (selected !== null && canMove && !busy ? () => void sow(dir) : undefined);
+  const clearKey = selected !== null && canMove && !showScores && !showRules ? () => setSelected(null) : undefined;
+  useHotkeys({ "1": pickKey(0), "2": pickKey(1), "3": pickKey(2), "4": pickKey(3), "5": pickKey(4), ArrowLeft: sowKey(-1), a: sowKey(-1), ArrowRight: sowKey(1), d: sowKey(1), Escape: clearKey });
   const boardPlayers: BoardPlayer[] = (g?.players ?? []).map((p) => ({
     side: p.side,
     name: nameOf(p.id),
@@ -191,6 +201,7 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
 
   return (
     <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col gap-3 px-2 pb-24 pt-2 sm:px-4 sm:pt-3 lg:pb-3 2xl:max-w-7xl short:gap-2 short:pb-16 short:pt-3">
+      <WinCelebration show={g?.status === "ended"} playing={!!playing} won={!!mine && g?.status === "ended" && mine.rank === 0 && !!g.winner} title={g?.status === "ended" ? (g.winner ? `🏆 ${nameOf(g.winner)} thắng` : "🤝 Hoà") : undefined} />
       <GameHeader
         primary={
           <>
@@ -275,6 +286,7 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
                   <span className="flex items-center gap-2">
                     <MyTurnBadge />
                     <span className="text-amber-100/85">Chọn một ô dân bên bạn</span>
+                    <span className="hidden text-[11px] text-white/45 lg:inline [@media(pointer:coarse)]:hidden">Phím tắt: 1–5 = chọn ô (từ trái sang) · ←/A rải trái · →/D rải phải · Esc bỏ chọn</span>
                   </span>
                 ) : (
                   <>
@@ -284,9 +296,11 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
                       className="rounded-xl bg-amber-400 px-4 py-2 font-bold text-black shadow hover:bg-amber-300 disabled:opacity-40"
                     >
                       ⬅️ Rải trái
+                      <kbd className="ml-1.5 hidden rounded border border-current/30 bg-black/10 px-1 align-middle font-mono text-[10px] font-normal opacity-70 lg:inline [@media(pointer:coarse)]:hidden">←</kbd>
                     </button>
                     <button onClick={() => setSelected(null)} className="rounded-xl border border-white/25 px-3 py-2 text-xs hover:bg-white/10">
                       Bỏ chọn
+                      <kbd className="ml-1.5 hidden rounded border border-current/30 bg-black/10 px-1 align-middle font-mono text-[10px] font-normal opacity-70 lg:inline [@media(pointer:coarse)]:hidden">Esc</kbd>
                     </button>
                     <button
                       onClick={() => void sow(1)}
@@ -294,6 +308,7 @@ function Table({ view, reconnecting, act, toast }: { view: OQRoomView; reconnect
                       className="rounded-xl bg-amber-400 px-4 py-2 font-bold text-black shadow hover:bg-amber-300 disabled:opacity-40"
                     >
                       Rải phải ➡️
+                      <kbd className="ml-1.5 hidden rounded border border-current/30 bg-black/10 px-1 align-middle font-mono text-[10px] font-normal opacity-70 lg:inline [@media(pointer:coarse)]:hidden">→</kbd>
                     </button>
                   </>
                 )
@@ -492,9 +507,11 @@ function PlayerStrip({
       <TurnRing active={myTurn} />
       <span className="relative">
         <SeatBubble reactions={reactions} />
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-200 to-orange-700 font-bold text-black">
-          {name.charAt(0).toUpperCase()}
-        </span>
+        <SeatAvatar
+          name={name}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+          fallbackClassName="bg-gradient-to-br from-amber-200 to-orange-700 font-bold text-black"
+        />
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1 truncate text-sm font-semibold">
@@ -603,6 +620,7 @@ function Waiting({ view, me, act, nameOf }: { view: OQRoomView; me: OQSeatView |
                     title={seat.connected ? undefined : "Mất kết nối"}
                   >
                     {seat.isHost && <span title="Chủ bàn">👑</span>}
+                    <SeatAvatar name={seat.name} className="grid size-5 shrink-0 place-items-center rounded-full text-[11px]" fallbackClassName="bg-white/15 font-bold" />
                     <span className="truncate">{seat.name}</span>
                     {seat.id === view.meId && <span className="text-xs text-white/60">(bạn)</span>}
                     {!seat.connected && <span aria-label="Mất kết nối">📴</span>}

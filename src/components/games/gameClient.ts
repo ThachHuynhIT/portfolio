@@ -229,7 +229,10 @@ export function useGameRoom<V>(
       if (disposed) return;
       const ch = new Channel(wsUrl(wsPath));
       ch.onMessage = (msg) => {
-        if (msg.type === "state") setView(localizeRef.current(msg.view as V));
+        if (msg.type === "state") {
+          setRoomLooks((msg.view as { looks?: Record<string, PlayerProfile> }).looks);
+          setView(localizeRef.current(msg.view as V));
+        }
         else if (msg.type === "reconnect" && channelRef.current === ch) void open();
       };
       ch.onClose = () => {
@@ -247,7 +250,7 @@ export function useGameRoom<V>(
         }
         return;
       }
-      const res = await ch.request({ type: mode === "watch" ? "watch" : "join", code, name, token });
+      const res = await ch.request({ type: mode === "watch" ? "watch" : "join", code, name, token, look: getSavedProfile() });
       if (disposed) return ch.close();
       if (!res.ok) {
         ch.close();
@@ -299,5 +302,108 @@ export function useGameRoom<V>(
     return ch ? ch.request(msg) : Promise.resolve<Ack>({ ok: false, error: "Mất kết nối máy chủ" });
   }, []);
 
+  // Changing icon/colour at the table reaches everyone at once (the name stays frozen until the next table).
+  useEffect(() => {
+    if (!name) return;
+    return subscribeProfile(() => {
+      void channelRef.current?.request({ type: "look", look: getSavedProfile() });
+    });
+  }, [name]);
+
   return { view, status, error, call };
 }
+
+/** Player look (icon + colour) shown next to the name. Stored per browser; shared with other players once be_game relays it. */
+export interface PlayerProfile {
+  icon: string;
+  color: string;
+}
+/** Avatar icons: a whole row of cats first (several breeds and moods), then the rest. */
+export const PROFILE_ICONS = ["🐱", "🐈", "🐈‍⬛", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "🐆", "🦁", "😀", "😎", "🤠", "🐶", "🦊", "🐼", "🐯", "🦄", "🐲", "🐴", "👑", "🎩", "💎", "🔥", "⭐"];
+export const PROFILE_COLORS = ["#fbbf24", "#f87171", "#fb923c", "#a3e635", "#34d399", "#22d3ee", "#60a5fa", "#a78bfa", "#f472b6", "#e5e7eb"];
+export const DEFAULT_PROFILE: PlayerProfile = { icon: "", color: PROFILE_COLORS[0] };
+const PROFILE_KEY = "games:playerProfile";
+
+let cachedProfile: PlayerProfile | null = null;
+const profileListeners = new Set<() => void>();
+
+const validProfile = (p: Partial<PlayerProfile> | null): PlayerProfile => ({
+  icon: p && typeof p.icon === "string" && (PROFILE_ICONS.includes(p.icon) || p.icon === "") ? p.icon : DEFAULT_PROFILE.icon,
+  color: p && typeof p.color === "string" && PROFILE_COLORS.includes(p.color) ? p.color : DEFAULT_PROFILE.color,
+});
+
+export function getSavedProfile(): PlayerProfile {
+  if (cachedProfile) return cachedProfile;
+  let raw: Partial<PlayerProfile> | null = null;
+  try {
+    raw = JSON.parse(localStorage.getItem(PROFILE_KEY) ?? "null");
+  } catch {
+    /* storage unavailable or corrupt — default look */
+  }
+  return (cachedProfile = validProfile(raw));
+}
+
+export function saveProfile(profile: PlayerProfile) {
+  cachedProfile = validProfile(profile);
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(cachedProfile));
+  } catch {
+    /* lasts until the tab closes */
+  }
+  profileListeners.forEach((l) => l());
+}
+
+function subscribeProfile(listener: () => void) {
+  profileListeners.add(listener);
+  const onStorage = (e: StorageEvent) => {
+    if (e.key !== PROFILE_KEY) return;
+    cachedProfile = null;
+    listener();
+  };
+  window.addEventListener("storage", onStorage);
+  return () => {
+    profileListeners.delete(listener);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+/** Live player look; the default during SSR. */
+export function usePlayerProfile(): PlayerProfile {
+  return useSyncExternalStore(subscribeProfile, getSavedProfile, () => DEFAULT_PROFILE);
+}
+
+/** Looks of everyone at the current table, by player name (relayed by be_game in each state view). */
+let roomLooks: Record<string, PlayerProfile> = {};
+const roomLookListeners = new Set<() => void>();
+
+function setRoomLooks(next: Record<string, PlayerProfile> | undefined) {
+  const clean = next ?? {};
+  if (JSON.stringify(clean) === JSON.stringify(roomLooks)) return;
+  roomLooks = clean;
+  roomLookListeners.forEach((l) => l());
+}
+
+/** The look a player picked, or null when they have none (older client / not in the room). */
+export function useLookOf(name: string): PlayerProfile | null {
+  return useSyncExternalStore(
+    (l) => {
+      roomLookListeners.add(l);
+      return () => void roomLookListeners.delete(l);
+    },
+    () => roomLooks[name] ?? null,
+    () => null,
+  );
+}
+
+/** Looks of everyone at the current table by name; re-renders when a state view changes them. */
+export function useRoomLooks(): Record<string, PlayerProfile> {
+  return useSyncExternalStore(
+    (l) => {
+      roomLookListeners.add(l);
+      return () => void roomLookListeners.delete(l);
+    },
+    () => roomLooks,
+    () => EMPTY_LOOKS,
+  );
+}
+const EMPTY_LOOKS: Record<string, PlayerProfile> = {};

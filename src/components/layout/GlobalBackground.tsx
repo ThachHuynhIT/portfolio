@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
+import { isGamesRoute } from "@/components/games/gamesRegistry";
 
 // Dynamically import 3D background on client side to prevent SSR issues with WebGL
 const StarryBackground3D = dynamic(
@@ -24,8 +25,10 @@ export default function GlobalBackground() {
   const pathname = usePathname();
   const { resolvedTheme, isMounted } = useTheme();
 
-  // Keep admin dashboard clean without 3D canvas overhead
-  if (pathname?.startsWith("/admin")) {
+  // Keep admin dashboard clean without 3D canvas overhead. Games and the Contra arcade run their own
+  // realtime UI / canvas on a solid dark page: a second fullscreen WebGL scene behind them only costs
+  // GPU time (and the ~165 KB three.js chunk), so they skip it too.
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/contra") || isGamesRoute(pathname)) {
     return null;
   }
 
