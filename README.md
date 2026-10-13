@@ -178,6 +178,7 @@ Sao chép `.env.example` thành `.env.local` (Next.js) và `.env` (Prisma CLI / 
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Upload/quản lý media |
 | `RESEND_API_KEY`, `CONTACT_NOTIFICATION_EMAIL` | Email báo tin nhắn liên hệ mới |
 | `NEXT_PUBLIC_TIENLEN_SERVER_URL` | URL backend be_game cho mọi game online (mặc định `http://localhost:4000`) |
+| `NEXT_PUBLIC_TIENLEN_FALLBACK_URL` | (Tuỳ chọn) backend be_game dự phòng, dùng cho sảnh và bàn mới khi máy chính không trả lời. Mỗi máy có phòng riêng; phòng luôn kết nối lại đúng máy tạo ra nó |
 
 `npm install` tự chạy `prisma generate` (postinstall). Nếu DB còn trống, có thể nạp dữ liệu mẫu từ `content/` bằng `npx tsx scripts/migrate-json-to-db.ts`.
 

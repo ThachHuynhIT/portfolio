@@ -9,7 +9,7 @@ Tài liệu này hướng dẫn cách build, kiểm thử và deploy ứng dụn
 - **Node.js**: Phiên bản `>= 18.17.0` (Khuyến nghị sử dụng LTS Node 20+).
 - **Package Manager**: `npm` (hoặc `pnpm`, `yarn`, `bun`). `package-lock.json` được commit — dùng `npm ci` để cài đúng phiên bản.
 - **PostgreSQL** (VD: Neon) — mọi trang nội dung đọc từ DB, kể cả lúc build.
-- **Biến môi trường**: xem [`.env.example`](../.env.example) (`DATABASE_URL`, `AUTH_SECRET`, `ADMIN_PASSWORD`, `CLOUDINARY_*`, `RESEND_API_KEY`, `CONTACT_NOTIFICATION_EMAIL`, `NEXT_PUBLIC_TIENLEN_SERVER_URL`). `npm install` tự chạy `prisma generate` (postinstall).
+- **Biến môi trường**: xem [`.env.example`](../.env.example) (`DATABASE_URL`, `AUTH_SECRET`, `ADMIN_PASSWORD`, `CLOUDINARY_*`, `RESEND_API_KEY`, `CONTACT_NOTIFICATION_EMAIL`, `NEXT_PUBLIC_TIENLEN_SERVER_URL`, tuỳ chọn `NEXT_PUBLIC_TIENLEN_FALLBACK_URL` — backend dự phòng). `npm install` tự chạy `prisma generate` (postinstall).
 
 ---
 
