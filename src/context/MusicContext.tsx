@@ -440,6 +440,7 @@ export function MusicProvider({
   // Animation Loop for Real-time Audio Analysis
   useEffect(() => {
     let lastTime = 0;
+    let decayFrames = 0;
     const NUM_BARS = 36;
     const frequencyArray = new Uint8Array(64);
 
@@ -450,16 +451,34 @@ export function MusicProvider({
       lastTime = time;
 
       if (!isPlaying || !audioRef.current) {
+        // Decay the bars/metrics to zero, then stop the loop entirely — it
+        // used to keep calling setState every ~24 ms while idle, re-rendering
+        // every useMusic() consumer (incl. the app shell) for nothing.
+        decayFrames++;
+        if (decayFrames > 60) {
+          if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+          setAudioFrequencyData((prev) => (prev.every((v) => v === 0) ? prev : prev.map(() => 0)));
+          setAudioMetrics((prev) =>
+            prev.bass === 0 && prev.mid === 0 && prev.treble === 0 && prev.avgVolume === 0
+              ? prev
+              : { bass: 0, mid: 0, treble: 0, avgVolume: 0 }
+          );
+          return;
+        }
         setAudioFrequencyData((prev) => {
           if (prev.every((v) => v <= 1)) return prev;
           return prev.map((v) => Math.max(0, v * 0.85 - 1));
         });
-        setAudioMetrics((prev) => ({
-          bass: Math.max(0, prev.bass * 0.85),
-          mid: Math.max(0, prev.mid * 0.85),
-          treble: Math.max(0, prev.treble * 0.85),
-          avgVolume: Math.max(0, prev.avgVolume * 0.85),
-        }));
+        setAudioMetrics((prev) =>
+          prev.avgVolume < 0.001 && prev.bass < 0.001
+            ? prev
+            : {
+                bass: Math.max(0, prev.bass * 0.85),
+                mid: Math.max(0, prev.mid * 0.85),
+                treble: Math.max(0, prev.treble * 0.85),
+                avgVolume: Math.max(0, prev.avgVolume * 0.85),
+              }
+        );
         return;
       }
 
@@ -866,7 +885,9 @@ export function MusicProvider({
       <audio
         ref={audioRef}
         crossOrigin="anonymous"
-        preload="metadata"
+        // "none": don't hit the audio CDN on every page view before the
+        // visitor has asked for music (track duration comes from the DB).
+        preload="none"
         onTimeUpdate={() => {
           if (audioRef.current) {
             setCurrentTime(audioRef.current.currentTime);

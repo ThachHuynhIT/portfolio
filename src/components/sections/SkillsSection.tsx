@@ -82,7 +82,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
               selectedCategory === "all"
                 ? "bg-white light:bg-neutral-900 text-slate-950 light:text-white shadow-lg shadow-white/10 light:shadow-neutral-400/20"
-                : "bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] border border-white/5 light:border-neutral-900/10"
+                : "bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] border border-white/5 light:border-neutral-900/10"
             }`}
           >
             <Icon name="sparkles" size={14} />
@@ -91,7 +91,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
               className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                 selectedCategory === "all"
                   ? "bg-slate-900 text-white light:bg-neutral-900 light:text-white"
-                  : "bg-white/10 light:bg-neutral-900/[0.06] text-slate-400 light:text-neutral-500"
+                  : "bg-white/10 light:bg-neutral-900/[0.06] text-slate-400 light:text-neutral-600"
               }`}
             >
               {publishedSkills.length}
@@ -110,7 +110,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
                   isSelected
                     ? "bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-cyan-500/20"
-                    : "bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] border border-white/5 light:border-neutral-900/10"
+                    : "bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] border border-white/5 light:border-neutral-900/10"
                 }`}
               >
                 <Icon name={categoryIcons[cat]} size={14} />
@@ -119,7 +119,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                   className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                     isSelected
                       ? "bg-black/30 text-white light:bg-white/20"
-                      : "bg-white/10 light:bg-neutral-900/[0.06] text-slate-400 light:text-neutral-500"
+                      : "bg-white/10 light:bg-neutral-900/[0.06] text-slate-400 light:text-neutral-600"
                   }`}
                 >
                   {count}
@@ -165,7 +165,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                         <h3 className="text-base font-bold text-white light:text-neutral-900">
                           {categoryLabel(category)}
                         </h3>
-                        <p className="text-xs text-slate-400 light:text-neutral-500">
+                        <p className="text-xs text-slate-400 light:text-neutral-600">
                           {categorySkills.length}{" "}
                           {resolveSectionText(
                             locale,
@@ -177,7 +177,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                       </div>
                     </div>
 
-                    <span className="text-[11px] px-2.5 py-1 rounded-full bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-500 font-mono border border-white/5 light:border-neutral-900/10">
+                    <span className="text-[11px] px-2.5 py-1 rounded-full bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-600 font-mono border border-white/5 light:border-neutral-900/10">
                       {category.toUpperCase()}
                     </span>
                   </div>
@@ -208,6 +208,10 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                               <img
                                 src={skill.icon}
                                 alt={skill.name}
+                                width={20}
+                                height={20}
+                                loading="lazy"
+                                decoding="async"
                                 className="w-5 h-5 object-contain"
                               />
                             ) : isKnownIconName(skill.icon) ? (

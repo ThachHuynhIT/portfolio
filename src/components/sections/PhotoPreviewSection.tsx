@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { AnimatedSection, GlassCard, ImageWithSkeleton, Icon } from "@/components/ui";
+import { AnimatedSection, ImageWithSkeleton, Icon } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
 import cloudinaryImageLoader from "@/lib/cloudinary-image-loader";
 import type { PhotoItem } from "@/lib/types";
@@ -99,9 +99,8 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
                       src={photo.image}
                       alt={photo.title}
                       fill
-                      priority={isActive}
                       placeholderSrc={cloudinaryImageLoader({ src: photo.image, width: 32, quality: 30 })}
-                      sizes="(max-width: 1024px) 100vw, 1200px"
+                      sizes="(max-width: 1024px) 100vw, 1024px"
                       className="object-cover object-center"
                     />
                   </div>
@@ -187,18 +186,24 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
           </div>
 
           {/* Dot Indicators */}
-          <div className="flex items-center justify-center gap-2 mt-6">
+          <div className="flex items-center justify-center gap-0.5 mt-5">
             {featuredPhotos.map((_, idx) => (
+              // 24px hit area (WCAG target size) around the small visual dot
               <button
                 key={idx}
                 onClick={() => setCurrentIndex(idx)}
                 aria-label={`Go to slide ${idx + 1}`}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  currentIndex === idx
-                    ? "w-8 bg-gradient-to-r from-cyan-400 to-purple-500 shadow-sm shadow-cyan-500/50"
-                    : "w-2 bg-white/20 light:bg-neutral-900/15 hover:bg-white/40 light:hover:bg-neutral-900/25"
-                }`}
-              />
+                aria-current={currentIndex === idx ? "true" : undefined}
+                className="group/dot h-6 min-w-6 flex items-center justify-center"
+              >
+                <span
+                  className={`block h-2 rounded-full transition-all duration-300 ${
+                    currentIndex === idx
+                      ? "w-8 bg-gradient-to-r from-cyan-400 to-purple-500 shadow-sm shadow-cyan-500/50"
+                      : "w-2 bg-white/20 light:bg-neutral-900/15 group-hover/dot:bg-white/40 light:group-hover/dot:bg-neutral-900/25"
+                  }`}
+                />
+              </button>
             ))}
           </div>
 

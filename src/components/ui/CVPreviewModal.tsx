@@ -52,7 +52,7 @@ export default function CVPreviewModal({ url, isOpen, onClose }: CVPreviewModalP
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="relative z-10 w-full max-w-4xl h-[88vh] flex flex-col"
+            className="relative z-10 w-full max-w-4xl h-[88dvh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 text-xs text-white/80 light:text-neutral-700 gap-3">
