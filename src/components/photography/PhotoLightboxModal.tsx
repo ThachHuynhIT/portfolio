@@ -225,14 +225,14 @@ export default function PhotoLightboxModal({
             }`}
           >
             {isVideo ? (
-              <div className="relative max-w-full max-h-[82vh] flex items-center justify-center">
+              <div className="relative max-w-full max-h-[82dvh] flex items-center justify-center">
                 <video
                   src={photo.videoUrl || photo.image}
                   poster={photo.image}
                   controls
                   autoPlay
                   playsInline
-                  className="max-h-[80vh] w-auto max-w-full rounded-2xl shadow-2xl border border-white/10 bg-black"
+                  className="max-h-[80dvh] w-auto max-w-full rounded-2xl shadow-2xl border border-white/10 bg-black"
                 />
               </div>
             ) : (
@@ -260,7 +260,7 @@ export default function PhotoLightboxModal({
                   width={1920}
                   height={1280}
                   sizes="(max-width: 768px) 100vw, 90vw"
-                  className={`max-h-[82vh] w-auto max-w-full object-contain rounded-lg shadow-2xl transition-opacity duration-500 ${
+                  className={`max-h-[82dvh] w-auto max-w-full object-contain rounded-lg shadow-2xl transition-opacity duration-500 ${
                     isImageLoaded ? "opacity-100" : "opacity-0"
                   }`}
                   priority

@@ -187,7 +187,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
         </div>
       )}
 
-      <div className="relative z-10 container mx-auto px-6">
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 max-w-7xl">
         <AnimatedSection>
           <div className="text-center mb-16">
             <span className="text-sm text-cyan-500 light:text-cyan-700 font-medium tracking-wider uppercase mb-4 block">

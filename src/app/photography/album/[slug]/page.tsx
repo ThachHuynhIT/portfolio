@@ -11,7 +11,9 @@ interface AlbumPageProps {
   };
 }
 
-export const dynamic = "force-dynamic";
+// Static + ISR: data is unstable_cache'd under the "photography" tag and
+// the admin API calls revalidateTag("photography"), which also purges the
+// cached route — no need to SSR the whole gallery on every request.
 
 export async function generateMetadata({ params }: AlbumPageProps): Promise<Metadata> {
   const albums = await getPublishedAlbums();

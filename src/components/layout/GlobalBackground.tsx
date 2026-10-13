@@ -38,5 +38,8 @@ export default function GlobalBackground() {
     return LIGHT_FALLBACK;
   }
 
-  return <StarryBackground3D />;
+  // On the homepage the Hero's black hole canvas covers the viewport centre
+  // and the starfield only peeks out at the masked edges, so draw it once
+  // instead of running a second animated WebGL loop next to the black hole.
+  return <StarryBackground3D still={pathname === "/"} />;
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, ReactNode, MouseEvent, KeyboardEvent } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { useEffect, useRef, ReactNode, PointerEvent, KeyboardEvent } from "react";
+import { motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface TiltCardProps {
@@ -22,6 +22,7 @@ export default function TiltCard({
 }: TiltCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const shineRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   // Motion values instead of React state: mousemove updates these directly
   // without going through React's render cycle.
@@ -45,8 +46,9 @@ export default function TiltCard({
     };
   }, [springRotateX, springRotateY]);
 
-  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
+  // Mouse/pen only: on touch, a tap would leave the card stuck mid-tilt.
+  const handlePointerMove = (e: PointerEvent<HTMLDivElement>) => {
+    if (!cardRef.current || e.pointerType === "touch" || prefersReducedMotion) return;
 
     const rect = cardRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -56,7 +58,7 @@ export default function TiltCard({
     rotateX.set(-((e.clientY - centerY) / (rect.height / 2)) * maxTilt);
   };
 
-  const handleMouseLeave = () => {
+  const handlePointerLeave = () => {
     rotateX.set(0);
     rotateY.set(0);
   };
@@ -72,8 +74,8 @@ export default function TiltCard({
   return (
     <motion.div
       ref={cardRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
@@ -82,15 +84,15 @@ export default function TiltCard({
       className={cn(
         "relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl",
         "light:border-neutral-900/10 light:bg-neutral-900/[0.04]",
-        "overflow-hidden cursor-pointer",
-        onClick && "focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500",
+        "group/tilt overflow-hidden",
+        onClick && "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500",
         className
       )}
     >
       {/* Shine effect */}
       <div
         ref={shineRef}
-        className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        className="absolute inset-0 opacity-0 [@media(hover:hover)]:group-hover/tilt:opacity-100 transition-opacity duration-500 pointer-events-none"
         style={{
           background: "radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.15), transparent 50%)",
         }}

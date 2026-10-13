@@ -63,7 +63,7 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
                         <span className="inline-block px-3 py-1 text-xs font-semibold text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded-full light:text-purple-700">
                           {translateBlogCategory(post.category, locale)}
                         </span>
-                        <span className="text-xs text-white/40 light:text-neutral-500 font-medium">
+                        <span className="text-xs text-white/60 light:text-neutral-600 font-medium">
                           {translateReadTime(post.readTime, locale, t("blog.minRead"))}
                         </span>
                       </div>
@@ -81,7 +81,7 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
 
                     <div>
                       {/* Date & Tags */}
-                      <div className="flex items-center justify-between text-xs text-white/40 light:text-neutral-500 pt-4 border-t border-white/5 light:border-neutral-900/10 mb-3">
+                      <div className="flex items-center justify-between text-xs text-white/60 light:text-neutral-600 pt-4 border-t border-white/5 light:border-neutral-900/10 mb-3">
                         <time dateTime={post.date}>
                           {new Date(post.date).toLocaleDateString(
                             locale === "vi" ? "vi-VN" : "en-US",
