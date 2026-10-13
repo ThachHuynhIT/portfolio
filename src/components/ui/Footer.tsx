@@ -71,6 +71,10 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
                     <img
                       src={social.icon}
                       alt={social.name}
+                      width={28}
+                      height={28}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-contain rounded-full"
                     />
                   ) : isKnownIconName(social.icon) ? (
@@ -127,10 +131,10 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
 
         {/* Bottom Bar */}
         <div className="mt-16 pt-8 border-t border-white/10 light:border-neutral-900/10 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-white/40 light:text-neutral-500 text-sm">
+          <p className="text-white/60 light:text-neutral-600 text-sm">
             © {currentYear} {siteConfig.author.name}. {t("footer.rightsReserved")}
           </p>
-          <p className="text-white/40 light:text-neutral-500 text-sm">
+          <p className="text-white/60 light:text-neutral-600 text-sm">
             {t("footer.builtWith")}{" "}
             <span className="text-transparent bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text">
               Next.js

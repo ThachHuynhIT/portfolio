@@ -1,6 +1,6 @@
 # 🚀 Modern 3D Developer Portfolio & Multi-Experience Platform
 
-Một nền tảng Portfolio cá nhân cao cấp kết hợp đồ họa không gian 3D tương tác, nền tảng Blog MDX hiệu năng cao, Thư viện Nhiếp ảnh nghệ thuật & Album, Trình phát nhạc toàn cục, Game Arcade 2D Contra hoài niệm, 5 game bài/cờ chơi online nhiều người (`/games`), Hệ thống Quản trị CMS và hỗ trợ Đa ngôn ngữ (Song ngữ EN / VI).
+Một nền tảng Portfolio cá nhân cao cấp kết hợp đồ họa không gian 3D tương tác, nền tảng Blog MDX hiệu năng cao, Thư viện Nhiếp ảnh nghệ thuật & Album, Trình phát nhạc toàn cục, Game Arcade 2D Contra hoài niệm, 7 game bài/cờ chơi online nhiều người (`/games`), Hệ thống Quản trị CMS và hỗ trợ Đa ngôn ngữ (Song ngữ EN / VI).
 
 Được xây dựng với **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS v4**, **React Three Fiber (Three.js)**, **Framer Motion** và kiến trúc tối ưu hiệu năng với **Lazy & Skeleton Loading**.
 
@@ -77,14 +77,15 @@ Trang `/games` liệt kê các game; mỗi game có sảnh (tạo/vào bàn bằ
 |---|---|---|
 | Tiến Lên Miền Nam | `/tien-len` | 2–4 |
 | Mèo Nổ (6 gói mở rộng, 16 combo dựng sẵn hoặc tự chọn) | `/meo-no` | 2–7 |
-| Cờ Tỷ Phú (địa danh Việt Nam) | `/co-ty-phu` | 2–6 |
+| Cờ Tỷ Phú (địa danh Việt Nam, 3 cỡ bản đồ 40 / 48 / 56 ô, vay tiền, đổi đất) | `/co-ty-phu` | 2–6 |
 | Đá Quý (kiểu Splendor) | `/splendor` | 2–4 |
 | Đấu Súng (kiểu Bang!, 7 bản mở rộng) | `/bang` | 3–8 |
 | Ô Ăn Quan | `/o-an-quan` | 2 |
 | Cờ Cá Ngựa (luật Việt Nam) | `/co-ca-ngua` | 2–4 |
 
 - Backend (phòng, WebSocket, Redis) nằm ở repo riêng **be_game**; client kết nối qua `NEXT_PUBLIC_TIENLEN_SERVER_URL` (mặc định `http://localhost:4000`).
-- Khung chung `src/components/games/` (`GamesShell`: thanh tab game, chọn tên người chơi một lần cho mọi game, bảng "tất cả các bàn"). Contra cũng được liệt kê ở `/games` nhưng chơi offline.
+- Khung chung `src/components/games/` (`GamesShell`: thanh tab game, chọn tên + biểu tượng (có nhiều loại mèo) và màu một lần cho mọi game, bảng "tất cả các bàn"). Contra cũng được liệt kê ở `/games` nhưng chơi offline.
+- Có phím tắt cho máy tính ở mọi game, hiệu ứng thắng (confetti), số tiền chạy mượt, thông báo (`sonner`) và pinch-zoom bàn Tỷ Phú trên điện thoại. Chi tiết: [`docs/GAMES_GUIDE.md`](docs/GAMES_GUIDE.md).
 
 ---
 

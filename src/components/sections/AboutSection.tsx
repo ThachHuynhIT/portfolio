@@ -29,7 +29,7 @@ export default function AboutSection({ siteConfig }: AboutSectionProps) {
       {/* Background gradient */}
       <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-radial from-purple-500/5 via-transparent to-transparent" />
 
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
         <AnimatedSection>
           <div className="text-center mb-16">
             <span className="text-sm text-purple-500 light:text-purple-700 font-medium tracking-wider uppercase mb-4 block">

@@ -71,9 +71,14 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#050505" },
+    { media: "(prefers-color-scheme: light)", color: "#faf9fc" },
+  ],
 };
 
 import GlobalBackground from "@/components/layout/GlobalBackground";
+import MotionProvider from "@/components/layout/MotionProvider";
 
 // KEEP IN SYNC WITH detectPreferredTheme()/isExcludedRoute() in
 // src/context/ThemeContext.tsx — runs before hydration to set data-theme
@@ -109,15 +114,17 @@ export default async function RootLayout({
       >
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <ThemeProvider>
-          <GlobalBackground />
-          <LanguageProvider>
-            <MusicProvider>
-              <Navigation navLinks={navLinks} />
-              <main>{children}</main>
-              <Footer navLinks={navLinks} socialLinks={socialLinks} siteConfig={siteConfig} />
-              <GlobalMusicPlayer />
-            </MusicProvider>
-          </LanguageProvider>
+          <MotionProvider>
+            <GlobalBackground />
+            <LanguageProvider>
+              <MusicProvider>
+                <Navigation navLinks={navLinks} />
+                <main>{children}</main>
+                <Footer navLinks={navLinks} socialLinks={socialLinks} siteConfig={siteConfig} />
+                <GlobalMusicPlayer />
+              </MusicProvider>
+            </LanguageProvider>
+          </MotionProvider>
         </ThemeProvider>
       </body>
     </html>

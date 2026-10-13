@@ -93,20 +93,52 @@ export default function Navigation({ navLinks }: NavigationProps) {
   }, [pathname]);
 
   useEffect(() => {
+    // At most one layout read per frame — scroll events fire faster than that.
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        handleScroll();
+      });
+    };
     handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleScroll, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleScroll);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
       if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
     };
   }, [handleScroll]);
 
-  // Close any open desktop dropdown on route change
+  // Close any open desktop dropdown / the mobile menu on route change
+  // (covers browser back/forward, not just clicks on our own links)
   useEffect(() => {
     setOpenDropdownId(null);
+    setIsMobileMenuOpen(false);
   }, [pathname]);
+
+  // While the mobile menu is open: lock page scroll behind it and close on
+  // Escape (returning focus to the hamburger).
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const root = document.documentElement;
+    const prevOverflow = root.style.overflow;
+    root.style.overflow = "hidden";
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsMobileMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      root.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isMobileMenuOpen]);
 
   // Close the mobile accordion whenever the mobile menu itself closes
   useEffect(() => {
@@ -226,13 +258,15 @@ export default function Navigation({ navLinks }: NavigationProps) {
       animate={{ y: 0 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]",
         isScrolled
           ? "bg-black/80 light:bg-white/80 backdrop-blur-xl border-b border-white/10 light:border-neutral-900/10 shadow-lg shadow-black/40 light:shadow-neutral-400/20 py-3"
           : "bg-gradient-to-b from-black/70 light:from-white/70 to-transparent backdrop-blur-sm py-4"
       )}
     >
-      <nav className="container mx-auto px-6 max-w-7xl">
+      {/* Keeps the bar clear of the notch / status bar (viewport-fit=cover) */}
+      <div aria-hidden="true" className="h-[env(safe-area-inset-top)]" />
+      <nav className="container mx-auto px-4 sm:px-6 max-w-7xl">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link
@@ -304,8 +338,10 @@ export default function Navigation({ navLinks }: NavigationProps) {
                   <li
                     key={link.id || link.href}
                     className="relative"
-                    onMouseEnter={() => openDropdown(link.id)}
-                    onMouseLeave={scheduleCloseDropdown}
+                    // Hover-open for mouse only: on touch laptops the synthetic
+                    // enter + the click would toggle the dropdown twice.
+                    onPointerEnter={(e) => e.pointerType === "mouse" && openDropdown(link.id)}
+                    onPointerLeave={(e) => e.pointerType === "mouse" && scheduleCloseDropdown()}
                   >
                     <button
                       type="button"
@@ -410,8 +446,12 @@ export default function Navigation({ navLinks }: NavigationProps) {
             <button
               ref={menuButtonRef}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="relative w-10 h-10 flex flex-col justify-center items-center rounded-xl bg-white/[0.05] light:bg-neutral-900/[0.05] border border-white/10 light:border-neutral-900/10 text-white light:text-neutral-900"
-              aria-label="Toggle menu"
+              className="relative w-11 h-11 flex flex-col justify-center items-center rounded-xl bg-white/[0.05] light:bg-neutral-900/[0.05] border border-white/10 light:border-neutral-900/10 text-white light:text-neutral-900"
+              aria-label={
+                isMobileMenuOpen
+                  ? locale === "vi" ? "Đóng menu" : "Close menu"
+                  : locale === "vi" ? "Mở menu" : "Open menu"
+              }
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-menu"
             >
@@ -447,7 +487,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="lg:hidden mt-3 rounded-2xl bg-black/95 light:bg-white/95 border border-white/10 light:border-neutral-900/10 backdrop-blur-2xl p-4 shadow-2xl shadow-black/80 light:shadow-neutral-400/30 overflow-hidden"
+              className="lg:hidden mt-3 rounded-2xl bg-black/95 light:bg-white/95 border border-white/10 light:border-neutral-900/10 backdrop-blur-2xl p-4 shadow-2xl shadow-black/80 light:shadow-neutral-400/30 overflow-y-auto overscroll-contain max-h-[calc(100dvh-6rem-env(safe-area-inset-top))]"
             >
               <ul className="flex flex-col gap-1.5">
                 {navLinks.map((link, index) => {
