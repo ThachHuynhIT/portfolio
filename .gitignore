@@ -43,5 +43,5 @@ next-env.d.ts
 
 /src/generated/prisma
 
-# source images for game card art (scripts/*-art.mjs writes the optimized copies to public/)
-/art/
+# skill / plugin
+/.playwright-mcp

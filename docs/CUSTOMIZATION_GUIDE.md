@@ -12,8 +12,7 @@ Tài liệu này hướng dẫn từng bước cách tùy chỉnh toàn bộ th�
 4. [Viết Bài Blog Mới (MDX)](#4-viết-bài-blog-mới-mdx)
 5. [Tùy Chỉnh Màu Sắc & Theme (Tailwind CSS v4)](#5-tùy-chỉnh-màu-sắc--theme-tailwind-css-v4)
 6. [Tùy Biến Trang Kỷ Niệm Tình Yêu (Couple Page)](#6-tùy-biến-trang-kỷ-niệm-tình-yêu-couple-page)
-7. [Tùy Biến Game Contra](#7-tùy-biến-game-contra)
-8. [Thêm Hỗ Trợ Light Mode Cho Component Mới](#8-thêm-hỗ-trợ-light-mode-cho-component-mới)
+7. [Thêm Hỗ Trợ Light Mode Cho Component Mới](#7-thêm-hỗ-trợ-light-mode-cho-component-mới)
 
 ---
 
@@ -92,7 +91,7 @@ Nghĩa là bất kỳ class nào có tiền tố `light:` (ví dụ `light:text-
 ```
 
 - Muốn **tắt hẳn** tính năng chuyển theme: xoá `<ThemeToggle />` khỏi `Navigation.tsx` — site sẽ luôn hiển thị theo `data-theme` mặc định (dark) do `ThemeProvider` gán.
-- Muốn thêm route mới luôn giữ Dark bất kể lựa chọn người dùng (giống `/admin`, `/contra`, `/couple`, `/music` và các route game): thêm prefix route đó vào mảng `EXCLUDED_ROUTE_PREFIXES` trong `src/lib/constants.ts`.
+- Muốn thêm route mới luôn giữ Dark bất kể lựa chọn người dùng (giống `/admin`, `/couple`, `/music`): thêm prefix route đó vào mảng `EXCLUDED_ROUTE_PREFIXES` trong `src/lib/constants.ts`.
 
 ---
 
@@ -102,18 +101,7 @@ Vào `/admin/couple` để sửa tên hai người, mốc `anniversary`, câu tr
 
 ---
 
-## 7. Tùy Biến Game Contra
-
-Bạn có thể điều chỉnh thông số game trong **`src/components/game/ContraGame.tsx`**:
-
-- **Máu & Mạng người chơi**: object `player` trong `initGame` (`hp: 3`, `maxHp: 3`, `lives: 3`).
-- **Sức mạnh vũ khí**: bảng `WEAPON_DATA` — nhịp bắn (`rate`, số frame giữa 2 phát), tốc độ đạn (`speed`), sát thương (`damage`), độ tỏa (`spread`), số viên mỗi phát (`count`).
-- **Thiết kế Level**: hàm `createLevels()` trả về 5 màn, mỗi màn có danh sách platform, kẻ địch, power-up và vị trí boss (`bossAt`).
-- **Vật lý chung**: hằng số `GRAVITY`, `PLAYER_SPEED`, `JUMP_FORCE` ở đầu file.
-
----
-
-## 8. Thêm Hỗ Trợ Light Mode Cho Component Mới
+## 7. Thêm Hỗ Trợ Light Mode Cho Component Mới
 
 Khi tạo component mới (hoặc chỉnh sửa component cũ) và muốn nó hiển thị đúng ở cả 2 theme, làm theo quy tắc **cộng thêm, không thay thế**: giữ nguyên toàn bộ class dark gốc, chỉ **thêm** class `light:` đi kèm.
 
@@ -132,4 +120,4 @@ Khi tạo component mới (hoặc chỉnh sửa component cũ) và muốn nó hi
 
 **Lưu ý quan trọng**: `bg-black/N` (hoặc gradient tối) dùng làm **lớp phủ trực tiếp lên ảnh/thumbnail** (badge, caption khi hover, nút play video) phải **giữ nguyên ở cả 2 theme** — không thêm `light:` — vì đây là lớp đảm bảo độ tương phản chữ trên ảnh, không phải màu nền của trang. Chỉ thêm `light:` cho `bg-black/N` khi nó là nền/chrome của trang hoặc modal (VD: lớp phủ backdrop của modal, nền section) — trường hợp này dùng `light:bg-white/70` đến `/90`.
 
-Xem ví dụ thực tế đã áp dụng đầy đủ quy tắc này ở `src/components/ui/GlassCard.tsx`, `src/components/ui/Navigation.tsx`, và toàn bộ `src/components/photography/*.tsx`. Chi tiết cơ chế kỹ thuật ở [mục 5.1](#51-site-có-2-theme-dark-gốc--light-thêm-sau) và `docs/ARCHITECTURE.md` (mục 3.6).
+Xem ví dụ thực tế đã áp dụng đầy đủ quy tắc này ở `src/components/ui/GlassCard.tsx`, `src/components/ui/Navigation.tsx`, và toàn bộ `src/components/photography/*.tsx`. Chi tiết cơ chế kỹ thuật ở [mục 5.1](#51-site-có-2-theme-dark-gốc--light-thêm-sau) và `docs/ARCHITECTURE.md` (mục 3.5).

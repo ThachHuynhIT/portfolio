@@ -1,6 +1,6 @@
 # 🚀 Modern 3D Developer Portfolio & Multi-Experience Platform
 
-Một nền tảng Portfolio cá nhân cao cấp kết hợp đồ họa không gian 3D tương tác, nền tảng Blog MDX hiệu năng cao, Thư viện Nhiếp ảnh nghệ thuật & Album, Trình phát nhạc toàn cục, Game Arcade 2D Contra hoài niệm, 7 game bài/cờ chơi online nhiều người (`/games`), Hệ thống Quản trị CMS và hỗ trợ Đa ngôn ngữ (Song ngữ EN / VI).
+Một nền tảng Portfolio cá nhân cao cấp kết hợp đồ họa không gian 3D tương tác, nền tảng Blog MDX hiệu năng cao, Thư viện Nhiếp ảnh nghệ thuật & Album, Trình phát nhạc toàn cục, Hệ thống Quản trị CMS và hỗ trợ Đa ngôn ngữ (Song ngữ EN / VI).
 
 Được xây dựng với **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS v4**, **React Three Fiber (Three.js)**, **Framer Motion** và kiến trúc tối ưu hiệu năng với **Lazy & Skeleton Loading**.
 
@@ -56,36 +56,16 @@ Một nền tảng Portfolio cá nhân cao cấp kết hợp đồ họa không 
 - **Syntax Highlighting & Deep Linking**: Tự động tô màu mã nguồn với `rehype-highlight` và tạo heading ID với `rehype-slug`.
 - **Lọc Danh Mục Tức Thì**: Phân loại theo chủ đề công nghệ (React, Three.js, Animation,...).
 
-### 8. 🕹️ 2D Contra Arcade Canvas Game (`/contra`)
-- **HTML5 Canvas 60 FPS Game Engine**: Động cơ game 2D thuần túy chạy trên Canvas không giật lag.
-- **6 Loại Vũ Khí + Khiên**: Đạn thường, Spread Gun (S - 5 tia), Machine Gun (M), Rapid Fire (R), Laser (L), Fireball (F) và khiên bất tử tạm thời Barrier (B).
-- **5 Màn & Kẻ Địch**: Jungle, Enemy Base, Waterfall, Snow Field, Alien Hive; lính, xạ thủ, tháp pháo, lính khiên, lính nhảy và Boss cuối mỗi màn.
-
-### 9. 💖 Trang Kỷ Niệm Tình Yêu (Couple Celebration) (`/couple`)
+### 8. 💖 Trang Kỷ Niệm Tình Yêu (Couple Celebration) (`/couple`)
 - **Đồng Hồ Tình Yêu Realtime**: Đếm thời gian yêu nhau chính xác đến từng giây.
 - **Dòng Thời Gian Kỷ Niệm & Bucket List**: Lưu giữ những khoảnh khắc đáng nhớ và danh sách mục tiêu cùng thực hiện.
 - **Hiệu Ứng Lãng Mạn**: Mưa trái tim động bay lượn và những bức thư tình bí mật dạng thẻ lật.
 
-### 10. 🛠️ JSON Parameter Validator (`/tools/json-validator`)
+### 9. 🛠️ JSON Parameter Validator (`/tools/json-validator`)
 - **Batch Processing & Suffix Matching**: Tự động ghép cặp các file `tb_def_exception_parameter_*.json` và `tb_def_parameter_*.json`.
 - **Kiểm Tra Tính Toàn Vẹn Dữ Liệu**: Tìm kiếm và liệt kê các `tb_def_parameter__id` bị thiếu và xuất báo cáo JSON chi tiết.
 
-### 11. 🎮 Game Online Nhiều Người (`/games`)
-Trang `/games` liệt kê các game; mỗi game có sảnh (tạo/vào bàn bằng mã, danh sách bàn, bảng xếp hạng) và bàn chơi `/<game>/[room]`, chơi realtime qua WebSocket, có khán giả, chat và emoji:
-
-| Game | Route | Số người |
-|---|---|---|
-| Tiến Lên Miền Nam | `/tien-len` | 2–4 |
-| Mèo Nổ (6 gói mở rộng, 16 combo dựng sẵn hoặc tự chọn) | `/meo-no` | 2–7 |
-| Cờ Tỷ Phú (địa danh Việt Nam, 3 cỡ bản đồ 40 / 48 / 56 ô, vay tiền, đổi đất) | `/co-ty-phu` | 2–6 |
-| Đá Quý (kiểu Splendor) | `/splendor` | 2–4 |
-| Đấu Súng (kiểu Bang!, 7 bản mở rộng) | `/bang` | 3–8 |
-| Ô Ăn Quan | `/o-an-quan` | 2 |
-| Cờ Cá Ngựa (luật Việt Nam) | `/co-ca-ngua` | 2–4 |
-
-- Backend (phòng, WebSocket, Redis) nằm ở repo riêng **be_game**; client kết nối qua `NEXT_PUBLIC_TIENLEN_SERVER_URL` (mặc định `http://localhost:4000`).
-- Khung chung `src/components/games/` (`GamesShell`: thanh tab game, chọn tên + biểu tượng (có nhiều loại mèo) và màu một lần cho mọi game, bảng "tất cả các bàn"). Contra cũng được liệt kê ở `/games` nhưng chơi offline.
-- Có phím tắt cho máy tính ở mọi game, hiệu ứng thắng (confetti), số tiền chạy mượt, thông báo (`sonner`) và pinch-zoom bàn Tỷ Phú trên điện thoại. Chi tiết: [`docs/GAMES_GUIDE.md`](docs/GAMES_GUIDE.md).
+> Các game (Contra và game online nhiều người) đã được chuyển sang repo riêng `portfolio_with_cms`.
 
 ---
 
@@ -105,7 +85,6 @@ Trang `/games` liệt kê các game; mỗi game có sảnh (tạo/vào bàn bằ
 | **Database** | PostgreSQL + [Prisma 7](https://www.prisma.io/) (`@prisma/adapter-pg`) | Lưu toàn bộ nội dung CMS, blog, nhạc, tin nhắn liên hệ |
 | **Media Hosting** | Cloudinary | Lưu trữ và phân phối hình ảnh/video/audio |
 | **Email** | [Resend](https://resend.com/) | Thông báo khi có tin nhắn liên hệ mới |
-| **Game Online** | be_game (Vercel WebSocket + Redis, repo riêng) | Phòng chơi realtime cho các game ở `/games` |
 
 ---
 
@@ -116,18 +95,15 @@ portfolio/
 ├── content/
 │   ├── blog/                  # Bài blog .mdx cũ (nguồn cho script migrate)
 │   └── data/                  # JSON cũ (nguồn cho script migrate — dữ liệu thật nằm trong Postgres)
-├── docs/                      # Tài liệu kỹ thuật chi tiết (+ bộ prompt vẽ bài *_ART_PROMPTS.md)
+├── docs/                      # Tài liệu kỹ thuật chi tiết
 ├── prisma/schema.prisma       # Schema Postgres (client sinh ra ở src/generated/prisma)
-├── public/                    # Static assets (fonts, ảnh bài game public/games/...)
-├── scripts/                   # migrate-json-to-db.ts, card-art.mjs (npm run art:meono / art:bang)
+├── public/                    # Static assets (fonts, icon SVG,...)
+├── scripts/                   # migrate-json-to-db.ts
 ├── src/
 │   ├── app/                   # Next.js App Router
 │   │   ├── admin/             # Hệ thống CMS Admin (Projects, Photography, Music, Skills,...)
 │   │   ├── api/               # Backend API Route Handlers
 │   │   ├── blog/              # Trang Blog & Chi tiết bài viết (MDX)
-│   │   ├── contra/            # Trang Game 2D Arcade Contra
-│   │   ├── games/             # Trang tổng các game
-│   │   ├── tien-len/, meo-no/, co-ty-phu/, splendor/, bang/, o-an-quan/, co-ca-ngua/   # Sảnh + bàn chơi [room] của từng game online
 │   │   ├── couple/            # Trang Kỷ niệm cặp đôi
 │   │   ├── music/             # Trang Phòng nghe nhạc
 │   │   ├── photography/       # Trang Thư viện ảnh & Chi tiết Album
@@ -140,9 +116,6 @@ portfolio/
 │   │   ├── 3d/                # Three.js / React Three Fiber Scenes
 │   │   ├── admin/             # UI Components quản trị CMS
 │   │   ├── blog/              # Blog UI Components
-│   │   ├── game/              # Canvas 2D Game Engine (Contra)
-│   │   ├── games/             # Khung chung game online (GamesShell, GameLobby, gameClient, chat,...)
-│   │   ├── tienlen/, meono/, typhu/, splendor/, bang/, oanquan/, cangua/   # Bàn chơi của từng game
 │   │   ├── layout/            # Layout components (GlobalBackground)
 │   │   ├── music/             # Music Player & Audio Visualizer
 │   │   ├── photography/       # Layouts (Masonry, Grid, Compare, Story) & Album Views
@@ -152,7 +125,7 @@ portfolio/
 │   ├── context/               # React Contexts (Language, Music, Theme, Toast)
 │   ├── locales/               # Từ điển đa ngôn ngữ (vi.ts, en.ts)
 │   ├── middleware.ts          # Bảo vệ /admin
-│   └── lib/                   # db.ts (Prisma), content/* (truy cập dữ liệu), bản sao luật/giao thức game (tienlen/, meono/,...), utils
+│   └── lib/                   # db.ts (Prisma), content/* (truy cập dữ liệu), utils
 ├── package.json               # Dependencies & scripts
 └── tsconfig.json              # TypeScript configuration
 ```
@@ -177,7 +150,6 @@ Sao chép `.env.example` thành `.env.local` (Next.js) và `.env` (Prisma CLI / 
 | `AUTH_SECRET`, `ADMIN_PASSWORD` | Ký cookie phiên & mật khẩu đăng nhập `/admin` |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Upload/quản lý media |
 | `RESEND_API_KEY`, `CONTACT_NOTIFICATION_EMAIL` | Email báo tin nhắn liên hệ mới |
-| `NEXT_PUBLIC_TIENLEN_SERVER_URL` | URL backend be_game cho mọi game online (mặc định `http://localhost:4000`) |
 
 `npm install` tự chạy `prisma generate` (postinstall). Nếu DB còn trống, có thể nạp dữ liệu mẫu từ `content/` bằng `npx tsx scripts/migrate-json-to-db.ts`.
 
@@ -209,12 +181,10 @@ npm run start
 
 Để tìm hiểu sâu hơn về từng khía cạnh của dự án, vui lòng tham khảo các tài liệu chuyên biệt trong thư mục `docs/`:
 
-- 🏛️ [**Kiến Trúc Hệ Thống (Architecture)**](docs/ARCHITECTURE.md): Phân tích chi tiết WebGL pipeline, MDX rendering, Canvas loop và Error Boundary.
+- 🏛️ [**Kiến Trúc Hệ Thống (Architecture)**](docs/ARCHITECTURE.md): Phân tích chi tiết WebGL pipeline, MDX rendering và Error Boundary.
 - 🚀 [**Đặc Tả Tính Năng (Features Spec)**](docs/FEATURES.md): Danh mục chi tiết các component và khả năng tương tác.
 - 🎨 [**Hướng Dẫn Tùy Biến (Customization Guide)**](docs/CUSTOMIZATION_GUIDE.md): Các bước chỉnh sửa thông tin cá nhân, cập nhật kỹ năng, thêm dự án mới và viết blog.
 - 🚢 [**Hướng Dẫn Triển Khai (Deployment Guide)**](docs/DEPLOYMENT.md): Hướng dẫn deploy lên Vercel, VPS, Docker container và tối ưu hóa SEO.
-- 🎮 [**Hướng Dẫn Frontend Game Online (Games Guide)**](docs/GAMES_GUIDE.md): Khung games, component dùng chung, bố cục từng game, quy ước responsive, ảnh lá bài và cách kiểm thử UI.
-- 🎨 [`docs/MEONO_ART_PROMPTS.md`](docs/MEONO_ART_PROMPTS.md), [`docs/BANG_ART_PROMPTS.md`](docs/BANG_ART_PROMPTS.md): Prompt vẽ ảnh lá bài (tùy chọn) cho Mèo Nổ / Đấu Súng.
 
 ---
 
