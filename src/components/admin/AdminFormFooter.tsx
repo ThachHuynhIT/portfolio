@@ -3,6 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { useTranslation } from "@/context/LanguageContext";
+import { cn } from "@/lib/utils";
+import { border, gap, radius, surface, text } from "@/lib/design-tokens";
 
 export interface AdminFormFooterProps {
   onClose?: () => void;
@@ -48,11 +50,11 @@ export default function AdminFormFooter({
     >
       <div className="w-full sm:w-auto">{extraActions}</div>
 
-      <div className="flex items-center justify-end gap-3 w-full sm:w-auto">
+      <div className={cn("flex items-center justify-end", gap.base, "w-full sm:w-auto")}>
         {closeHref ? (
           <Link
             href={closeHref}
-            className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 active:scale-[0.98] transition-all text-center"
+            className={cn("px-5 py-2.5", radius.control, "text-sm font-medium text-slate-300 hover:text-white", surface.cardDark, "hover:bg-white/10", border.subtleDark, "active:scale-[0.98] transition-all text-center")}
           >
             {closeBtnContent}
           </Link>
@@ -61,7 +63,7 @@ export default function AdminFormFooter({
             type="button"
             onClick={onClose}
             disabled={isSaving}
-            className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 active:scale-[0.98] transition-all disabled:opacity-50"
+            className={cn("px-5 py-2.5", radius.control, "text-sm font-medium text-slate-300 hover:text-white", surface.cardDark, "hover:bg-white/10", border.subtleDark, "active:scale-[0.98] transition-all disabled:opacity-50")}
           >
             {closeBtnContent}
           </button>
@@ -71,10 +73,10 @@ export default function AdminFormFooter({
           type={saveButtonType}
           onClick={saveButtonType === "button" ? onSave : undefined}
           disabled={isSaving || saveDisabled}
-          className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-lg shadow-violet-500/20 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 min-w-[120px]"
+          className={cn("px-6 py-2.5", radius.control, "text-sm font-semibold", text.primaryDark, "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-lg shadow-violet-500/20 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center", gap.tight, "min-w-[120px]")}
         >
           {isSaving && (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <div className={cn("w-4 h-4 border-2 border-white border-t-transparent", radius.pill, "animate-spin")} />
           )}
           <span>{saveLabel}</span>
         </button>

@@ -12,6 +12,8 @@ import FlagIcon from "@/components/ui/FlagIcon";
 import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/TranslationContext";
+import { cn } from "@/lib/utils";
+import { gap, radius, text } from "@/lib/design-tokens";
 
 export default function NewBlogPostPage() {
   const router = useRouter();
@@ -111,7 +113,7 @@ export default function NewBlogPostPage() {
       />
 
       {error && (
-        <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+        <div className={cn("mb-6 p-4", radius.control, "bg-red-500/10 border border-red-500/20 text-red-400 text-sm")}>
           {error}
         </div>
       )}
@@ -129,7 +131,7 @@ export default function NewBlogPostPage() {
       />
 
       {contentLang === "vi" && (
-        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs mb-6">
+        <div className={cn("flex items-center", gap.tight, "px-4 py-2.5", radius.control, "bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs mb-6")}>
           <FlagIcon code="vi" size={16} />
           <span>{t.admin.blog.viDraftNotice}</span>
         </div>
@@ -137,17 +139,17 @@ export default function NewBlogPostPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Metadata Form */}
-        <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-4">
+        <div className={cn("p-6", radius.card, "bg-gray-900 border border-gray-800 space-y-4")}>
           <div className="flex items-center justify-between pb-2 border-b border-gray-800">
-            <h2 className="text-lg font-bold text-white">{t.admin.blog.postMetadata}</h2>
-            <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/8">
+            <h2 className={cn("text-lg font-bold", text.primaryDark)}>{t.admin.blog.postMetadata}</h2>
+            <span className={cn("inline-flex items-center gap-1.5 text-xs text-slate-400 px-2.5 py-1", radius.pill, "bg-white/[0.04] border border-white/8")}>
               <FlagIcon code={contentLang} size={14} />
               {contentLang === "en" ? t.common.english : t.common.vietnamese}
             </span>
           </div>
 
           {contentLang === "en" ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={cn("grid grid-cols-1 md:grid-cols-2", gap.loose)}>
               <FormField label={`${t.admin.blog.titleEn} *`} id="post-title" required>
                 <input
                   id="post-title"
@@ -155,7 +157,7 @@ export default function NewBlogPostPage() {
                   value={title}
                   onChange={(e) => handleTitleChange(e.target.value)}
                   placeholder={t.admin.blog.fieldTitlePlaceholder}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  className={cn("w-full px-4 py-2 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                   required
                 />
               </FormField>
@@ -171,13 +173,13 @@ export default function NewBlogPostPage() {
                   type="text"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  className={cn("w-full px-4 py-2 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                   required
                 />
               </FormField>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={cn("grid grid-cols-1 md:grid-cols-2", gap.loose)}>
               <FormField
                 label={t.admin.blog.titleVi}
                 id="post-title-vi"
@@ -189,7 +191,7 @@ export default function NewBlogPostPage() {
                   value={title_vi}
                   onChange={(e) => setTitleVi(e.target.value)}
                   placeholder={title || t.admin.blog.fieldTitlePlaceholder}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  className={cn("w-full px-4 py-2 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                 />
               </FormField>
 
@@ -204,7 +206,7 @@ export default function NewBlogPostPage() {
                   type="text"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                  className={cn("w-full px-4 py-2 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                   required
                 />
               </FormField>
@@ -219,7 +221,7 @@ export default function NewBlogPostPage() {
                 value={excerpt}
                 onChange={(e) => setExcerpt(e.target.value)}
                 placeholder={t.admin.blog.fieldExcerptPlaceholder}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                className={cn("w-full px-4 py-2 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                 required
               />
             </FormField>
@@ -235,19 +237,19 @@ export default function NewBlogPostPage() {
                 value={excerpt_vi}
                 onChange={(e) => setExcerptVi(e.target.value)}
                 placeholder={excerpt || t.admin.blog.fieldExcerptPlaceholder}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                className={cn("w-full px-4 py-2 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
               />
             </FormField>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2 border-t border-gray-800">
+          <div className={cn("grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4", gap.loose, "pt-2 border-t border-gray-800")}>
             <FormField label={t.admin.blog.fieldDate} id="post-date" required>
               <input
                 id="post-date"
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                className={cn("w-full px-4 py-2 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                 required
               />
             </FormField>
@@ -258,7 +260,7 @@ export default function NewBlogPostPage() {
                 type="text"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                className={cn("w-full px-4 py-2 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
                 required
               />
             </FormField>
@@ -269,7 +271,7 @@ export default function NewBlogPostPage() {
                 type="text"
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                className={cn("w-full px-4 py-2 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
               />
             </FormField>
 
@@ -279,26 +281,26 @@ export default function NewBlogPostPage() {
                 type="text"
                 value={readTime}
                 onChange={(e) => setReadTime(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
+                className={cn("w-full px-4 py-2 bg-gray-800 border border-gray-700", radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
               />
             </FormField>
           </div>
         </div>
 
         {/* Content Editor & Preview Tabs */}
-        <div className="p-6 rounded-2xl bg-gray-900 border border-gray-800">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 pb-4 mb-4 gap-3">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-2">
+        <div className={cn("p-6", radius.card, "bg-gray-900 border border-gray-800")}>
+          <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 pb-4 mb-4", gap.base)}>
+            <div className={cn("flex items-center", gap.base, "flex-wrap")}>
+              <div className={cn("flex items-center", gap.tight)}>
                 <FlagIcon code={contentLang} size={18} />
-                <h2 className="text-lg font-bold text-white">
+                <h2 className={cn("text-lg font-bold", text.primaryDark)}>
                   {contentLang === "en" ? t.admin.blog.contentEnMdx : t.admin.blog.contentViMdx}
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setIsImagePickerOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-purple-300 hover:text-white rounded-lg text-xs font-medium border border-gray-700 transition-all shadow-sm"
+                className={cn("flex items-center gap-1.5 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-purple-300 hover:text-white", radius.chip, "text-xs font-medium border border-gray-700 transition-all shadow-sm")}
               >
                 <Icon name="image" size={13} />
                 <span>{t.admin.blog.insertImage}</span>
@@ -307,14 +309,14 @@ export default function NewBlogPostPage() {
                 <button
                   type="button"
                   onClick={copyEnglishToVietnamese}
-                  className="flex items-center gap-1.5 px-3 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 rounded-lg text-xs font-medium border border-purple-500/30 transition-all"
+                  className={cn("flex items-center gap-1.5 px-3 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300", radius.chip, "text-xs font-medium border border-purple-500/30 transition-all")}
                 >
                   <Icon name="copy" size={13} />
                   <span>{t.admin.blog.copyEnToVi}</span>
                 </button>
               )}
             </div>
-            <div className="flex gap-2">
+            <div className={cn("flex", gap.tight)}>
               <button
                 type="button"
                 onClick={() => setActiveTab("edit")}
@@ -356,10 +358,10 @@ export default function NewBlogPostPage() {
                   ? t.admin.blog.contentPlaceholderEn
                   : t.admin.blog.contentPlaceholderVi
               }
-              className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-purple-500 leading-relaxed"
+              className={cn("w-full px-4 py-3 bg-gray-950 border border-gray-800", radius.control, text.primaryDark, "font-mono text-sm focus:outline-none focus:border-purple-500 leading-relaxed")}
             />
           ) : (
-            <div className="p-6 bg-gray-950 border border-gray-800 rounded-xl min-h-[400px]">
+            <div className={cn("p-6 bg-gray-950 border border-gray-800", radius.control, "min-h-[400px]")}>
               <MarkdownPreview
                 content={
                   contentLang === "en"

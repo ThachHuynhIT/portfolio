@@ -4,6 +4,8 @@ import React, { useEffect, useMemo, useRef } from "react";
 import { useMusic } from "@/context/MusicContext";
 import { useTranslation } from "@/context/LanguageContext";
 import Icon from "@/components/ui/Icon";
+import { cn } from "@/lib/utils";
+import { gap, radius, text } from "@/lib/design-tokens";
 
 export interface ParsedLyricLine {
   id: number;
@@ -82,7 +84,7 @@ export default function LyricsView({ compact = false }: { compact?: boolean }) {
     return (
       <div className="music-lyrics-empty">
         <div className="flex justify-center mb-3"><Icon name="mic" size={32} /></div>
-        <h3 className="text-lg font-bold text-white mb-1">{t("music.lyricsView.emptyTitle", "No Lyrics Available")}</h3>
+        <h3 className={cn("text-lg font-bold", text.primaryDark, "mb-1")}>{t("music.lyricsView.emptyTitle", "No Lyrics Available")}</h3>
         <p className="text-white/50 text-sm max-w-sm text-center">
           {t("music.lyricsView.emptyDesc", "Lyrics haven't been added for this track yet. Enjoy the instrumental vibe!")}
         </p>
@@ -93,13 +95,13 @@ export default function LyricsView({ compact = false }: { compact?: boolean }) {
   return (
     <div className={`music-lyrics-wrapper ${compact ? "music-lyrics-wrapper--compact" : ""}`}>
       <div className="music-lyrics-header">
-        <div className="flex items-center gap-2">
+        <div className={cn("flex items-center", gap.tight)}>
           <Icon name="mic" size={16} />
-          <h3 className="text-sm font-bold text-white tracking-wide uppercase">
+          <h3 className={cn("text-sm font-bold", text.primaryDark, "tracking-wide uppercase")}>
             {t("music.lyricsView.header", "Live Synchronized Lyrics")}
           </h3>
         </div>
-        <span className="text-[11px] text-cyan-400 font-medium bg-cyan-500/10 px-2.5 py-0.5 rounded-full border border-cyan-500/20 inline-flex items-center gap-1">
+        <span className={cn("text-[11px] text-cyan-400 font-medium bg-cyan-500/10 px-2.5 py-0.5", radius.pill, "border border-cyan-500/20 inline-flex items-center gap-1")}>
           {t("music.lyricsView.seekHint", "Click any line to seek")} <Icon name="zap" size={10} />
         </span>
       </div>

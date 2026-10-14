@@ -7,6 +7,8 @@ import { useTranslation } from "@/context/LanguageContext";
 import { resolveSectionText, resolveStatValue } from "@/lib/content-overrides";
 import { ABOUT_STAT_DEFS } from "@/lib/section-defaults";
 import type { SiteConfig } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { brand, gap, text } from "@/lib/design-tokens";
 
 export interface AboutSectionProps {
   siteConfig: SiteConfig;
@@ -35,9 +37,9 @@ export default function AboutSection({ siteConfig }: AboutSectionProps) {
             <span className="text-sm text-purple-500 light:text-purple-700 font-medium tracking-wider uppercase mb-4 block">
               {resolveSectionText(locale, about?.badge, about?.badge_vi, t("about.badge"))}
             </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">
+            <h2 className={cn("text-4xl md:text-5xl font-bold", text.primary, "mb-6")}>
               {resolveSectionText(locale, about?.titlePrefix, about?.titlePrefix_vi, t("about.titlePrefix"))}
-              <span className="bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent">
+              <span className={cn(brand.gradient, "bg-clip-text text-transparent")}>
                 {resolveSectionText(locale, about?.titleHighlight, about?.titleHighlight_vi, t("about.titleHighlight"))}
               </span>
             </h2>
@@ -48,7 +50,7 @@ export default function AboutSection({ siteConfig }: AboutSectionProps) {
           {/* Left: Bio */}
           <AnimatedSection>
             <GlassCard className="p-8">
-              <h3 className="text-2xl font-semibold text-white light:text-neutral-900 mb-6">
+              <h3 className={cn("text-2xl font-semibold", text.primary, "mb-6")}>
                 {resolveSectionText(locale, about?.role, about?.role_vi, t("about.role"))}
               </h3>
               <div className="space-y-4 text-white/70 light:text-neutral-600 leading-relaxed">
@@ -65,12 +67,12 @@ export default function AboutSection({ siteConfig }: AboutSectionProps) {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid grid-cols-2 gap-4"
+            className={cn("grid grid-cols-2", gap.loose)}
           >
             {stats.map((stat, i) => (
               <motion.div key={ABOUT_STAT_DEFS[i].key} variants={fadeInUp}>
                 <GlassCard className="text-center p-6 h-full">
-                  <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent mb-2">
+                  <div className={cn("text-4xl md:text-5xl font-bold", brand.gradient, "bg-clip-text text-transparent mb-2")}>
                     {stat.value}
                   </div>
                   <div className="text-white/60 light:text-neutral-500 text-sm">{stat.label}</div>

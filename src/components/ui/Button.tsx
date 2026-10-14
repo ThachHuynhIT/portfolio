@@ -2,6 +2,15 @@
 
 import { ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/utils";
+import {
+  border,
+  brand,
+  focus,
+  motion,
+  radius,
+  surface,
+  text,
+} from "@/lib/design-tokens";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "ghost" | "outline";
@@ -17,22 +26,25 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "relative inline-flex items-center justify-center font-medium transition-all duration-300",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black light:focus-visible:ring-offset-white",
-          "disabled:cursor-not-allowed disabled:opacity-50",
+          "relative inline-flex items-center justify-center font-medium",
+          motion.base,
+          focus.ring,
+          focus.disabled,
           {
             // Sizes
-            "px-4 py-2 text-sm rounded-lg": size === "sm",
-            "px-6 py-3 text-base rounded-xl": size === "md",
-            "px-8 py-4 text-lg rounded-2xl": size === "lg",
+            [`px-4 py-2 text-sm ${radius.chip}`]: size === "sm",
+            [`px-6 py-3 text-base ${radius.control}`]: size === "md",
+            [`px-8 py-4 text-lg ${radius.card}`]: size === "lg",
             // Variants
-            "bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-600 hover:to-cyan-600 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40":
+            [`${brand.gradient} text-white ${brand.gradientHover} ${brand.glow} ${brand.glowHover}`]:
               variant === "primary",
-            "bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm border border-white/10 light:bg-neutral-900/[0.06] light:text-neutral-900 light:hover:bg-neutral-900/10 light:border-neutral-900/10":
+            [`${surface.raised} ${text.primary} ${surface.raisedHover} backdrop-blur-sm ${border.subtle}`]:
               variant === "secondary",
-            "text-white/80 hover:text-white hover:bg-white/5 light:text-neutral-700 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.04]":
+            // `light:text-neutral-700` is intentionally one step lighter than
+            // `text.secondary` here — ghost buttons sit on bare backgrounds.
+            [`text-white/80 light:text-neutral-700 ${text.mutedHover} ${surface.faintHover}`]:
               variant === "ghost",
-            "border border-white/20 text-white hover:bg-white/5 hover:border-white/40 light:border-neutral-900/15 light:text-neutral-900 light:hover:bg-neutral-900/[0.04] light:hover:border-neutral-900/30":
+            [`${border.strong} ${text.primary} ${surface.faintHover} ${border.strongHover}`]:
               variant === "outline",
           },
           className

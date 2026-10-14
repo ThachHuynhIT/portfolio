@@ -3,6 +3,8 @@
 import React, { useEffect } from "react";
 import Icon from "@/components/ui/Icon";
 import { useTranslation } from "@/context/LanguageContext";
+import { cn } from "@/lib/utils";
+import { border, gap, motion, radius, surface, text } from "@/lib/design-tokens";
 
 export interface AdminModalProps {
   isOpen: boolean;
@@ -67,14 +69,14 @@ export default function AdminModal({
     <>
       {/* Modal Header: Title text + 'X' button */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-slate-950/60 shrink-0">
-        <div className="flex items-center gap-3">
+        <div className={cn("flex items-center", gap.base)}>
           {icon && (
-            <div className="w-9 h-9 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 shrink-0">
+            <div className={cn("w-9 h-9", radius.control, "bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 shrink-0")}>
               <Icon name={icon} size={17} />
             </div>
           )}
           <div>
-            <h3 className="text-lg font-bold text-white leading-tight">
+            <h3 className={cn("text-lg font-bold", text.primaryDark, "leading-tight")}>
               {title}
             </h3>
             {subtitle && (
@@ -90,7 +92,7 @@ export default function AdminModal({
           type="button"
           onClick={onClose}
           disabled={isSaving}
-          className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 active:scale-95 transition-all focus:outline-none"
+          className={cn("p-2 text-slate-400 hover:text-white", radius.control, "hover:bg-white/10", motion.press, "transition-all focus:outline-none")}
           title={typeof closeLabel === "string" ? closeLabel : "Close"}
           aria-label="Close modal"
         >
@@ -110,12 +112,12 @@ export default function AdminModal({
           {customFooter ? (
             customFooter
           ) : (
-            <div className="flex items-center gap-3">
+            <div className={cn("flex items-center", gap.base)}>
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isSaving}
-                className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 active:scale-[0.98] transition-all disabled:opacity-50"
+                className={cn("px-5 py-2.5", radius.control, "text-sm font-medium text-slate-300 hover:text-white", surface.cardDark, "hover:bg-white/10", border.subtleDark, "active:scale-[0.98] transition-all disabled:opacity-50")}
               >
                 {finalCloseLabel}
               </button>
@@ -123,10 +125,10 @@ export default function AdminModal({
                 type={onSubmit ? "submit" : saveButtonType}
                 onClick={onSubmit ? undefined : onSave}
                 disabled={isSaving || saveDisabled}
-                className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-lg shadow-violet-500/20 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center gap-2"
+                className={cn("px-6 py-2.5", radius.control, "text-sm font-semibold", text.primaryDark, "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-lg shadow-violet-500/20 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center", gap.tight)}
               >
                 {isSaving && (
-                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className={cn("w-3.5 h-3.5 border-2 border-white border-t-transparent", radius.pill, "animate-spin")} />
                 )}
                 <span>{finalSaveLabel}</span>
               </button>

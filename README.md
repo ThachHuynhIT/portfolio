@@ -179,6 +179,7 @@ For a deeper look at each part of the project, see the docs in `docs/` (written 
 - 🏛️ [**Architecture**](docs/ARCHITECTURE.md): WebGL pipeline, MDX rendering and error boundaries in detail.
 - 🚀 [**Features Spec**](docs/FEATURES.md): detailed catalogue of components and interactions.
 - 🎨 [**Customization Guide**](docs/CUSTOMIZATION_GUIDE.md): editing personal info, updating skills, adding projects and writing posts.
+- 🎯 [**Design Tokens**](docs/DESIGN_TOKENS.md): single source of truth for shared colors, radii, spacing and z-index — change one place, update the whole site.
 - 🚢 [**Deployment Guide**](docs/DEPLOYMENT.md): deploying to Vercel, a VPS or a Docker container, plus SEO.
 
 ---

@@ -3,6 +3,7 @@
 import React from "react";
 import FlagIcon from "@/components/ui/FlagIcon";
 import { cn } from "@/lib/utils";
+import { border, gap, radius } from "@/lib/design-tokens";
 
 interface LanguageTabSelectorProps {
   activeLang: "en" | "vi";
@@ -38,13 +39,13 @@ export default function LanguageTabSelector({
         className
       )}
     >
-      <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
+      <div className={cn("flex items-center", gap.tight, "text-xs font-medium text-slate-400")}>
         <span className="text-[11px] uppercase tracking-wider text-slate-500 font-bold">
           {label}
         </span>
       </div>
 
-      <div className="inline-flex items-center p-1 rounded-lg bg-slate-950/80 border border-white/8 gap-1">
+      <div className={cn("inline-flex items-center p-1", radius.chip, "bg-slate-950/80 border border-white/8 gap-1")}>
         {languages.map((lang) => {
           const isActive = activeLang === lang.id;
           const hasContent = hasTranslation?.[lang.id];
@@ -61,7 +62,7 @@ export default function LanguageTabSelector({
                   : "text-slate-400 hover:text-white hover:bg-white/5"
               )}
             >
-              <FlagIcon locale={lang.id} width={18} height={12} className="border border-white/20" />
+              <FlagIcon locale={lang.id} width={18} height={12} className={cn(border.strongDark)} />
               <span>{lang.nativeName}</span>
 
               {/* Translation status dot indicator */}

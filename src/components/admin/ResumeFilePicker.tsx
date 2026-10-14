@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
+import { cn } from "@/lib/utils";
+import { border, gap, radius } from "@/lib/design-tokens";
 
 interface ResumeFilePickerProps {
   label: string;
@@ -74,7 +76,7 @@ export default function ResumeFilePicker({
 
       <div
         onClick={() => fileInputRef.current?.click()}
-        className="border-2 border-dashed border-white/15 hover:border-violet-500/60 bg-slate-950/40 rounded-xl p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-1.5"
+        className={cn("border-2 border-dashed border-white/15 hover:border-violet-500/60 bg-slate-950/40", radius.control, "p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-1.5")}
       >
         <input
           id={id}
@@ -86,13 +88,13 @@ export default function ResumeFilePicker({
           className="hidden"
         />
         {isUploading ? (
-          <div className="flex items-center gap-2 text-violet-400 text-xs py-2">
-            <div className="w-4 h-4 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
+          <div className={cn("flex items-center", gap.tight, "text-violet-400 text-xs py-2")}>
+            <div className={cn("w-4 h-4 border-2 border-violet-400 border-t-transparent", radius.pill, "animate-spin")} />
             <span>{t("admin.common.saving", "Uploading to Cloudinary…")}</span>
           </div>
         ) : (
           <>
-            <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400">
+            <div className={cn("w-8 h-8", radius.chip, "bg-violet-500/10 flex items-center justify-center text-violet-400")}>
               <Icon name="fileText" size={16} />
             </div>
             <p className="text-xs font-medium text-slate-300">
@@ -103,8 +105,8 @@ export default function ResumeFilePicker({
       </div>
 
       {value && (
-        <div className="flex items-center gap-3 p-2.5 bg-slate-950/60 border border-white/10 rounded-xl mt-2">
-          <div className="w-10 h-10 rounded-lg bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+        <div className={cn("flex items-center", gap.base, "p-2.5 bg-slate-950/60", border.subtleDark, radius.control, "mt-2")}>
+          <div className={cn("w-10 h-10", radius.chip, "bg-violet-500/10 flex items-center justify-center flex-shrink-0")}>
             <Icon name="fileText" size={18} />
           </div>
           <div className="min-w-0 flex-1">
@@ -123,7 +125,7 @@ export default function ResumeFilePicker({
           <button
             type="button"
             onClick={() => onChange(null)}
-            className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            className={cn("p-1.5", radius.chip, "text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors")}
             title={t("admin.common.remove", "Remove")}
           >
             <Icon name="close" size={14} />

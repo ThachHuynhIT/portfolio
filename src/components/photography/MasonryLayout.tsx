@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import type { PhotoItem } from "@/lib/types";
 import Icon from "@/components/ui/Icon";
 import { useTranslation } from "@/context/LanguageContext";
+import { cn } from "@/lib/utils";
+import { brand, elevation, gap, motion as motionTokens, radius } from "@/lib/design-tokens";
 
 interface MasonryLayoutProps {
   photos: PhotoItem[];
@@ -23,9 +25,9 @@ export default function MasonryLayout({ photos, onSelectPhoto }: MasonryLayoutPr
   }, [photos]);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+    <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3", gap.grid, "items-start")}>
       {columns.map((colPhotos, colIndex) => (
-        <div key={colIndex} className="flex flex-col gap-6">
+        <div key={colIndex} className={cn("flex flex-col", gap.grid)}>
           {colPhotos.map((photo, pIdx) => {
             const title = locale === "vi" && photo.title_vi ? photo.title_vi : photo.title;
             const desc = locale === "vi" && photo.description_vi ? photo.description_vi : photo.description;
@@ -54,7 +56,7 @@ export default function MasonryLayout({ photos, onSelectPhoto }: MasonryLayoutPr
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: (colIndex * 3 + pIdx) * 0.05, duration: 0.4 }}
-                className="group relative rounded-2xl overflow-hidden bg-slate-900/60 border border-white/10 shadow-lg hover:shadow-2xl hover:shadow-purple-500/10 hover:border-white/20 transition-all duration-300 cursor-pointer light:bg-white light:border-neutral-900/10 light:shadow-neutral-400/10 light:hover:border-neutral-900/15"
+                className={cn("group relative", radius.card, "overflow-hidden bg-slate-900/60 border border-white/10 shadow-lg hover:shadow-2xl hover:shadow-purple-500/10 hover:border-white/20", motionTokens.base, "cursor-pointer light:bg-white light:border-neutral-900/10 light:shadow-neutral-400/10 light:hover:border-neutral-900/15")}
                 onClick={() => onSelectPhoto(photo)}
               >
                 {/* Image Container */}
@@ -73,7 +75,7 @@ export default function MasonryLayout({ photos, onSelectPhoto }: MasonryLayoutPr
                   {/* Video Play Overlay */}
                   {isVideo && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-md border border-white/30 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-xl">
+                      <div className={cn("w-12 h-12", radius.pill, "bg-black/60", elevation.blur, "border border-white/30 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-xl")}>
                         <Icon name="play" size={18} className="text-cyan-400 translate-x-0.5" />
                       </div>
                     </div>
@@ -83,17 +85,17 @@ export default function MasonryLayout({ photos, onSelectPhoto }: MasonryLayoutPr
                   <div className="absolute top-3 inset-x-3 flex items-center justify-between z-10">
                     <div className="flex items-center gap-1.5">
                       {photo.featured && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-black shadow-md flex items-center gap-1">
+                        <span className={cn("px-2 py-0.5", radius.pill, "text-[10px] font-bold bg-amber-400 text-black shadow-md flex items-center gap-1")}>
                           <Icon name="star" size={10} /> {t("photography.featured", "Featured")}
                         </span>
                       )}
                       {photo.category && (
-                        <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-black/60 text-white/90 backdrop-blur-md border border-white/15">
+                        <span className={cn("px-2.5 py-1", radius.pill, "text-[11px] font-medium bg-black/60 text-white/90", elevation.blur, "border border-white/15")}>
                           {photo.category}
                         </span>
                       )}
                       {isVideo && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-500/90 text-black shadow flex items-center gap-1">
+                        <span className={cn("px-2 py-0.5", radius.pill, "text-[10px] font-bold uppercase tracking-wider bg-cyan-500/90 text-black shadow flex items-center gap-1")}>
                           <Icon name="play" size={10} />
                           <span>Video</span>
                         </span>
@@ -101,7 +103,7 @@ export default function MasonryLayout({ photos, onSelectPhoto }: MasonryLayoutPr
                     </div>
 
                     {!isVideo && photo.beforeImage && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wider uppercase bg-gradient-to-r from-purple-500 to-cyan-500 text-white shadow-md flex items-center gap-1">
+                      <span className={cn("px-2 py-0.5", radius.pill, "text-[10px] font-semibold tracking-wider uppercase", brand.gradient, "text-white shadow-md flex items-center gap-1")}>
                         <Icon name="compare" size={11} />
                         <span>Before / After</span>
                       </span>

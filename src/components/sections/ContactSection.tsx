@@ -12,6 +12,7 @@ import { usePerformanceTier } from "@/hooks/usePerformanceTier";
 import { cn } from "@/lib/utils";
 import { resolveSectionText } from "@/lib/content-overrides";
 import type { SiteConfig } from "@/lib/types";
+import { brand, gap, radius, text } from "@/lib/design-tokens";
 
 // Dynamic imports for 3D components
 const SceneContainer = dynamic(
@@ -193,7 +194,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
             <span className="text-sm text-cyan-500 light:text-cyan-700 font-medium tracking-wider uppercase mb-4 block">
               {resolveSectionText(locale, contact?.badge, contact?.badge_vi, t("contact.badge"))}
             </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">
+            <h2 className={cn("text-4xl md:text-5xl font-bold", text.primary, "mb-6")}>
               {resolveSectionText(locale, contact?.titlePrefix, contact?.titlePrefix_vi, t("contact.titlePrefix"))}
               <span className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
                 {resolveSectionText(locale, contact?.titleHighlight, contact?.titleHighlight_vi, t("contact.titleHighlight"))}
@@ -222,7 +223,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                 >
                   {formState.status === "success" ? (
                     <>
-                      <p className="font-medium text-white light:text-neutral-900">
+                      <p className={cn("font-medium", text.primary)}>
                         {resolveSectionText(locale, contact?.successTitle, contact?.successTitle_vi, t("contact.successTitle"))}
                       </p>
                       <p className="mt-1">
@@ -283,7 +284,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                     aria-describedby={
                       errors.name ? "contact-name-error" : undefined
                     }
-                    className="w-full px-4 py-3 bg-white/5 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/15 rounded-xl text-white light:text-neutral-900 placeholder:text-white/40 light:placeholder:text-neutral-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                    className={cn("w-full px-4 py-3 bg-white/5 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/15", radius.control, text.primary, "placeholder:text-white/40 light:placeholder:text-neutral-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all")}
                   />
                   {errors.name && (
                     <p
@@ -312,7 +313,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                     aria-describedby={
                       errors.email ? "contact-email-error" : undefined
                     }
-                    className="w-full px-4 py-3 bg-white/5 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/15 rounded-xl text-white light:text-neutral-900 placeholder:text-white/40 light:placeholder:text-neutral-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                    className={cn("w-full px-4 py-3 bg-white/5 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/15", radius.control, text.primary, "placeholder:text-white/40 light:placeholder:text-neutral-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all")}
                   />
                   {errors.email && (
                     <p
@@ -341,7 +342,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                     aria-describedby={
                       errors.subject ? "contact-subject-error" : undefined
                     }
-                    className="w-full px-4 py-3 bg-white/5 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/15 rounded-xl text-white light:text-neutral-900 placeholder:text-white/40 light:placeholder:text-neutral-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                    className={cn("w-full px-4 py-3 bg-white/5 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/15", radius.control, text.primary, "placeholder:text-white/40 light:placeholder:text-neutral-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all")}
                   />
                   {errors.subject && (
                     <p
@@ -370,7 +371,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                     aria-describedby={
                       errors.message ? "contact-message-error" : undefined
                     }
-                    className="w-full px-4 py-3 bg-white/5 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/15 rounded-xl text-white light:text-neutral-900 placeholder:text-white/40 light:placeholder:text-neutral-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all resize-none"
+                    className={cn("w-full px-4 py-3 bg-white/5 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/15", radius.control, text.primary, "placeholder:text-white/40 light:placeholder:text-neutral-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all resize-none")}
                   />
                   {errors.message && (
                     <p
@@ -402,19 +403,19 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
           <AnimatedSection delay={0.2}>
             <div className="space-y-6">
               <GlassCard className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                <div className={cn("flex items-start", gap.loose)}>
+                  <div className={cn("w-12 h-12", radius.control, brand.gradient, "flex items-center justify-center flex-shrink-0")}>
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">
+                    <h3 className={cn("text-lg font-semibold", text.primary, "mb-1")}>
                       {resolveSectionText(locale, contact?.emailInfo, contact?.emailInfo_vi, t("contact.emailInfo"))}
                     </h3>
                     <a
                       href={`mailto:${siteConfig.author.email}`}
-                      className="text-white/60 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 transition-colors"
+                      className={cn("text-white/60 light:text-neutral-500", text.mutedHover, "transition-colors")}
                     >
                       {siteConfig.author.email}
                     </a>
@@ -423,15 +424,15 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
               </GlassCard>
 
               <GlassCard className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                <div className={cn("flex items-start", gap.loose)}>
+                  <div className={cn("w-12 h-12", radius.control, "bg-gradient-to-r from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0")}>
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">
+                    <h3 className={cn("text-lg font-semibold", text.primary, "mb-1")}>
                       {resolveSectionText(locale, contact?.locationInfo, contact?.locationInfo_vi, t("contact.locationInfo"))}
                     </h3>
                     <p className="text-white/60 light:text-neutral-500">
@@ -442,21 +443,21 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
               </GlassCard>
 
               <GlassCard className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                <div className={cn("flex items-start", gap.loose)}>
+                  <div className={cn("w-12 h-12", radius.control, "bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0")}>
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">
+                    <h3 className={cn("text-lg font-semibold", text.primary, "mb-1")}>
                       {resolveSectionText(locale, contact?.availabilityInfo, contact?.availabilityInfo_vi, t("contact.availabilityInfo"))}
                     </h3>
                     <p className="text-white/60 light:text-neutral-500">
                       {resolveSectionText(locale, contact?.workHours, contact?.workHours_vi, t("contact.workHours"))}
                     </p>
                     <p className="text-green-500 text-sm mt-1 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                      <span className={cn("w-1.5 h-1.5", radius.pill, "bg-green-500")} />
                       {resolveSectionText(locale, contact?.openForProjects, contact?.openForProjects_vi, t("contact.openForProjects"))}
                     </p>
                   </div>
