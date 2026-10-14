@@ -11,8 +11,7 @@ Tài liệu này hướng dẫn từng bước cách tùy chỉnh toàn bộ th�
 3. [Thêm / Sửa Dự Án (Projects)](#3-thêm--sửa-dự-án-projects)
 4. [Viết Bài Blog Mới (MDX)](#4-viết-bài-blog-mới-mdx)
 5. [Tùy Chỉnh Màu Sắc & Theme (Tailwind CSS v4)](#5-tùy-chỉnh-màu-sắc--theme-tailwind-css-v4)
-6. [Tùy Biến Trang Kỷ Niệm Tình Yêu (Couple Page)](#6-tùy-biến-trang-kỷ-niệm-tình-yêu-couple-page)
-7. [Thêm Hỗ Trợ Light Mode Cho Component Mới](#7-thêm-hỗ-trợ-light-mode-cho-component-mới)
+6. [Thêm Hỗ Trợ Light Mode Cho Component Mới](#6-thêm-hỗ-trợ-light-mode-cho-component-mới)
 
 ---
 
@@ -95,13 +94,7 @@ Nghĩa là bất kỳ class nào có tiền tố `light:` (ví dụ `light:text-
 
 ---
 
-## 6. Tùy Biến Trang Kỷ Niệm Tình Yêu (Couple Page)
-
-Vào `/admin/couple` để sửa tên hai người, mốc `anniversary`, câu trích cuối trang, sinh nhật, ngày đặc biệt, dòng thời gian kỷ niệm, ảnh, bucket list, thư tình và "favorites" (mỗi mục có trạng thái publish). Trang `/couple` đọc dữ liệu qua `/api/couple`; `DEFAULT_COUPLE_DATA` ở đầu `src/app/couple/page.tsx` chỉ là dữ liệu tạm hiển thị trước khi tải xong / khi API lỗi.
-
----
-
-## 7. Thêm Hỗ Trợ Light Mode Cho Component Mới
+## 6. Thêm Hỗ Trợ Light Mode Cho Component Mới
 
 Khi tạo component mới (hoặc chỉnh sửa component cũ) và muốn nó hiển thị đúng ở cả 2 theme, làm theo quy tắc **cộng thêm, không thay thế**: giữ nguyên toàn bộ class dark gốc, chỉ **thêm** class `light:` đi kèm.
 

@@ -1,174 +1,169 @@
 # 🚀 Modern 3D Developer Portfolio & Multi-Experience Platform
 
-Một nền tảng Portfolio cá nhân cao cấp kết hợp đồ họa không gian 3D tương tác, nền tảng Blog MDX hiệu năng cao, Thư viện Nhiếp ảnh nghệ thuật & Album, Trình phát nhạc toàn cục, Hệ thống Quản trị CMS và hỗ trợ Đa ngôn ngữ (Song ngữ EN / VI).
+**English** | [Tiếng Việt](README.vi.md)
 
-Được xây dựng với **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS v4**, **React Three Fiber (Three.js)**, **Framer Motion** và kiến trúc tối ưu hiệu năng với **Lazy & Skeleton Loading**.
+A personal portfolio platform that combines interactive 3D graphics, a fast MDX blog, an art photography library with albums, a global music player, a full admin CMS and bilingual support (EN / VI).
+
+Built with **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS v4**, **React Three Fiber (Three.js)**, **Framer Motion**, and a performance-first architecture with **lazy & skeleton loading**.
 
 ---
 
-## ✨ Điểm Nổi Bật (Key Features)
+## ✨ Key Features
 
 ### 1. 🌟 Interactive 3D Portfolio (`/`)
-- **Hero hố đen 3D**: Nền Hero là hố đen raymarching (WebGL tự quản lý, `src/components/3d/blackhole/`), camera chạy theo cuộn trang mà không kích hoạt chu kỳ re-render của React.
-- **Glassmorphic Design System**: Giao diện tối màu hiện đại với hiệu ứng kính mờ (Backdrop Blur), viền neon phát sáng và độ tương phản cao.
-- **Clean Tech Stack Showcase**: Phần Kỹ năng (Skills) được thiết kế dạng thẻ chip công nghệ tinh giản, hiện đại, phân loại theo nhóm (Frontend, Backend, DevOps, Design) và loại bỏ hoàn toàn các thanh phần trăm (%) chủ quan.
-- **3D Tilt Project Cards**: Thẻ dự án tương tác nghiêng 3D chân thực, gắn nhãn công nghệ và hỗ trợ liên kết nhanh tới Live Demo và GitHub Repository.
-- **Lazy Loading & Dynamic Splitting**: Các section dưới nếp gấp trang được tải động (`next/dynamic`) với khung Skeleton sóng ánh sáng giúp tải trang siêu tốc.
-- **Contact Form**: Xác thực bằng `react-hook-form` + `zod`, gửi tới `/api/contact` (giới hạn tần suất, lưu tin nhắn vào Postgres, báo qua email bằng Resend).
+- **3D black hole hero**: the hero background is a raymarched black hole (self-managed WebGL, `src/components/3d/blackhole/`); the camera follows page scroll without triggering React re-renders.
+- **Glassmorphic design system**: a modern dark UI with backdrop blur, glowing neon borders and high contrast.
+- **Clean tech stack showcase**: the Skills section shows compact technology chips grouped by category (Frontend, Backend, DevOps, Design), with no subjective percentage bars.
+- **3D tilt project cards**: project cards tilt in 3D, carry technology tags and link straight to the live demo and GitHub repository.
+- **Lazy loading & dynamic splitting**: below-the-fold sections load dynamically (`next/dynamic`) behind shimmering skeletons for a fast first paint.
+- **Contact form**: validated with `react-hook-form` + `zod` and sent to `/api/contact` (rate-limited, stored in Postgres, email notification via Resend).
 
-### 2. 📸 Thư Viện Nhiếp Ảnh Nghệ Thuật & Album (`/photography` & `/photography/album/[slug]`)
-- **Bộ Sưu Tập Album (Curated Collections)**: Gom nhóm tác phẩm theo từng album chuyên đề, tự động chọn hoặc gán ảnh bìa đại diện, hỗ trợ song ngữ tiêu đề và mô tả.
-- **4 Chế Độ Bố Cục Xem Đa Dạng**:
-  - **Xếp tầng (Masonry)**: Bố cục so le linh hoạt theo chiều cao ảnh tự nhiên.
-  - **Lưới (Grid)**: Bố cục tỉ lệ đều đặn, chuẩn mực.
-  - **So sánh (Compare)**: Thanh trượt Before/After kéo tương tác so sánh ảnh gốc và ảnh sau hậu kỳ (retouch).
-  - **Câu chuyện (Story)**: Trải nghiệm phóng sự ảnh phong cách tạp chí nghệ thuật.
-- **Lightbox Modal Chi Tiết**: Xem ảnh/video độ phân giải cao, hiển thị đầy đủ thông số máy ảnh EXIF (Khẩu độ, Tốc độ, ISO, Tiêu cự, Ống kính).
-- **Sắp Xếp Ưu Tiên Nổi Bật (Featured First)**: Các tác phẩm và album được đánh dấu `featured` sẽ luôn tự động được đưa lên đầu danh sách.
+### 2. 📸 Art Photography Library & Albums (`/photography` & `/photography/album/[slug]`)
+- **Curated collections**: works are grouped into themed albums with an automatic or hand-picked cover, and bilingual titles and descriptions.
+- **4 layout modes**:
+  - **Masonry**: a staggered layout that follows each photo's natural height.
+  - **Grid**: an even, uniform grid.
+  - **Compare**: an interactive before/after slider comparing the original and the retouched photo.
+  - **Story**: a magazine-style photo essay.
+- **Detailed lightbox**: view high-resolution photos and videos with full EXIF data (aperture, shutter speed, ISO, focal length, lens).
+- **Featured first**: works and albums marked `featured` always appear at the top.
 
-### 3. 🎵 Trình Phát Nhạc & Phòng Nghe Nhạc (`/music`)
-- **Phòng Nghe Nhạc Độc Lập**: Giao diện đĩa than Vinyl quay chân thực, bộ trực quan hóa sóng âm thanh (Audio Visualizer) và danh sách bài hát tuyển chọn.
-- **Global Floating Music Player**: Trình phát nhạc mini nổi cố định ở góc dưới màn hình, duy trì phát nhạc liền mạch khi người dùng điều hướng qua các trang khác.
+### 3. 🎵 Music Player & Listening Room (`/music`)
+- **Dedicated listening room**: a spinning vinyl record, an audio visualizer and a curated track list.
+- **Global floating music player**: a mini player pinned to the bottom of the screen keeps playing while you navigate between pages.
 
-### 4. 🌐 Hỗ Trợ Đa Ngôn Ngữ Toàn Diện (Multilingual EN / VI)
-- Tích hợp bộ chuyển đổi ngôn ngữ linh hoạt giữa **Tiếng Việt 🇻🇳** và **English 🇬🇧** với bộ icon cờ quốc gia sắc nét.
-- Áp dụng xuyên suốt từ Trang chủ, Dự án, Kỹ năng, Blog, Nhiếp ảnh & Album, Kỷ niệm cặp đôi đến toàn bộ Hệ thống Quản trị Admin.
+### 4. 🌐 Full Multilingual Support (EN / VI)
+- A language switcher between **Tiếng Việt 🇻🇳** and **English 🇬🇧** with crisp flag icons.
+- Applied everywhere: home page, projects, skills, blog, photography & albums, and the whole admin panel.
 
-### 5. 🛡️ Hệ Thống Quản Trị Nội Dung Đầy Đủ (Admin CMS Panel) (`/admin`)
-- Giao diện quản trị hiện đại, bảo mật đăng nhập:
-  - **Quản lý Dự án (Projects)**: Thêm/sửa/xóa thông tin dự án, link demo, github, gắn cờ nổi bật.
-  - **Quản lý Bài viết Blog (MDX Blog)**: Soạn thảo, xuất bản và chỉnh sửa nội dung bài viết.
-  - **Quản lý Nhiếp ảnh & Album (Photography & Albums)**: Upload ảnh, gom album, chọn ảnh bìa, gán metadata EXIF và trạng thái song ngữ.
-  - **Quản lý Kỹ năng (Skills)**: Quản lý icon, danh mục công nghệ và trạng thái xuất bản.
-  - **Quản lý Âm nhạc (Music)**: Thêm/sửa danh sách bài hát, link audio, nghệ sĩ.
-  - **Quản lý Media**: Thư viện Cloudinary (metadata lưu trong Postgres), đồng bộ lại từ Cloudinary.
-  - **Trang Couple**: Ảnh, dòng thời gian, sinh nhật, bucket list, thư tình.
-  - **Site Config & Navigation**: Tùy chỉnh thông tin cá nhân, nội dung các section trang chủ, menu điều hướng và mạng xã hội.
-- Toàn bộ nội dung được lưu trong **PostgreSQL (Prisma)**; `/admin` được bảo vệ bằng cookie phiên ký HMAC (`AUTH_SECRET`).
+### 5. 🛡️ Full Admin CMS (`/admin`)
+- A modern admin interface behind a secure login:
+  - **Projects**: add, edit and delete projects, demo and GitHub links, featured flag.
+  - **MDX blog posts**: write, publish and edit posts.
+  - **Photography & albums**: upload photos, group them into albums, pick covers, set EXIF metadata and bilingual fields.
+  - **Skills**: manage icons, technology categories and publish state.
+  - **Music**: manage the track list, audio links and artists.
+  - **Media**: Cloudinary library (metadata stored in Postgres), with re-sync from Cloudinary.
+  - **Site config & navigation**: personal info, home page section content, navigation menu and social links.
+- All content is stored in **PostgreSQL (Prisma)**; `/admin` is protected by an HMAC-signed session cookie (`AUTH_SECRET`).
 
-### 6. ⚡ Tối Ưu Hóa Hiệu Năng, Lazy & Skeleton Loading
-- **Skeleton Shimmer UI**: Bộ khung xương tải trang với hiệu ứng sóng ánh sáng GPU-accelerated cho hình ảnh, thẻ dự án, bài viết và toàn bộ section.
-- **`ImageWithSkeleton`**: Tải ảnh mượt mà với hiệu ứng chuyển đổi độ mờ `opacity: 0 -> 1` (`500ms ease-out`), loại bỏ giật nháy (layout shift) và tích hợp lazy loading tự động.
-- **Instant Route Transitions (`loading.tsx`)**: Trang tải tức thì theo chuẩn Next.js App Router cho `/photography`, `/projects`, `/blog`.
+### 6. ⚡ Performance, Lazy & Skeleton Loading
+- **Skeleton shimmer UI**: GPU-accelerated shimmering placeholders for images, project cards, posts and whole sections.
+- **`ImageWithSkeleton`**: smooth image loading with an `opacity: 0 -> 1` fade (`500ms ease-out`), no layout shift, and built-in lazy loading.
+- **Instant route transitions (`loading.tsx`)**: App Router loading states for `/photography`, `/projects` and `/blog`.
 
 ### 7. 📝 Server-Compiled MDX Blog (`/blog` & `/blog/[slug]`)
-- **Server-Side MDX Parsing**: Nạp và biên dịch file `.mdx` bằng `gray-matter` và `next-mdx-remote/rsc`.
-- **Syntax Highlighting & Deep Linking**: Tự động tô màu mã nguồn với `rehype-highlight` và tạo heading ID với `rehype-slug`.
-- **Lọc Danh Mục Tức Thì**: Phân loại theo chủ đề công nghệ (React, Three.js, Animation,...).
+- **Server-side MDX parsing**: `.mdx` files are loaded and compiled with `gray-matter` and `next-mdx-remote/rsc`.
+- **Syntax highlighting & deep linking**: code is highlighted with `rehype-highlight` and headings get IDs from `rehype-slug`.
+- **Instant category filter**: posts are grouped by topic (React, Three.js, Animation, …).
 
-### 8. 💖 Trang Kỷ Niệm Tình Yêu (Couple Celebration) (`/couple`)
-- **Đồng Hồ Tình Yêu Realtime**: Đếm thời gian yêu nhau chính xác đến từng giây.
-- **Dòng Thời Gian Kỷ Niệm & Bucket List**: Lưu giữ những khoảnh khắc đáng nhớ và danh sách mục tiêu cùng thực hiện.
-- **Hiệu Ứng Lãng Mạn**: Mưa trái tim động bay lượn và những bức thư tình bí mật dạng thẻ lật.
+### 8. 🛠️ JSON Parameter Validator (`/tools/json-validator`)
+- **Batch processing & suffix matching**: automatically pairs `tb_def_exception_parameter_*.json` with `tb_def_parameter_*.json` files.
+- **Data integrity check**: finds and lists missing `tb_def_parameter__id` values and exports a detailed JSON report.
 
-### 9. 🛠️ JSON Parameter Validator (`/tools/json-validator`)
-- **Batch Processing & Suffix Matching**: Tự động ghép cặp các file `tb_def_exception_parameter_*.json` và `tb_def_parameter_*.json`.
-- **Kiểm Tra Tính Toàn Vẹn Dữ Liệu**: Tìm kiếm và liệt kê các `tb_def_parameter__id` bị thiếu và xuất báo cáo JSON chi tiết.
-
-> Các game (Contra và game online nhiều người) đã được chuyển sang repo riêng `portfolio_with_cms`.
+> The games (Contra and the online multiplayer games) have moved to the separate `portfolio_with_cms` repo.
 
 ---
 
-## 🛠️ Công Nghệ Sử Dụng (Tech Stack)
+## 🛠️ Tech Stack
 
-| Lớp (Layer) | Công nghệ | Mục đích |
+| Layer | Technology | Purpose |
 |---|---|---|
-| **Core Framework** | [Next.js 14 (App Router)](https://nextjs.org/) | Framework React chuẩn sản xuất, hỗ trợ SSR, SSG, RSC và Route Handlers |
-| **Language** | [TypeScript](https://www.typescriptlang.org/) | Strict Type Checking đảm bảo độ tin cậy của mã nguồn |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Styling hiện đại với `@theme inline`, biến CSS và animation tùy chỉnh |
-| **3D Graphics** | [Three.js](https://threejs.org/) / [React Three Fiber](https://r3f.docs.pmnd.rs/) / [Drei](https://github.com/pmndrs/drei) | Kết xuất khung cảnh không gian 3D WebGL và trường sao động |
-| **Animations** | [Framer Motion](https://www.framer.com/motion/) | Điều phối chuyển động, scroll triggers, modal và hiệu ứng chuyển tab |
-| **Performance** | Next.js Dynamic Imports, Skeleton Loading, Image Optimization | Tối ưu hóa tải trang, loại bỏ layout shift và tăng tốc độ phản hồi |
-| **Audio Engine** | Web Audio API / HTML5 Audio | Phát nhạc nền toàn cục và phân tích sóng âm (visualizer) |
-| **MDX Engine** | [next-mdx-remote](https://github.com/hashicorp/next-mdx-remote), [gray-matter](https://github.com/jonschlinkert/gray-matter) | Đọc và render bài viết kỹ thuật từ Markdown mở rộng |
-| **Forms & Validation** | [React Hook Form](https://react-hook-form.com/) & [Zod](https://zod.dev/) | Quản lý trạng thái form và kiểm tra tính hợp lệ dữ liệu |
-| **Database** | PostgreSQL + [Prisma 7](https://www.prisma.io/) (`@prisma/adapter-pg`) | Lưu toàn bộ nội dung CMS, blog, nhạc, tin nhắn liên hệ |
-| **Media Hosting** | Cloudinary | Lưu trữ và phân phối hình ảnh/video/audio |
-| **Email** | [Resend](https://resend.com/) | Thông báo khi có tin nhắn liên hệ mới |
+| **Core framework** | [Next.js 14 (App Router)](https://nextjs.org/) | Production React framework with SSR, SSG, RSC and Route Handlers |
+| **Language** | [TypeScript](https://www.typescriptlang.org/) | Strict type checking for reliable code |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Modern styling with `@theme inline`, CSS variables and custom animations |
+| **3D graphics** | [Three.js](https://threejs.org/) / [React Three Fiber](https://r3f.docs.pmnd.rs/) / [Drei](https://github.com/pmndrs/drei) | WebGL 3D space scenes and dynamic star fields |
+| **Animations** | [Framer Motion](https://www.framer.com/motion/) | Motion orchestration, scroll triggers, modals and tab transitions |
+| **Performance** | Next.js dynamic imports, skeleton loading, image optimization | Faster loads, no layout shift, snappier responses |
+| **Audio engine** | Web Audio API / HTML5 Audio | Global background music and audio visualizer |
+| **MDX engine** | [next-mdx-remote](https://github.com/hashicorp/next-mdx-remote), [gray-matter](https://github.com/jonschlinkert/gray-matter) | Reading and rendering technical posts from extended Markdown |
+| **Forms & validation** | [React Hook Form](https://react-hook-form.com/) & [Zod](https://zod.dev/) | Form state and data validation |
+| **Database** | PostgreSQL + [Prisma 7](https://www.prisma.io/) (`@prisma/adapter-pg`) | All CMS content, blog, music and contact messages |
+| **Media hosting** | Cloudinary | Image, video and audio storage and delivery |
+| **Email** | [Resend](https://resend.com/) | Notifications for new contact messages |
 
 ---
 
-## 📁 Cấu Trúc Mã Nguồn (Source Tree)
+## 📁 Source Tree
 
 ```
 portfolio/
 ├── content/
-│   ├── blog/                  # Bài blog .mdx cũ (nguồn cho script migrate)
-│   └── data/                  # JSON cũ (nguồn cho script migrate — dữ liệu thật nằm trong Postgres)
-├── docs/                      # Tài liệu kỹ thuật chi tiết
-├── prisma/schema.prisma       # Schema Postgres (client sinh ra ở src/generated/prisma)
-├── public/                    # Static assets (fonts, icon SVG,...)
+│   ├── blog/                  # Legacy .mdx posts (source for the migrate script)
+│   └── data/                  # Legacy JSON (source for the migrate script — real data lives in Postgres)
+├── docs/                      # Detailed technical docs
+├── prisma/schema.prisma       # Postgres schema (client generated into src/generated/prisma)
+├── public/                    # Static assets (fonts, SVG icons, …)
 ├── scripts/                   # migrate-json-to-db.ts
 ├── src/
 │   ├── app/                   # Next.js App Router
-│   │   ├── admin/             # Hệ thống CMS Admin (Projects, Photography, Music, Skills,...)
-│   │   ├── api/               # Backend API Route Handlers
-│   │   ├── blog/              # Trang Blog & Chi tiết bài viết (MDX)
-│   │   ├── couple/            # Trang Kỷ niệm cặp đôi
-│   │   ├── music/             # Trang Phòng nghe nhạc
-│   │   ├── photography/       # Trang Thư viện ảnh & Chi tiết Album
-│   │   ├── projects/          # Trang Danh sách dự án
-│   │   ├── tools/             # Công cụ Developer (JSON validator)
-│   │   ├── globals.css        # Cấu hình Tailwind v4 & Shimmer Animations
-│   │   ├── layout.tsx         # Root Layout (Nav, Footer, MusicPlayer, Providers)
-│   │   └── page.tsx           # Trang chủ Portfolio (Dynamic Sections)
+│   │   ├── admin/             # Admin CMS (Projects, Photography, Music, Skills, …)
+│   │   ├── api/               # Backend API route handlers
+│   │   ├── blog/              # Blog list & post pages (MDX)
+│   │   ├── music/             # Listening room
+│   │   ├── photography/       # Photo library & album pages
+│   │   ├── projects/          # Projects list
+│   │   ├── tools/             # Developer tools (JSON validator)
+│   │   ├── globals.css        # Tailwind v4 config & shimmer animations
+│   │   ├── layout.tsx         # Root layout (Nav, Footer, MusicPlayer, Providers)
+│   │   └── page.tsx           # Portfolio home page (dynamic sections)
 │   ├── components/
-│   │   ├── 3d/                # Three.js / React Three Fiber Scenes
-│   │   ├── admin/             # UI Components quản trị CMS
-│   │   ├── blog/              # Blog UI Components
+│   │   ├── 3d/                # Three.js / React Three Fiber scenes
+│   │   ├── admin/             # Admin CMS UI components
+│   │   ├── blog/              # Blog UI components
 │   │   ├── layout/            # Layout components (GlobalBackground)
-│   │   ├── music/             # Music Player & Audio Visualizer
-│   │   ├── photography/       # Layouts (Masonry, Grid, Compare, Story) & Album Views
-│   │   ├── projects/          # Projects UI Components
-│   │   ├── sections/          # Portfolio Sections (Hero, About, Skills, Projects,...)
-│   │   └── ui/                # Reusable UI Primitives (Button, Skeleton, ImageWithSkeleton,...)
-│   ├── context/               # React Contexts (Language, Music, Theme, Toast)
-│   ├── locales/               # Từ điển đa ngôn ngữ (vi.ts, en.ts)
-│   ├── middleware.ts          # Bảo vệ /admin
-│   └── lib/                   # db.ts (Prisma), content/* (truy cập dữ liệu), utils
+│   │   ├── music/             # Music player & audio visualizer
+│   │   ├── photography/       # Layouts (Masonry, Grid, Compare, Story) & album views
+│   │   ├── projects/          # Projects UI components
+│   │   ├── sections/          # Portfolio sections (Hero, About, Skills, Projects, …)
+│   │   └── ui/                # Reusable UI primitives (Button, Skeleton, ImageWithSkeleton, …)
+│   ├── context/               # React contexts (Language, Music, Theme, Toast)
+│   ├── locales/               # Translation dictionaries (vi.ts, en.ts)
+│   ├── middleware.ts          # Protects /admin
+│   └── lib/                   # db.ts (Prisma), content/* (data access), utils
 ├── package.json               # Dependencies & scripts
 └── tsconfig.json              # TypeScript configuration
 ```
 
 ---
 
-## 🚀 Bắt Đầu Nhanh (Getting Started)
+## 🚀 Getting Started
 
-### 1. Cài Đặt Dependencies
+### 1. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Thiết Lập Biến Môi Trường (Environment Variables)
+### 2. Environment variables
 
-Sao chép `.env.example` thành `.env.local` (Next.js) và `.env` (Prisma CLI / script) rồi điền giá trị thật. Danh sách đầy đủ kèm chú thích nằm trong [`.env.example`](.env.example):
+Copy `.env.example` to `.env.local` (Next.js) and `.env` (Prisma CLI / scripts) and fill in real values. The full commented list is in [`.env.example`](.env.example):
 
-| Biến | Dùng cho |
+| Variable | Used for |
 |---|---|
-| `DATABASE_URL` | Postgres (Neon…) — bắt buộc, mọi trang đọc dữ liệu từ DB |
-| `AUTH_SECRET`, `ADMIN_PASSWORD` | Ký cookie phiên & mật khẩu đăng nhập `/admin` |
-| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Upload/quản lý media |
-| `RESEND_API_KEY`, `CONTACT_NOTIFICATION_EMAIL` | Email báo tin nhắn liên hệ mới |
+| `DATABASE_URL` | Postgres (Neon, …) — required, every page reads from the DB |
+| `AUTH_SECRET`, `ADMIN_PASSWORD` | Session cookie signing & `/admin` login password |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Media upload & management |
+| `RESEND_API_KEY`, `CONTACT_NOTIFICATION_EMAIL` | Email for new contact messages |
 
-`npm install` tự chạy `prisma generate` (postinstall). Nếu DB còn trống, có thể nạp dữ liệu mẫu từ `content/` bằng `npx tsx scripts/migrate-json-to-db.ts`.
+`npm install` runs `prisma generate` automatically (postinstall). If the DB is empty, seed sample data from `content/` with `npx tsx scripts/migrate-json-to-db.ts`.
 
-### 3. Chạy Môi Trường Phát Triển (Development Mode)
+### 3. Development mode
 
 ```bash
 npm run dev
 ```
 
-Mở trình duyệt và truy cập [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### 4. Kiểm Tra Linter & Type Check
+### 4. Lint & type check
 
 ```bash
 npm run lint            # eslint .
 npx tsc --noEmit -p .   # type check
 ```
 
-### 5. Build Bản Production
+### 5. Production build
 
 ```bash
 npm run build
@@ -177,18 +172,17 @@ npm run start
 
 ---
 
-## 📖 Tài Liệu Tham Khảo (Documentation)
+## 📖 Documentation
 
-Để tìm hiểu sâu hơn về từng khía cạnh của dự án, vui lòng tham khảo các tài liệu chuyên biệt trong thư mục `docs/`:
+For a deeper look at each part of the project, see the docs in `docs/` (written in Vietnamese):
 
-- 🏛️ [**Kiến Trúc Hệ Thống (Architecture)**](docs/ARCHITECTURE.md): Phân tích chi tiết WebGL pipeline, MDX rendering và Error Boundary.
-- 🚀 [**Đặc Tả Tính Năng (Features Spec)**](docs/FEATURES.md): Danh mục chi tiết các component và khả năng tương tác.
-- 🎨 [**Hướng Dẫn Tùy Biến (Customization Guide)**](docs/CUSTOMIZATION_GUIDE.md): Các bước chỉnh sửa thông tin cá nhân, cập nhật kỹ năng, thêm dự án mới và viết blog.
-- 🚢 [**Hướng Dẫn Triển Khai (Deployment Guide)**](docs/DEPLOYMENT.md): Hướng dẫn deploy lên Vercel, VPS, Docker container và tối ưu hóa SEO.
+- 🏛️ [**Architecture**](docs/ARCHITECTURE.md): WebGL pipeline, MDX rendering and error boundaries in detail.
+- 🚀 [**Features Spec**](docs/FEATURES.md): detailed catalogue of components and interactions.
+- 🎨 [**Customization Guide**](docs/CUSTOMIZATION_GUIDE.md): editing personal info, updating skills, adding projects and writing posts.
+- 🚢 [**Deployment Guide**](docs/DEPLOYMENT.md): deploying to Vercel, a VPS or a Docker container, plus SEO.
 
 ---
 
-## 📄 Bản Quyền (License)
+## 📄 License
 
-Dự án này được phân phối dưới giấy phép mã nguồn mở. Xem chi tiết tại file [LICENSE](LICENSE).
-
+This project is distributed under an open-source license. See [LICENSE](LICENSE) for details.
