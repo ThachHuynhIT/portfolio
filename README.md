@@ -61,7 +61,7 @@ Built with **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS v4**, **R
 - **Batch processing & suffix matching**: automatically pairs `tb_def_exception_parameter_*.json` with `tb_def_parameter_*.json` files.
 - **Data integrity check**: finds and lists missing `tb_def_parameter__id` values and exports a detailed JSON report.
 
-> The games (Contra and the online multiplayer games) have moved to the separate `portfolio_with_cms` repo.
+> The games (Contra and the online multiplayer games) have moved to the separate [`zonenop-game`](https://github.com/ThachHuynhIT/zonenop-game) repo.
 
 ---
 

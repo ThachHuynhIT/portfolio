@@ -61,7 +61,7 @@ Một nền tảng Portfolio cá nhân cao cấp kết hợp đồ họa không 
 - **Batch Processing & Suffix Matching**: Tự động ghép cặp các file `tb_def_exception_parameter_*.json` và `tb_def_parameter_*.json`.
 - **Kiểm Tra Tính Toàn Vẹn Dữ Liệu**: Tìm kiếm và liệt kê các `tb_def_parameter__id` bị thiếu và xuất báo cáo JSON chi tiết.
 
-> Các game (Contra và game online nhiều người) đã được chuyển sang repo riêng `portfolio_with_cms`.
+> Các game (Contra và game online nhiều người) đã được chuyển sang repo riêng [`zonenop-game`](https://github.com/ThachHuynhIT/zonenop-game).
 
 ---
 
