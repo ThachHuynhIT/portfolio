@@ -169,7 +169,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
               return (
                 <div
                   key={category}
-                  className="rounded-3xl bg-slate-900/50 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/10 p-6 sm:p-7 backdrop-blur-md hover:border-white/20 light:hover:border-neutral-900/15 transition-all shadow-xl light:shadow-neutral-400/10 flex flex-col justify-between"
+                  className="rounded-3xl bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 p-6 sm:p-7 backdrop-blur-md hover:border-white/20 light:hover:border-neutral-900/15 transition-all shadow-xl light:shadow-neutral-400/10 flex flex-col justify-between"
                 >
                   {/* Category Card Header */}
                   <div className="flex items-center justify-between pb-5 mb-5 border-b border-white/10 light:border-neutral-900/10">
