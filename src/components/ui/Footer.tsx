@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { isGamesRoute } from "@/components/games/gamesRegistry";
 import { useTranslation } from "@/context/LanguageContext";
 import Icon, { isKnownIconName } from "@/components/ui/Icon";
 import type { NavLink, SocialLink, SiteConfig } from "@/lib/types";
@@ -31,10 +30,7 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
   if (
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/music") ||
-    pathname?.startsWith("/couple") ||
-    pathname?.startsWith("/contra") ||
-    // /games and every online game use their own layout (GamesShell).
-    isGamesRoute(pathname)
+    pathname?.startsWith("/couple")
   ) {
     return null;
   }

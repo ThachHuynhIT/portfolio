@@ -9,7 +9,7 @@ Tài liệu này hướng dẫn cách build, kiểm thử và deploy ứng dụn
 - **Node.js**: Phiên bản `>= 18.17.0` (Khuyến nghị sử dụng LTS Node 20+).
 - **Package Manager**: `npm` (hoặc `pnpm`, `yarn`, `bun`). `package-lock.json` được commit — dùng `npm ci` để cài đúng phiên bản.
 - **PostgreSQL** (VD: Neon) — mọi trang nội dung đọc từ DB, kể cả lúc build.
-- **Biến môi trường**: xem [`.env.example`](../.env.example) (`DATABASE_URL`, `AUTH_SECRET`, `ADMIN_PASSWORD`, `CLOUDINARY_*`, `RESEND_API_KEY`, `CONTACT_NOTIFICATION_EMAIL`, `NEXT_PUBLIC_TIENLEN_SERVER_URL`). `npm install` tự chạy `prisma generate` (postinstall).
+- **Biến môi trường**: xem [`.env.example`](../.env.example) (`DATABASE_URL`, `AUTH_SECRET`, `ADMIN_PASSWORD`, `CLOUDINARY_*`, `RESEND_API_KEY`, `CONTACT_NOTIFICATION_EMAIL`). `npm install` tự chạy `prisma generate` (postinstall).
 
 ---
 
@@ -29,7 +29,7 @@ npm run build
 npm run start
 ```
 
-Mở trình duyệt tại `http://localhost:3000` để xác nhận các trang hoạt động: `/`, `/blog`, `/projects`, `/photography`, `/music`, `/couple`, `/contra`, `/tools/json-validator`, `/admin` (đăng nhập), `/games` và sảnh từng game `/tien-len`, `/meo-no`, `/co-ty-phu`, `/splendor`, `/bang`, `/o-an-quan` (cần be_game đang chạy — xem mục 3.1).
+Mở trình duyệt tại `http://localhost:3000` để xác nhận các trang hoạt động: `/`, `/blog`, `/projects`, `/photography`, `/music`, `/couple`, `/tools/json-validator`, `/admin` (đăng nhập).
 
 ---
 
@@ -50,23 +50,6 @@ Vì dự án được xây dựng bằng Next.js 14, **Vercel** là nền tảng
 Nội dung (dự án, ảnh, blog, couple...) được sửa qua `/admin` và lưu vào Postgres, nên không cần ghi file trên server — phù hợp với filesystem chỉ-đọc của Vercel.
 
 ---
-
-### 3.1. Game Online (`/games`, `/tien-len`, `/meo-no`, `/co-ty-phu`, `/splendor`, `/bang`, `/o-an-quan`, `/co-ca-ngua`)
-
-Portfolio chỉ chứa **giao diện** của các game (`src/app/<game>`, `src/components/{games,tienlen,meono,typhu,splendor,bang,oanquan,cangua}`) cùng bản sao luật/dữ liệu + protocol trong `src/lib/<game>` để kiểm tra nước đi phía client. Toàn bộ backend (phòng chơi, WebSocket, Redis) của **mọi game** nằm ở repo riêng **[be_game](https://github.com/ThachHuynhIT/be_game)**. Có hai cách chạy: một project Vercel khác, hoặc **server riêng** (VPS) bằng Docker Compose gồm be_game + Redis + Caddy (HTTPS tự động). Cách triển khai xem README của repo đó (mục "Tự host").
-
-Sau khi deploy be_game, vào project portfolio trên Vercel → *Settings → Environment Variables* và thêm:
-```
-# Vercel:
-NEXT_PUBLIC_TIENLEN_SERVER_URL=https://<be_game>.vercel.app
-# Server riêng (Caddy cấp HTTPS cho domain này):
-NEXT_PUBLIC_TIENLEN_SERVER_URL=https://game.<domain-của-bạn>
-```
-rồi redeploy. Bắt buộc dùng `https://` (client tự đổi thành `wss://`); trang HTTPS không được mở `ws://` do trình duyệt chặn mixed content. Biến này được gắn vào lúc build và dùng chung cho mọi game (Tiến Lên: `/api/ws`, `/api/rooms`, `/api/leaderboard`; game khác: `/api/<meono|typhu|splendor|bang|cangua|oanquan>/ws|rooms|leaderboard`). Nếu be_game đặt `ALLOWED_ORIGIN`, nhớ thêm domain của portfolio vào đó.
-
-Khi chạy local: chạy `npm run dev` trong be_game (cổng 4000) và `npm run dev` trong portfolio. Nếu không đặt biến thì client mặc định kết nối tới `http://localhost:4000`.
-
-Ảnh lá bài tùy chọn của Mèo Nổ / Đấu Súng phải được sinh trước khi commit (`npm run art:meono`, `npm run art:bang`) vì thư mục ảnh nguồn `art/` bị gitignore; build không tự chạy script này.
 
 ## 4. Triển Khai Bằng Docker
 
@@ -96,10 +79,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
-# Build đọc DB (generateStaticParams, metadata) và nhúng URL backend game
+# Build đọc DB (generateStaticParams, metadata)
 ARG DATABASE_URL
-ARG NEXT_PUBLIC_TIENLEN_SERVER_URL
-ENV DATABASE_URL=$DATABASE_URL NEXT_PUBLIC_TIENLEN_SERVER_URL=$NEXT_PUBLIC_TIENLEN_SERVER_URL
+ENV DATABASE_URL=$DATABASE_URL
 RUN npm run build
 
 # Production image, copy all the files and run next
@@ -130,8 +112,7 @@ CMD ["npm", "run", "start"]
 ```bash
 # Build image
 docker build -t my-portfolio:latest \
-  --build-arg DATABASE_URL="postgresql://..." \
-  --build-arg NEXT_PUBLIC_TIENLEN_SERVER_URL="https://game.<domain-của-bạn>" .
+  --build-arg DATABASE_URL="postgresql://..." .
 
 # Run container (biến runtime lấy từ file env, theo mẫu .env.example)
 docker run -p 3000:3000 -d --env-file .env.production --name portfolio-app my-portfolio:latest

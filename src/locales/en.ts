@@ -17,7 +17,6 @@ export const en = {
     music: "Music",
     photography: "Photography",
     blog: "Blog",
-    contra: "Contra",
     couple: "Couple",
     getInTouch: "Get in Touch",
   },
