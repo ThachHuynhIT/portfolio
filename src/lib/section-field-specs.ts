@@ -21,9 +21,11 @@ export interface FieldSpec<T> {
   label: string;
   multiline?: boolean;
   rows?: number;
-  getValue: (content: T | undefined, lang: Lang) => string;
+  /** undefined = never overridden (site default applies); "" = explicitly cleared (hidden). */
+  getValue: (content: T | undefined, lang: Lang) => string | undefined;
   getPlaceholder: (defaults: T, lang: Lang) => string;
-  setValue: (content: T | undefined, lang: Lang, newValue: string) => T;
+  /** Pass undefined to drop the override and go back to the site default. */
+  setValue: (content: T | undefined, lang: Lang, newValue: string | undefined) => T;
 }
 
 type Rec = Record<string, unknown>;
@@ -41,7 +43,7 @@ function flatField<T extends object>(
     label,
     multiline: opts.multiline,
     rows: opts.rows,
-    getValue: (content, lang) => ((content as Rec | undefined)?.[keyFor(lang)] as string) ?? "",
+    getValue: (content, lang) => (content as Rec | undefined)?.[keyFor(lang)] as string | undefined,
     getPlaceholder: (defaults, lang) => ((defaults as Rec)[keyFor(lang)] as string) ?? "",
     setValue: (content, lang, newValue) =>
       ({
@@ -60,7 +62,7 @@ function nestedField<T extends object>(parentKey: string, key: string, label: st
     label,
     getValue: (content, lang) => {
       const parent = (content as Rec | undefined)?.[parentKey] as Rec | undefined;
-      return (parent?.[keyFor(lang)] as string) ?? "";
+      return parent?.[keyFor(lang)] as string | undefined;
     },
     getPlaceholder: (defaults, lang) => {
       const parent = (defaults as Rec)[parentKey] as Rec | undefined;
@@ -83,7 +85,7 @@ function statField<T extends object>(index: number, sub: "label" | "value", labe
     label,
     getValue: (content, lang) => {
       const stats = (content as { stats?: Rec[] } | undefined)?.stats;
-      return (stats?.[index]?.[keyFor(lang)] as string) ?? "";
+      return stats?.[index]?.[keyFor(lang)] as string | undefined;
     },
     getPlaceholder: (defaults, lang) => {
       const stats = (defaults as { stats?: Rec[] }).stats;

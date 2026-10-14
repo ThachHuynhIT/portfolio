@@ -171,27 +171,25 @@ export default function SiteConfigAdminPage() {
             </span>
           </div>
 
-          <FormField label={`${t("admin.common.name", "Site Name")} (Shared)`} id="site-name" required helper="Internal brand / site name">
+          <FormField label={`${t("admin.common.name", "Site Name")} (Shared)`} id="site-name" helper="Internal brand / site name">
             <input
               id="site-name"
               type="text"
               value={config.name}
               onChange={(e) => setConfig({ ...config, name: e.target.value })}
               className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              required
             />
           </FormField>
 
           {activeLang === "en" ? (
             <>
-              <FormField label={`${t("admin.siteConfig.fieldMetaTitle", "Page Title")} (English)`} id="site-title" required>
+              <FormField label={`${t("admin.siteConfig.fieldMetaTitle", "Page Title")} (English)`} id="site-title">
                 <input
                   id="site-title"
                   type="text"
                   value={config.title}
                   onChange={(e) => setConfig({ ...config, title: e.target.value })}
                   className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  required
                 />
               </FormField>
 
@@ -275,7 +273,7 @@ export default function SiteConfigAdminPage() {
             </span>
           </div>
 
-          <FormField label={`${t("admin.siteConfig.fieldName", "Author Name")} (Shared)`} id="author-name" required>
+          <FormField label={`${t("admin.siteConfig.fieldName", "Author Name")} (Shared)`} id="author-name">
             <input
               id="author-name"
               type="text"
@@ -287,13 +285,12 @@ export default function SiteConfigAdminPage() {
                 })
               }
               className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-              required
             />
           </FormField>
 
           {activeLang === "en" ? (
             <>
-              <FormField label={`${t("admin.siteConfig.fieldJobTitle", "Author Title")} (English)`} id="author-title" required>
+              <FormField label={`${t("admin.siteConfig.fieldJobTitle", "Author Title")} (English)`} id="author-title">
                 <input
                   id="author-title"
                   type="text"
@@ -305,7 +302,6 @@ export default function SiteConfigAdminPage() {
                     })
                   }
                   className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-purple-500"
-                  required
                 />
               </FormField>
 
@@ -452,7 +448,7 @@ export default function SiteConfigAdminPage() {
         {activeTab === "hero" && (
           <SectionFieldsEditor
             title="Hero Section Copy"
-            helperText="Overrides the homepage Hero badge, greeting, bio, and buttons. Leave a field blank to use the site's default text for the language you're currently editing. Note: setting the Vietnamese Bio here takes priority over the Author tab's Vietnamese bio."
+            helperText="Overrides the homepage Hero badge, greeting, bio, and buttons. Clear a field to hide that text on the site, or use 'Restore default' to bring back the default text for the language you're currently editing. Note: setting the Vietnamese Bio here takes priority over the Author tab's Vietnamese bio."
             value={config.sectionsContent?.hero}
             defaultValue={getHeroDefaults()}
             fields={HERO_FIELDS}

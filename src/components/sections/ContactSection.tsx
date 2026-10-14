@@ -10,7 +10,7 @@ import { AnimatedSection, GlassCard, Button } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
 import { usePerformanceTier } from "@/hooks/usePerformanceTier";
 import { cn } from "@/lib/utils";
-import { resolveSectionText } from "@/lib/content-overrides";
+import { pickLocalized, resolveRequiredText, resolveSectionText } from "@/lib/content-overrides";
 import type { SiteConfig } from "@/lib/types";
 
 // Dynamic imports for 3D components
@@ -58,7 +58,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
           .string()
           .min(
             2,
-            resolveSectionText(
+            resolveRequiredText(
               locale,
               contact?.validation?.nameMin,
               contact?.validation?.nameMin_vi,
@@ -68,7 +68,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
         email: z
           .string()
           .email(
-            resolveSectionText(
+            resolveRequiredText(
               locale,
               contact?.validation?.emailValid,
               contact?.validation?.emailValid_vi,
@@ -79,7 +79,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
           .string()
           .min(
             5,
-            resolveSectionText(
+            resolveRequiredText(
               locale,
               contact?.validation?.subjectMin,
               contact?.validation?.subjectMin_vi,
@@ -90,7 +90,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
           .string()
           .min(
             20,
-            resolveSectionText(
+            resolveRequiredText(
               locale,
               contact?.validation?.messageMin,
               contact?.validation?.messageMin_vi,
@@ -139,9 +139,9 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
           data,
           message:
             response.status === 429
-              ? resolveSectionText(locale, contact?.errorRateLimited, contact?.errorRateLimited_vi, t("contact.errorRateLimited"))
+              ? resolveRequiredText(locale, contact?.errorRateLimited, contact?.errorRateLimited_vi, t("contact.errorRateLimited"))
               : body.error ||
-                resolveSectionText(locale, contact?.errorGeneric, contact?.errorGeneric_vi, t("contact.errorGeneric")),
+                resolveRequiredText(locale, contact?.errorGeneric, contact?.errorGeneric_vi, t("contact.errorGeneric")),
         });
         return;
       }
@@ -152,14 +152,48 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
       setFormState({
         status: "error",
         data,
-        message: resolveSectionText(locale, contact?.errorGeneric, contact?.errorGeneric_vi, t("contact.errorGeneric")),
+        message: resolveRequiredText(locale, contact?.errorGeneric, contact?.errorGeneric_vi, t("contact.errorGeneric")),
       });
     }
   };
 
+  // Blank values (cleared in /admin/site-config) hide their element.
+  const text = (key: keyof NonNullable<typeof contact> & string) =>
+    resolveSectionText(
+      locale,
+      contact?.[key] as string | undefined,
+      contact?.[`${key}_vi` as keyof NonNullable<typeof contact>] as string | undefined,
+      t(`contact.${key}`)
+    );
+  const authorEmail = siteConfig.author.email.trim();
+  const authorLocation = pickLocalized(locale, siteConfig.author.location, siteConfig.author.location_vi);
+  const badge = text("badge");
+  const titlePrefix = text("titlePrefix");
+  const titleHighlight = text("titleHighlight");
+  const subtitle = text("subtitle");
+  const successMessage = text("successMessage");
+  const unconnectedNotice = text("unconnectedNotice");
+  const mailtoPrefix = text("mailtoPrefix");
+  const mailtoLinkText = text("mailtoLinkText");
+  const mailtoSuffix = text("mailtoSuffix");
+  const emailInfo = text("emailInfo");
+  const locationInfo = text("locationInfo");
+  const availabilityInfo = text("availabilityInfo");
+  const workHours = text("workHours");
+  const openForProjects = text("openForProjects");
+  const fieldLabels = {
+    name: text("nameLabel"),
+    email: text("emailLabel"),
+    subject: text("subjectLabel"),
+    message: text("messageLabel"),
+  };
+  // A hidden visible label still needs an accessible name for the input.
+  const ariaLabelFor = (field: keyof typeof fieldLabels) =>
+    fieldLabels[field] ? undefined : t(`contact.${field}Label`);
+
   const mailtoHref =
-    formState.status === "error"
-      ? `mailto:${siteConfig.author.email}?subject=${encodeURIComponent(
+    formState.status === "error" && authorEmail
+      ? `mailto:${authorEmail}?subject=${encodeURIComponent(
         formState.data.subject
       )}&body=${encodeURIComponent(
         `${formState.data.message}\n\n— ${formState.data.name} (${formState.data.email})`
@@ -188,22 +222,30 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
       )}
 
       <div className="relative z-10 container mx-auto px-4 sm:px-6 max-w-7xl">
-        <AnimatedSection>
-          <div className="text-center mb-16">
-            <span className="text-sm text-cyan-500 light:text-cyan-700 font-medium tracking-wider uppercase mb-4 block">
-              {resolveSectionText(locale, contact?.badge, contact?.badge_vi, t("contact.badge"))}
-            </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">
-              {resolveSectionText(locale, contact?.titlePrefix, contact?.titlePrefix_vi, t("contact.titlePrefix"))}
-              <span className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
-                {resolveSectionText(locale, contact?.titleHighlight, contact?.titleHighlight_vi, t("contact.titleHighlight"))}
-              </span>
-            </h2>
-            <p className="text-white/60 light:text-neutral-500 max-w-2xl mx-auto">
-              {resolveSectionText(locale, contact?.subtitle, contact?.subtitle_vi, t("contact.subtitle"))}
-            </p>
-          </div>
-        </AnimatedSection>
+        {(badge || titlePrefix || titleHighlight || subtitle) && (
+          <AnimatedSection>
+            <div className="text-center mb-16">
+              {badge && (
+                <span className="text-sm text-cyan-500 light:text-cyan-700 font-medium tracking-wider uppercase mb-4 block">
+                  {badge}
+                </span>
+              )}
+              {(titlePrefix || titleHighlight) && (
+                <h2 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">
+                  {titlePrefix}
+                  {titleHighlight && (
+                    <span className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
+                      {titleHighlight}
+                    </span>
+                  )}
+                </h2>
+              )}
+              {subtitle && (
+                <p className="text-white/60 light:text-neutral-500 max-w-2xl mx-auto">{subtitle}</p>
+              )}
+            </div>
+          </AnimatedSection>
+        )}
 
         <div className="grid lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
           {/* Contact Form */}
@@ -223,33 +265,36 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                   {formState.status === "success" ? (
                     <>
                       <p className="font-medium text-white light:text-neutral-900">
-                        {resolveSectionText(locale, contact?.successTitle, contact?.successTitle_vi, t("contact.successTitle"))}
+                        {resolveRequiredText(locale, contact?.successTitle, contact?.successTitle_vi, t("contact.successTitle"))}
                       </p>
-                      <p className="mt-1">
-                        {resolveSectionText(locale, contact?.successMessage, contact?.successMessage_vi, t("contact.successMessage"))}
-                      </p>
+                      {successMessage && <p className="mt-1">{successMessage}</p>}
                     </>
                   ) : (
                     <>
                       <p>{formState.message}</p>
-                      <p className="mt-2">
-                        {resolveSectionText(locale, contact?.unconnectedNotice, contact?.unconnectedNotice_vi, t("contact.unconnectedNotice"))}{" "}
-                        {resolveSectionText(locale, contact?.mailtoPrefix, contact?.mailtoPrefix_vi, t("contact.mailtoPrefix"))}
-                        <a
-                          href={mailtoHref}
-                          className="text-cyan-400 light:text-cyan-700 underline hover:text-cyan-300 light:hover:text-cyan-800"
-                        >
-                          {resolveSectionText(locale, contact?.mailtoLinkText, contact?.mailtoLinkText_vi, t("contact.mailtoLinkText"))}
-                        </a>
-                        {resolveSectionText(locale, contact?.mailtoSuffix, contact?.mailtoSuffix_vi, t("contact.mailtoSuffix"))}
-                        <a
-                          href={`mailto:${siteConfig.author.email}`}
-                          className="text-cyan-400 light:text-cyan-700 underline hover:text-cyan-300 light:hover:text-cyan-800"
-                        >
-                          {siteConfig.author.email}
-                        </a>
-                        .
-                      </p>
+                      {/* The mailto fallback needs an address to point at. */}
+                      {authorEmail && (
+                        <p className="mt-2">
+                          {unconnectedNotice && <>{unconnectedNotice} </>}
+                          {mailtoPrefix}
+                          {mailtoLinkText && (
+                            <a
+                              href={mailtoHref}
+                              className="text-cyan-400 light:text-cyan-700 underline hover:text-cyan-300 light:hover:text-cyan-800"
+                            >
+                              {mailtoLinkText}
+                            </a>
+                          )}
+                          {mailtoSuffix}
+                          <a
+                            href={`mailto:${authorEmail}`}
+                            className="text-cyan-400 light:text-cyan-700 underline hover:text-cyan-300 light:hover:text-cyan-800"
+                          >
+                            {authorEmail}
+                          </a>
+                          .
+                        </p>
+                      )}
                     </>
                   )}
                 </div>
@@ -268,13 +313,16 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                 />
                 {/* Name Field */}
                 <div>
-                  <label
-                    htmlFor="contact-name"
-                    className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
-                  >
-                    {resolveSectionText(locale, contact?.nameLabel, contact?.nameLabel_vi, t("contact.nameLabel"))}
-                  </label>
+                  {fieldLabels.name && (
+                    <label
+                      htmlFor="contact-name"
+                      className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
+                    >
+                      {fieldLabels.name}
+                    </label>
+                  )}
                   <input
+                    aria-label={ariaLabelFor("name")}
                     {...register("name")}
                     id="contact-name"
                     type="text"
@@ -297,13 +345,16 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
 
                 {/* Email Field */}
                 <div>
-                  <label
-                    htmlFor="contact-email"
-                    className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
-                  >
-                    {resolveSectionText(locale, contact?.emailLabel, contact?.emailLabel_vi, t("contact.emailLabel"))}
-                  </label>
+                  {fieldLabels.email && (
+                    <label
+                      htmlFor="contact-email"
+                      className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
+                    >
+                      {fieldLabels.email}
+                    </label>
+                  )}
                   <input
+                    aria-label={ariaLabelFor("email")}
                     {...register("email")}
                     id="contact-email"
                     type="email"
@@ -326,13 +377,16 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
 
                 {/* Subject Field */}
                 <div>
-                  <label
-                    htmlFor="contact-subject"
-                    className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
-                  >
-                    {resolveSectionText(locale, contact?.subjectLabel, contact?.subjectLabel_vi, t("contact.subjectLabel"))}
-                  </label>
+                  {fieldLabels.subject && (
+                    <label
+                      htmlFor="contact-subject"
+                      className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
+                    >
+                      {fieldLabels.subject}
+                    </label>
+                  )}
                   <input
+                    aria-label={ariaLabelFor("subject")}
                     {...register("subject")}
                     id="contact-subject"
                     type="text"
@@ -355,13 +409,16 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
 
                 {/* Message Field */}
                 <div>
-                  <label
-                    htmlFor="contact-message"
-                    className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
-                  >
-                    {resolveSectionText(locale, contact?.messageLabel, contact?.messageLabel_vi, t("contact.messageLabel"))}
-                  </label>
+                  {fieldLabels.message && (
+                    <label
+                      htmlFor="contact-message"
+                      className="block text-sm font-medium text-white/70 light:text-neutral-600 mb-2"
+                    >
+                      {fieldLabels.message}
+                    </label>
+                  )}
                   <textarea
+                    aria-label={ariaLabelFor("message")}
                     {...register("message")}
                     id="contact-message"
                     rows={5}
@@ -391,79 +448,85 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                   disabled={isSubmitting}
                 >
                   {isSubmitting
-                    ? resolveSectionText(locale, contact?.sendingButton, contact?.sendingButton_vi, t("contact.sendingButton"))
-                    : resolveSectionText(locale, contact?.sendButton, contact?.sendButton_vi, t("contact.sendButton"))}
+                    ? resolveRequiredText(locale, contact?.sendingButton, contact?.sendingButton_vi, t("contact.sendingButton"))
+                    : resolveRequiredText(locale, contact?.sendButton, contact?.sendButton_vi, t("contact.sendButton"))}
                 </Button>
               </form>
             </GlassCard>
           </AnimatedSection>
 
           {/* Contact Info */}
-          <AnimatedSection delay={0.2}>
-            <div className="space-y-6">
-              <GlassCard className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">
-                      {resolveSectionText(locale, contact?.emailInfo, contact?.emailInfo_vi, t("contact.emailInfo"))}
-                    </h3>
-                    <a
-                      href={`mailto:${siteConfig.author.email}`}
-                      className="text-white/60 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 transition-colors"
-                    >
-                      {siteConfig.author.email}
-                    </a>
-                  </div>
-                </div>
-              </GlassCard>
+          {(authorEmail || authorLocation || availabilityInfo || workHours || openForProjects) && (
+            <AnimatedSection delay={0.2}>
+              <div className="space-y-6">
+                {authorEmail && (
+                  <GlassCard className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        {emailInfo && (
+                          <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">{emailInfo}</h3>
+                        )}
+                        <a
+                          href={`mailto:${authorEmail}`}
+                          className="text-white/60 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 transition-colors"
+                        >
+                          {authorEmail}
+                        </a>
+                      </div>
+                    </div>
+                  </GlassCard>
+                )}
 
-              <GlassCard className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">
-                      {resolveSectionText(locale, contact?.locationInfo, contact?.locationInfo_vi, t("contact.locationInfo"))}
-                    </h3>
-                    <p className="text-white/60 light:text-neutral-500">
-                      {locale === "vi" && siteConfig.author.location_vi ? siteConfig.author.location_vi : siteConfig.author.location}
-                    </p>
-                  </div>
-                </div>
-              </GlassCard>
+                {authorLocation && (
+                  <GlassCard className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        {locationInfo && (
+                          <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">{locationInfo}</h3>
+                        )}
+                        <p className="text-white/60 light:text-neutral-500">{authorLocation}</p>
+                      </div>
+                    </div>
+                  </GlassCard>
+                )}
 
-              <GlassCard className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">
-                      {resolveSectionText(locale, contact?.availabilityInfo, contact?.availabilityInfo_vi, t("contact.availabilityInfo"))}
-                    </h3>
-                    <p className="text-white/60 light:text-neutral-500">
-                      {resolveSectionText(locale, contact?.workHours, contact?.workHours_vi, t("contact.workHours"))}
-                    </p>
-                    <p className="text-green-500 text-sm mt-1 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                      {resolveSectionText(locale, contact?.openForProjects, contact?.openForProjects_vi, t("contact.openForProjects"))}
-                    </p>
-                  </div>
-                </div>
-              </GlassCard>
-            </div>
-          </AnimatedSection>
+                {(availabilityInfo || workHours || openForProjects) && (
+                  <GlassCard className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        {availabilityInfo && (
+                          <h3 className="text-lg font-semibold text-white light:text-neutral-900 mb-1">{availabilityInfo}</h3>
+                        )}
+                        {workHours && <p className="text-white/60 light:text-neutral-500">{workHours}</p>}
+                        {openForProjects && (
+                          <p className="text-green-500 text-sm mt-1 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                            {openForProjects}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </GlassCard>
+                )}
+              </div>
+            </AnimatedSection>
+          )}
         </div>
       </div>
     </section>
