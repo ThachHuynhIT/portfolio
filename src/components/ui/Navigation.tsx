@@ -10,7 +10,6 @@ import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import Icon from "@/components/ui/Icon";
 import type { NavLink } from "@/lib/types";
-import { border, elevation, gap, motion as motionTokens, radius, text } from "@/lib/design-tokens";
 
 const SECTION_IDS = ["home", "about", "skills", "projects", "contact"];
 
@@ -93,20 +92,52 @@ export default function Navigation({ navLinks }: NavigationProps) {
   }, [pathname]);
 
   useEffect(() => {
+    // At most one layout read per frame — scroll events fire faster than that.
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        handleScroll();
+      });
+    };
     handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleScroll, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleScroll);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
       if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
     };
   }, [handleScroll]);
 
-  // Close any open desktop dropdown on route change
+  // Close any open desktop dropdown / the mobile menu on route change
+  // (covers browser back/forward, not just clicks on our own links)
   useEffect(() => {
     setOpenDropdownId(null);
+    setIsMobileMenuOpen(false);
   }, [pathname]);
+
+  // While the mobile menu is open: lock page scroll behind it and close on
+  // Escape (returning focus to the hamburger).
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const root = document.documentElement;
+    const prevOverflow = root.style.overflow;
+    root.style.overflow = "hidden";
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsMobileMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      root.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isMobileMenuOpen]);
 
   // Close the mobile accordion whenever the mobile menu itself closes
   useEffect(() => {
@@ -210,8 +241,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
   if (
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/music") ||
-    pathname?.startsWith("/couple") ||
-    pathname?.startsWith("/contra")
+    pathname?.startsWith("/couple")
   ) {
     return null;
   }
@@ -224,28 +254,30 @@ export default function Navigation({ navLinks }: NavigationProps) {
       animate={{ y: 0 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]",
         isScrolled
           ? "bg-black/80 light:bg-white/80 backdrop-blur-xl border-b border-white/10 light:border-neutral-900/10 shadow-lg shadow-black/40 light:shadow-neutral-400/20 py-3"
           : "bg-gradient-to-b from-black/70 light:from-white/70 to-transparent backdrop-blur-sm py-4"
       )}
     >
-      <nav className="container mx-auto px-6 max-w-7xl">
+      {/* Keeps the bar clear of the notch / status bar (viewport-fit=cover) */}
+      <div aria-hidden="true" className="h-[env(safe-area-inset-top)]" />
+      <nav className="container mx-auto px-4 sm:px-6 max-w-7xl">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link
             href="/"
             onClick={(e) => handleNavClick(e, "#home")}
-            className={cn("flex items-center", gap.tight, "group focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500", radius.chip)}
+            className="flex items-center gap-2 group focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 rounded-lg"
           >
-            <div className={cn("w-9 h-9", radius.control, "bg-gradient-to-tr from-purple-600 via-indigo-500 to-cyan-400 p-[1.5px] transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3 shadow-md shadow-purple-500/20")}>
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-500 to-cyan-400 p-[1.5px] transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3 shadow-md shadow-purple-500/20">
               <div className="w-full h-full bg-black/90 rounded-[10px] flex items-center justify-center">
                 <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-300 text-sm tracking-wider">
                   TH
                 </span>
               </div>
             </div>
-            <span className={cn("font-bold text-lg", text.primary, "group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-cyan-400", motionTokens.base)}>
+            <span className="font-bold text-lg text-white light:text-neutral-900 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-cyan-400 transition-all duration-300">
               ThachHuynh
             </span>
           </Link>
@@ -253,7 +285,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
           {/* Desktop Navigation */}
           <ul
             ref={desktopNavRef}
-            className={cn("hidden lg:flex items-center gap-1 px-2 py-1.5", radius.pill, "bg-white/[0.04] light:bg-neutral-900/[0.03] border border-white/[0.08] light:border-neutral-900/[0.08]", elevation.blur)}
+            className="hidden lg:flex items-center gap-1 px-2 py-1.5 rounded-full bg-white/[0.04] light:bg-neutral-900/[0.03] border border-white/[0.08] light:border-neutral-900/[0.08] backdrop-blur-md"
           >
             {navLinks.map((link) => {
               const active = isNavItemActive(link);
@@ -290,7 +322,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
                   {active && (
                     <motion.span
                       layoutId="activeNavTab"
-                      className={cn("absolute inset-0", radius.pill, "bg-white/[0.03] light:bg-neutral-900/[0.03] -z-10")}
+                      className="absolute inset-0 rounded-full bg-white/[0.03] light:bg-neutral-900/[0.03] -z-10"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
@@ -302,8 +334,10 @@ export default function Navigation({ navLinks }: NavigationProps) {
                   <li
                     key={link.id || link.href}
                     className="relative"
-                    onMouseEnter={() => openDropdown(link.id)}
-                    onMouseLeave={scheduleCloseDropdown}
+                    // Hover-open for mouse only: on touch laptops the synthetic
+                    // enter + the click would toggle the dropdown twice.
+                    onPointerEnter={(e) => e.pointerType === "mouse" && openDropdown(link.id)}
+                    onPointerLeave={(e) => e.pointerType === "mouse" && scheduleCloseDropdown()}
                   >
                     <button
                       type="button"
@@ -333,7 +367,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.96, y: -4 }}
                           transition={{ duration: 0.15 }}
-                          className={cn("absolute left-1/2 -translate-x-1/2 mt-2 w-48", radius.control, "bg-slate-950/95 light:bg-white/95 border border-white/12 light:border-neutral-900/10", elevation.blurStrong, "shadow-2xl shadow-black/80 light:shadow-neutral-400/40 py-1.5 z-[60] overflow-hidden")}
+                          className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 rounded-xl bg-slate-950/95 light:bg-white/95 border border-white/12 light:border-neutral-900/10 backdrop-blur-xl shadow-2xl shadow-black/80 light:shadow-neutral-400/40 py-1.5 z-[60] overflow-hidden"
                         >
                           {link.children!.map((child) => {
                             const childActive = isLinkActive(child.href);
@@ -378,7 +412,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
           </ul>
 
           {/* Desktop Right: Theme Toggle, Language Switcher & Contact Button */}
-          <div className={cn("hidden lg:flex items-center", gap.tight)}>
+          <div className="hidden lg:flex items-center gap-2">
             <ThemeToggle size="sm" />
             <LanguageSwitcher variant="pill" size="sm" />
             <Link
@@ -391,7 +425,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
                   : "shadow-purple-500/10 hover:shadow-lg hover:shadow-purple-500/30"
               )}
             >
-              <span className={cn("absolute inset-0 bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500", motionTokens.base, "group-hover:scale-105")} />
+              <span className="absolute inset-0 bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 transition-all duration-300 group-hover:scale-105" />
               <span className="relative flex items-center gap-1.5">
                 <span>{t("nav.getInTouch")}</span>
                 <span className="transition-transform duration-200 group-hover:translate-x-0.5">
@@ -402,14 +436,18 @@ export default function Navigation({ navLinks }: NavigationProps) {
           </div>
 
           {/* Mobile Right Controls: Theme Toggle, Language Switcher & Hamburger */}
-          <div className={cn("flex lg:hidden items-center", gap.tight)}>
+          <div className="flex lg:hidden items-center gap-2">
             <ThemeToggle size="sm" />
             <LanguageSwitcher variant="pill" size="sm" />
             <button
               ref={menuButtonRef}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={cn("relative w-10 h-10 flex flex-col justify-center items-center", radius.control, "bg-white/[0.05] light:bg-neutral-900/[0.05]", border.subtle, text.primary)}
-              aria-label="Toggle menu"
+              className="relative w-11 h-11 flex flex-col justify-center items-center rounded-xl bg-white/[0.05] light:bg-neutral-900/[0.05] border border-white/10 light:border-neutral-900/10 text-white light:text-neutral-900"
+              aria-label={
+                isMobileMenuOpen
+                  ? locale === "vi" ? "Đóng menu" : "Close menu"
+                  : locale === "vi" ? "Mở menu" : "Open menu"
+              }
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-menu"
             >
@@ -445,7 +483,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className={cn("lg:hidden mt-3", radius.card, "bg-black/95 light:bg-white/95", border.subtle, "backdrop-blur-2xl p-4 shadow-2xl shadow-black/80 light:shadow-neutral-400/30 overflow-hidden")}
+              className="lg:hidden mt-3 rounded-2xl bg-black/95 light:bg-white/95 border border-white/10 light:border-neutral-900/10 backdrop-blur-2xl p-4 shadow-2xl shadow-black/80 light:shadow-neutral-400/30 overflow-y-auto overscroll-contain max-h-[calc(100dvh-6rem-env(safe-area-inset-top))]"
             >
               <ul className="flex flex-col gap-1.5">
                 {navLinks.map((link, index) => {
@@ -473,7 +511,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
                               : "text-white/70 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 hover:bg-white/[0.06] light:hover:bg-neutral-900/[0.05] border border-transparent"
                           )}
                         >
-                          <span className={cn("flex items-center", gap.tight)}>
+                          <span className="flex items-center gap-2">
                             {getNavLabel(link)}
                           </span>
                           <svg
@@ -515,7 +553,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
                                       >
                                         {getNavLabel(child)}
                                         {childActive && (
-                                          <span className={cn("w-1.5 h-1.5", radius.pill, "bg-cyan-400 shadow-sm shadow-cyan-400")} />
+                                          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400" />
                                         )}
                                       </Link>
                                     </li>
@@ -546,18 +584,18 @@ export default function Navigation({ navLinks }: NavigationProps) {
                             : "text-white/70 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 hover:bg-white/[0.06] light:hover:bg-neutral-900/[0.05] border border-transparent"
                         )}
                       >
-                        <span className={cn("flex items-center", gap.tight)}>
+                        <span className="flex items-center gap-2">
                           {isMusic && <Icon name="music" size={14} />}
                           {getNavLabel(link)}
                         </span>
                         {active && (
-                          <span className={cn("w-1.5 h-1.5", radius.pill, "bg-cyan-400 shadow-sm shadow-cyan-400")} />
+                          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400" />
                         )}
                       </Link>
                     </motion.li>
                   );
                 })}
-                <li className={cn("pt-2", border.dividerTop, "mt-1")}>
+                <li className="pt-2 border-t border-white/10 light:border-neutral-900/10 mt-1">
                   <Link
                     href={getResolvedHref("#contact")}
                     onClick={(e) => handleNavClick(e, "#contact")}

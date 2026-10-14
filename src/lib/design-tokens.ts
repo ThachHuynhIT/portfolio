@@ -31,7 +31,7 @@
  * ──────────────────────────────────────────────────────────────────────────
  * NOTE ON EXCLUDED ROUTES
  *
- * `/admin`, `/contra`, `/couple`, `/music` (EXCLUDED_ROUTE_PREFIXES in
+ * `/admin`, `/couple`, `/music` (EXCLUDED_ROUTE_PREFIXES in
  * `constants.ts`) are dark-only. Inside those subtrees use the `*Dark` tokens,
  * which carry no `light:` variant.
  */
@@ -127,7 +127,7 @@ export const surface = {
   /** Full-screen modal scrim. */
   scrim: "bg-black/80 light:bg-neutral-900/40",
 
-  /** Dark-only fills for /admin, /contra, /couple, /music. */
+  /** Dark-only fills for /admin, /couple, /music. */
   cardDark: "bg-white/5",
   raisedDark: "bg-white/10",
   /** Admin form field background. */

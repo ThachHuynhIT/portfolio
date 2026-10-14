@@ -18,7 +18,7 @@
  * wins over the preset — override freely instead of forking a preset.
  *
  * Presets suffixed `Dark` are for the dark-only routes in
- * EXCLUDED_ROUTE_PREFIXES (`/admin`, `/contra`, `/couple`, `/music`) and
+ * EXCLUDED_ROUTE_PREFIXES (`/admin`, `/couple`, `/music`) and
  * deliberately carry no `light:` variants.
  */
 

@@ -7,8 +7,6 @@ import type { PhotoItem } from "@/lib/types";
 import Icon from "@/components/ui/Icon";
 import { Skeleton, TwinklingStars } from "@/components/ui/Skeleton";
 import { useTranslation } from "@/context/LanguageContext";
-import { cn } from "@/lib/utils";
-import { border, elevation, gap, motion as motionTokens, radius, surface, text } from "@/lib/design-tokens";
 
 interface PhotoLightboxModalProps {
   photo: PhotoItem | null;
@@ -125,18 +123,18 @@ export default function PhotoLightboxModal({
           {/* Top Control Bar */}
           <header className="absolute top-0 inset-x-0 h-16 px-6 flex items-center justify-between z-50 bg-gradient-to-b from-black/80 to-transparent">
             {/* Title & Counter */}
-            <div className={cn("flex items-center", gap.base, "min-w-0")}>
-              <span className={cn("text-xs font-mono text-cyan-400 bg-cyan-950/60 border border-cyan-500/30 px-2.5 py-1", radius.pill)}>
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="text-xs font-mono text-cyan-400 bg-cyan-950/60 border border-cyan-500/30 px-2.5 py-1 rounded-full">
                 {currentIndex + 1} / {photos.length}
               </span>
-              <h3 className={cn("text-sm md:text-base font-semibold", text.primaryDark, "truncate max-w-xs md:max-w-md flex items-center", gap.tight)}>
+              <h3 className="text-sm md:text-base font-semibold text-white truncate max-w-xs md:max-w-md flex items-center gap-2">
                 {isVideo && <Icon name="video" size={15} className="text-cyan-400" />}
                 <span>{photo.title}</span>
               </h3>
             </div>
 
             {/* Action buttons */}
-            <div className={cn("flex items-center", gap.tight)}>
+            <div className="flex items-center gap-2">
               {/* Before/After Toggle Button (if beforeImage exists and not video) */}
               {!isVideo && photo.beforeImage && (
                 <button
@@ -188,7 +186,7 @@ export default function PhotoLightboxModal({
               <button
                 type="button"
                 onClick={onClose}
-                className={cn("p-2", radius.pill, surface.raisedDark, "text-white/80 hover:text-white hover:bg-white/25", border.strongDark, "transition-all ml-2")}
+                className="p-2 rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/25 border border-white/20 transition-all ml-2"
                 title="Close (Esc)"
               >
                 <Icon name="close" size={16} />
@@ -201,7 +199,7 @@ export default function PhotoLightboxModal({
             <button
               type="button"
               onClick={handlePrev}
-              className={cn("absolute left-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12", radius.pill, "bg-black/60 hover:bg-black/90", text.primaryDark, "flex items-center justify-center border border-white/15 hover:border-cyan-400/50", elevation.blur, "transition-all shadow-xl", motionTokens.press)}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/15 hover:border-cyan-400/50 backdrop-blur-md transition-all shadow-xl active:scale-95"
               aria-label="Previous photo"
             >
               <Icon name="chevronLeft" size={20} />
@@ -227,14 +225,14 @@ export default function PhotoLightboxModal({
             }`}
           >
             {isVideo ? (
-              <div className="relative max-w-full max-h-[82vh] flex items-center justify-center">
+              <div className="relative max-w-full max-h-[82dvh] flex items-center justify-center">
                 <video
                   src={photo.videoUrl || photo.image}
                   poster={photo.image}
                   controls
                   autoPlay
                   playsInline
-                  className={cn("max-h-[80vh] w-auto max-w-full", radius.card, "shadow-2xl", border.subtleDark, "bg-black")}
+                  className="max-h-[80dvh] w-auto max-w-full rounded-2xl shadow-2xl border border-white/10 bg-black"
                 />
               </div>
             ) : (
@@ -250,8 +248,8 @@ export default function PhotoLightboxModal({
                 onClick={() => setIsZoomed(!isZoomed)}
               >
                 {!isImageLoaded && (
-                  <div className={cn("absolute inset-0", radius.chip, "overflow-hidden")}>
-                    <Skeleton className={cn("w-full h-full", radius.chip)} />
+                  <div className="absolute inset-0 rounded-lg overflow-hidden">
+                    <Skeleton className="w-full h-full rounded-lg" />
                     <TwinklingStars />
                   </div>
                 )}
@@ -262,7 +260,7 @@ export default function PhotoLightboxModal({
                   width={1920}
                   height={1280}
                   sizes="(max-width: 768px) 100vw, 90vw"
-                  className={`max-h-[82vh] w-auto max-w-full object-contain rounded-lg shadow-2xl transition-opacity duration-500 ${
+                  className={`max-h-[82dvh] w-auto max-w-full object-contain rounded-lg shadow-2xl transition-opacity duration-500 ${
                     isImageLoaded ? "opacity-100" : "opacity-0"
                   }`}
                   priority
@@ -270,7 +268,7 @@ export default function PhotoLightboxModal({
                 />
 
                 {showBefore && (
-                  <div className={cn("absolute top-4 left-4 bg-purple-600/90", text.primaryDark, "text-xs font-bold px-3 py-1 rounded-md", elevation.blur, "uppercase tracking-wider shadow-lg")}>
+                  <div className="absolute top-4 left-4 bg-purple-600/90 text-white text-xs font-bold px-3 py-1 rounded-md backdrop-blur-md uppercase tracking-wider shadow-lg">
                     Original RAW Preview
                   </div>
                 )}
@@ -286,18 +284,18 @@ export default function PhotoLightboxModal({
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 100 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className={cn("absolute right-0 top-16 bottom-0 w-full sm:w-88 md:w-96 z-40 bg-slate-950/90 border-l border-white/10 backdrop-blur-2xl p-6 overflow-y-auto flex flex-col", gap.grid, "shadow-2xl")}
+                className="absolute right-0 top-16 bottom-0 w-full sm:w-88 md:w-96 z-40 bg-slate-950/90 border-l border-white/10 backdrop-blur-2xl p-6 overflow-y-auto flex flex-col gap-6 shadow-2xl"
               >
                 {/* Category & Date */}
                 <div className="flex items-center justify-between text-xs text-slate-400 pb-3 border-b border-white/10">
-                  <div className={cn("flex items-center", gap.tight)}>
+                  <div className="flex items-center gap-2">
                     {photo.category && (
-                      <span className={cn("px-2.5 py-1", radius.pill, "bg-violet-500/15 text-violet-300 border border-violet-500/30 font-medium")}>
+                      <span className="px-2.5 py-1 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/30 font-medium">
                         {photo.category}
                       </span>
                     )}
                     {isVideo && (
-                      <span className={cn("px-2 py-0.5", radius.pill, "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold uppercase tracking-wider")}>
+                      <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold uppercase tracking-wider">
                         Video
                       </span>
                     )}
@@ -307,7 +305,7 @@ export default function PhotoLightboxModal({
 
                 {/* Title & Description */}
                 <div>
-                  <h2 className={cn("text-xl font-bold", text.primaryDark, "mb-2")}>
+                  <h2 className="text-xl font-bold text-white mb-2">
                     {locale === "vi" && photo.title_vi ? photo.title_vi : photo.title}
                   </h2>
                   {(locale === "vi" && photo.description_vi ? photo.description_vi : photo.description) && (
@@ -325,13 +323,13 @@ export default function PhotoLightboxModal({
 
                 {/* Camera EXIF Details: ONLY render if at least one property exists */}
                 {hasCameraInfo && (
-                  <div className={cn(radius.control, "bg-white/[0.03]", border.subtleDark, "p-4 space-y-3")}>
-                    <div className={cn("flex items-center", gap.tight, "text-xs font-semibold text-cyan-400 uppercase tracking-wider")}>
+                  <div className="rounded-xl bg-white/[0.03] border border-white/10 p-4 space-y-3">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-cyan-400 uppercase tracking-wider">
                       <Icon name="camera" size={14} />
                       <span>Camera Settings (EXIF)</span>
                     </div>
 
-                    <div className={cn("grid grid-cols-2", gap.tight, "text-xs pt-1")}>
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-1">
                       {(photo.camera?.make || photo.camera?.model) && (
                         <div className="col-span-2">
                           <span className="text-slate-500 block text-[10px] uppercase">Body</span>
@@ -376,8 +374,8 @@ export default function PhotoLightboxModal({
 
                 {/* Retouching & Editing notes: ONLY render if at least one property exists */}
                 {hasEditingInfo && (
-                  <div className={cn(radius.control, "bg-purple-500/[0.04] border border-purple-500/20 p-4 space-y-2.5")}>
-                    <div className={cn("flex items-center", gap.tight, "text-xs font-semibold text-purple-400 uppercase tracking-wider")}>
+                  <div className="rounded-xl bg-purple-500/[0.04] border border-purple-500/20 p-4 space-y-2.5">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-purple-400 uppercase tracking-wider">
                       <Icon name="compare" size={14} />
                       <span>Post-Processing & Grading</span>
                     </div>
@@ -415,7 +413,7 @@ export default function PhotoLightboxModal({
                       {photo.tags.filter(Boolean).map((tag) => (
                         <span
                           key={tag}
-                          className={cn("px-2.5 py-1 rounded-md text-[11px]", surface.cardDark, border.subtleDark, "text-slate-300")}
+                          className="px-2.5 py-1 rounded-md text-[11px] bg-white/5 border border-white/10 text-slate-300"
                         >
                           #{tag}
                         </span>
@@ -430,7 +428,7 @@ export default function PhotoLightboxModal({
                     href={photo.videoUrl || photo.image}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={cn("w-full flex items-center justify-center", gap.tight, "py-2.5", radius.control, surface.raisedDark, "hover:bg-white/20", text.primaryDark, "text-xs font-medium border border-white/15 transition-all")}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-medium border border-white/15 transition-all"
                   >
                     <Icon name="maximize" size={13} />
                     <span>{isVideo ? "Open Original Video" : "View Full-Resolution Image"}</span>

@@ -19,7 +19,6 @@ export const vi: TranslationDict = {
     music: "Âm nhạc",
     photography: "Nhiếp ảnh",
     blog: "Bài viết",
-    contra: "Contra",
     couple: "Tình yêu",
     getInTouch: "Liên hệ ngay",
   },

@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAdminSession } from "@/lib/admin-auth";
 import { uploadAndRegisterMedia } from "@/lib/media-service";
 import type { MediaAsset } from "@/lib/types";
 
-// POST /api/music/upload — upload audio file or thumbnail to Cloudinary with standardized prefix
+// POST /api/music/upload — admin only, upload audio file or thumbnail to Cloudinary with standardized prefix
 export async function POST(req: NextRequest) {
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   try {
     const formData = await req.formData();
     const audioFile = formData.get("audio") as File | null;
@@ -58,10 +61,10 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(result, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[POST /api/music/upload] Error:", error);
     return NextResponse.json(
-      { error: error?.message || "Upload failed" },
+      { error: error instanceof Error ? error.message : "Upload failed" },
       { status: 500 }
     );
   }

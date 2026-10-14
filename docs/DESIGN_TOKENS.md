@@ -57,7 +57,7 @@ import { presets } from "@/lib/ui-presets";
 
 Mỗi token **đã kèm sẵn biến thể `light:`**, nên không cần tự viết class light mode.
 Token có hậu tố `Dark` thì **không** kèm `light:` — dành cho các route dark-only
-trong `EXCLUDED_ROUTE_PREFIXES` (`/admin`, `/contra`, `/couple`, `/music`) và
+trong `EXCLUDED_ROUTE_PREFIXES` (`/admin`, `/couple`, `/music`) và
 cho `PhotoLightboxModal`.
 
 ---
@@ -241,6 +241,6 @@ Không cần refactor toàn bộ một lần — sửa dần mỗi khi đụng v
   (`` `bg-${color}-500` ``) — Tailwind không "nhìn thấy" và style sẽ biến mất âm thầm.
 - **Luôn ghép bằng `cn()`.** Hàm này chạy `tailwind-merge`, nên class bạn thêm vào
   sẽ ghi đè preset thay vì xung đột với nó.
-- **Route dark-only.** Bên trong `/admin`, `/contra`, `/couple`, `/music` và
+- **Route dark-only.** Bên trong `/admin`, `/couple`, `/music` và
   `PhotoLightboxModal`, hãy dùng token `*Dark` — thêm `light:` ở đó là bug
   (xem CLAUDE.md §5).

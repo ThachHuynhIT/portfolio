@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireAdminSession } from "@/lib/admin-auth";
 
 // GET /api/music/tracks/[id] — fetch single track + increment play count
 export async function GET(
@@ -18,11 +19,13 @@ export async function GET(
   }
 }
 
-// PATCH /api/music/tracks/[id] — update a track
+// PATCH /api/music/tracks/[id] — admin only, update a track
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   const { id } = await params;
   try {
     const body = await req.json();
@@ -53,6 +56,8 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authError = await requireAdminSession();
+  if (authError) return authError;
   const { id } = await params;
   try {
     await db.track.delete({ where: { id } });

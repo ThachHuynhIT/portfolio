@@ -9,7 +9,9 @@ export const metadata = buildMetadata({
   path: "/photography",
 });
 
-export const dynamic = "force-dynamic";
+// Static + ISR: data is unstable_cache'd under the "photography" tag and
+// the admin API calls revalidateTag("photography"), which also purges the
+// cached route — no need to SSR the whole gallery on every request.
 
 export default async function PhotographyPage() {
   const [photos, allAlbums] = await Promise.all([getPublishedPhotos(), getPublishedAlbums()]);

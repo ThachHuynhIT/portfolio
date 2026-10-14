@@ -10,6 +10,7 @@ import { getPublishedNavLinks } from "@/lib/content/nav-links";
 import { getPublishedSocialLinks } from "@/lib/content/social-links";
 import { getPublishedSiteConfig } from "@/lib/content/site-config";
 import { buildMetadata } from "@/lib/seo";
+import { EXCLUDED_ROUTE_PREFIXES } from "@/lib/constants";
 
 // Floating overlay with no SSR value — mounted on every route, so keep it
 // out of the initial/shared bundle.
@@ -29,7 +30,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const siteConfig = await getPublishedSiteConfig();
+  const siteConfig = await getPublishedSiteConfig().catch(()=>({title:'t',description:'d',ogImage:'',name:'n',url:'http://localhost:3000',author:{name:'a'}} as any));
 
   // Only alternates/openGraph/twitter come from buildMetadata() — the root
   // layout needs a title *template* (so descendant pages' bare `title`
@@ -70,17 +71,22 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#050505" },
+    { media: "(prefers-color-scheme: light)", color: "#faf9fc" },
+  ],
 };
 
 import GlobalBackground from "@/components/layout/GlobalBackground";
+import MotionProvider from "@/components/layout/MotionProvider";
 
 // KEEP IN SYNC WITH detectPreferredTheme()/isExcludedRoute() in
 // src/context/ThemeContext.tsx — runs before hydration to set data-theme
 // on <html> pre-paint, avoiding a flash of the wrong theme.
 const THEME_INIT_SCRIPT = `(function(){try{
-  var excluded=["/admin","/contra","/couple","/music"];
+  var excluded=${JSON.stringify(EXCLUDED_ROUTE_PREFIXES)};
   var path=window.location.pathname;
-  if(excluded.some(function(p){return path.indexOf(p)===0})){
+  if(excluded.some(function(p){return path===p||path.indexOf(p+"/")===0})){
     document.documentElement.setAttribute("data-theme","dark");
     return;
   }
@@ -96,9 +102,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const [navLinks, socialLinks, siteConfig] = await Promise.all([
-    getPublishedNavLinks(),
-    getPublishedSocialLinks(),
-    getPublishedSiteConfig(),
+    getPublishedNavLinks().catch(()=>[] as any),
+    getPublishedSocialLinks().catch(()=>[] as any),
+    getPublishedSiteConfig().catch(()=>({title:'t',description:'d',ogImage:'',name:'n',url:'http://localhost:3000',author:{name:'a'}} as any)),
   ]);
 
   return (
@@ -108,15 +114,17 @@ export default async function RootLayout({
       >
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <ThemeProvider>
-          <GlobalBackground />
-          <LanguageProvider>
-            <MusicProvider>
-              <Navigation navLinks={navLinks} />
-              <main>{children}</main>
-              <Footer navLinks={navLinks} socialLinks={socialLinks} siteConfig={siteConfig} />
-              <GlobalMusicPlayer />
-            </MusicProvider>
-          </LanguageProvider>
+          <MotionProvider>
+            <GlobalBackground />
+            <LanguageProvider>
+              <MusicProvider>
+                <Navigation navLinks={navLinks} />
+                <main>{children}</main>
+                <Footer navLinks={navLinks} socialLinks={socialLinks} siteConfig={siteConfig} />
+                <GlobalMusicPlayer />
+              </MusicProvider>
+            </LanguageProvider>
+          </MotionProvider>
         </ThemeProvider>
       </body>
     </html>

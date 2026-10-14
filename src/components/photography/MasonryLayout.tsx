@@ -70,7 +70,7 @@ export default function MasonryLayout({ photos, onSelectPhoto }: MasonryLayoutPr
                   />
 
                   {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent transition-opacity duration-300 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100" />
 
                   {/* Video Play Overlay */}
                   {isVideo && (
@@ -110,8 +110,9 @@ export default function MasonryLayout({ photos, onSelectPhoto }: MasonryLayoutPr
                     )}
                   </div>
 
-                  {/* Info Overlay on Bottom */}
-                  <div className="absolute bottom-0 inset-x-0 p-5 translate-y-2 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100 z-10">
+                  {/* Info Overlay on Bottom — hover-reveal with a mouse, always
+                      visible on touch screens (no hover to reveal it there) */}
+                  <div className="absolute bottom-0 inset-x-0 p-4 sm:p-5 transition-all duration-300 z-10 [@media(hover:hover)]:translate-y-2 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:translate-y-0 [@media(hover:hover)]:group-hover:opacity-100">
                     <h3 className="text-base font-bold text-white mb-1 group-hover:text-cyan-300 transition-colors">
                       {title}
                     </h3>

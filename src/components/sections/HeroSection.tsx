@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import { Button, CVPreviewModal } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
 import { useTheme } from "@/context/ThemeContext";
 import { resolveSectionText } from "@/lib/content-overrides";
@@ -19,6 +19,9 @@ const BlackHoleCanvas = dynamic(
   () => import("@/components/3d/blackhole/BlackHoleCanvas"),
   { ssr: false }
 );
+
+// Only opened on click — keep it out of the Hero's initial JS.
+const CVPreviewModal = dynamic(() => import("@/components/ui/CVPreviewModal"), { ssr: false });
 
 export interface HeroSectionProps {
   siteConfig: SiteConfig;
@@ -43,7 +46,7 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background py-20 lg:py-0"
+      className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-background py-20 lg:py-0"
     >
       {/* Black hole — sole 3D visual in the Hero. Fixed (not absolute) so it
           stays pinned in the viewport instead of scrolling away with the
@@ -62,6 +65,7 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
             className="absolute inset-0"
             interactive={false}
             scrollEffect
+            deferStart
             brightness={resolvedTheme === "light" ? 0.6 : 1}
             particleBrightness={resolvedTheme === "light" ? 0.45 : 0.75}
           />
@@ -103,26 +107,20 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
           </motion.div>
 
           {/* Heading */}
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight"
+          <h1
+            className="animate-fade-up text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight text-balance"
           >
             <span className={cn(text.primary)}>
               {resolveSectionText(locale, hero?.greetingPrefix, hero?.greetingPrefix_vi, t("hero.greetingPrefix"))}
             </span>
-            <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent ml-3">
+            <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent ml-2 sm:ml-3">
               {siteConfig.author.name.split(" ")[0]}
             </span>
-          </motion.h1>
+          </h1>
 
           {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-xl md:text-2xl text-white/70 light:text-neutral-600 mb-12 max-w-2xl mx-auto leading-relaxed"
+          <p
+            className="animate-fade-up [animation-delay:100ms] text-lg sm:text-xl md:text-2xl text-white/70 light:text-neutral-600 mb-12 max-w-2xl mx-auto leading-relaxed"
           >
             {resolveSectionText(
               locale,
@@ -130,7 +128,7 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
               hero?.bio_vi,
               locale === "vi" && siteConfig.author.bio_vi ? siteConfig.author.bio_vi : t("hero.bio")
             )}
-          </motion.p>
+          </p>
 
           {/* CTA Buttons */}
           <motion.div

@@ -7,7 +7,9 @@ Tài liệu này hướng dẫn cách build, kiểm thử và deploy ứng dụn
 ## 1. Yêu Cầu Môi Trường (System Requirements)
 
 - **Node.js**: Phiên bản `>= 18.17.0` (Khuyến nghị sử dụng LTS Node 20+).
-- **Package Manager**: `npm` (hoặc `pnpm`, `yarn`, `bun`).
+- **Package Manager**: `npm` (hoặc `pnpm`, `yarn`, `bun`). `package-lock.json` được commit — dùng `npm ci` để cài đúng phiên bản.
+- **PostgreSQL** (VD: Neon) — mọi trang nội dung đọc từ DB, kể cả lúc build.
+- **Biến môi trường**: xem [`.env.example`](../.env.example) (`DATABASE_URL`, `AUTH_SECRET`, `ADMIN_PASSWORD`, `CLOUDINARY_*`, `RESEND_API_KEY`, `CONTACT_NOTIFICATION_EMAIL`). `npm install` tự chạy `prisma generate` (postinstall).
 
 ---
 
@@ -16,17 +18,18 @@ Tài liệu này hướng dẫn cách build, kiểm thử và deploy ứng dụn
 Trước khi đẩy code lên môi trường Production, hãy chạy các lệnh sau để đảm bảo không có lỗi cú pháp hoặc TypeScript:
 
 ```bash
-# 1. Kiểm tra linter (ESLint)
+# 1. Kiểm tra linter (ESLint) và type
 npm run lint
+npx tsc --noEmit -p .
 
-# 2. Tạo bản build Production để kiểm tra Type checking và biên dịch MDX
+# 2. Tạo bản build Production (cần DATABASE_URL trỏ tới DB có dữ liệu)
 npm run build
 
 # 3. Chạy thử bản build production trên máy local
 npm run start
 ```
 
-Mở trình duyệt tại `http://localhost:3000` để xác nhận tất cả các trang (`/`, `/blog`, `/contra`, `/tools/json-validator`, `/couple`) hoạt động trơn tru.
+Mở trình duyệt tại `http://localhost:3000` để xác nhận các trang hoạt động: `/`, `/blog`, `/projects`, `/photography`, `/music`, `/couple`, `/tools/json-validator`, `/admin` (đăng nhập).
 
 ---
 
@@ -41,7 +44,10 @@ Vì dự án được xây dựng bằng Next.js 14, **Vercel** là nền tảng
    - **Framework Preset**: `Next.js`
    - **Build Command**: `next build`
    - **Output Directory**: `.next`
-5. Nhấn **Deploy**. Sau khoảng 1–2 phút, trang web của bạn sẽ hoạt động với HTTPS và CDN toàn cầu.
+5. Trước khi deploy, vào *Settings → Environment Variables* và thêm toàn bộ biến trong `.env.example` (giá trị thật).
+6. Nhấn **Deploy**. Sau khoảng 1–2 phút, trang web của bạn sẽ hoạt động với HTTPS và CDN toàn cầu.
+
+Nội dung (dự án, ảnh, blog, couple...) được sửa qua `/admin` và lưu vào Postgres, nên không cần ghi file trên server — phù hợp với filesystem chỉ-đọc của Vercel.
 
 ---
 
@@ -60,8 +66,11 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+# package-lock.json được commit: npm ci cài đúng phiên bản.
+# postinstall chạy `prisma generate`, nên cần schema + prisma.config.ts ở bước này.
+COPY package.json package-lock.json* prisma.config.ts ./
+COPY prisma ./prisma
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -70,6 +79,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
+# Build đọc DB (generateStaticParams, metadata)
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
 RUN npm run build
 
 # Production image, copy all the files and run next
@@ -99,10 +111,11 @@ CMD ["npm", "run", "start"]
 ### 4.2. Build và chạy Docker Container
 ```bash
 # Build image
-docker build -t my-portfolio:latest .
+docker build -t my-portfolio:latest \
+  --build-arg DATABASE_URL="postgresql://..." .
 
-# Run container
-docker run -p 3000:3000 -d --name portfolio-app my-portfolio:latest
+# Run container (biến runtime lấy từ file env, theo mẫu .env.example)
+docker run -p 3000:3000 -d --env-file .env.production --name portfolio-app my-portfolio:latest
 ```
 
 ---
@@ -115,7 +128,8 @@ Nếu sử dụng máy chủ Ubuntu / Debian:
    ```bash
    git clone https://github.com/yourusername/portfolio.git /var/www/portfolio
    cd /var/www/portfolio
-   npm ci
+   cp .env.example .env.local   # rồi điền giá trị thật
+   npm install                  # package-lock.json không được commit
    npm run build
    ```
 
@@ -152,8 +166,7 @@ Nếu sử dụng máy chủ Ubuntu / Debian:
 
 ## 6. Danh Mục Kiểm Tra SEO & Tối Ưu Hóa (Checklist)
 
-- [ ] Cập nhật tiêu đề và mô tả trong `src/lib/constants.ts` (`siteConfig`).
-- [ ] Cập nhật metadata trong `src/app/layout.tsx` (OpenGraph, Twitter Cards, keywords).
-- [ ] Thay thế ảnh `public/og.jpg` và `public/favicon.ico` bằng hình ảnh thương hiệu cá nhân của bạn.
-- [ ] Kiểm tra file `public/resume.pdf` đã sẵn sàng để tải về.
+- [ ] Cập nhật tên, tiêu đề, mô tả, URL site và ảnh OG (`ogImage`) ở `/admin/site-config` — `src/app/layout.tsx` dựng metadata (OpenGraph, Twitter Cards) từ các giá trị này qua `src/lib/seo.ts`.
+- [ ] Thay `src/app/favicon.ico` bằng icon của bạn.
+- [ ] Đặt link CV (`resumeUrl`) ở `/admin/site-config` — nút xem CV ở Hero chỉ hiện khi có giá trị này.
 - [ ] Kiểm tra tính tương thích trên thiết bị di động và tablet.

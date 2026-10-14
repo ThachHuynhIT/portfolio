@@ -42,6 +42,10 @@ export interface BlackHoleEngineOptions {
   particleBrightness?: number;
   /** Tints the final render color (hex). Default "#ffffff" (no tint). */
   tint?: string;
+  /** Lighter pipeline for weak GPUs / phones: DPR 1, no MSAA, no bloom,
+   * fewer raymarch steps, 30 fps cap. Default: auto-detected (touch,
+   * narrow viewport or <= 4 cores). */
+  lowPower?: boolean;
 }
 
 const SIM_SPEED = 6; // simulation seconds per real second (matches shader disk omega)
@@ -100,6 +104,16 @@ export class BlackHoleEngine {
   private count: number;
   private elapsed = 0;
   private resizeObserver: ResizeObserver | null = null;
+  /** False while the canvas is scrolled out of view: the loop skips rendering (saves the GPU for the page below). */
+  private onScreen = true;
+  private visibilityObserver: IntersectionObserver | null = null;
+  private lowPower: boolean;
+  private minFrameMs: number;
+  private lastFrame = 0;
+  // Idle = decorative background no longer the focus (e.g. scrolled past the
+  // Hero): stop the simulation and only re-render while the camera is still
+  // easing toward a new scroll pose, so the last frame stays on screen for free.
+  private idle = false;
 
   // camera state (spherical around origin)
   private cur = { theta: 0.7, phi: PHI_HORIZONTAL, radius: RADIUS_NEAR };
@@ -123,16 +137,22 @@ export class BlackHoleEngine {
     const coarse =
       typeof window !== "undefined" &&
       (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768);
-    this.count = coarse ? 3200 : 7000;
-    this.steps = coarse ? 110 : 190;
-    this.scale = coarse ? 0.5 : 0.6;
+    this.lowPower =
+      opts.lowPower ?? (coarse || (typeof navigator !== "undefined" && (navigator.hardwareConcurrency ?? 8) <= 4));
+    this.count = this.lowPower ? 2400 : coarse ? 3200 : 7000;
+    this.steps = this.lowPower ? 90 : coarse ? 110 : 190;
+    this.scale = this.lowPower ? 0.45 : coarse ? 0.5 : 0.6;
+    this.minFrameMs = this.lowPower ? 1000 / 30 - 2 : 0;
 
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: false,
       alpha: false,
-      powerPreference: "high-performance",
+      powerPreference: this.interactive && !this.lowPower ? "high-performance" : "low-power",
     });
+    // getProgramInfoLog() after every link forces a synchronous wait on the
+    // shader compile, defeating compileAsync() below — only check in dev.
+    this.renderer.debug.checkShaderErrors = process.env.NODE_ENV !== "production";
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.setClearColor(0x000000, 1);
 
@@ -170,7 +190,7 @@ export class BlackHoleEngine {
     // --- low-res raymarch target ---
     this.rtLow = new THREE.WebGLRenderTarget(2, 2, {
       type: THREE.HalfFloatType,
-      samples: 4, // MSAA on the raymarch target: kills stair-stepping on the
+      samples: this.lowPower ? 0 : 4, // MSAA on the raymarch target: kills stair-stepping on the
                   // shadow edge, worst at the bottom where the front band
                   // meets the ring at a grazing angle
       minFilter: THREE.LinearFilter,
@@ -205,9 +225,13 @@ export class BlackHoleEngine {
     // --- composer: post -> bloom -> grain -> output ---
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.postScene, this.postCam));
-    this.composer.addPass(
-      new UnrealBloomPass(new THREE.Vector2(2, 2), 0.72, 0.7, 0.6),
-    );
+    // Bloom is the most expensive post pass (several blur mips at display
+    // resolution) — skipped on low-power devices.
+    if (!this.lowPower) {
+      this.composer.addPass(
+        new UnrealBloomPass(new THREE.Vector2(2, 2), 0.72, 0.7, 0.6),
+      );
+    }
     this.grainPass = new ShaderPass({
       uniforms: {
         tDiffuse: { value: null },
@@ -221,6 +245,14 @@ export class BlackHoleEngine {
     this.composer.addPass(new OutputPass());
 
     // --- listeners ---
+    if (typeof IntersectionObserver !== "undefined") {
+      this.visibilityObserver = new IntersectionObserver((entries) => {
+        const wasOff = !this.onScreen;
+        this.onScreen = entries[entries.length - 1]?.isIntersecting ?? true;
+        if (wasOff && this.onScreen) this.last = performance.now(); // no huge dt after a long pause
+      });
+      this.visibilityObserver.observe(opts.container ?? canvas);
+    }
     if (opts.container) {
       this.resizeObserver = new ResizeObserver(this.onResize);
       this.resizeObserver.observe(opts.container);
@@ -236,8 +268,15 @@ export class BlackHoleEngine {
 
     this.onResize();
 
-    this.last = performance.now();
-    this.raf = requestAnimationFrame(this.loop);
+    // Compile the (heavy) raymarch program off the main thread where
+    // KHR_parallel_shader_compile is available, so the first frame doesn't
+    // land as a multi-hundred-ms long task right after hydration.
+    const start = () => {
+      if (this.disposed) return;
+      this.last = performance.now();
+      this.raf = requestAnimationFrame(this.loop);
+    };
+    this.renderer.compileAsync(this.scene, this.camera).then(start, start);
     if (process.env.NODE_ENV !== "production") {
       (window as unknown as Record<string, unknown>).__bh = this;
     }
@@ -256,7 +295,7 @@ export class BlackHoleEngine {
   private onResize = () => {
     if (this.disposed) return;
     const { w, h } = this.size();
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const dpr = Math.min(window.devicePixelRatio || 1, this.lowPower ? 1 : 1.5);
     this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
@@ -323,6 +362,11 @@ export class BlackHoleEngine {
     this.tgt.radius = RADIUS_NEAR + (RADIUS_FAR - RADIUS_NEAR) * p;
   }
 
+  /** See `idle` field. Cheap to call every scroll frame. */
+  setIdle(idle: boolean) {
+    this.idle = idle;
+  }
+
   // --- frame loop ---
 
   private loop = () => {
@@ -330,9 +374,25 @@ export class BlackHoleEngine {
     this.raf = requestAnimationFrame(this.loop);
 
     const now = performance.now();
+    if (document.hidden) {
+      this.last = now;
+      return;
+    }
+    if (this.minFrameMs && now - this.lastFrame < this.minFrameMs) return;
+    if (
+      this.idle &&
+      this.readySent &&
+      !this.dragging &&
+      Math.abs(this.tgt.phi - this.cur.phi) < 1e-3 &&
+      Math.abs(this.tgt.radius - this.cur.radius) < 1e-2
+    ) {
+      this.last = now;
+      return;
+    }
+    this.lastFrame = now;
     let dt = (now - this.last) / 1000;
     this.last = now;
-    if (document.hidden) return;
+    if (document.hidden || !this.onScreen) return;
     dt = clamp(dt, 0.0001, 0.05);
     this.elapsed += dt;
 
@@ -340,11 +400,11 @@ export class BlackHoleEngine {
     this.fpsEma += (1 / dt - this.fpsEma) * 0.05;
     if (now - this.lastQuality > 700) {
       this.lastQuality = now;
-      if (this.fpsEma > 56 && this.scale < 0.85) {
-        this.scale = Math.min(0.85, this.scale + 0.04);
+      if (this.fpsEma > (this.lowPower ? 28 : 56) && this.scale < (this.lowPower ? 0.6 : 0.85)) {
+        this.scale = Math.min(this.lowPower ? 0.6 : 0.85, this.scale + 0.04);
         this.applyQuality();
-      } else if (this.fpsEma < 36 && this.scale > 0.5) {
-        this.scale = Math.max(0.5, this.scale - 0.05);
+      } else if (this.fpsEma < (this.lowPower ? 24 : 36) && this.scale > 0.4) {
+        this.scale = Math.max(0.4, this.scale - 0.05);
         this.applyQuality();
       }
     }
@@ -446,6 +506,7 @@ export class BlackHoleEngine {
     this.disposed = true;
     cancelAnimationFrame(this.raf);
     this.resizeObserver?.disconnect();
+    this.visibilityObserver?.disconnect();
     window.removeEventListener("resize", this.onResize);
     window.removeEventListener("pointermove", this.onPointerMove);
     window.removeEventListener("pointerup", this.onPointerUp);

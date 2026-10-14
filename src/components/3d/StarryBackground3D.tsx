@@ -82,7 +82,7 @@ function CosmicParticles({ count = 1200 }: { count?: number }) {
  * StarryBackground3D - Complete 3D Starry Sky background without any bulky shapes.
  * Provides a stunning deep-space aesthetic that runs seamlessly across the portfolio.
  */
-export default function StarryBackground3D() {
+export default function StarryBackground3D({ still = false }: { still?: boolean }) {
   // This canvas is mounted globally on every non-admin route, so on
   // touch/low-core devices we halve the point counts to keep it cheap
   // even while other decorative canvases run concurrently on the same page.
@@ -96,7 +96,7 @@ export default function StarryBackground3D() {
       <div className={cn("absolute top-0 left-1/4 w-[600px] h-[500px] bg-purple-900/10 blur-[150px] pointer-events-none z-10", radius.pill)} />
       <div className={cn("absolute top-1/2 right-10 w-[500px] h-[500px] bg-cyan-900/10 blur-[160px] pointer-events-none z-10", radius.pill)} />
 
-      <SceneContainer className="w-full h-full">
+      <SceneContainer className="w-full h-full" still={still}>
         {/* Distant stars field with subtle natural twinkle */}
         <Stars
           radius={100}

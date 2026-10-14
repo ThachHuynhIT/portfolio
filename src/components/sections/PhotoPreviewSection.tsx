@@ -3,12 +3,10 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { AnimatedSection, GlassCard, ImageWithSkeleton, Icon } from "@/components/ui";
+import { AnimatedSection, ImageWithSkeleton, Icon } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
 import cloudinaryImageLoader from "@/lib/cloudinary-image-loader";
 import type { PhotoItem } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { border, elevation, gap, layout, motion as motionTokens, radius, text } from "@/lib/design-tokens";
 
 export interface PhotoPreviewSectionProps {
   photography: PhotoItem[];
@@ -60,14 +58,14 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >
-      <div className={cn(layout.container)}>
+      <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
         {/* Header */}
         <AnimatedSection>
           <div className="text-center mb-14">
             <span className="text-xs text-cyan-400 light:text-cyan-700 font-semibold tracking-widest uppercase mb-3 block">
               {t("photoPreview.badge")}
             </span>
-            <h2 className={cn("text-3xl sm:text-4xl md:text-5xl font-extrabold", text.primary, "mb-4 tracking-tight")}>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-4 tracking-tight">
               {t("photoPreview.titlePrefix")}
               <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
                 {t("photoPreview.titleHighlight")}
@@ -82,7 +80,7 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
         {/* Featured Slider Component */}
         <div className="relative max-w-5xl mx-auto">
           {/* Main Showcase Card */}
-          <div className={cn("relative overflow-hidden", radius.panel, border.subtle, "shadow-2xl light:shadow-neutral-400/20 bg-slate-950 aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/10] group")}>
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 light:border-neutral-900/10 shadow-2xl light:shadow-neutral-400/20 bg-slate-950 aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/10] group">
             {/* Image layer: every visited slide stays mounted and crossfades via opacity,
                 so revisits are instant and first visits keep the previous photo visible
                 (instead of flashing the dark container) while the new one loads. */}
@@ -101,9 +99,8 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
                       src={photo.image}
                       alt={photo.title}
                       fill
-                      priority={isActive}
                       placeholderSrc={cloudinaryImageLoader({ src: photo.image, width: 32, quality: 30 })}
-                      sizes="(max-width: 1024px) 100vw, 1200px"
+                      sizes="(max-width: 1024px) 100vw, 1024px"
                       className="object-cover object-center"
                     />
                   </div>
@@ -127,20 +124,20 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                  className={cn("absolute bottom-0 inset-x-0 p-6 sm:p-8 lg:p-10 flex flex-col sm:flex-row sm:items-end justify-between", gap.loose)}
+                  className="absolute bottom-0 inset-x-0 p-6 sm:p-8 lg:p-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4"
                 >
-                  <div className={cn("space-y-2 max-w-xl bg-black/35", elevation.blur, radius.card, "px-4 py-3 sm:px-5 sm:py-4")}>
-                    <div className={cn("flex items-center", gap.tight, "flex-wrap")}>
-                      <span className={cn("inline-flex items-center gap-1 px-2.5 py-0.5", radius.pill, "text-[11px] font-bold bg-amber-400 text-black shadow-sm")}>
+                  <div className="space-y-2 max-w-xl bg-black/35 backdrop-blur-md rounded-2xl px-4 py-3 sm:px-5 sm:py-4">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-400 text-black shadow-sm">
                         <Icon name="star" size={11} /> {t("photography.featured")}
                       </span>
                       {currentPhoto.category && (
-                        <span className={cn("px-3 py-0.5", radius.pill, "text-xs font-medium bg-white/10 text-white", elevation.blur, "border border-white/15")}>
+                        <span className="px-3 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white backdrop-blur-md border border-white/15">
                           {currentPhoto.category}
                         </span>
                       )}
                       {currentPhoto.camera?.model && (
-                        <span className={cn("hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5", radius.pill, "text-xs font-medium bg-black/60 text-cyan-300 border border-cyan-500/20")}>
+                        <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-black/60 text-cyan-300 border border-cyan-500/20">
                           <Icon name="camera" size={11} /> {currentPhoto.camera.make} {currentPhoto.camera.model}
                         </span>
                       )}
@@ -164,7 +161,7 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
                   </div>
 
                   {/* Thumbnail counter */}
-                  <div className={cn("text-xs font-mono text-white/50 bg-black/40 px-3 py-1.5", radius.pill, elevation.blur, "border border-white/10 self-start sm:self-auto")}>
+                  <div className="text-xs font-mono text-white/50 bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-md border border-white/10 self-start sm:self-auto">
                     {currentIndex + 1} / {featuredPhotos.length}
                   </div>
                 </motion.div>
@@ -175,32 +172,38 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
             <button
               onClick={prevSlide}
               aria-label="Previous photo"
-              className={cn("absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11", radius.pill, "bg-black/50 hover:bg-black/80 text-white/80 hover:text-white border border-white/15 flex items-center justify-center", elevation.blur, motionTokens.fast, "z-30 shadow-lg", motionTokens.press)}
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/50 hover:bg-black/80 text-white/80 hover:text-white border border-white/15 flex items-center justify-center backdrop-blur-md transition-all duration-200 z-30 shadow-lg active:scale-95"
             >
               <Icon name="arrowLeft" size={18} />
             </button>
             <button
               onClick={nextSlide}
               aria-label="Next photo"
-              className={cn("absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11", radius.pill, "bg-black/50 hover:bg-black/80 text-white/80 hover:text-white border border-white/15 flex items-center justify-center", elevation.blur, motionTokens.fast, "z-30 shadow-lg", motionTokens.press)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/50 hover:bg-black/80 text-white/80 hover:text-white border border-white/15 flex items-center justify-center backdrop-blur-md transition-all duration-200 z-30 shadow-lg active:scale-95"
             >
               <Icon name="arrowRight" size={18} />
             </button>
           </div>
 
           {/* Dot Indicators */}
-          <div className={cn("flex items-center justify-center", gap.tight, "mt-6")}>
+          <div className="flex items-center justify-center gap-0.5 mt-5">
             {featuredPhotos.map((_, idx) => (
+              // 24px hit area (WCAG target size) around the small visual dot
               <button
                 key={idx}
                 onClick={() => setCurrentIndex(idx)}
                 aria-label={`Go to slide ${idx + 1}`}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  currentIndex === idx
-                    ? "w-8 bg-gradient-to-r from-cyan-400 to-purple-500 shadow-sm shadow-cyan-500/50"
-                    : "w-2 bg-white/20 light:bg-neutral-900/15 hover:bg-white/40 light:hover:bg-neutral-900/25"
-                }`}
-              />
+                aria-current={currentIndex === idx ? "true" : undefined}
+                className="group/dot h-6 min-w-6 flex items-center justify-center"
+              >
+                <span
+                  className={`block h-2 rounded-full transition-all duration-300 ${
+                    currentIndex === idx
+                      ? "w-8 bg-gradient-to-r from-cyan-400 to-purple-500 shadow-sm shadow-cyan-500/50"
+                      : "w-2 bg-white/20 light:bg-neutral-900/15 group-hover/dot:bg-white/40 light:group-hover/dot:bg-neutral-900/25"
+                  }`}
+                />
+              </button>
             ))}
           </div>
 
@@ -233,7 +236,7 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
         <div className="mt-14 text-center">
           <Link
             href="/photography"
-            className={cn("inline-flex items-center", gap.tight, "px-7 py-3.5", radius.pill, "text-sm font-semibold", text.primary, "bg-white/[0.06] light:bg-neutral-900/[0.05] hover:bg-white/[0.12] light:hover:bg-neutral-900/[0.08] border border-white/15 light:border-neutral-900/10 hover:border-cyan-400/40 hover:shadow-lg hover:shadow-cyan-500/20", motionTokens.base, "group")}
+            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold text-white light:text-neutral-900 bg-white/[0.06] light:bg-neutral-900/[0.05] hover:bg-white/[0.12] light:hover:bg-neutral-900/[0.08] border border-white/15 light:border-neutral-900/10 hover:border-cyan-400/40 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 group"
           >
             <span>{t("photoPreview.viewAll")}</span>
             <span className="transition-transform duration-200 group-hover:translate-x-1">
