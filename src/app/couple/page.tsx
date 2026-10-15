@@ -9,6 +9,7 @@ import type { CoupleData, CouplePhotoMemory } from "@/lib/types";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import Icon from "@/components/ui/Icon";
+import CoupleCalendar from "@/components/couple/CoupleCalendar";
 
 // ============================================================
 // 📝 DỮ LIỆU MẶC ĐỊNH (Fallback khi chưa tải xong API)
@@ -183,6 +184,7 @@ type SectionId =
   | "photos"
   | "birthdays"
   | "specialDates"
+  | "calendar"
   | "memories"
   | "bucketList"
   | "loveLetters"
@@ -192,6 +194,7 @@ const SECTIONS: { id: SectionId; icon: string; title: string; subtitle: string }
   { id: "photos", icon: "camera", title: "Hình ảnh kỷ niệm", subtitle: "Khoảnh khắc yêu thương & kỷ niệm" },
   { id: "birthdays", icon: "cake", title: "Sinh nhật", subtitle: "Đếm ngược đến ngày đặc biệt" },
   { id: "specialDates", icon: "calendar", title: "Ngày đặc biệt", subtitle: "Những cột mốc quan trọng" },
+  { id: "calendar", icon: "calendar", title: "Lịch của chúng mình", subtitle: "Âm – dương & lịch đi làm" },
   { id: "memories", icon: "bookOpen", title: "Hành trình tình yêu", subtitle: "Những khoảnh khắc đáng nhớ" },
   { id: "bucketList", icon: "checkCircle", title: "Bucket List", subtitle: "Những điều muốn cùng làm" },
   { id: "loveLetters", icon: "mail", title: "Những lời yêu thương", subtitle: "Gửi gắm tình cảm" },
@@ -750,6 +753,19 @@ function SpecialDatesSection() {
 }
 
 // ============================================================
+// 🗓️ CALENDAR SECTION
+// ============================================================
+function CalendarSection() {
+  const { data } = useCouple();
+  return (
+    <section className={styles.section}>
+      <SectionHeader icon="calendar" title="Lịch của chúng mình" subtitle="Âm – dương & lịch đi làm" />
+      <CoupleCalendar data={data} />
+    </section>
+  );
+}
+
+// ============================================================
 // 📖 MEMORY TIMELINE
 // ============================================================
 function MemoryTimeline() {
@@ -1017,6 +1033,7 @@ const SECTION_COMPONENTS: Record<SectionId, React.ComponentType> = {
   photos: PhotosSection,
   birthdays: BirthdaySection,
   specialDates: SpecialDatesSection,
+  calendar: CalendarSection,
   memories: MemoryTimeline,
   bucketList: BucketListSection,
   loveLetters: LoveLettersSection,
