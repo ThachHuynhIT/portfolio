@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/context/LanguageContext";
 import Icon, { isKnownIconName } from "@/components/ui/Icon";
+import { pickLocalized } from "@/lib/content-overrides";
 import type { NavLink, SocialLink, SiteConfig } from "@/lib/types";
 
 export interface FooterProps {
@@ -16,6 +17,12 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
   const { t, locale } = useTranslation();
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
+
+  // Blank site-config fields (cleared in /admin/site-config) are hidden.
+  const authorName = siteConfig.author.name.trim();
+  const authorBio = pickLocalized(locale, siteConfig.author.bio, siteConfig.author.bio_vi);
+  const authorEmail = siteConfig.author.email.trim();
+  const authorLocation = pickLocalized(locale, siteConfig.author.location, siteConfig.author.location_vi);
 
   const getNavLabel = (link: { href: string; label: string; label_vi?: string }) => {
     if (locale === "vi" && link.label_vi?.trim()) {
@@ -44,15 +51,17 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Brand */}
           <div className="md:col-span-2">
-            <Link
-              href="/"
-              className="inline-block text-3xl font-bold bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent mb-4"
-            >
-              {siteConfig.author.name}
-            </Link>
-            <p className="text-white/60 light:text-neutral-600 max-w-md mb-6">
-              {locale === "vi" && siteConfig.author.bio_vi ? siteConfig.author.bio_vi : (t("hero.bio") || siteConfig.author.bio)}
-            </p>
+            {authorName && (
+              <Link
+                href="/"
+                className="inline-block text-3xl font-bold bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent mb-4"
+              >
+                {authorName}
+              </Link>
+            )}
+            {authorBio && (
+              <p className="text-white/60 light:text-neutral-600 max-w-md mb-6">{authorBio}</p>
+            )}
             <div className="flex gap-4">
               {socialLinks.map((social) => (
                 <a
@@ -109,26 +118,32 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
           </div>
 
           {/* Contact Info */}
-          <div>
-            <h4 className="text-white light:text-neutral-900 font-semibold mb-4">{t("footer.getInTouch")}</h4>
-            <ul className="space-y-3">
-              <li>
-                <a
-                  href={`mailto:${siteConfig.author.email}`}
-                  className="text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 transition-colors duration-300"
-                >
-                  {siteConfig.author.email}
-                </a>
-              </li>
-              <li className="text-white/60 light:text-neutral-600">{siteConfig.author.location}</li>
-            </ul>
-          </div>
+          {(authorEmail || authorLocation) && (
+            <div>
+              <h4 className="text-white light:text-neutral-900 font-semibold mb-4">{t("footer.getInTouch")}</h4>
+              <ul className="space-y-3">
+                {authorEmail && (
+                  <li>
+                    <a
+                      href={`mailto:${authorEmail}`}
+                      className="text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 transition-colors duration-300"
+                    >
+                      {authorEmail}
+                    </a>
+                  </li>
+                )}
+                {authorLocation && (
+                  <li className="text-white/60 light:text-neutral-600">{authorLocation}</li>
+                )}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Bottom Bar */}
         <div className="mt-16 pt-8 border-t border-white/10 light:border-neutral-900/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-white/60 light:text-neutral-600 text-sm">
-            © {currentYear} {siteConfig.author.name}. {t("footer.rightsReserved")}
+            © {currentYear}{authorName ? ` ${authorName}.` : ""} {t("footer.rightsReserved")}
           </p>
           <p className="text-white/60 light:text-neutral-600 text-sm">
             {t("footer.builtWith")}{" "}

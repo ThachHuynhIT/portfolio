@@ -45,13 +45,22 @@ export async function generateMetadata(): Promise<Metadata> {
     siteName: siteConfig.name,
   });
 
+  // Every site-config field may be left blank in the admin; skip whatever is
+  // empty instead of emitting blank tags (or crashing on new URL("")).
+  let metadataBase: URL | undefined;
+  try {
+    metadataBase = siteConfig.url?.trim() ? new URL(siteConfig.url) : undefined;
+  } catch {
+    metadataBase = undefined;
+  }
+
   return {
-    metadataBase: new URL(siteConfig.url),
+    ...(metadataBase ? { metadataBase } : {}),
     title: {
-      default: siteConfig.title,
-      template: `%s | ${siteConfig.name}`,
+      default: siteConfig.title || siteConfig.name || "",
+      template: siteConfig.name ? `%s | ${siteConfig.name}` : "%s",
     },
-    description: siteConfig.description,
+    ...(siteConfig.description ? { description: siteConfig.description } : {}),
     keywords: [
       "web developer",
       "frontend",
@@ -60,7 +69,7 @@ export async function generateMetadata(): Promise<Metadata> {
       "three.js",
       "portfolio",
     ],
-    authors: [{ name: siteConfig.author.name }],
+    ...(siteConfig.author.name ? { authors: [{ name: siteConfig.author.name }] } : {}),
     alternates,
     openGraph,
     twitter,

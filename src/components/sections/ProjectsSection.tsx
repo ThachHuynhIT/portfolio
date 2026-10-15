@@ -7,7 +7,7 @@ import { AnimatedSection, GlassCard, TiltCard, Button, ImageWithSkeleton, Icon }
 import { staggerContainer, fadeInUp } from "@/lib/animations";
 import { Project, ProjectsSectionContent, SiteConfig } from "@/lib/types";
 import { useTranslation } from "@/context/LanguageContext";
-import { resolveSectionText } from "@/lib/content-overrides";
+import { resolveRequiredText, resolveSectionText } from "@/lib/content-overrides";
 
 interface ProjectModalProps {
   project: Project | null;
@@ -74,6 +74,10 @@ function ProjectModal({ project, onClose, projectsCopy }: ProjectModalProps) {
     locale === "vi" && project.longDescription_vi
       ? project.longDescription_vi
       : project.longDescription || displayDesc;
+  // Blank values (cleared in /admin/site-config) hide their element.
+  const featuredBadge = resolveSectionText(locale, projectsCopy?.featuredBadge, projectsCopy?.featuredBadge_vi, t("projects.featuredBadge"));
+  const viewLiveLabel = resolveSectionText(locale, projectsCopy?.viewLive, projectsCopy?.viewLive_vi, t("projects.viewLive"));
+  const sourceCodeLabel = resolveSectionText(locale, projectsCopy?.sourceCode, projectsCopy?.sourceCode_vi, t("projects.sourceCode"));
 
   return (
     <motion.div
@@ -107,7 +111,7 @@ function ProjectModal({ project, onClose, projectsCopy }: ProjectModalProps) {
           {/* Close button */}
           <button
             onClick={onClose}
-            aria-label={resolveSectionText(locale, projectsCopy?.closeModal, projectsCopy?.closeModal_vi, t("projects.closeModal"))}
+            aria-label={resolveRequiredText(locale, projectsCopy?.closeModal, projectsCopy?.closeModal_vi, t("projects.closeModal"))}
             className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 flex items-center justify-center text-white/60 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] transition-all z-20"
           >
             <Icon name="close" size={16} />
@@ -128,9 +132,9 @@ function ProjectModal({ project, onClose, projectsCopy }: ProjectModalProps) {
                 <Icon name="rocket" size={48} />
               </div>
             )}
-            {project.featured && (
+            {project.featured && featuredBadge && (
               <div className="absolute top-3 left-3 px-3 py-1 text-xs font-semibold text-white bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full shadow-md">
-                {resolveSectionText(locale, projectsCopy?.featuredBadge, projectsCopy?.featuredBadge_vi, t("projects.featuredBadge"))}
+                {featuredBadge}
               </div>
             )}
           </div>
@@ -153,24 +157,24 @@ function ProjectModal({ project, onClose, projectsCopy }: ProjectModalProps) {
 
           {/* Actions */}
           <div className="flex gap-4">
-            {project.liveUrl && (
+            {project.liveUrl && viewLiveLabel && (
               <Button
                 variant="primary"
                 onClick={() =>
                   window.open(project.liveUrl, "_blank", "noopener,noreferrer")
                 }
               >
-                {resolveSectionText(locale, projectsCopy?.viewLive, projectsCopy?.viewLive_vi, t("projects.viewLive"))}
+                {viewLiveLabel}
               </Button>
             )}
-            {project.githubUrl && (
+            {project.githubUrl && sourceCodeLabel && (
               <Button
                 variant="outline"
                 onClick={() =>
                   window.open(project.githubUrl, "_blank", "noopener,noreferrer")
                 }
               >
-                {resolveSectionText(locale, projectsCopy?.sourceCode, projectsCopy?.sourceCode_vi, t("projects.sourceCode"))}
+                {sourceCodeLabel}
               </Button>
             )}
           </div>
@@ -196,28 +200,46 @@ export default function ProjectsSection({ projects, siteConfig }: ProjectsSectio
     return featured.length > 0 ? featured.slice(0, 6) : projects.slice(0, 6);
   }, [projects]);
 
+  // Blank values (cleared in /admin/site-config) hide their element.
+  const badge = resolveSectionText(locale, projectsCopy?.badge, projectsCopy?.badge_vi, t("projects.badge"));
+  const titlePrefix = resolveSectionText(locale, projectsCopy?.titlePrefix, projectsCopy?.titlePrefix_vi, t("projects.titlePrefix"));
+  const titleHighlight = resolveSectionText(locale, projectsCopy?.titleHighlight, projectsCopy?.titleHighlight_vi, t("projects.titleHighlight"));
+  const subtitle = resolveSectionText(locale, projectsCopy?.subtitle, projectsCopy?.subtitle_vi, t("projects.subtitle"));
+  const featuredBadge = resolveSectionText(locale, projectsCopy?.featuredBadge, projectsCopy?.featuredBadge_vi, t("projects.featuredBadge"));
+  const viewAllLabel = resolveSectionText(locale, projectsCopy?.viewAll, projectsCopy?.viewAll_vi, t("projects.viewAll"));
+
   return (
     <section id="projects" className="relative pt-8 pb-56 overflow-hidden">
       {/* Background ambient lighting */}
       <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-radial from-cyan-500/5 via-transparent to-transparent pointer-events-none" />
 
       <div className="container mx-auto px-6 max-w-7xl">
-        <AnimatedSection>
-          <div className="text-center mb-16">
-            <span className="text-xs text-purple-400 light:text-purple-700 font-semibold tracking-widest uppercase mb-3 block">
-              {resolveSectionText(locale, projectsCopy?.badge, projectsCopy?.badge_vi, t("projects.badge"))}
-            </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-4 tracking-tight">
-              {resolveSectionText(locale, projectsCopy?.titlePrefix, projectsCopy?.titlePrefix_vi, t("projects.titlePrefix"))}
-              <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
-                {resolveSectionText(locale, projectsCopy?.titleHighlight, projectsCopy?.titleHighlight_vi, t("projects.titleHighlight"))}
-              </span>
-            </h2>
-            <p className="text-white/60 light:text-neutral-500 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-              {resolveSectionText(locale, projectsCopy?.subtitle, projectsCopy?.subtitle_vi, t("projects.subtitle"))}
-            </p>
-          </div>
-        </AnimatedSection>
+        {(badge || titlePrefix || titleHighlight || subtitle) && (
+          <AnimatedSection>
+            <div className="text-center mb-16">
+              {badge && (
+                <span className="text-xs text-purple-400 light:text-purple-700 font-semibold tracking-widest uppercase mb-3 block">
+                  {badge}
+                </span>
+              )}
+              {(titlePrefix || titleHighlight) && (
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-4 tracking-tight">
+                  {titlePrefix}
+                  {titleHighlight && (
+                    <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+                      {titleHighlight}
+                    </span>
+                  )}
+                </h2>
+              )}
+              {subtitle && (
+                <p className="text-white/60 light:text-neutral-500 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+                  {subtitle}
+                </p>
+              )}
+            </div>
+          </AnimatedSection>
+        )}
 
         {/* Compact 3-column Grid */}
         <motion.div
@@ -253,9 +275,9 @@ export default function ProjectsSection({ projects, siteConfig }: ProjectsSectio
                           <Icon name="rocket" size={32} />
                         </div>
                       )}
-                      {project.featured && (
+                      {project.featured && featuredBadge && (
                         <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 text-[11px] font-semibold text-white bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full shadow-md shadow-purple-500/30">
-                          {resolveSectionText(locale, projectsCopy?.featuredBadge, projectsCopy?.featuredBadge_vi, t("projects.featuredBadge"))}
+                          {featuredBadge}
                         </div>
                       )}
                     </div>
@@ -287,17 +309,19 @@ export default function ProjectsSection({ projects, siteConfig }: ProjectsSectio
         </motion.div>
 
         {/* View All Projects Button */}
-        <div className="mt-14 text-center">
-          <Link
-            href="/projects"
-            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold text-white light:text-neutral-900 bg-white/[0.06] light:bg-neutral-900/[0.05] hover:bg-white/[0.12] light:hover:bg-neutral-900/[0.08] border border-white/15 light:border-neutral-900/10 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
-          >
-            <span>{resolveSectionText(locale, projectsCopy?.viewAll, projectsCopy?.viewAll_vi, t("projects.viewAll"))}</span>
-            <span className="transition-transform duration-200 group-hover:translate-x-1">
-              <Icon name="arrowRight" size={16} />
-            </span>
-          </Link>
-        </div>
+        {viewAllLabel && (
+          <div className="mt-14 text-center">
+            <Link
+              href="/projects"
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold text-white light:text-neutral-900 bg-white/[0.06] light:bg-neutral-900/[0.05] hover:bg-white/[0.12] light:hover:bg-neutral-900/[0.08] border border-white/15 light:border-neutral-900/10 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+            >
+              <span>{viewAllLabel}</span>
+              <span className="transition-transform duration-200 group-hover:translate-x-1">
+                <Icon name="arrowRight" size={16} />
+              </span>
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Project Detail Modal */}

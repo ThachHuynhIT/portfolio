@@ -80,7 +80,7 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
         {/* Featured Slider Component */}
         <div className="relative max-w-5xl mx-auto">
           {/* Main Showcase Card */}
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 light:border-neutral-900/10 shadow-2xl light:shadow-neutral-400/20 bg-slate-950 aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/10] group">
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 light:border-neutral-900/10 shadow-2xl light:shadow-neutral-400/20 bg-slate-950 aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/10] group">
             {/* Image layer: every visited slide stays mounted and crossfades via opacity,
                 so revisits are instant and first visits keep the previous photo visible
                 (instead of flashing the dark container) while the new one loads. */}
@@ -110,8 +110,10 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
 
             {/* Hover-reveal detail overlay: darkening scrim + caption only appear on
                 hover so the photo shows clean by default (falls back to always-visible
-                on touch devices, where CSS hover isn't reliable). */}
-            <div className="absolute inset-0 z-20 transition-opacity duration-300 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
+                on touch devices, where CSS hover isn't reliable). Phones get the
+                caption below the photo instead (see further down): at that width the
+                overlay is taller than the photo and covered it completely. */}
+            <div className="hidden sm:block absolute inset-0 z-20 transition-opacity duration-300 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
               {/* Gradient Shadows for readability */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/50" />
@@ -172,18 +174,53 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
             <button
               onClick={prevSlide}
               aria-label="Previous photo"
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/50 hover:bg-black/80 text-white/80 hover:text-white border border-white/15 flex items-center justify-center backdrop-blur-md transition-all duration-200 z-30 shadow-lg active:scale-95"
+              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/50 hover:bg-black/80 text-white/80 hover:text-white border border-white/15 flex items-center justify-center backdrop-blur-md transition-all duration-200 z-30 shadow-lg active:scale-95"
             >
               <Icon name="arrowLeft" size={18} />
             </button>
             <button
               onClick={nextSlide}
               aria-label="Next photo"
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/50 hover:bg-black/80 text-white/80 hover:text-white border border-white/15 flex items-center justify-center backdrop-blur-md transition-all duration-200 z-30 shadow-lg active:scale-95"
+              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/50 hover:bg-black/80 text-white/80 hover:text-white border border-white/15 flex items-center justify-center backdrop-blur-md transition-all duration-200 z-30 shadow-lg active:scale-95"
             >
               <Icon name="arrowRight" size={18} />
             </button>
           </div>
+
+          {/* Phone caption: sits under the photo so it never covers it. */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentPhoto.id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="sm:hidden mt-4 px-1 space-y-1.5"
+            >
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-400 text-black">
+                  <Icon name="star" size={11} /> {t("photography.featured")}
+                </span>
+                {currentPhoto.category && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-white/10 light:bg-neutral-900/[0.06] text-white/80 light:text-neutral-700 border border-white/15 light:border-neutral-900/10">
+                    {currentPhoto.category}
+                  </span>
+                )}
+                <span className="ml-auto text-xs font-mono text-white/50 light:text-neutral-500">
+                  {currentIndex + 1} / {featuredPhotos.length}
+                </span>
+              </div>
+              <h3 className="text-lg font-extrabold text-white light:text-neutral-900 tracking-tight">{photoTitle}</h3>
+              {photoDesc && (
+                <p className="text-white/70 light:text-neutral-600 text-sm line-clamp-2 leading-relaxed">{photoDesc}</p>
+              )}
+              {photoLoc && (
+                <p className="text-cyan-400 light:text-cyan-700 text-xs flex items-center gap-1 font-medium">
+                  <Icon name="mapPin" size={12} /> {photoLoc}
+                </p>
+              )}
+            </motion.div>
+          </AnimatePresence>
 
           {/* Dot Indicators */}
           <div className="flex items-center justify-center gap-0.5 mt-5">
@@ -209,7 +246,7 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
 
           {/* Quick Preview Thumbnail Strip — single row, never wraps; scrolls
               horizontally instead of stacking into extra rows on narrow screens. */}
-          <div className="hidden sm:flex gap-2.5 lg:gap-3 mt-6 overflow-x-auto scrollbar-none">
+          <div className="hidden sm:flex gap-2.5 lg:gap-3 mt-4 px-1 py-2 overflow-x-auto overflow-y-hidden scrollbar-none">
             {featuredPhotos.slice(0, 6).map((photo, idx) => (
               <button
                 key={photo.id}

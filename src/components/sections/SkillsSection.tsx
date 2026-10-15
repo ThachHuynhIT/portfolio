@@ -6,7 +6,7 @@ import { AnimatedSection, Icon } from "@/components/ui";
 import { isKnownIconName } from "@/components/ui/Icon";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
-import { resolveSectionText } from "@/lib/content-overrides";
+import { resolveRequiredText, resolveSectionText } from "@/lib/content-overrides";
 import type { Skill, SiteConfig } from "@/lib/types";
 
 const categories = ["frontend", "backend", "tools", "design"] as const;
@@ -33,12 +33,18 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
   const publishedSkills = skills;
 
   const categoryLabel = (cat: (typeof categories)[number]) =>
-    resolveSectionText(
+    resolveRequiredText(
       locale,
       skillsCopy?.categories?.[cat],
       skillsCopy?.categories?.[`${cat}_vi`],
       t(`skills.categories.${cat}`)
     );
+
+  // Blank values (cleared in /admin/site-config) hide their element.
+  const badge = resolveSectionText(locale, skillsCopy?.badge, skillsCopy?.badge_vi, t("skills.badge"));
+  const titlePrefix = resolveSectionText(locale, skillsCopy?.titlePrefix, skillsCopy?.titlePrefix_vi, t("skills.titlePrefix"));
+  const titleHighlight = resolveSectionText(locale, skillsCopy?.titleHighlight, skillsCopy?.titleHighlight_vi, t("skills.titleHighlight"));
+  const subtitle = resolveSectionText(locale, skillsCopy?.subtitle, skillsCopy?.subtitle_vi, t("skills.subtitle"));
 
   const displayedCategories =
     selectedCategory === "all"
@@ -54,25 +60,35 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
 
       <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
         {/* ── Section Header ── */}
-        <AnimatedSection>
-          <div className="text-center mb-12">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/[0.04] light:bg-neutral-900/[0.04] text-cyan-400 light:text-cyan-700 border border-white/10 light:border-neutral-900/10 mb-4 backdrop-blur-md">
-              <Icon name="zap" size={14} />
-              <span>{resolveSectionText(locale, skillsCopy?.badge, skillsCopy?.badge_vi, t("skills.badge"))}</span>
-            </span>
+        {(badge || titlePrefix || titleHighlight || subtitle) && (
+          <AnimatedSection>
+            <div className="text-center mb-12">
+              {badge && (
+                <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/[0.04] light:bg-neutral-900/[0.04] text-cyan-400 light:text-cyan-700 border border-white/10 light:border-neutral-900/10 mb-4 backdrop-blur-md">
+                  <Icon name="zap" size={14} />
+                  <span>{badge}</span>
+                </span>
+              )}
 
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-5 tracking-tight">
-              {resolveSectionText(locale, skillsCopy?.titlePrefix, skillsCopy?.titlePrefix_vi, t("skills.titlePrefix"))}
-              <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
-                {resolveSectionText(locale, skillsCopy?.titleHighlight, skillsCopy?.titleHighlight_vi, t("skills.titleHighlight"))}
-              </span>
-            </h2>
+              {(titlePrefix || titleHighlight) && (
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-5 tracking-tight">
+                  {titlePrefix}
+                  {titleHighlight && (
+                    <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
+                      {titleHighlight}
+                    </span>
+                  )}
+                </h2>
+              )}
 
-            <p className="text-sm sm:text-base text-slate-300 light:text-neutral-600 max-w-2xl mx-auto font-light leading-relaxed">
-              {resolveSectionText(locale, skillsCopy?.subtitle, skillsCopy?.subtitle_vi, t("skills.subtitle"))}
-            </p>
-          </div>
-        </AnimatedSection>
+              {subtitle && (
+                <p className="text-sm sm:text-base text-slate-300 light:text-neutral-600 max-w-2xl mx-auto font-light leading-relaxed">
+                  {subtitle}
+                </p>
+              )}
+            </div>
+          </AnimatedSection>
+        )}
 
         {/* ── Category Filter Tabs ── */}
         <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
@@ -153,7 +169,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
               return (
                 <div
                   key={category}
-                  className="rounded-3xl bg-slate-900/50 light:bg-neutral-900/[0.03] border border-white/10 light:border-neutral-900/10 p-6 sm:p-7 backdrop-blur-md hover:border-white/20 light:hover:border-neutral-900/15 transition-all shadow-xl light:shadow-neutral-400/10 flex flex-col justify-between"
+                  className="rounded-3xl bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 p-6 sm:p-7 backdrop-blur-md hover:border-white/20 light:hover:border-neutral-900/15 transition-all shadow-xl light:shadow-neutral-400/10 flex flex-col justify-between"
                 >
                   {/* Category Card Header */}
                   <div className="flex items-center justify-between pb-5 mb-5 border-b border-white/10 light:border-neutral-900/10">
@@ -166,13 +182,8 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                           {categoryLabel(category)}
                         </h3>
                         <p className="text-xs text-slate-400 light:text-neutral-600">
-                          {categorySkills.length}{" "}
-                          {resolveSectionText(
-                            locale,
-                            skillsCopy?.badge,
-                            skillsCopy?.badge_vi,
-                            t("skills.badge")
-                          ).toLowerCase()}
+                          {categorySkills.length}
+                          {badge && ` ${badge.toLowerCase()}`}
                         </p>
                       </div>
                     </div>
