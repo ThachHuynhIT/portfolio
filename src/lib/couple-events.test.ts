@@ -60,3 +60,17 @@ describe("lunarLabel", () => {
     expect(lunarLabel({ date: "1970-08-15" })).toBeNull();
   });
 });
+
+describe("malformed event dates", () => {
+  for (const date of ["18/01/1995", "", "abc", "2001-13-45"]) {
+    for (const calendarType of ["solar", "lunar"] as const) {
+      it(`does not throw for "${date}" (${calendarType})`, () => {
+        const event = { date, calendarType };
+        expect(occurrencesInYear(event, 2026)).toEqual([]);
+        expect(occurrenceInYear(event, 2026)).toBeNull();
+        expect(nextOccurrence(event, "2026-10-15")).toBeNull();
+        expect(lunarLabel(event)).toBeNull();
+      });
+    }
+  }
+});

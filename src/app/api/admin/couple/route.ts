@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { requireAdminSession } from "@/lib/admin-auth";
+import { parseYmd } from "@/lib/ymd";
 import {
   getCoupleData,
   updateCoupleInfo,
@@ -34,6 +35,18 @@ import {
   reorderFavorites,
   type CoupleSection,
 } from "@/lib/content/couple";
+
+const INVALID_DATE_MESSAGE = "Ngày không hợp lệ, cần định dạng YYYY-MM-DD";
+
+function isValidYmd(value: unknown): boolean {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  try {
+    const { m, d } = parseYmd(value);
+    return m >= 1 && m <= 12 && d >= 1 && d <= 31;
+  } catch {
+    return false;
+  }
+}
 
 export async function GET() {
   const authError = await requireAdminSession();
@@ -90,26 +103,32 @@ export async function POST(req: NextRequest) {
         });
         break;
 
-      case "birthdays":
+      case "birthdays": {
+        const date = body.date || "2000-01-01";
+        if (!isValidYmd(date)) return NextResponse.json({ error: INVALID_DATE_MESSAGE }, { status: 400 });
         item = await createBirthday({
           name: body.name || "Người ấy",
-          date: body.date || "2000-01-01",
+          date,
           calendarType: body.calendarType === "lunar" ? "lunar" : "solar",
           emoji: body.emoji || "🎂",
           zodiac: body.zodiac || "✨",
           published: body.published !== undefined ? Boolean(body.published) : true,
         });
         break;
+      }
 
-      case "specialDates":
+      case "specialDates": {
+        const date = body.date || new Date().toISOString().split("T")[0];
+        if (!isValidYmd(date)) return NextResponse.json({ error: INVALID_DATE_MESSAGE }, { status: 400 });
         item = await createSpecialDate({
           name: body.name || "Ngày kỷ niệm",
-          date: body.date || new Date().toISOString().split("T")[0],
+          date,
           calendarType: body.calendarType === "lunar" ? "lunar" : "solar",
           emoji: body.emoji || "🎉",
           published: body.published !== undefined ? Boolean(body.published) : true,
         });
         break;
+      }
 
       case "bucketList":
         item = await createBucketItem({
@@ -214,6 +233,14 @@ export async function PUT(req: NextRequest) {
     const updates = { ...(body.item || body) };
     delete updates.section;
     delete updates.id;
+    if (section === "birthdays" || section === "specialDates") {
+      if (updates.date !== undefined && !isValidYmd(updates.date)) {
+        return NextResponse.json({ error: INVALID_DATE_MESSAGE }, { status: 400 });
+      }
+      if (updates.calendarType !== undefined) {
+        updates.calendarType = updates.calendarType === "lunar" ? "lunar" : "solar";
+      }
+    }
 
     let updated: unknown = null;
     switch (section) {

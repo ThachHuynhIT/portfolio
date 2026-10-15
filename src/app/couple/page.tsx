@@ -208,7 +208,9 @@ const SECTIONS: { id: SectionId; icon: string; title: string; subtitle: string }
 // ============================================================
 function getCountdown(event: { date: string; calendarType?: CalendarType }) {
   const now = new Date();
-  const next = parseYmd(nextOccurrence(event, todayYmd(now)));
+  const nextStr = nextOccurrence(event, todayYmd(now));
+  if (!nextStr) return null;
+  const next = parseYmd(nextStr);
   const targetDate = new Date(next.y, next.m - 1, next.d);
   const diff = targetDate.getTime() - now.getTime();
   const days = Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
@@ -217,10 +219,25 @@ function getCountdown(event: { date: string; calendarType?: CalendarType }) {
   return { days, hours, minutes, isPast: diff < 0, nextDate: next };
 }
 
+function formatSpecialDate(event: { date: string; calendarType?: CalendarType }): string {
+  if (event.calendarType === "lunar") {
+    const label = lunarLabel(event);
+    const next = nextOccurrence(event, todayYmd());
+    if (!next) return label ?? "—";
+    const { y, m, d } = parseYmd(next);
+    const solar = new Date(y, m - 1, d).toLocaleDateString("vi-VN", { day: "numeric", month: "long", year: "numeric" });
+    return label ? `${solar} (${label})` : solar;
+  }
+  const date = new Date(`${event.date}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("vi-VN", { day: "numeric", month: "long", year: "numeric" });
+}
+
 function getSpecialDateCountdown(event: { date: string; calendarType?: CalendarType }) {
   const today = todayYmd();
   // Lunar special dates repeat yearly by lunar date; solar ones stay one-off milestones.
   const target = event.calendarType === "lunar" ? nextOccurrence(event, today) : event.date;
+  if (!target || !/^\d{4}-\d{2}-\d{2}$/.test(target)) return "—";
   const days = daysBetween(today, target);
   if (days > 0) return `Còn ${days} ngày`;
   if (days === 0) return "Hôm nay! 🎉";
@@ -656,6 +673,7 @@ function BirthdaySection() {
       <div className={styles.birthdayGrid}>
         {data.birthdays.map((person, i) => {
           const countdown = getCountdown(person);
+          const label = lunarLabel(person);
           return (
             <motion.div
               key={person.name}
@@ -670,12 +688,15 @@ function BirthdaySection() {
                 {person.name} {person.zodiac}
               </div>
               <div className={styles.birthdayDate}>
-                {new Date(countdown.nextDate.y, countdown.nextDate.m - 1, countdown.nextDate.d).toLocaleDateString("vi-VN", {
-                  day: "numeric",
-                  month: "long",
-                })}
-                {lunarLabel(person) && <span> ({lunarLabel(person)})</span>}
+                {countdown
+                  ? new Date(countdown.nextDate.y, countdown.nextDate.m - 1, countdown.nextDate.d).toLocaleDateString("vi-VN", {
+                      day: "numeric",
+                      month: "long",
+                    })
+                  : "—"}
+                {label && <span> ({label})</span>}
               </div>
+              {countdown ? (
               <div className={styles.birthdayCountdown}>
                 <div className={styles.countdownItem}>
                   <div className={styles.countdownNumber}>{countdown.days}</div>
@@ -690,6 +711,9 @@ function BirthdaySection() {
                   <div className={styles.countdownLabel}>Phút</div>
                 </div>
               </div>
+              ) : (
+                <div className={styles.birthdayCountdown}>—</div>
+              )}
             </motion.div>
           );
         })}
@@ -720,13 +744,7 @@ function SpecialDatesSection() {
             <div className={styles.specialDateInfo}>
               <div className={styles.specialDateName}>{item.name}</div>
               <div className={styles.specialDateDate}>
-                {item.calendarType === "lunar"
-                  ? lunarLabel(item)
-                  : new Date(`${item.date}T00:00:00`).toLocaleDateString("vi-VN", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
+                {formatSpecialDate(item)}
               </div>
               <div className={styles.specialDateCountdown}>
                 {getSpecialDateCountdown(item)}
@@ -1042,7 +1060,7 @@ export default function CouplePage() {
       })
       .then((data: CoupleData) => {
         if (data && data.person1) {
-          setCoupleData(data);
+          setCoupleData({ ...data, workSchedules: data.workSchedules ?? [], workOverrides: data.workOverrides ?? [] });
         }
       })
       .catch((err) => console.log("Using default couple data", err))

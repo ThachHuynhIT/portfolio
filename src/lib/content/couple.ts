@@ -195,7 +195,7 @@ export const getPublishedCoupleData = unstable_cache(
       favorites: data.favorites.filter((f) => f.published !== false),
     };
   },
-  ["published-couple-data"],
+  ["published-couple-data-v2"],
   { tags: ["couple"] }
 );
 

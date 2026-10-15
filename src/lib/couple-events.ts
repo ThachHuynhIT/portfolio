@@ -10,9 +10,21 @@ function lunarInLunarYear(month: number, day: number, lunarYear: number): string
   return lunarToSolar({ day: Math.min(day, length), month, year: lunarYear, leap: false });
 }
 
+/** Month/day of an event date, or null when it is not a real YYYY-MM-DD. */
+function safeMonthDay(date: string): { m: number; d: number } | null {
+  try {
+    const { m, d } = parseYmd(date);
+    return m >= 1 && m <= 12 && d >= 1 && d <= 31 ? { m, d } : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Every solar date ("YYYY-MM-DD", sorted) on which a yearly event falls within `solarYear`. */
 export function occurrencesInYear(event: YearlyEvent, solarYear: number): string[] {
-  const { m, d } = parseYmd(event.date);
+  const md = safeMonthDay(event.date);
+  if (!md) return [];
+  const { m, d } = md;
   if (event.calendarType !== "lunar") {
     // 29/2 in a non-leap year → 28/2.
     const lastDay = new Date(Date.UTC(solarYear, m, 0)).getUTCDate();
@@ -31,17 +43,18 @@ export function occurrenceInYear(event: YearlyEvent, solarYear: number): string 
   return occurrencesInYear(event, solarYear)[0] ?? null;
 }
 
-export function nextOccurrence(event: YearlyEvent, from: string): string {
+/** Next solar date on/after `from`, or null when the event date is invalid. */
+export function nextOccurrence(event: YearlyEvent, from: string): string | null {
   const { y } = parseYmd(from);
   for (const year of [y, y + 1, y + 2]) {
     const date = occurrencesInYear(event, year).find((s) => s >= from);
     if (date) return date;
   }
-  throw new Error(`No occurrence found for ${event.date} after ${from}`);
+  return null;
 }
 
 export function lunarLabel(event: YearlyEvent): string | null {
   if (event.calendarType !== "lunar") return null;
-  const { m, d } = parseYmd(event.date);
-  return `${d}/${m} âm lịch`;
+  const md = safeMonthDay(event.date);
+  return md ? `${md.d}/${md.m} âm lịch` : null;
 }
