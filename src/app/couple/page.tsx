@@ -5,10 +5,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./couple.module.css";
-import type { CoupleData, CouplePhotoMemory } from "@/lib/types";
+import type { CalendarType, CoupleData, CouplePhotoMemory } from "@/lib/types";
+import { lunarLabel, nextOccurrence } from "@/lib/couple-events";
+import { daysBetween, parseYmd, todayYmd } from "@/lib/ymd";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import Icon from "@/components/ui/Icon";
+import CoupleCalendar from "@/components/couple/CoupleCalendar";
 
 // ============================================================
 // 📝 DỮ LIỆU MẶC ĐỊNH (Fallback khi chưa tải xong API)
@@ -159,6 +162,8 @@ const DEFAULT_COUPLE_DATA: CoupleData = {
       emoji: "💝",
     },
   ],
+  workSchedules: [],
+  workOverrides: [],
 };
 
 // ============================================================
@@ -181,6 +186,7 @@ type SectionId =
   | "photos"
   | "birthdays"
   | "specialDates"
+  | "calendar"
   | "memories"
   | "bucketList"
   | "loveLetters"
@@ -190,6 +196,7 @@ const SECTIONS: { id: SectionId; icon: string; title: string; subtitle: string }
   { id: "photos", icon: "camera", title: "Hình ảnh kỷ niệm", subtitle: "Khoảnh khắc yêu thương & kỷ niệm" },
   { id: "birthdays", icon: "cake", title: "Sinh nhật", subtitle: "Đếm ngược đến ngày đặc biệt" },
   { id: "specialDates", icon: "calendar", title: "Ngày đặc biệt", subtitle: "Những cột mốc quan trọng" },
+  { id: "calendar", icon: "calendar", title: "Lịch của chúng mình", subtitle: "Âm – dương & lịch đi làm" },
   { id: "memories", icon: "bookOpen", title: "Hành trình tình yêu", subtitle: "Những khoảnh khắc đáng nhớ" },
   { id: "bucketList", icon: "checkCircle", title: "Bucket List", subtitle: "Những điều muốn cùng làm" },
   { id: "loveLetters", icon: "mail", title: "Những lời yêu thương", subtitle: "Gửi gắm tình cảm" },
@@ -199,40 +206,39 @@ const SECTIONS: { id: SectionId; icon: string; title: string; subtitle: string }
 // ============================================================
 // 🔧 HELPERS
 // ============================================================
-function parseLocalDate(dateStr: string): Date {
-  const [year, month, day] = dateStr.split("-").map(Number);
-  return new Date(year, month - 1, day);
-}
-
-function startOfDay(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-function getCountdown(targetDateStr: string) {
+function getCountdown(event: { date: string; calendarType?: CalendarType }) {
   const now = new Date();
-  const today = startOfDay(now);
-  const [, month, day] = targetDateStr.split("-").map(Number);
-
-  let targetDate = new Date(now.getFullYear(), month - 1, day);
-  if (targetDate < today) {
-    targetDate = new Date(now.getFullYear() + 1, month - 1, day);
-  }
-
+  const nextStr = nextOccurrence(event, todayYmd(now));
+  if (!nextStr) return null;
+  const next = parseYmd(nextStr);
+  const targetDate = new Date(next.y, next.m - 1, next.d);
   const diff = targetDate.getTime() - now.getTime();
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-  return { days, hours, minutes, isPast: diff < 0 };
+  const days = Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+  const hours = Math.max(0, Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+  const minutes = Math.max(0, Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)));
+  return { days, hours, minutes, isPast: diff < 0, nextDate: next };
 }
 
-function getSpecialDateCountdown(dateStr: string) {
-  const now = new Date();
-  const today = startOfDay(now);
-  const target = parseLocalDate(dateStr);
+function formatSpecialDate(event: { date: string; calendarType?: CalendarType }): string {
+  if (event.calendarType === "lunar") {
+    const label = lunarLabel(event);
+    const next = nextOccurrence(event, todayYmd());
+    if (!next) return label ?? "—";
+    const { y, m, d } = parseYmd(next);
+    const solar = new Date(y, m - 1, d).toLocaleDateString("vi-VN", { day: "numeric", month: "long", year: "numeric" });
+    return label ? `${solar} (${label})` : solar;
+  }
+  const date = new Date(`${event.date}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("vi-VN", { day: "numeric", month: "long", year: "numeric" });
+}
 
-  const days = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
+function getSpecialDateCountdown(event: { date: string; calendarType?: CalendarType }) {
+  const today = todayYmd();
+  // Lunar special dates repeat yearly by lunar date; solar ones stay one-off milestones.
+  const target = event.calendarType === "lunar" ? nextOccurrence(event, today) : event.date;
+  if (!target || !/^\d{4}-\d{2}-\d{2}$/.test(target)) return "—";
+  const days = daysBetween(today, target);
   if (days > 0) return `Còn ${days} ngày`;
   if (days === 0) return "Hôm nay! 🎉";
   return "Đã qua rồi 💫";
@@ -666,7 +672,8 @@ function BirthdaySection() {
       <SectionHeader icon="cake" title="Sinh nhật" subtitle="Đếm ngược đến ngày đặc biệt" />
       <div className={styles.birthdayGrid}>
         {data.birthdays.map((person, i) => {
-          const countdown = getCountdown(person.date);
+          const countdown = getCountdown(person);
+          const label = lunarLabel(person);
           return (
             <motion.div
               key={person.name}
@@ -681,11 +688,15 @@ function BirthdaySection() {
                 {person.name} {person.zodiac}
               </div>
               <div className={styles.birthdayDate}>
-                {new Date(person.date).toLocaleDateString("vi-VN", {
-                  day: "numeric",
-                  month: "long",
-                })}
+                {countdown
+                  ? new Date(countdown.nextDate.y, countdown.nextDate.m - 1, countdown.nextDate.d).toLocaleDateString("vi-VN", {
+                      day: "numeric",
+                      month: "long",
+                    })
+                  : "—"}
+                {label && <span> ({label})</span>}
               </div>
+              {countdown ? (
               <div className={styles.birthdayCountdown}>
                 <div className={styles.countdownItem}>
                   <div className={styles.countdownNumber}>{countdown.days}</div>
@@ -700,6 +711,9 @@ function BirthdaySection() {
                   <div className={styles.countdownLabel}>Phút</div>
                 </div>
               </div>
+              ) : (
+                <div className={styles.birthdayCountdown}>—</div>
+              )}
             </motion.div>
           );
         })}
@@ -730,19 +744,28 @@ function SpecialDatesSection() {
             <div className={styles.specialDateInfo}>
               <div className={styles.specialDateName}>{item.name}</div>
               <div className={styles.specialDateDate}>
-                {new Date(item.date).toLocaleDateString("vi-VN", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
+                {formatSpecialDate(item)}
               </div>
               <div className={styles.specialDateCountdown}>
-                {getSpecialDateCountdown(item.date)}
+                {getSpecialDateCountdown(item)}
               </div>
             </div>
           </motion.div>
         ))}
       </div>
+    </section>
+  );
+}
+
+// ============================================================
+// 🗓️ CALENDAR SECTION
+// ============================================================
+function CalendarSection() {
+  const { data } = useCouple();
+  return (
+    <section className={styles.section}>
+      <SectionHeader icon="calendar" title="Lịch của chúng mình" subtitle="Âm – dương & lịch đi làm" />
+      <CoupleCalendar data={data} />
     </section>
   );
 }
@@ -1015,6 +1038,7 @@ const SECTION_COMPONENTS: Record<SectionId, React.ComponentType> = {
   photos: PhotosSection,
   birthdays: BirthdaySection,
   specialDates: SpecialDatesSection,
+  calendar: CalendarSection,
   memories: MemoryTimeline,
   bucketList: BucketListSection,
   loveLetters: LoveLettersSection,
@@ -1036,7 +1060,7 @@ export default function CouplePage() {
       })
       .then((data: CoupleData) => {
         if (data && data.person1) {
-          setCoupleData(data);
+          setCoupleData({ ...data, workSchedules: data.workSchedules ?? [], workOverrides: data.workOverrides ?? [] });
         }
       })
       .catch((err) => console.log("Using default couple data", err))

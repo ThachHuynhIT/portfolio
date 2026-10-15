@@ -24,6 +24,8 @@ export async function GET() {
         bucketList: [],
         loveLetters: [],
         favorites: [],
+        workSchedules: [],
+        workOverrides: [],
       },
       { status: 500 }
     );
