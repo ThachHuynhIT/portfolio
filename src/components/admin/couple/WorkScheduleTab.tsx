@@ -7,7 +7,7 @@ import { z } from "zod";
 import FormField from "@/components/admin/FormField";
 import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
-import { workOverrideSchema } from "@/lib/couple-schedule-schema";
+import { personFormSchema, workOverrideSchema } from "@/lib/couple-schedule-schema";
 import { getWorkStatus, type WorkSchedule } from "@/lib/work-schedule";
 import { addDays, isoWeekday, parseYmd, todayYmd } from "@/lib/ymd";
 import type { CoupleData, CoupleWorkOverride } from "@/lib/types";
@@ -21,23 +21,6 @@ const WEEKDAYS = [
 
 // The form edits one flat record per person; it's converted to the API's
 // discriminated union on submit so switching type never loses typed values.
-const personFormSchema = z
-  .object({
-    enabled: z.boolean(),
-    type: z.enum(["rotation", "office"]),
-    startDate: z.string(),
-    workDays: z.number({ error: "Nhập số từ 1 đến 30" }).int().min(1, "Ít nhất 1").max(30),
-    offDays: z.number({ error: "Nhập số từ 1 đến 30" }).int().min(1, "Ít nhất 1").max(30),
-    weekdays: z.array(z.number().int().min(1).max(7)),
-  })
-  .superRefine((v, ctx) => {
-    if (v.type === "rotation" && !/^\d{4}-\d{2}-\d{2}$/.test(v.startDate)) {
-      ctx.addIssue({ code: "custom", path: ["startDate"], message: "Chọn ngày bắt đầu" });
-    }
-    if (v.type === "office" && v.weekdays.length === 0) {
-      ctx.addIssue({ code: "custom", path: ["weekdays"], message: "Chọn ít nhất 1 thứ" });
-    }
-  });
 const formSchema = z.object({ p1: personFormSchema, p2: personFormSchema });
 type FormValues = z.infer<typeof formSchema>;
 type PersonForm = FormValues["p1"];

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-const ymd = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ngày phải có dạng YYYY-MM-DD");
+const ymdPattern = /^\d{4}-\d{2}-\d{2}$/;
+const ymd = z.string().regex(ymdPattern, "Ngày phải có dạng YYYY-MM-DD");
 const person = z.union([z.literal(1), z.literal(2)]);
 
 export const workScheduleSchema = z.discriminatedUnion("type", [
@@ -33,3 +34,31 @@ export const workOverrideSchema = z.object({
     .optional()
     .transform((v) => (v ? v : undefined)),
 });
+
+// Flat per-person record edited by the admin form. Fields that belong to the
+// other schedule type are ignored, so a hidden field can never block submit.
+const cycleDays = z.union([z.number(), z.nan()]);
+export const personFormSchema = z
+  .object({
+    enabled: z.boolean(),
+    type: z.enum(["rotation", "office"]),
+    startDate: z.string(),
+    workDays: cycleDays,
+    offDays: cycleDays,
+    weekdays: z.array(z.number().int().min(1).max(7)),
+  })
+  .superRefine((v, ctx) => {
+    if (v.type === "rotation") {
+      if (!ymdPattern.test(v.startDate)) {
+        ctx.addIssue({ code: "custom", path: ["startDate"], message: "Chọn ngày bắt đầu" });
+      }
+      for (const key of ["workDays", "offDays"] as const) {
+        const n = v[key];
+        if (!Number.isInteger(n) || n < 1 || n > 30) {
+          ctx.addIssue({ code: "custom", path: [key], message: "Nhập số nguyên từ 1 đến 30" });
+        }
+      }
+    } else if (v.weekdays.length === 0) {
+      ctx.addIssue({ code: "custom", path: ["weekdays"], message: "Chọn ít nhất 1 thứ" });
+    }
+  });

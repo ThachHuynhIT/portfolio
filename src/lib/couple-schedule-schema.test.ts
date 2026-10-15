@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { workOverrideSchema, workScheduleSchema } from "./couple-schedule-schema";
+import { personFormSchema, workOverrideSchema, workScheduleSchema } from "./couple-schedule-schema";
 
 describe("workScheduleSchema", () => {
   it("accepts a rotation", () => {
@@ -24,5 +24,22 @@ describe("workOverrideSchema", () => {
   });
   it("rejects person 3", () => {
     expect(workOverrideSchema.safeParse({ person: 3, date: "2026-10-20", status: "off" }).success).toBe(false);
+  });
+});
+
+describe("personFormSchema", () => {
+  const base = { enabled: true, startDate: "2026-10-15", workDays: 1, offDays: 2, weekdays: [1, 2] };
+  it("ignores cleared cycle days when type is office", () => {
+    expect(personFormSchema.safeParse({ ...base, type: "office", workDays: NaN, offDays: NaN }).success).toBe(true);
+  });
+  it("ignores empty weekdays when type is rotation", () => {
+    expect(personFormSchema.safeParse({ ...base, type: "rotation", weekdays: [] }).success).toBe(true);
+  });
+  it("rejects rotation with 0 or NaN days", () => {
+    expect(personFormSchema.safeParse({ ...base, type: "rotation", workDays: 0 }).success).toBe(false);
+    expect(personFormSchema.safeParse({ ...base, type: "rotation", offDays: NaN }).success).toBe(false);
+  });
+  it("rejects office with no weekdays", () => {
+    expect(personFormSchema.safeParse({ ...base, type: "office", weekdays: [] }).success).toBe(false);
   });
 });
