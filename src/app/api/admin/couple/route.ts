@@ -94,6 +94,7 @@ export async function POST(req: NextRequest) {
         item = await createBirthday({
           name: body.name || "Người ấy",
           date: body.date || "2000-01-01",
+          calendarType: body.calendarType === "lunar" ? "lunar" : "solar",
           emoji: body.emoji || "🎂",
           zodiac: body.zodiac || "✨",
           published: body.published !== undefined ? Boolean(body.published) : true,
@@ -104,6 +105,7 @@ export async function POST(req: NextRequest) {
         item = await createSpecialDate({
           name: body.name || "Ngày kỷ niệm",
           date: body.date || new Date().toISOString().split("T")[0],
+          calendarType: body.calendarType === "lunar" ? "lunar" : "solar",
           emoji: body.emoji || "🎉",
           published: body.published !== undefined ? Boolean(body.published) : true,
         });

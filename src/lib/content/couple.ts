@@ -10,6 +10,9 @@ import type {
   CoupleBucketItem,
   CoupleLoveLetter,
   CoupleFavorite,
+  CalendarType,
+  CoupleWorkSchedule,
+  CoupleWorkOverride,
 } from "@/lib/types";
 import type {
   CmsCoupleBirthday,
@@ -19,6 +22,8 @@ import type {
   CmsCoupleBucketItem,
   CmsCoupleLoveLetter,
   CmsCoupleFavorite,
+  CmsCoupleWorkSchedule,
+  CmsCoupleWorkOverride,
 } from "@/generated/prisma";
 
 const SINGLETON_ID = "singleton";
@@ -50,10 +55,13 @@ export type CoupleSection =
 // Mappers
 // ---------------------------------------------------------------------------
 
+const toCalendarType = (v: string): CalendarType => (v === "lunar" ? "lunar" : "solar");
+
 const toBirthday = (r: CmsCoupleBirthday): CoupleBirthday => ({
   id: r.id,
   name: r.name,
   date: r.date,
+  calendarType: toCalendarType(r.calendarType),
   emoji: r.emoji,
   zodiac: r.zodiac,
   published: r.published,
@@ -63,6 +71,7 @@ const toSpecialDate = (r: CmsCoupleSpecialDate): CoupleSpecialDate => ({
   id: r.id,
   name: r.name,
   date: r.date,
+  calendarType: toCalendarType(r.calendarType),
   emoji: r.emoji,
   published: r.published,
 });
@@ -115,13 +124,35 @@ const toFavorite = (r: CmsCoupleFavorite): CoupleFavorite => ({
   published: r.published,
 });
 
+const toPerson = (n: number): 1 | 2 => (n === 2 ? 2 : 1);
+
+const toWorkSchedule = (r: CmsCoupleWorkSchedule): CoupleWorkSchedule =>
+  r.type === "rotation"
+    ? {
+        person: toPerson(r.person),
+        type: "rotation",
+        enabled: r.enabled,
+        startDate: r.startDate ?? "1970-01-01",
+        workDays: r.workDays ?? 1,
+        offDays: r.offDays ?? 1,
+      }
+    : { person: toPerson(r.person), type: "office", enabled: r.enabled, weekdays: r.weekdays };
+
+const toWorkOverride = (r: CmsCoupleWorkOverride): CoupleWorkOverride => ({
+  id: r.id,
+  person: toPerson(r.person),
+  date: r.date,
+  status: r.status === "work" ? "work" : "off",
+  note: r.note ?? undefined,
+});
+
 // ---------------------------------------------------------------------------
 // Aggregate read
 // ---------------------------------------------------------------------------
 
 export async function getCoupleData(): Promise<CoupleData> {
   const info = await ensureCoupleInfo();
-  const [birthdays, specialDates, memories, photos, bucketList, loveLetters, favorites] = await Promise.all([
+  const [birthdays, specialDates, memories, photos, bucketList, loveLetters, favorites, workSchedules, workOverrides] = await Promise.all([
     db.cmsCoupleBirthday.findMany({ where: { coupleInfoId: SINGLETON_ID }, orderBy: { order: "asc" } }),
     db.cmsCoupleSpecialDate.findMany({ where: { coupleInfoId: SINGLETON_ID }, orderBy: { order: "asc" } }),
     db.cmsCoupleMemory.findMany({ where: { coupleInfoId: SINGLETON_ID }, orderBy: { order: "asc" } }),
@@ -129,6 +160,8 @@ export async function getCoupleData(): Promise<CoupleData> {
     db.cmsCoupleBucketItem.findMany({ where: { coupleInfoId: SINGLETON_ID }, orderBy: { order: "asc" } }),
     db.cmsCoupleLoveLetter.findMany({ where: { coupleInfoId: SINGLETON_ID }, orderBy: { order: "asc" } }),
     db.cmsCoupleFavorite.findMany({ where: { coupleInfoId: SINGLETON_ID }, orderBy: { order: "asc" } }),
+    db.cmsCoupleWorkSchedule.findMany({ where: { coupleInfoId: SINGLETON_ID }, orderBy: { person: "asc" } }),
+    db.cmsCoupleWorkOverride.findMany({ where: { coupleInfoId: SINGLETON_ID }, orderBy: { date: "asc" } }),
   ]);
 
   return {
@@ -143,6 +176,8 @@ export async function getCoupleData(): Promise<CoupleData> {
     bucketList: bucketList.map(toBucketItem),
     loveLetters: loveLetters.map(toLoveLetter),
     favorites: favorites.map(toFavorite),
+    workSchedules: workSchedules.map(toWorkSchedule),
+    workOverrides: workOverrides.map(toWorkOverride),
   };
 }
 
@@ -410,4 +445,54 @@ export async function reorderFavorites(items: CoupleFavorite[]): Promise<void> {
   await db.$transaction(
     items.map((item, index) => db.cmsCoupleFavorite.update({ where: { id: item.id! }, data: { order: index } }))
   );
+}
+
+// ---------------------------------------------------------------------------
+// Work schedules (one row per person) and per-day overrides
+// ---------------------------------------------------------------------------
+
+export async function getWorkSchedules(): Promise<CoupleWorkSchedule[]> {
+  const rows = await db.cmsCoupleWorkSchedule.findMany({
+    where: { coupleInfoId: SINGLETON_ID },
+    orderBy: { person: "asc" },
+  });
+  return rows.map(toWorkSchedule);
+}
+
+export async function saveWorkSchedules(items: CoupleWorkSchedule[]): Promise<CoupleWorkSchedule[]> {
+  await ensureCoupleInfo();
+  await db.$transaction(
+    items.map((item) => {
+      const data =
+        item.type === "rotation"
+          ? { enabled: item.enabled, type: "rotation", startDate: item.startDate, workDays: item.workDays, offDays: item.offDays, weekdays: [] }
+          : { enabled: item.enabled, type: "office", startDate: null, workDays: null, offDays: null, weekdays: item.weekdays };
+      return db.cmsCoupleWorkSchedule.upsert({
+        where: { coupleInfoId_person: { coupleInfoId: SINGLETON_ID, person: item.person } },
+        create: { coupleInfoId: SINGLETON_ID, person: item.person, ...data },
+        update: data,
+      });
+    })
+  );
+  return getWorkSchedules();
+}
+
+export async function upsertWorkOverride(input: Omit<CoupleWorkOverride, "id">): Promise<CoupleWorkOverride> {
+  await ensureCoupleInfo();
+  const data = { status: input.status, note: input.note || null };
+  const row = await db.cmsCoupleWorkOverride.upsert({
+    where: { coupleInfoId_person_date: { coupleInfoId: SINGLETON_ID, person: input.person, date: input.date } },
+    create: { coupleInfoId: SINGLETON_ID, person: input.person, date: input.date, ...data },
+    update: data,
+  });
+  return toWorkOverride(row);
+}
+
+export async function deleteWorkOverride(id: string): Promise<boolean> {
+  try {
+    await db.cmsCoupleWorkOverride.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
 }

@@ -159,6 +159,8 @@ const DEFAULT_COUPLE_DATA: CoupleData = {
       emoji: "💝",
     },
   ],
+  workSchedules: [],
+  workOverrides: [],
 };
 
 // ============================================================

@@ -306,6 +306,8 @@ model CmsCoupleInfo {
   bucketList   CmsCoupleBucketItem[]
   loveLetters  CmsCoupleLoveLetter[]
   favorites    CmsCoupleFavorite[]
+  workSchedules CmsCoupleWorkSchedule[]
+  workOverrides CmsCoupleWorkOverride[]
 
   updatedAt DateTime @updatedAt
 
@@ -318,6 +320,7 @@ model CmsCoupleBirthday {
   coupleInfoId String        @default("singleton")
   name         String
   date         String
+  calendarType String        @default("solar") // "solar" | "lunar"; lunar = month-day of `date` is lunar
   emoji        String
   zodiac       String
   published    Boolean       @default(true)
@@ -332,11 +335,41 @@ model CmsCoupleSpecialDate {
   coupleInfoId String        @default("singleton")
   name         String
   date         String
+  calendarType String        @default("solar") // "solar" | "lunar"; lunar = month-day of `date` is lunar
   emoji        String
   published    Boolean       @default(true)
   order        Int           @default(0)
 
   @@map("cms_couple_special_dates")
+}
+
+model CmsCoupleWorkSchedule {
+  id           String        @id @default(cuid())
+  coupleInfo   CmsCoupleInfo @relation(fields: [coupleInfoId], references: [id], onDelete: Cascade)
+  coupleInfoId String        @default("singleton")
+  person       Int // 1 | 2
+  enabled      Boolean       @default(true)
+  type         String // "rotation" | "office"
+  startDate    String? // rotation: first work day, "YYYY-MM-DD"
+  workDays     Int?
+  offDays      Int?
+  weekdays     Int[] // office: 1 = Monday … 7 = Sunday
+
+  @@unique([coupleInfoId, person])
+  @@map("cms_couple_work_schedules")
+}
+
+model CmsCoupleWorkOverride {
+  id           String        @id @default(cuid())
+  coupleInfo   CmsCoupleInfo @relation(fields: [coupleInfoId], references: [id], onDelete: Cascade)
+  coupleInfoId String        @default("singleton")
+  person       Int // 1 | 2
+  date         String // "YYYY-MM-DD"
+  status       String // "work" | "off"
+  note         String?
+
+  @@unique([coupleInfoId, person, date])
+  @@map("cms_couple_work_overrides")
 }
 
 model CmsCoupleMemory {
