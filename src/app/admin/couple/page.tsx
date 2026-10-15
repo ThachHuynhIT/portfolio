@@ -24,6 +24,7 @@ import type {
 } from "@/lib/types";
 import { occurrenceInYear } from "@/lib/couple-events";
 import { parseYmd, todayYmd } from "@/lib/ymd";
+import WorkScheduleTab from "@/components/admin/couple/WorkScheduleTab";
 
 type TabId =
   | "photos"
@@ -32,6 +33,7 @@ type TabId =
   | "bucketList"
   | "loveLetters"
   | "favorites"
+  | "workSchedule"
   | "info";
 
 const POPULAR_PHOTO_CATEGORIES = ["Du lịch", "Hẹn hò", "Kỷ niệm", "Đời thường", "Ăn uống", "Đặc biệt"];
@@ -859,6 +861,17 @@ export default function CoupleAdminPage() {
         </button>
 
         <button
+          onClick={() => setActiveTab("workSchedule")}
+          className={`pb-3 px-3.5 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === "workSchedule"
+              ? "text-pink-400 border-b-2 border-pink-400"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <span className="inline-flex items-center gap-1"><Icon name="calendar" size={13} /> Lịch làm</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab("info")}
           className={`pb-3 px-3.5 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
             activeTab === "info"
@@ -872,6 +885,8 @@ export default function CoupleAdminPage() {
 
       {loading ? (
         <div className="py-24 text-center text-slate-500">{t.admin.common.loading}</div>
+      ) : activeTab === "workSchedule" && data ? (
+        <WorkScheduleTab key={JSON.stringify(data.workSchedules)} data={data} onChanged={() => fetchData(false)} />
       ) : activeTab === "photos" ? (
         /* ═════════════════ 1. TAB ẢNH KỶ NIỆM ═════════════════ */
         <div className="space-y-6">
