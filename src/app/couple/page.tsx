@@ -5,7 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./couple.module.css";
-import type { CoupleData, CouplePhotoMemory } from "@/lib/types";
+import type { CalendarType, CoupleData, CouplePhotoMemory } from "@/lib/types";
+import { lunarLabel, nextOccurrence } from "@/lib/couple-events";
+import { daysBetween, parseYmd, todayYmd } from "@/lib/ymd";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import Icon from "@/components/ui/Icon";
@@ -204,40 +206,22 @@ const SECTIONS: { id: SectionId; icon: string; title: string; subtitle: string }
 // ============================================================
 // 🔧 HELPERS
 // ============================================================
-function parseLocalDate(dateStr: string): Date {
-  const [year, month, day] = dateStr.split("-").map(Number);
-  return new Date(year, month - 1, day);
-}
-
-function startOfDay(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-function getCountdown(targetDateStr: string) {
+function getCountdown(event: { date: string; calendarType?: CalendarType }) {
   const now = new Date();
-  const today = startOfDay(now);
-  const [, month, day] = targetDateStr.split("-").map(Number);
-
-  let targetDate = new Date(now.getFullYear(), month - 1, day);
-  if (targetDate < today) {
-    targetDate = new Date(now.getFullYear() + 1, month - 1, day);
-  }
-
+  const next = parseYmd(nextOccurrence(event, todayYmd(now)));
+  const targetDate = new Date(next.y, next.m - 1, next.d);
   const diff = targetDate.getTime() - now.getTime();
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-  return { days, hours, minutes, isPast: diff < 0 };
+  const days = Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+  const hours = Math.max(0, Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+  const minutes = Math.max(0, Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)));
+  return { days, hours, minutes, isPast: diff < 0, nextDate: next };
 }
 
-function getSpecialDateCountdown(dateStr: string) {
-  const now = new Date();
-  const today = startOfDay(now);
-  const target = parseLocalDate(dateStr);
-
-  const days = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
+function getSpecialDateCountdown(event: { date: string; calendarType?: CalendarType }) {
+  const today = todayYmd();
+  // Lunar special dates repeat yearly by lunar date; solar ones stay one-off milestones.
+  const target = event.calendarType === "lunar" ? nextOccurrence(event, today) : event.date;
+  const days = daysBetween(today, target);
   if (days > 0) return `Còn ${days} ngày`;
   if (days === 0) return "Hôm nay! 🎉";
   return "Đã qua rồi 💫";
@@ -671,7 +655,7 @@ function BirthdaySection() {
       <SectionHeader icon="cake" title="Sinh nhật" subtitle="Đếm ngược đến ngày đặc biệt" />
       <div className={styles.birthdayGrid}>
         {data.birthdays.map((person, i) => {
-          const countdown = getCountdown(person.date);
+          const countdown = getCountdown(person);
           return (
             <motion.div
               key={person.name}
@@ -686,10 +670,11 @@ function BirthdaySection() {
                 {person.name} {person.zodiac}
               </div>
               <div className={styles.birthdayDate}>
-                {new Date(person.date).toLocaleDateString("vi-VN", {
+                {new Date(countdown.nextDate.y, countdown.nextDate.m - 1, countdown.nextDate.d).toLocaleDateString("vi-VN", {
                   day: "numeric",
                   month: "long",
                 })}
+                {lunarLabel(person) && <span> ({lunarLabel(person)})</span>}
               </div>
               <div className={styles.birthdayCountdown}>
                 <div className={styles.countdownItem}>
@@ -735,14 +720,16 @@ function SpecialDatesSection() {
             <div className={styles.specialDateInfo}>
               <div className={styles.specialDateName}>{item.name}</div>
               <div className={styles.specialDateDate}>
-                {new Date(item.date).toLocaleDateString("vi-VN", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
+                {item.calendarType === "lunar"
+                  ? lunarLabel(item)
+                  : new Date(`${item.date}T00:00:00`).toLocaleDateString("vi-VN", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
               </div>
               <div className={styles.specialDateCountdown}>
-                {getSpecialDateCountdown(item.date)}
+                {getSpecialDateCountdown(item)}
               </div>
             </div>
           </motion.div>
