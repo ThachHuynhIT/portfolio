@@ -7,6 +7,8 @@ import { useTranslation } from "@/context/LanguageContext";
 import { resolveSectionText, resolveStatValue } from "@/lib/content-overrides";
 import { ABOUT_STAT_DEFS } from "@/lib/section-defaults";
 import type { SiteConfig } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { brand, gap, text } from "@/lib/design-tokens";
 
 export interface AboutSectionProps {
   siteConfig: SiteConfig;
@@ -53,10 +55,10 @@ export default function AboutSection({ siteConfig }: AboutSectionProps) {
                 </span>
               )}
               {(titlePrefix || titleHighlight) && (
-                <h2 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">
+                <h2 className={cn("text-4xl md:text-5xl font-bold", text.primary, "mb-6")}>
                   {titlePrefix}
                   {titleHighlight && (
-                    <span className="bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent">
+                    <span className={cn(brand.gradient, "bg-clip-text text-transparent")}>
                       {titleHighlight}
                     </span>
                   )}
@@ -72,7 +74,7 @@ export default function AboutSection({ siteConfig }: AboutSectionProps) {
             <AnimatedSection>
               <GlassCard className="p-8">
                 {role && (
-                  <h3 className="text-2xl font-semibold text-white light:text-neutral-900 mb-6">{role}</h3>
+                  <h3 className={cn("text-2xl font-semibold", text.primary, "mb-6")}>{role}</h3>
                 )}
                 {bioParagraphs.length > 0 && (
                   <div className="space-y-4 text-white/70 light:text-neutral-600 leading-relaxed">
@@ -92,13 +94,13 @@ export default function AboutSection({ siteConfig }: AboutSectionProps) {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="grid grid-cols-2 gap-4"
+              className={cn("grid grid-cols-2", gap.loose)}
             >
               {stats.map((stat) => (
                 <motion.div key={stat.key} variants={fadeInUp}>
                   <GlassCard className="text-center p-6 h-full">
                     {stat.value && (
-                      <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent mb-2">
+                      <div className={cn("text-4xl md:text-5xl font-bold", brand.gradient, "bg-clip-text text-transparent mb-2")}>
                         {stat.value}
                       </div>
                     )}

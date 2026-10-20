@@ -13,6 +13,8 @@ import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
 import type { Project } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { border, gap, motion, radius, surface, text } from "@/lib/design-tokens";
 
 export default function ProjectsAdminPage() {
   const router = useRouter();
@@ -213,7 +215,7 @@ export default function ProjectsAdminPage() {
         action={
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl font-medium text-sm transition-all shadow-lg shadow-purple-500/20 active:scale-95 cursor-pointer"
+            className={cn("flex items-center", gap.tight, "px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500", text.primaryDark, radius.control, "font-medium text-sm transition-all shadow-lg shadow-purple-500/20", motion.press, "cursor-pointer")}
           >
             <span>+ {t("admin.projects.addProject", "Add Project")}</span>
           </button>
@@ -221,7 +223,7 @@ export default function ProjectsAdminPage() {
       />
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 mb-6">
+      <div className={cn("flex items-center", gap.tight, "mb-6")}>
         {(["all", "published", "draft"] as const).map((filter) => (
           <button
             key={filter}
@@ -242,14 +244,14 @@ export default function ProjectsAdminPage() {
       </div>
 
       {/* Project Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className={cn("grid grid-cols-1 md:grid-cols-2", gap.grid)}>
         {filteredProjects.map((project) => (
           <div
             key={project.id}
-            className="flex flex-col justify-between p-5 rounded-2xl bg-gray-900/50 border border-gray-800 hover:border-gray-700 transition-all group"
+            className={cn("flex flex-col justify-between p-5", radius.card, "bg-gray-900/50 border border-gray-800 hover:border-gray-700 transition-all group")}
           >
             <div>
-              <div className="relative h-48 w-full rounded-xl overflow-hidden mb-4 bg-gray-800">
+              <div className={cn("relative h-48 w-full", radius.control, "overflow-hidden mb-4 bg-gray-800")}>
                 <img
                   src={project.image}
                   alt={project.title}
@@ -260,9 +262,9 @@ export default function ProjectsAdminPage() {
                 />
               </div>
 
-              <div className="flex items-start justify-between gap-2 mb-2">
+              <div className={cn("flex items-start justify-between", gap.tight, "mb-2")}>
                 <div>
-                  <h3 className="text-lg font-bold text-white">{project.title}</h3>
+                  <h3 className={cn("text-lg font-bold", text.primaryDark)}>{project.title}</h3>
                   {project.title_vi && (
                     <p className="text-xs text-purple-300/80 font-medium">🇻🇳 {project.title_vi}</p>
                   )}
@@ -270,7 +272,7 @@ export default function ProjectsAdminPage() {
 
                 <div className="flex items-center gap-1.5 flex-wrap justify-end">
                   {/* Language Badges (WordPress-style) */}
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/5 border border-white/8 text-[11px]">
+                  <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-md", surface.cardDark, "border border-white/8 text-[11px]")}>
                     <FlagIcon locale="en" width={14} height={9} />
                     <span className="text-slate-300 font-mono text-[10px]">EN</span>
                   </span>
@@ -308,7 +310,7 @@ export default function ProjectsAdminPage() {
                   </button>
 
                   {project.featured && (
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                    <span className={cn("px-2.5 py-0.5", radius.pill, "text-xs font-semibold bg-purple-500/20 text-purple-400 border border-purple-500/30")}>
                       {t("admin.common.featured", "Featured")}
                     </span>
                   )}
@@ -332,7 +334,7 @@ export default function ProjectsAdminPage() {
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t border-gray-800">
-              <div className="flex gap-3 text-xs text-gray-500">
+              <div className={cn("flex", gap.base, "text-xs text-gray-500")}>
                 {project.liveUrl && (
                   <span className="inline-flex items-center gap-1">
                     Demo <Icon name="checkCircle" size={11} className="text-emerald-400" />
@@ -345,16 +347,16 @@ export default function ProjectsAdminPage() {
                 )}
               </div>
 
-              <div className="flex gap-2">
+              <div className={cn("flex", gap.tight)}>
                 <button
                   onClick={() => openEditModal(project)}
-                  className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg text-xs font-medium transition-all cursor-pointer"
+                  className={cn("px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-400", radius.chip, "text-xs font-medium transition-all cursor-pointer")}
                 >
                   {t("admin.common.edit", "Edit")}
                 </button>
                 <button
                   onClick={() => setDeleteTarget(project)}
-                  className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-medium transition-all cursor-pointer"
+                  className={cn("px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400", radius.chip, "text-xs font-medium transition-all cursor-pointer")}
                 >
                   {t("admin.common.delete", "Delete")}
                 </button>
@@ -394,8 +396,8 @@ export default function ProjectsAdminPage() {
 
         {/* English Content Tab */}
         {activeLang === "en" && (
-          <div className="space-y-4 p-4 rounded-xl bg-slate-900/40 border border-white/5 mb-4">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+          <div className={cn("space-y-4 p-4", radius.control, "bg-slate-900/40 border border-white/5 mb-4")}>
+            <div className={cn("flex items-center", gap.tight, "text-xs font-semibold text-slate-300")}>
               <FlagIcon locale="en" width={16} height={11} />
               <span>English Content</span>
             </div>
@@ -407,7 +409,7 @@ export default function ProjectsAdminPage() {
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
                 placeholder="e.g. AI-Powered Dashboard"
-                className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm"
+                className={cn("w-full px-4 py-2 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500 text-sm")}
                 required
               />
             </FormField>
@@ -419,7 +421,7 @@ export default function ProjectsAdminPage() {
                 value={formDesc}
                 onChange={(e) => setFormDesc(e.target.value)}
                 placeholder="A brief summary shown on cards..."
-                className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm"
+                className={cn("w-full px-4 py-2 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500 text-sm")}
                 required
               />
             </FormField>
@@ -431,7 +433,7 @@ export default function ProjectsAdminPage() {
                 value={formLongDesc}
                 onChange={(e) => setFormLongDesc(e.target.value)}
                 placeholder="Detailed project description shown in modal..."
-                className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm"
+                className={cn("w-full px-4 py-2 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500 text-sm")}
               />
             </FormField>
           </div>
@@ -439,8 +441,8 @@ export default function ProjectsAdminPage() {
 
         {/* Vietnamese Content Tab */}
         {activeLang === "vi" && (
-          <div className="space-y-4 p-4 rounded-xl bg-purple-500/[0.03] border border-purple-500/15 mb-4">
-            <div className="flex items-center gap-2 text-xs font-semibold text-purple-300">
+          <div className={cn("space-y-4 p-4", radius.control, "bg-purple-500/[0.03] border border-purple-500/15 mb-4")}>
+            <div className={cn("flex items-center", gap.tight, "text-xs font-semibold text-purple-300")}>
               <FlagIcon locale="vi" width={16} height={11} />
               <span>Nội dung Tiếng Việt</span>
             </div>
@@ -452,7 +454,7 @@ export default function ProjectsAdminPage() {
                 value={formTitleVi}
                 onChange={(e) => setFormTitleVi(e.target.value)}
                 placeholder="Ví dụ: Bảng điều khiển Tích hợp AI"
-                className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm"
+                className={cn("w-full px-4 py-2 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500 text-sm")}
               />
             </FormField>
 
@@ -463,7 +465,7 @@ export default function ProjectsAdminPage() {
                 value={formDescVi}
                 onChange={(e) => setFormDescVi(e.target.value)}
                 placeholder="Mô tả ngắn gọn hiển thị trên thẻ dự án..."
-                className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm"
+                className={cn("w-full px-4 py-2 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500 text-sm")}
               />
             </FormField>
 
@@ -474,7 +476,7 @@ export default function ProjectsAdminPage() {
                 value={formLongDescVi}
                 onChange={(e) => setFormLongDescVi(e.target.value)}
                 placeholder="Chi tiết tính năng, kiến trúc giải pháp hiển thị trong popup..."
-                className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm"
+                className={cn("w-full px-4 py-2 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500 text-sm")}
               />
             </FormField>
           </div>
@@ -503,12 +505,12 @@ export default function ProjectsAdminPage() {
               value={formTags}
               onChange={(e) => setFormTags(e.target.value)}
               placeholder="Next.js, TypeScript, TailwindCSS, Three.js"
-              className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm"
+              className={cn("w-full px-4 py-2 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500 text-sm")}
               required
             />
           </FormField>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={cn("grid grid-cols-1 md:grid-cols-2", gap.loose)}>
             <FormField label={t("admin.projects.fieldLiveUrl", "Live Demo URL")} id="proj-live">
               <input
                 id="proj-live"
@@ -516,7 +518,7 @@ export default function ProjectsAdminPage() {
                 value={formLiveUrl}
                 onChange={(e) => setFormLiveUrl(e.target.value)}
                 placeholder="https://myproject.com"
-                className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm"
+                className={cn("w-full px-4 py-2 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500 text-sm")}
               />
             </FormField>
 
@@ -527,13 +529,13 @@ export default function ProjectsAdminPage() {
                 value={formGithubUrl}
                 onChange={(e) => setFormGithubUrl(e.target.value)}
                 placeholder="https://github.com/username/project"
-                className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm"
+                className={cn("w-full px-4 py-2 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500 text-sm")}
               />
             </FormField>
           </div>
 
-          <div className="flex gap-6 pt-2">
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-300">
+          <div className={cn("flex", gap.grid, "pt-2")}>
+            <label className={cn("flex items-center", gap.tight, "cursor-pointer text-xs font-medium text-slate-300")}>
               <input
                 type="checkbox"
                 checked={formFeatured}
@@ -543,7 +545,7 @@ export default function ProjectsAdminPage() {
               {t("admin.projects.fieldFeaturedDesc", "Feature this project on homepage")}
             </label>
 
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-300">
+            <label className={cn("flex items-center", gap.tight, "cursor-pointer text-xs font-medium text-slate-300")}>
               <input
                 type="checkbox"
                 checked={formPublished}

@@ -8,6 +8,8 @@ import { staggerContainer, fadeInUp } from "@/lib/animations";
 import { Project, ProjectsSectionContent, SiteConfig } from "@/lib/types";
 import { useTranslation } from "@/context/LanguageContext";
 import { resolveRequiredText, resolveSectionText } from "@/lib/content-overrides";
+import { cn } from "@/lib/utils";
+import { border, brand, gap, motion as motionTokens, radius, surface, text } from "@/lib/design-tokens";
 
 interface ProjectModalProps {
   project: Project | null;
@@ -112,13 +114,13 @@ function ProjectModal({ project, onClose, projectsCopy }: ProjectModalProps) {
           <button
             onClick={onClose}
             aria-label={resolveRequiredText(locale, projectsCopy?.closeModal, projectsCopy?.closeModal_vi, t("projects.closeModal"))}
-            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 flex items-center justify-center text-white/60 light:text-neutral-500 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] transition-all z-20"
+            className={cn("absolute top-4 right-4 w-9 h-9", radius.pill, surface.card, border.subtle, "flex items-center justify-center text-white/60 light:text-neutral-500", text.mutedHover, surface.cardHover, "transition-all z-20")}
           >
             <Icon name="close" size={16} />
           </button>
 
           {/* Project Image */}
-          <div className="relative aspect-video rounded-xl overflow-hidden mb-6 bg-slate-950 border border-white/10 light:border-neutral-900/10 shadow-lg light:shadow-neutral-400/10">
+          <div className={cn("relative aspect-video", radius.control, "overflow-hidden mb-6 bg-slate-950", border.subtle, "shadow-lg light:shadow-neutral-400/10")}>
             {project.image ? (
               <ImageWithSkeleton
                 src={project.image}
@@ -133,22 +135,22 @@ function ProjectModal({ project, onClose, projectsCopy }: ProjectModalProps) {
               </div>
             )}
             {project.featured && featuredBadge && (
-              <div className="absolute top-3 left-3 px-3 py-1 text-xs font-semibold text-white bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full shadow-md">
+              <div className={cn("absolute top-3 left-3 px-3 py-1 text-xs font-semibold text-white", brand.gradient, radius.pill, "shadow-md")}>
                 {featuredBadge}
               </div>
             )}
           </div>
 
           {/* Project Info */}
-          <h3 className="text-2xl font-bold text-white light:text-neutral-900 mb-3">{displayTitle}</h3>
+          <h3 className={cn("text-2xl font-bold", text.primary, "mb-3")}>{displayTitle}</h3>
           <p className="text-white/70 light:text-neutral-600 text-sm sm:text-base mb-6 leading-relaxed">{displayLongDesc}</p>
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-2 mb-6">
+          <div className={cn("flex flex-wrap", gap.tight, "mb-6")}>
             {project.tags.map((tag) => (
               <span
                 key={tag}
-                className="px-3 py-1 text-xs font-medium text-white/80 light:text-neutral-700 bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 rounded-full"
+                className={cn("px-3 py-1 text-xs font-medium text-white/80 light:text-neutral-700", surface.card, border.subtle, radius.pill)}
               >
                 {tag}
               </span>
@@ -156,7 +158,7 @@ function ProjectModal({ project, onClose, projectsCopy }: ProjectModalProps) {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-4">
+          <div className={cn("flex", gap.loose)}>
             {project.liveUrl && viewLiveLabel && (
               <Button
                 variant="primary"
@@ -223,7 +225,7 @@ export default function ProjectsSection({ projects, siteConfig }: ProjectsSectio
                 </span>
               )}
               {(titlePrefix || titleHighlight) && (
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-4 tracking-tight">
+                <h2 className={cn("text-3xl sm:text-4xl md:text-5xl font-extrabold", text.primary, "mb-4 tracking-tight")}>
                   {titlePrefix}
                   {titleHighlight && (
                     <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
@@ -261,7 +263,7 @@ export default function ProjectsSection({ projects, siteConfig }: ProjectsSectio
                 >
                   <div className="p-4 sm:p-5 flex flex-col h-full">
                     {/* Project Thumbnail Image */}
-                    <div className="relative aspect-[16/10] rounded-xl overflow-hidden mb-4 bg-slate-950 border border-white/10 light:border-neutral-900/10 shadow-sm light:shadow-neutral-400/10">
+                    <div className={cn("relative aspect-[16/10]", radius.control, "overflow-hidden mb-4 bg-slate-950", border.subtle, "shadow-sm light:shadow-neutral-400/10")}>
                       {project.image ? (
                         <ImageWithSkeleton
                           src={project.image}
@@ -276,14 +278,14 @@ export default function ProjectsSection({ projects, siteConfig }: ProjectsSectio
                         </div>
                       )}
                       {project.featured && featuredBadge && (
-                        <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 text-[11px] font-semibold text-white bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full shadow-md shadow-purple-500/30">
+                        <div className={cn("absolute top-2.5 right-2.5 px-2.5 py-0.5 text-[11px] font-semibold text-white", brand.gradient, radius.pill, "shadow-md shadow-purple-500/30")}>
                           {featuredBadge}
                         </div>
                       )}
                     </div>
 
                     {/* Project Info */}
-                    <h3 className="text-base sm:text-lg font-bold text-white light:text-neutral-900 mb-2 line-clamp-1 group-hover:text-purple-300 transition-colors">
+                    <h3 className={cn("text-base sm:text-lg font-bold", text.primary, "mb-2 line-clamp-1 group-hover:text-purple-300 transition-colors")}>
                       {cardTitle}
                     </h3>
                     <p className="text-white/60 light:text-neutral-500 text-xs sm:text-sm mb-4 line-clamp-2 leading-relaxed flex-grow">
@@ -295,7 +297,7 @@ export default function ProjectsSection({ projects, siteConfig }: ProjectsSectio
                       {project.tags.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
-                          className="px-2 py-0.5 text-[11px] font-medium text-white/70 light:text-neutral-600 bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 rounded-md"
+                          className={cn("px-2 py-0.5 text-[11px] font-medium text-white/70 light:text-neutral-600", surface.card, border.subtle, "rounded-md")}
                         >
                           {tag}
                         </span>
@@ -313,7 +315,7 @@ export default function ProjectsSection({ projects, siteConfig }: ProjectsSectio
           <div className="mt-14 text-center">
             <Link
               href="/projects"
-              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold text-white light:text-neutral-900 bg-white/[0.06] light:bg-neutral-900/[0.05] hover:bg-white/[0.12] light:hover:bg-neutral-900/[0.08] border border-white/15 light:border-neutral-900/10 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+              className={cn("inline-flex items-center", gap.tight, "px-7 py-3.5", radius.pill, "text-sm font-semibold", text.primary, "bg-white/[0.06] light:bg-neutral-900/[0.05] hover:bg-white/[0.12] light:hover:bg-neutral-900/[0.08] border border-white/15 light:border-neutral-900/10 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/20", motionTokens.base, "group")}
             >
               <span>{viewAllLabel}</span>
               <span className="transition-transform duration-200 group-hover:translate-x-1">

@@ -10,6 +10,8 @@ import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/TranslationContext";
 import type { BlogPost } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { gap, radius, text } from "@/lib/design-tokens";
 
 type BlogMeta = Omit<BlogPost, "content">;
 
@@ -78,7 +80,7 @@ export default function BlogAdminPage() {
         action={
           <Link
             href="/admin/blog/new"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
+            className={cn("inline-flex items-center gap-1.5 px-4 py-2", radius.control, "bg-violet-600 hover:bg-violet-500", text.primaryDark, "text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20")}
           >
             <span className="text-base leading-none">+</span>
             {t.admin.blog.newPost}
@@ -86,7 +88,7 @@ export default function BlogAdminPage() {
         }
       />
 
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+      <div className={cn("bg-gray-900 border border-gray-800", radius.card, "overflow-hidden")}>
         <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-gray-300">
           <thead className="bg-gray-950 text-gray-400 uppercase text-xs border-b border-gray-800">
@@ -102,8 +104,8 @@ export default function BlogAdminPage() {
             {posts.map((post) => (
               <tr key={post.slug} className="hover:bg-gray-800/50 transition-colors">
                 <td className="px-6 py-4">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="font-semibold text-white">{post.title}</span>
+                  <div className={cn("flex items-center", gap.tight, "mb-1 flex-wrap")}>
+                    <span className={cn("font-semibold", text.primaryDark)}>{post.title}</span>
                     <span className="inline-flex items-center gap-1">
                       <span
                         className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-300 border border-blue-500/20"
@@ -137,7 +139,7 @@ export default function BlogAdminPage() {
                   <div className="text-xs text-gray-500 font-mono">/blog/{post.slug}</div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                  <span className={cn("px-2.5 py-1", radius.pill, "text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20")}>
                     {post.category}
                   </span>
                 </td>
@@ -154,13 +156,13 @@ export default function BlogAdminPage() {
                 <td className="px-6 py-4 text-right space-x-2">
                   <Link
                     href={`/admin/blog/${post.slug}/edit`}
-                    className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg text-xs font-medium transition-all inline-block"
+                    className={cn("px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-400", radius.chip, "text-xs font-medium transition-all inline-block")}
                   >
                     {t.admin.common.edit}
                   </Link>
                   <button
                     onClick={() => setDeleteTarget(post)}
-                    className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-medium transition-all"
+                    className={cn("px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400", radius.chip, "text-xs font-medium transition-all")}
                   >
                     {t.admin.common.delete}
                   </button>

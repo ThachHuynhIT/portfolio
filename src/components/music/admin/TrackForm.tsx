@@ -7,6 +7,8 @@ import { useTranslation } from "@/context/TranslationContext";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import AdminFormFooter from "@/components/admin/AdminFormFooter";
 import Icon from "@/components/ui/Icon";
+import { cn } from "@/lib/utils";
+import { border, elevation, gap, radius, text } from "@/lib/design-tokens";
 
 type SourceMode = "upload" | "url" | "library";
 
@@ -216,12 +218,12 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-6xl mx-auto">
       {/* ── LEFT: FORM INPUTS ── */}
       <form
-        className="lg:col-span-7 bg-gray-900/80 border border-gray-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-xl shadow-black/40 space-y-6"
+        className={cn("lg:col-span-7 bg-gray-900/80 border border-gray-800", radius.panel, "p-6 sm:p-8", elevation.blurStrong, "shadow-xl shadow-black/40 space-y-6")}
         onSubmit={handleSubmit}
       >
         <div className="flex items-center justify-between border-b border-gray-800 pb-4">
           <div>
-            <h2 className="text-xl font-bold text-white">
+            <h2 className={cn("text-xl font-bold", text.primaryDark)}>
               {mode === "edit" ? t.admin.music.modalEditTitle : t.admin.music.modalCreateTitle}
             </h2>
             <p className="text-xs text-gray-400 mt-0.5">
@@ -232,7 +234,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
         </div>
 
         {/* ── Title & Artist ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.loose)}>
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-gray-300 uppercase tracking-wide" htmlFor="tf-title">
               {t.admin.music.fieldTitle} *
@@ -241,7 +243,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               id="tf-title"
               name="title"
               type="text"
-              className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
+              className={cn("w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700", radius.control, text.primaryDark, "text-sm focus:outline-none focus:border-purple-500 transition-colors")}
               placeholder={t.admin.music.fieldTitlePlaceholder}
               value={formData.title}
               onChange={handleChange}
@@ -257,7 +259,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               id="tf-artist"
               name="artist"
               type="text"
-              className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
+              className={cn("w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700", radius.control, text.primaryDark, "text-sm focus:outline-none focus:border-purple-500 transition-colors")}
               placeholder={t.admin.music.fieldArtistPlaceholder}
               value={formData.artist}
               onChange={handleChange}
@@ -267,7 +269,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
         </div>
 
         {/* ── Album & Genre ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.loose)}>
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-gray-300 uppercase tracking-wide" htmlFor="tf-album">
               {t.admin.music.fieldAlbum} ({t.admin.common.optional})
@@ -276,7 +278,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               id="tf-album"
               name="album"
               type="text"
-              className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
+              className={cn("w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700", radius.control, text.primaryDark, "text-sm focus:outline-none focus:border-purple-500 transition-colors")}
               placeholder={t.admin.music.fieldAlbumPlaceholder}
               value={formData.album}
               onChange={handleChange}
@@ -291,7 +293,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               id="tf-genre"
               name="genre"
               type="text"
-              className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
+              className={cn("w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700", radius.control, text.primaryDark, "text-sm focus:outline-none focus:border-purple-500 transition-colors")}
               placeholder={t.admin.music.fieldGenrePlaceholder}
               value={formData.genre}
               onChange={handleChange}
@@ -321,7 +323,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
         </div>
 
         {/* ── Duration & Order ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className={cn("grid grid-cols-1 sm:grid-cols-2", gap.loose)}>
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-gray-300 uppercase tracking-wide" htmlFor="tf-duration">
@@ -338,7 +340,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               name="duration"
               type="number"
               min={0}
-              className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
+              className={cn("w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700", radius.control, text.primaryDark, "text-sm focus:outline-none focus:border-purple-500 transition-colors")}
               placeholder="210"
               value={formData.duration}
               onChange={handleChange}
@@ -354,7 +356,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               name="order"
               type="number"
               min={0}
-              className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
+              className={cn("w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700", radius.control, text.primaryDark, "text-sm focus:outline-none focus:border-purple-500 transition-colors")}
               placeholder="0"
               value={formData.order}
               onChange={handleChange}
@@ -368,7 +370,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
             <label className="text-xs font-semibold text-gray-300 uppercase tracking-wide">
               {t.admin.music.audioSource} *
             </label>
-            <div className="flex items-center bg-gray-800 rounded-lg p-0.5 border border-gray-700">
+            <div className={cn("flex items-center bg-gray-800", radius.chip, "p-0.5 border border-gray-700")}>
               <button
                 type="button"
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
@@ -395,14 +397,14 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               id="tf-audioUrl"
               name="audioUrl"
               type="url"
-              className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
+              className={cn("w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700", radius.control, text.primaryDark, "text-sm focus:outline-none focus:border-purple-500 transition-colors")}
               placeholder="https://... (mp3, wav, ogg)"
               value={formData.audioUrl}
               onChange={handleChange}
             />
           ) : (
             <div
-              className="border-2 border-dashed border-gray-700 hover:border-purple-500/80 bg-gray-800/30 hover:bg-purple-950/10 rounded-2xl p-6 text-center cursor-pointer transition-all"
+              className={cn("border-2 border-dashed border-gray-700 hover:border-purple-500/80 bg-gray-800/30 hover:bg-purple-950/10", radius.card, "p-6 text-center cursor-pointer transition-all")}
               onClick={() => audioInputRef.current?.click()}
             >
               <input
@@ -413,7 +415,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 onChange={(e) => handleAudioFileChange(e.target.files?.[0] ?? null)}
               />
               {audioFile ? (
-                <div className="flex items-center justify-center gap-2 text-purple-300 font-semibold text-sm">
+                <div className={cn("flex items-center justify-center", gap.tight, "text-purple-300 font-semibold text-sm")}>
                   <Icon name="checkCircle" size={14} />
                   <span>Selected:</span>
                   <span className="underline">{audioFile.name}</span>
@@ -442,7 +444,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
             <label className="text-xs font-semibold text-gray-300 uppercase tracking-wide">
               {t.admin.music.coverArtwork}
             </label>
-            <div className="flex items-center bg-gray-800 rounded-lg p-0.5 border border-gray-700">
+            <div className={cn("flex items-center bg-gray-800", radius.chip, "p-0.5 border border-gray-700")}>
               <button
                 type="button"
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
@@ -481,7 +483,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               id="tf-thumbnailUrl"
               name="thumbnailUrl"
               type="url"
-              className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
+              className={cn("w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700", radius.control, text.primaryDark, "text-sm focus:outline-none focus:border-purple-500 transition-colors")}
               placeholder={t.admin.music.fieldThumbnail}
               value={formData.thumbnailUrl}
               onChange={handleChange}
@@ -491,7 +493,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
               <button
                 type="button"
                 onClick={() => setIsThumbPickerOpen(true)}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gray-800/60 hover:bg-gray-800 border border-dashed border-gray-700 hover:border-purple-500 text-purple-300 rounded-xl text-xs font-semibold transition-all"
+                className={cn("w-full flex items-center justify-center", gap.tight, "py-3 px-4 bg-gray-800/60 hover:bg-gray-800 border border-dashed border-gray-700 hover:border-purple-500 text-purple-300", radius.control, "text-xs font-semibold transition-all")}
               >
                 <Icon name="folder" size={13} />
                 <span>{t.admin.music.openCloudCover}</span>
@@ -499,7 +501,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
             </div>
           ) : (
             <div
-              className="border-2 border-dashed border-gray-700 hover:border-purple-500/80 bg-gray-800/30 hover:bg-purple-950/10 rounded-2xl p-5 text-center cursor-pointer transition-all"
+              className={cn("border-2 border-dashed border-gray-700 hover:border-purple-500/80 bg-gray-800/30 hover:bg-purple-950/10", radius.card, "p-5 text-center cursor-pointer transition-all")}
               onClick={() => thumbInputRef.current?.click()}
             >
               <input
@@ -510,7 +512,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                 onChange={(e) => handleThumbFileChange(e.target.files?.[0] ?? null)}
               />
               {thumbFile ? (
-                <div className="flex items-center justify-center gap-2 text-purple-300 font-semibold text-sm">
+                <div className={cn("flex items-center justify-center", gap.tight, "text-purple-300 font-semibold text-sm")}>
                   <Icon name="image" size={14} />
                   <span>Artwork:</span>
                   <span className="underline">{thumbFile.name}</span>
@@ -529,8 +531,8 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
 
           {/* Thumbnail Preview if set */}
           {formData.thumbnailUrl && (
-            <div className="flex items-center gap-3 p-2 bg-gray-800/60 border border-gray-700 rounded-xl mt-2">
-              <div className="w-12 h-12 rounded-lg bg-black/40 overflow-hidden flex-shrink-0 border border-white/5">
+            <div className={cn("flex items-center", gap.base, "p-2 bg-gray-800/60 border border-gray-700", radius.control, "mt-2")}>
+              <div className={cn("w-12 h-12", radius.chip, "bg-black/40 overflow-hidden flex-shrink-0 border border-white/5")}>
                 <img
                   src={formData.thumbnailUrl}
                   alt="Thumbnail"
@@ -556,7 +558,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
                   setThumbFile(null);
                   setThumbPreviewUrl(null);
                 }}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-white/5 transition-all"
+                className={cn("p-1.5", radius.chip, "text-gray-400 hover:text-red-400 hover:bg-white/5 transition-all")}
                 title={t.admin.common.remove}
               >
                 <Icon name="close" size={13} />
@@ -566,7 +568,7 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
         </div>
 
         {/* ── Published Toggle ── */}
-        <div className="flex items-center gap-3 p-3 bg-gray-800/40 rounded-xl border border-gray-800">
+        <div className={cn("flex items-center", gap.base, "p-3 bg-gray-800/40", radius.control, "border border-gray-800")}>
           <input
             id="tf-published"
             name="published"
@@ -582,12 +584,12 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
 
         {/* ── Status Messages ── */}
         {error && (
-          <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-500/30 text-red-300 text-xs font-semibold flex items-center gap-2">
+          <div className={cn("p-3.5", radius.control, "bg-red-950/40 border border-red-500/30 text-red-300 text-xs font-semibold flex items-center", gap.tight)}>
             <Icon name="alertTriangle" size={14} /> {error}
           </div>
         )}
         {success && (
-          <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
+          <div className={cn("p-3.5", radius.control, "bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center", gap.tight)}>
             <Icon name="checkCircle" size={14} /> {mode === "edit" ? t.admin.music.toastUpdated : t.admin.music.toastCreated}
           </div>
         )}
@@ -612,22 +614,22 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
 
       {/* ── RIGHT: REAL-TIME LIVE PREVIEW ── */}
       <div className="lg:col-span-5 space-y-4 sticky top-6">
-        <div className="p-4 rounded-2xl bg-gray-900/60 border border-gray-800 flex items-center justify-between">
+        <div className={cn("p-4", radius.card, "bg-gray-900/60 border border-gray-800 flex items-center justify-between")}>
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
             {t.admin.music.livePlayerPreview}
           </span>
-          <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-semibold border border-purple-500/30">
+          <span className={cn("text-xs px-2.5 py-0.5", radius.pill, "bg-purple-500/20 text-purple-300 font-semibold border border-purple-500/30")}>
             {t.admin.music.realtime}
           </span>
         </div>
 
         {/* Preview Turntable Card */}
-        <div className="p-6 rounded-3xl bg-gradient-to-b from-gray-900 to-black border border-white/10 shadow-2xl flex flex-col items-center text-center relative overflow-hidden">
+        <div className={cn("p-6", radius.panel, "bg-gradient-to-b from-gray-900 to-black", border.subtleDark, "shadow-2xl flex flex-col items-center text-center relative overflow-hidden")}>
           {/* Ambient light */}
           <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 to-transparent pointer-events-none" />
 
           {/* Cover Art */}
-          <div className="relative w-48 h-48 rounded-2xl overflow-hidden shadow-2xl mb-5 bg-gray-800 border border-white/10">
+          <div className={cn("relative w-48 h-48", radius.card, "overflow-hidden shadow-2xl mb-5 bg-gray-800", border.subtleDark)}>
             {currentPreviewCover ? (
               <img
                 src={currentPreviewCover}
@@ -644,14 +646,14 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
             )}
 
             <div className="absolute top-2 right-2">
-              <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-[10px] font-bold text-cyan-300 border border-white/10">
+              <span className={cn("px-2 py-0.5", radius.pill, "bg-black/60", elevation.blur, "text-[10px] font-bold text-cyan-300", border.subtleDark)}>
                 {formData.genre || "Genre"}
               </span>
             </div>
           </div>
 
           {/* Metadata */}
-          <h3 className="font-bold text-lg text-white mb-1 truncate max-w-full px-2">
+          <h3 className={cn("font-bold text-lg", text.primaryDark, "mb-1 truncate max-w-full px-2")}>
             {formData.title || "Untitled Track"}
           </h3>
           <p className="text-sm text-gray-400 mb-2 truncate max-w-full px-2">
@@ -659,19 +661,19 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
           </p>
 
           {formData.album && (
-            <span className="text-xs text-purple-300/80 bg-purple-500/10 px-3 py-0.5 rounded-full border border-purple-500/20 mb-4 inline-flex items-center gap-1">
+            <span className={cn("text-xs text-purple-300/80 bg-purple-500/10 px-3 py-0.5", radius.pill, "border border-purple-500/20 mb-4 inline-flex items-center gap-1")}>
               <Icon name="disc" size={11} /> {formData.album}
             </span>
           )}
 
           {/* Dummy visualizer preview */}
           <div className="flex items-end gap-1 h-6 w-32 justify-center my-2 opacity-70">
-            <span className="w-1.5 bg-gradient-to-t from-purple-500 to-cyan-400 rounded-full h-2" />
-            <span className="w-1.5 bg-gradient-to-t from-purple-500 to-cyan-400 rounded-full h-5" />
-            <span className="w-1.5 bg-gradient-to-t from-purple-500 to-cyan-400 rounded-full h-3" />
-            <span className="w-1.5 bg-gradient-to-t from-purple-500 to-cyan-400 rounded-full h-6" />
-            <span className="w-1.5 bg-gradient-to-t from-purple-500 to-cyan-400 rounded-full h-4" />
-            <span className="w-1.5 bg-gradient-to-t from-purple-500 to-cyan-400 rounded-full h-2" />
+            <span className={cn("w-1.5 bg-gradient-to-t from-purple-500 to-cyan-400", radius.pill, "h-2")} />
+            <span className={cn("w-1.5 bg-gradient-to-t from-purple-500 to-cyan-400", radius.pill, "h-5")} />
+            <span className={cn("w-1.5 bg-gradient-to-t from-purple-500 to-cyan-400", radius.pill, "h-3")} />
+            <span className={cn("w-1.5 bg-gradient-to-t from-purple-500 to-cyan-400", radius.pill, "h-6")} />
+            <span className={cn("w-1.5 bg-gradient-to-t from-purple-500 to-cyan-400", radius.pill, "h-4")} />
+            <span className={cn("w-1.5 bg-gradient-to-t from-purple-500 to-cyan-400", radius.pill, "h-2")} />
           </div>
 
           <div className="w-full flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-800/80 mt-2 font-mono">

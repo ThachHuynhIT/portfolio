@@ -2,6 +2,8 @@
 
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { border, elevation, motion, radius, surface } from "@/lib/design-tokens";
+import { presets } from "@/lib/ui-presets";
 
 interface GlassCardProps {
   children: ReactNode;
@@ -10,7 +12,10 @@ interface GlassCardProps {
 }
 
 /**
- * Glassmorphism card component with optional hover effects
+ * Glassmorphism card component with optional hover effects.
+ *
+ * Surface, border, blur and shadow come from `presets.card`
+ * (`src/lib/ui-presets.ts`) — edit the tokens there to restyle every card.
  */
 export default function GlassCard({
   children,
@@ -20,15 +25,25 @@ export default function GlassCard({
   return (
     <div
       className={cn(
-        "relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl",
-        "light:border-neutral-900/10 light:bg-neutral-900/[0.04]",
-        "p-6 shadow-xl shadow-black/10 light:shadow-neutral-400/10",
-        hover && "transition-all duration-300 hover:border-white/20 hover:bg-white/10 hover:shadow-2xl hover:shadow-purple-500/5 light:hover:border-neutral-900/15 light:hover:bg-neutral-900/[0.06]",
+        presets.card,
+        hover &&
+          cn(
+            motion.base,
+            border.subtleHover,
+            surface.cardHover,
+            elevation.cardHover
+          ),
         className
       )}
     >
       {/* Gradient overlay */}
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/5 via-transparent to-transparent light:from-neutral-900/[0.03] pointer-events-none" />
+      <div
+        className={cn(
+          "absolute inset-0 pointer-events-none",
+          radius.card,
+          "bg-gradient-to-br from-white/5 via-transparent to-transparent light:from-neutral-900/[0.03]"
+        )}
+      />
 
       {/* Content */}
       <div className="relative z-10">{children}</div>

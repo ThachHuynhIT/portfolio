@@ -12,6 +12,8 @@ import Icon, { isKnownIconName } from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
 import type { Skill } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { border, gap, radius, surface, text } from "@/lib/design-tokens";
 
 export default function SkillsAdminPage() {
   const router = useRouter();
@@ -177,11 +179,11 @@ export default function SkillsAdminPage() {
         description={t("admin.skills.description", "Manage technologies and proficiency levels displayed in your portfolio.")}
         icon="skills"
         action={
-          <div className="flex items-center gap-3">
+          <div className={cn("flex items-center", gap.base)}>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none"
+              className={cn("px-3 py-2 bg-slate-900", border.subtleDark, radius.control, "text-xs text-slate-300 focus:outline-none")}
             >
               <option value="all">{t("admin.skills.allCategories", "All Skills")} ({skills.length})</option>
               <option value="published">{t("admin.common.published", "Published")} ({skills.filter((s) => s.published !== false).length})</option>
@@ -189,7 +191,7 @@ export default function SkillsAdminPage() {
             </select>
             <button
               onClick={openCreateModal}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
+              className={cn("inline-flex items-center gap-1.5 px-4 py-2", radius.control, "bg-violet-600 hover:bg-violet-500", text.primaryDark, "text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20")}
             >
               <span className="text-base leading-none">+</span>
               {t("admin.skills.addSkill", "Add Skill")}
@@ -199,7 +201,7 @@ export default function SkillsAdminPage() {
       />
 
       {/* Skills Table */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+      <div className={cn("bg-gray-900 border border-gray-800", radius.card, "overflow-hidden")}>
         <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-gray-300">
           <thead className="bg-gray-950 text-gray-400 uppercase text-xs border-b border-gray-800">
@@ -216,7 +218,7 @@ export default function SkillsAdminPage() {
               <tr key={skill.id} className="hover:bg-gray-800/50 transition-colors">
                 <td className="px-6 py-4">
                   {skill.icon && (skill.icon.startsWith("http") || skill.icon.startsWith("/")) ? (
-                    <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 p-1 flex items-center justify-center">
+                    <div className={cn("w-8 h-8", radius.chip, surface.cardDark, border.subtleDark, "p-1 flex items-center justify-center")}>
                       <img src={skill.icon} alt={skill.name} className="w-full h-full object-contain rounded" />
                     </div>
                   ) : isKnownIconName(skill.icon) ? (
@@ -227,9 +229,9 @@ export default function SkillsAdminPage() {
                     <Icon name="zap" size={20} />
                   )}
                 </td>
-                <td className="px-6 py-4 font-semibold text-white">{skill.name}</td>
+                <td className={cn("px-6 py-4 font-semibold", text.primaryDark)}>{skill.name}</td>
                 <td className="px-6 py-4">
-                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-800 text-gray-300 border border-gray-700 uppercase">
+                  <span className={cn("px-2.5 py-1", radius.pill, "text-xs font-medium bg-gray-800 text-gray-300 border border-gray-700 uppercase")}>
                     {skill.category}
                   </span>
                 </td>
@@ -251,13 +253,13 @@ export default function SkillsAdminPage() {
                 <td className="px-6 py-4 text-right space-x-2">
                   <button
                     onClick={() => openEditModal(skill)}
-                    className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg text-xs font-medium transition-all"
+                    className={cn("px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-400", radius.chip, "text-xs font-medium transition-all")}
                   >
                     {t("admin.common.edit", "Edit")}
                   </button>
                   <button
                     onClick={() => setDeleteTarget(skill)}
-                    className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-medium transition-all"
+                    className={cn("px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400", radius.chip, "text-xs font-medium transition-all")}
                   >
                     {t("admin.common.delete", "Delete")}
                   </button>
@@ -293,7 +295,7 @@ export default function SkillsAdminPage() {
             value={formName}
             onChange={(e) => setFormName(e.target.value)}
             placeholder={t("admin.skills.fieldNamePlaceholder", "e.g. Next.js, TypeScript")}
-            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            className={cn("w-full px-4 py-2 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
             required
           />
         </FormField>
@@ -308,17 +310,17 @@ export default function SkillsAdminPage() {
           helperText="Select a logo from Cloud, upload a new image, or paste an image URL / Emoji (⚛️, ▲, 📘...)."
         />
 
-        <div className="flex items-center gap-3 -mt-2">
+        <div className={cn("flex items-center", gap.base, "-mt-2")}>
           <button
             type="button"
             onClick={() => setIsIconPickerOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-300 hover:text-white transition-all"
+            className={cn("inline-flex items-center gap-1.5 px-3 py-1.5", radius.chip, surface.cardDark, "hover:bg-white/10", border.subtleDark, "text-xs font-medium text-slate-300 hover:text-white transition-all")}
           >
             <Icon name="sparkles" size={13} />
             Chọn logo công nghệ hoặc emoji có sẵn
           </button>
           {formIcon && !formIcon.startsWith("http") && !formIcon.startsWith("/") && (
-            <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+            <div className={cn("w-7 h-7", radius.chip, surface.cardDark, border.subtleDark, "flex items-center justify-center")}>
               {isKnownIconName(formIcon) ? (
                 <Icon name={formIcon} size={16} />
               ) : (
@@ -333,7 +335,7 @@ export default function SkillsAdminPage() {
             id="skill-category"
             value={formCategory}
             onChange={(e) => setFormCategory(e.target.value as Skill["category"])}
-            className="w-full px-4 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500"
+            className={cn("w-full px-4 py-2 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500")}
           >
             <option value="frontend">Frontend</option>
             <option value="backend">Backend</option>
@@ -342,7 +344,7 @@ export default function SkillsAdminPage() {
           </select>
         </FormField>
 
-        <div className="flex items-center gap-2 pt-1">
+        <div className={cn("flex items-center", gap.tight, "pt-1")}>
           <input
             type="checkbox"
             id="skill-published"

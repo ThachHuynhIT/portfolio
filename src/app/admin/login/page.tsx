@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
+import { cn } from "@/lib/utils";
+import { elevation, radius, text } from "@/lib/design-tokens";
 
 async function hashPassword(password: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(password));
@@ -63,18 +65,18 @@ export default function AdminLoginPage() {
 
       <div className="relative w-full max-w-sm">
         {/* Card */}
-        <div className="bg-slate-900/80 border border-white/[0.08] rounded-2xl p-8 shadow-2xl shadow-black/50 backdrop-blur-xl">
+        <div className={cn("bg-slate-900/80 border border-white/[0.08]", radius.card, "p-8 shadow-2xl shadow-black/50", elevation.blurStrong)}>
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-12 h-12 mb-4 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center font-bold text-white text-lg shadow-lg shadow-violet-500/30">
+            <div className={cn("w-12 h-12 mb-4", radius.control, "bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center font-bold", text.primaryDark, "text-lg shadow-lg shadow-violet-500/30")}>
               A
             </div>
-            <h1 className="text-lg font-bold text-white">{t("admin.login.title", "Portfolio Admin")}</h1>
+            <h1 className={cn("text-lg font-bold", text.primaryDark)}>{t("admin.login.title", "Portfolio Admin")}</h1>
             <p className="text-slate-500 text-sm mt-1">{t("admin.login.subtitle", "Sign in to manage your content")}</p>
           </div>
 
           {error && (
-            <div className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium text-center">
+            <div className={cn("mb-5 px-4 py-3", radius.control, "bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium text-center")}>
               {error}
             </div>
           )}
@@ -95,14 +97,14 @@ export default function AdminLoginPage() {
                 placeholder={t("admin.login.passwordPlaceholder", "••••••••")}
                 required
                 autoFocus
-                className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/[0.1] rounded-xl text-white text-sm placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/40 transition-all"
+                className={cn("w-full px-4 py-2.5 bg-white/[0.04] border border-white/[0.1]", radius.control, text.primaryDark, "text-sm placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/40 transition-all")}
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 px-4 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-600/50 text-white font-semibold text-sm rounded-xl shadow-md shadow-violet-500/20 transition-colors disabled:cursor-not-allowed"
+              className={cn("w-full py-2.5 px-4 bg-violet-600 hover:bg-violet-500 disabled:bg-violet-600/50", text.primaryDark, "font-semibold text-sm", radius.control, "shadow-md shadow-violet-500/20 transition-colors disabled:cursor-not-allowed")}
             >
               {loading ? t("admin.login.submitting", "Signing in…") : t("admin.login.submitBtn", "Sign In")}
             </button>

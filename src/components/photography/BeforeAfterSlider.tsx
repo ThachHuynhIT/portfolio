@@ -2,6 +2,8 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import ImageWithSkeleton from "@/components/ui/ImageWithSkeleton";
+import { cn } from "@/lib/utils";
+import { elevation, radius } from "@/lib/design-tokens";
 
 interface BeforeAfterSliderProps {
   beforeImage: string;
@@ -111,7 +113,7 @@ export default function BeforeAfterSlider({
           priority={false}
         />
         {/* After Badge */}
-        <span className="absolute top-4 right-4 z-10 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-black/60 text-cyan-300 backdrop-blur-md border border-cyan-500/30 shadow-md">
+        <span className={cn("absolute top-4 right-4 z-10 px-3 py-1", radius.pill, "text-xs font-semibold tracking-wider uppercase bg-black/60 text-cyan-300", elevation.blur, "border border-cyan-500/30 shadow-md")}>
           {afterLabel}
         </span>
       </div>
@@ -132,7 +134,7 @@ export default function BeforeAfterSlider({
           priority={false}
         />
         {/* Before Badge */}
-        <span className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase bg-black/60 text-purple-300 backdrop-blur-md border border-purple-500/30 shadow-md">
+        <span className={cn("absolute top-4 left-4 z-10 px-3 py-1", radius.pill, "text-xs font-semibold tracking-wider uppercase bg-black/60 text-purple-300", elevation.blur, "border border-purple-500/30 shadow-md")}>
           {beforeLabel}
         </span>
       </div>
@@ -142,7 +144,7 @@ export default function BeforeAfterSlider({
         className="absolute top-0 bottom-0 z-20 w-0.5 bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] pointer-events-none transition-transform"
         style={{ left: `${sliderPos}%` }}
       >
-        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-slate-900/90 border-2 border-white text-white flex items-center justify-center shadow-xl backdrop-blur-md group-hover:scale-110 transition-transform">
+        <div className={cn("absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9", radius.pill, "bg-slate-900/90 border-2 border-white text-white flex items-center justify-center shadow-xl", elevation.blur, "group-hover:scale-110 transition-transform")}>
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -160,7 +162,7 @@ export default function BeforeAfterSlider({
 
       {/* Instruction hint banner */}
       <div className="absolute bottom-3 inset-x-0 flex justify-center pointer-events-none z-10">
-        <span className="px-3 py-1 text-[11px] font-medium text-white/80 bg-black/50 backdrop-blur-md rounded-full border border-white/10 opacity-75 group-hover:opacity-100 transition-opacity">
+        <span className={cn("px-3 py-1 text-[11px] font-medium text-white/80 bg-black/50", elevation.blur, radius.pill, "border border-white/10 opacity-75 group-hover:opacity-100 transition-opacity")}>
           Drag slider to compare RAW & Retouched
         </span>
       </div>
