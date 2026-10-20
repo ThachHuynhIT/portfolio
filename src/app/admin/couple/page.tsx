@@ -20,7 +20,11 @@ import type {
   CoupleBucketItem,
   CoupleLoveLetter,
   CoupleFavorite,
+  CalendarType,
 } from "@/lib/types";
+import { occurrenceInYear } from "@/lib/couple-events";
+import { parseYmd, todayYmd } from "@/lib/ymd";
+import WorkScheduleTab from "@/components/admin/couple/WorkScheduleTab";
 import { cn } from "@/lib/utils";
 import { border, elevation, gap, motion, radius, surface, text } from "@/lib/design-tokens";
 
@@ -31,6 +35,7 @@ type TabId =
   | "bucketList"
   | "loveLetters"
   | "favorites"
+  | "workSchedule"
   | "info";
 
 const POPULAR_PHOTO_CATEGORIES = ["Du lịch", "Hẹn hò", "Kỷ niệm", "Đời thường", "Ăn uống", "Đặc biệt"];
@@ -93,6 +98,7 @@ export default function CoupleAdminPage() {
   const [birthdayForm, setBirthdayForm] = useState({
     name: "",
     date: "",
+    calendarType: "solar" as CalendarType,
     emoji: "🎂",
     zodiac: "",
     published: true,
@@ -104,6 +110,7 @@ export default function CoupleAdminPage() {
   const [dateForm, setDateForm] = useState({
     name: "",
     date: "",
+    calendarType: "solar" as CalendarType,
     emoji: "💕",
     published: true,
   });
@@ -394,6 +401,7 @@ export default function CoupleAdminPage() {
     setBirthdayForm({
       name: "",
       date: "2001-01-01",
+      calendarType: "solar" as CalendarType,
       emoji: "🎂",
       zodiac: "",
       published: true,
@@ -406,6 +414,7 @@ export default function CoupleAdminPage() {
     setBirthdayForm({
       name: item.name,
       date: item.date,
+      calendarType: item.calendarType ?? "solar",
       emoji: item.emoji || "🎂",
       zodiac: item.zodiac || "",
       published: item.published !== false,
@@ -445,6 +454,7 @@ export default function CoupleAdminPage() {
     setDateForm({
       name: "",
       date: new Date().toISOString().split("T")[0],
+      calendarType: "solar" as CalendarType,
       emoji: "🎉",
       published: true,
     });
@@ -456,6 +466,7 @@ export default function CoupleAdminPage() {
     setDateForm({
       name: item.name,
       date: item.date,
+      calendarType: item.calendarType ?? "solar",
       emoji: item.emoji || "🎉",
       published: item.published !== false,
     });
@@ -852,6 +863,17 @@ export default function CoupleAdminPage() {
         </button>
 
         <button
+          onClick={() => setActiveTab("workSchedule")}
+          className={`pb-3 px-3.5 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === "workSchedule"
+              ? "text-pink-400 border-b-2 border-pink-400"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <span className="inline-flex items-center gap-1"><Icon name="calendar" size={13} /> Lịch làm</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab("info")}
           className={`pb-3 px-3.5 text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
             activeTab === "info"
@@ -865,6 +887,8 @@ export default function CoupleAdminPage() {
 
       {loading ? (
         <div className="py-24 text-center text-slate-500">{t.admin.common.loading}</div>
+      ) : activeTab === "workSchedule" && data ? (
+        <WorkScheduleTab key={JSON.stringify(data.workSchedules)} data={data} onChanged={() => fetchData(false)} />
       ) : activeTab === "photos" ? (
         /* ═════════════════ 1. TAB ẢNH KỶ NIỆM ═════════════════ */
         <div className="space-y-6">
@@ -1640,7 +1664,11 @@ export default function CoupleAdminPage() {
             required
           />
         </FormField>
-        <FormField label={t.admin.photography.fieldDate} id="bdayDate" required>
+        <FormField
+          label={birthdayForm.calendarType === "lunar" ? "Ngày âm (năm gốc)" : t.admin.photography.fieldDate}
+          id="bdayDate"
+          required
+        >
           <input
             type="date"
             id="bdayDate"
@@ -1650,6 +1678,12 @@ export default function CoupleAdminPage() {
             required
           />
         </FormField>
+        <CalendarTypeField
+          id="bdayCalendarType"
+          value={birthdayForm.calendarType}
+          date={birthdayForm.date}
+          onChange={(calendarType) => setBirthdayForm({ ...birthdayForm, calendarType })}
+        />
         <div className={cn("grid grid-cols-2", gap.base)}>
           <FormField label="Zodiac" id="bdayZodiac">
             <input
@@ -1717,7 +1751,11 @@ export default function CoupleAdminPage() {
           />
         </FormField>
         <div className={cn("grid grid-cols-2", gap.base)}>
-          <FormField label={t.admin.photography.fieldDate} id="dateVal" required>
+          <FormField
+            label={dateForm.calendarType === "lunar" ? "Ngày âm (năm gốc)" : t.admin.photography.fieldDate}
+            id="dateVal"
+            required
+          >
             <input
               type="date"
               id="dateVal"
@@ -1747,6 +1785,12 @@ export default function CoupleAdminPage() {
             </div>
           </FormField>
         </div>
+        <CalendarTypeField
+          id="dateCalendarType"
+          value={dateForm.calendarType}
+          date={dateForm.date}
+          onChange={(calendarType) => setDateForm({ ...dateForm, calendarType })}
+        />
         <div className={cn("flex items-center", gap.tight)}>
           <label className={cn("flex items-center", gap.tight, "cursor-pointer text-sm text-slate-300 select-none")}>
             <input
@@ -1993,5 +2037,44 @@ export default function CoupleAdminPage() {
         onCancel={() => setDeleteDialog({ isOpen: false, section: "", title: "" })}
       />
     </div>
+  );
+}
+
+function CalendarTypeField({
+  id,
+  value,
+  date,
+  onChange,
+}: {
+  id: string;
+  value: CalendarType;
+  date: string;
+  onChange: (v: CalendarType) => void;
+}) {
+  const thisYear = parseYmd(todayYmd()).y;
+  let preview: string | null = null;
+  if (value === "lunar" && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    const solar = occurrenceInYear({ date, calendarType: "lunar" }, thisYear);
+    if (solar) {
+      const s = parseYmd(solar);
+      preview = `Năm nay rơi vào ${s.d}/${s.m}/${thisYear} dương lịch`;
+    }
+  }
+  return (
+    <FormField
+      label="Loại lịch"
+      id={id}
+      helper={value === "lunar" ? preview ?? "Ngày – tháng nhập ở trên là ngày âm lịch" : undefined}
+    >
+      <select
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value as CalendarType)}
+        className="w-full px-3.5 py-2 bg-slate-950 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-pink-500/50"
+      >
+        <option value="solar">Dương lịch</option>
+        <option value="lunar">Âm lịch (lặp lại mỗi năm)</option>
+      </select>
+    </FormField>
   );
 }

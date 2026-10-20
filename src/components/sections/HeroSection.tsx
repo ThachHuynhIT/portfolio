@@ -32,6 +32,20 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
   const { resolvedTheme } = useTheme();
   const hero = siteConfig.sectionsContent?.hero;
 
+  // Blank values (cleared in /admin/site-config) hide their element.
+  const available = resolveSectionText(locale, hero?.available, hero?.available_vi, t("hero.available"));
+  const greetingPrefix = resolveSectionText(locale, hero?.greetingPrefix, hero?.greetingPrefix_vi, t("hero.greetingPrefix"));
+  const firstName = siteConfig.author.name.trim().split(" ")[0];
+  const bio = resolveSectionText(
+    locale,
+    hero?.bio,
+    hero?.bio_vi,
+    locale === "vi" && siteConfig.author.bio_vi ? siteConfig.author.bio_vi : t("hero.bio")
+  );
+  const viewWorkLabel = resolveSectionText(locale, hero?.viewWork, hero?.viewWork_vi, t("hero.viewWork"));
+  const viewCVLabel = resolveSectionText(locale, hero?.viewCV, hero?.viewCV_vi, t("hero.viewCV"));
+  const showViewCV = Boolean(siteConfig.resumeUrl && viewCVLabel);
+
   const [isMounted, setIsMounted] = useState(false);
   const [isCVOpen, setIsCVOpen] = useState(false);
 
@@ -94,61 +108,68 @@ export default function HeroSection({ siteConfig }: HeroSectionProps) {
       <div className="relative z-10 container mx-auto px-6">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className={cn("inline-flex items-center", gap.tight, "px-4 py-2", radius.pill, surface.card, border.subtle, "backdrop-blur-sm mb-8")}
-          >
-            <span className={cn("w-2 h-2", radius.pill, "bg-green-500 animate-pulse")} />
-            <span className="text-sm text-white/70 light:text-neutral-600">
-              {resolveSectionText(locale, hero?.available, hero?.available_vi, t("hero.available"))}
-            </span>
-          </motion.div>
+          {available && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className={cn("inline-flex items-center", gap.tight, "px-4 py-2", radius.pill, surface.card, border.subtle, "backdrop-blur-sm mb-8")}
+            >
+              <span className={cn("w-2 h-2", radius.pill, "bg-green-500 animate-pulse")} />
+              <span className="text-sm text-white/70 light:text-neutral-600">{available}</span>
+            </motion.div>
+          )}
 
           {/* Heading */}
-          <h1
-            className="animate-fade-up text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight text-balance"
-          >
-            <span className={cn(text.primary)}>
-              {resolveSectionText(locale, hero?.greetingPrefix, hero?.greetingPrefix_vi, t("hero.greetingPrefix"))}
-            </span>
-            <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent ml-2 sm:ml-3">
-              {siteConfig.author.name.split(" ")[0]}
-            </span>
-          </h1>
+          {(greetingPrefix || firstName) && (
+            <h1
+              className="animate-fade-up text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight text-balance"
+            >
+              {greetingPrefix && (
+                <span className={cn(text.primary)}>{greetingPrefix}</span>
+              )}
+              {firstName && (
+                <span
+                  className={`bg-gradient-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent ${greetingPrefix ? "ml-2 sm:ml-3" : ""}`}
+                >
+                  {firstName}
+                </span>
+              )}
+            </h1>
+          )}
 
           {/* Subtitle */}
-          <p
-            className="animate-fade-up [animation-delay:100ms] text-lg sm:text-xl md:text-2xl text-white/70 light:text-neutral-600 mb-12 max-w-2xl mx-auto leading-relaxed"
-          >
-            {resolveSectionText(
-              locale,
-              hero?.bio,
-              hero?.bio_vi,
-              locale === "vi" && siteConfig.author.bio_vi ? siteConfig.author.bio_vi : t("hero.bio")
-            )}
-          </p>
+          {bio && (
+            <p
+              className="animate-fade-up [animation-delay:100ms] text-lg sm:text-xl md:text-2xl text-white/70 light:text-neutral-600 mb-12 max-w-2xl mx-auto leading-relaxed"
+            >
+              {bio}
+            </p>
+          )}
 
           {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className={cn("flex flex-col sm:flex-row", gap.loose, "justify-center")}
-          >
-            <Button size="lg" variant="primary" onClick={handleViewWork}>
-              {resolveSectionText(locale, hero?.viewWork, hero?.viewWork_vi, t("hero.viewWork"))}
-            </Button>
-            {siteConfig.resumeUrl && (
-              <Button size="lg" variant="outline" onClick={() => setIsCVOpen(true)}>
-                {resolveSectionText(locale, hero?.viewCV, hero?.viewCV_vi, t("hero.viewCV"))}
-              </Button>
-            )}
-          </motion.div>
+          {(viewWorkLabel || showViewCV) && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className={cn("flex flex-col sm:flex-row", gap.loose, "justify-center")}
+            >
+              {viewWorkLabel && (
+                <Button size="lg" variant="primary" onClick={handleViewWork}>
+                  {viewWorkLabel}
+                </Button>
+              )}
+              {showViewCV && (
+                <Button size="lg" variant="outline" onClick={() => setIsCVOpen(true)}>
+                  {viewCVLabel}
+                </Button>
+              )}
+            </motion.div>
+          )}
         </div>
 
-        {siteConfig.resumeUrl && (
+        {showViewCV && siteConfig.resumeUrl && (
           <CVPreviewModal
             url={siteConfig.resumeUrl}
             isOpen={isCVOpen}

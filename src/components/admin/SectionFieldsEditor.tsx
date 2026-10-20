@@ -54,12 +54,35 @@ export default function SectionFieldsEditor<T extends object>({
         const placeholder = field.getPlaceholder(defaultValue, activeLang);
         // Show the site's real current text as the editable value when no
         // override has been typed yet, so admins see and can tweak the
-        // actual default instead of starting from a blank field.
-        const isCustomized = savedVal.trim().length > 0;
+        // actual default instead of starting from a blank field. Once the
+        // field is touched, an empty value is kept as-is and hides that text
+        // on the site.
+        const isCustomized = savedVal !== undefined;
+        const isCleared = isCustomized && !savedVal.trim();
         const displayVal = isCustomized ? savedVal : placeholder;
-        const helper = isCustomized ? undefined : "Showing site default — edit to override.";
+        const helper = !isCustomized
+          ? "Showing site default — edit to override, or clear it to hide this text."
+          : isCleared
+            ? "Empty — this text is hidden on the site."
+            : undefined;
         return (
-          <FormField key={field.id} label={field.label} id={inputId} helper={helper}>
+          <FormField
+            key={field.id}
+            label={field.label}
+            id={inputId}
+            helper={helper}
+            action={
+              isCustomized && (
+                <button
+                  type="button"
+                  onClick={() => onChange(field.setValue(value, activeLang, undefined))}
+                  className="text-[11px] text-gray-400 hover:text-white underline whitespace-nowrap"
+                >
+                  Restore default
+                </button>
+              )
+            }
+          >
             {field.multiline ? (
               <textarea
                 id={inputId}

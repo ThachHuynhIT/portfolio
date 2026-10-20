@@ -17,9 +17,8 @@ export interface BlackHoleCanvasProps {
    * default equatorial view toward near-overhead + zoomed out across the
    * full scrollable page (0 at the top, 1 at the very bottom — not this
    * element's own position, so it works whether the element is fixed or
-   * scrolls with the page). Off by default. Once scrolled past the first
-   * viewport the engine goes idle (no simulation, redraws only while the
-   * camera is still easing) to save GPU/battery. */
+   * scrolls with the page). Off by default. The simulation keeps running at
+   * every scroll position. */
   scrollEffect?: boolean;
   /** Decorative use: don't build the renderer during page load. Waits for
    * the browser to go idle after `load` (and, on low-power devices, for the
@@ -110,10 +109,11 @@ export default function BlackHoleCanvas({
         const viewportH = Math.max(window.innerHeight, 1);
         const maxScroll = Math.max(document.documentElement.scrollHeight - viewportH, 1);
         const cameraProgress = window.scrollY / maxScroll;
+        // The black hole is the page-wide background, so it keeps animating
+        // past the Hero too (no setIdle) — freezing it there made it look
+        // like it stuttered, moving only while scrolling. The engine's
+        // adaptive resolution + low-power fps cap keep the cost in check.
         engine?.setScrollProgress(cameraProgress);
-        // Past the first screen the render sits behind content + scrim:
-        // freeze the simulation and only redraw while the camera eases.
-        engine?.setIdle(window.scrollY > viewportH);
       };
       onScroll = () => {
         if (rafPending) return;

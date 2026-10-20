@@ -8,6 +8,25 @@
  */
 @custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
 
+/* Hide the scrollbar on horizontally-scrolling strips (tabs, filters,
+ * thumbnails) while keeping them scrollable. Tailwind v4 has no built-in
+ * equivalent; both names are used across the codebase. */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 :root {
   /*
    * BRAND SCALE — the two accents everything else is derived from.

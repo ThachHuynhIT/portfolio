@@ -1,3 +1,8 @@
+import type { WorkSchedule } from "@/lib/work-schedule";
+import type { CalendarType } from "@/lib/couple-events";
+
+export type { CalendarType };
+
 // Project Types
 export interface Project {
   id: string;
@@ -361,6 +366,7 @@ export interface CoupleBirthday {
   id?: string;
   name: string;
   date: string;
+  calendarType?: CalendarType;
   emoji: string;
   zodiac: string;
   published?: boolean;
@@ -370,6 +376,7 @@ export interface CoupleSpecialDate {
   id?: string;
   name: string;
   date: string;
+  calendarType?: CalendarType;
   emoji: string;
   published?: boolean;
 }
@@ -409,6 +416,16 @@ export interface CoupleFavorite {
   published?: boolean;
 }
 
+export type CoupleWorkSchedule = WorkSchedule & { person: 1 | 2 };
+
+export interface CoupleWorkOverride {
+  id: string;
+  person: 1 | 2;
+  date: string;
+  status: "work" | "off";
+  note?: string;
+}
+
 export interface CoupleData {
   person1: string;
   person2: string;
@@ -421,6 +438,8 @@ export interface CoupleData {
   bucketList: CoupleBucketItem[];
   loveLetters: CoupleLoveLetter[];
   favorites: CoupleFavorite[];
+  workSchedules: CoupleWorkSchedule[];
+  workOverrides: CoupleWorkOverride[];
 }
 
 

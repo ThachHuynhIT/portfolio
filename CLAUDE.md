@@ -24,11 +24,12 @@ This file provides guidance to Claude Code and other AI coding assistants when w
 npm run dev      # Start development server (http://localhost:3000)
 npm run build    # Production build & compile static MDX routes
 npm run start    # Run the production build locally
+npm test         # Vitest unit tests (vitest run)
 npm run lint     # eslint . (flat config via FlatCompat, extends next/core-web-vitals + next/typescript; ignores src/generated)
 npx tsc --noEmit -p .   # Type check
 ```
 
-> **Note on Testing & Types**: There is no unit test runner in this repo. Type checking: `npx tsc --noEmit -p .` (or `npm run build`). Env vars: see `.env.example`.
+> **Note on Testing & Types**: Unit tests use Vitest (`npm test` = `vitest run`, config in `vitest.config.mts`); tests live next to the code as `src/lib/*.test.ts`. Type checking: `npx tsc --noEmit -p .` (or `npm run build`). Env vars: see `.env.example`.
 
 ---
 

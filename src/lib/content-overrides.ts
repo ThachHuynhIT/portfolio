@@ -6,6 +6,10 @@
  * resolved via useTranslation()'s t(), which itself falls back en -> vi
  * internally), never to the override set for the *other* locale. This keeps
  * "only EN was overridden" from leaking English text onto the VI site.
+ *
+ * An override that was explicitly cleared (saved as "") resolves to "" so
+ * the caller can hide that element; only an *unset* override (undefined/null)
+ * falls back to the default.
  */
 export function resolveSectionText(
   locale: "en" | "vi",
@@ -14,7 +18,36 @@ export function resolveSectionText(
   fallback: string
 ): string {
   const raw = locale === "vi" ? overrideVi : overrideEn;
-  return raw && raw.trim() ? raw : fallback;
+  if (raw === undefined || raw === null) return fallback;
+  return raw.trim() ? raw : "";
+}
+
+/**
+ * Like resolveSectionText(), but for text a control can't work without
+ * (submit button labels, validation/error messages, aria-labels): a cleared
+ * override falls back to the default instead of resolving to "".
+ */
+export function resolveRequiredText(
+  locale: "en" | "vi",
+  overrideEn: string | undefined | null,
+  overrideVi: string | undefined | null,
+  fallback: string
+): string {
+  return resolveSectionText(locale, overrideEn, overrideVi, fallback) || fallback;
+}
+
+/**
+ * Picks the active locale's value for a site-config field that has an
+ * optional `_vi` translation: a blank VI value falls back to the EN one
+ * (as the admin form promises), and a blank EN value resolves to "".
+ */
+export function pickLocalized(
+  locale: "en" | "vi",
+  en: string | undefined | null,
+  vi: string | undefined | null
+): string {
+  if (locale === "vi" && vi?.trim()) return vi;
+  return en?.trim() ? en : "";
 }
 
 export function resolveStatValue(
