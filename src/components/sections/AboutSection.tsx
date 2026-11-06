@@ -5,7 +5,7 @@ import { AnimatedSection, GlassCard } from "@/components/ui";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
 import { resolveSectionText, resolveStatValue } from "@/lib/content-overrides";
-import { ABOUT_STAT_DEFS } from "@/lib/section-defaults";
+import { ABOUT_STAT_DEFS } from "@/lib/about-stat-defs";
 import type { SiteConfig } from "@/lib/types";
 
 export interface AboutSectionProps {
