@@ -17,22 +17,22 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "relative inline-flex items-center justify-center font-medium transition-all duration-300",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black light:focus-visible:ring-offset-white",
+          "portfolio-button relative inline-flex min-h-11 items-center justify-center rounded-lg font-medium transition-[color,background-color,border-color,transform,opacity] duration-150 active:scale-[0.98]",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-portfolio-accretion focus-visible:ring-offset-2 focus-visible:ring-offset-portfolio-void",
           "disabled:cursor-not-allowed disabled:opacity-50",
           {
             // Sizes
             "px-4 py-2 text-sm rounded-lg": size === "sm",
-            "px-6 py-3 text-base rounded-xl": size === "md",
-            "px-8 py-4 text-lg rounded-2xl": size === "lg",
+            "px-6 py-3 text-base rounded-lg": size === "md",
+            "px-8 py-4 text-lg rounded-lg": size === "lg",
             // Variants
-            "bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-600 hover:to-cyan-600 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40":
+            "portfolio-button-primary bg-portfolio-accretion text-portfolio-on-accretion hover:bg-portfolio-accretion-hover":
               variant === "primary",
-            "bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm border border-white/10 light:bg-neutral-900/[0.06] light:text-neutral-900 light:hover:bg-neutral-900/10 light:border-neutral-900/10":
+            "bg-portfolio-hull text-portfolio-ink border border-portfolio-control hover:border-portfolio-accretion":
               variant === "secondary",
-            "text-white/80 hover:text-white hover:bg-white/5 light:text-neutral-700 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.04]":
+            "text-portfolio-ink hover:bg-portfolio-ink/5":
               variant === "ghost",
-            "border border-white/20 text-white hover:bg-white/5 hover:border-white/40 light:border-neutral-900/15 light:text-neutral-900 light:hover:bg-neutral-900/[0.04] light:hover:border-neutral-900/30":
+            "border border-portfolio-control text-portfolio-ink hover:border-portfolio-accretion hover:bg-portfolio-ink/5":
               variant === "outline",
           },
           className

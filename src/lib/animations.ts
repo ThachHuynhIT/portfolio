@@ -1,5 +1,20 @@
 import { Variants } from "framer-motion";
 
+export const navUnderlineTransition = { type: "spring" as const, stiffness: 400, damping: 30 };
+
+// Only decorative geometry is hidden; headings and other text stay in SSR.
+export const starIgnition: Variants = {
+  rest: { opacity: 1, scale: 1 },
+  visible: { opacity: [1, 0.5, 1], scale: [1, 1.6, 1], transition: { duration: 0.55 } },
+};
+export const orbitArc: Variants = {
+  rest: { strokeDashoffset: 1 },
+  visible: { strokeDashoffset: 0, transition: { duration: 0.7, delay: 0.1 } },
+};
+export const progressiveSection: Variants = {
+  visible: { opacity: 1, y: [8, 0], transition: { duration: 0.4 } },
+};
+
 /**
  * Fade in from bottom animation variant
  */
