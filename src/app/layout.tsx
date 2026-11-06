@@ -11,6 +11,7 @@ import { getPublishedSocialLinks } from "@/lib/content/social-links";
 import { getPublishedSiteConfig } from "@/lib/content/site-config";
 import { buildMetadata } from "@/lib/seo";
 import { EXCLUDED_ROUTE_PREFIXES } from "@/lib/constants";
+import type { NavLink, SiteConfig, SocialLink } from "@/lib/types";
 
 // Floating overlay with no SSR value — mounted on every route, so keep it
 // out of the initial/shared bundle.
@@ -29,8 +30,21 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
+// Used when the DB is unreachable (e.g. at build time). Placeholder values are
+// unchanged from the previous inline fallback; the fields the old literal
+// omitted are filled with empty values to satisfy SiteConfig.
+const FALLBACK_SITE_CONFIG: SiteConfig = {
+  title: "t",
+  description: "d",
+  ogImage: "",
+  name: "n",
+  url: "http://localhost:3000",
+  resumeUrl: null,
+  author: { name: "a", title: "", bio: "", avatar: "", email: "", location: "" },
+};
+
 export async function generateMetadata(): Promise<Metadata> {
-  const siteConfig = await getPublishedSiteConfig().catch(()=>({title:'t',description:'d',ogImage:'',name:'n',url:'http://localhost:3000',author:{name:'a'}} as any));
+  const siteConfig = await getPublishedSiteConfig().catch(() => FALLBACK_SITE_CONFIG);
 
   // Only alternates/openGraph/twitter come from buildMetadata() — the root
   // layout needs a title *template* (so descendant pages' bare `title`
@@ -111,9 +125,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const [navLinks, socialLinks, siteConfig] = await Promise.all([
-    getPublishedNavLinks().catch(()=>[] as any),
-    getPublishedSocialLinks().catch(()=>[] as any),
-    getPublishedSiteConfig().catch(()=>({title:'t',description:'d',ogImage:'',name:'n',url:'http://localhost:3000',author:{name:'a'}} as any)),
+    getPublishedNavLinks().catch(() => [] as NavLink[]),
+    getPublishedSocialLinks().catch(() => [] as SocialLink[]),
+    getPublishedSiteConfig().catch(() => FALLBACK_SITE_CONFIG),
   ]);
 
   return (

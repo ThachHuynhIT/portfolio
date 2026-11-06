@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
@@ -21,7 +21,7 @@ export default function BlogAdminPage() {
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<BlogMeta | null>(null);
 
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/blog");
       if (res.status === 401) {
@@ -36,11 +36,11 @@ export default function BlogAdminPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, toast, t.admin.blog.toastLoadFailed]);
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [fetchPosts]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;

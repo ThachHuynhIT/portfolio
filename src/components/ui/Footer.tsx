@@ -73,6 +73,7 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
                   aria-label={social.name}
                 >
                   {social.icon && (social.icon.startsWith("http") || social.icon.startsWith("/")) ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- small CMS icon from an arbitrary URL; component is slated for redesign
                     <img
                       src={social.icon}
                       alt={social.name}

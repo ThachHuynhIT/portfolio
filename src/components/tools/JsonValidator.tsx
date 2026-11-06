@@ -130,7 +130,7 @@ export default function JsonValidator() {
         const json2 = JSON.parse(parameterContent);
 
         // Extract tb_def_parameter__id from exception file
-        let exceptionParams: any[] = [];
+        let exceptionParams: { tb_def_parameter__id: number }[] = [];
         if (json1['public.tb_def_exception_parameter']) {
           exceptionParams = json1['public.tb_def_exception_parameter'];
         } else if (Array.isArray(json1)) {
@@ -138,7 +138,7 @@ export default function JsonValidator() {
         }
 
         // Extract id from parameter file
-        let parameters: any[] = [];
+        let parameters: { id: number }[] = [];
         if (json2['public.tb_def_parameter']) {
           parameters = json2['public.tb_def_parameter'];
         } else if (Array.isArray(json2)) {
@@ -194,7 +194,7 @@ export default function JsonValidator() {
       setFiles([file1, file2]);
       setError('');
       setResults([]);
-    } catch (err) {
+    } catch {
       setError('Unable to load sample data');
     }
   };
@@ -255,7 +255,7 @@ export default function JsonValidator() {
               <input
                 type="file"
                 accept=".json"
-                // @ts-ignore - webkitdirectory is not in the types
+                // @ts-expect-error - webkitdirectory is not in React's input attribute types
                 webkitdirectory="true"
                 directory="true"
                 onChange={handleFileSelect}

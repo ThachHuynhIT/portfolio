@@ -216,6 +216,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                           {/* Skill Icon */}
                           <div className="w-5 h-5 flex items-center justify-center shrink-0">
                             {isImg ? (
+                              // eslint-disable-next-line @next/next/no-img-element -- small CMS icon from an arbitrary URL; section is slated for redesign
                               <img
                                 src={skill.icon}
                                 alt={skill.name}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-auth";
+import { getErrorMessage } from "@/lib/utils";
 import { uploadAndRegisterMedia } from "@/lib/media-service";
 import path from "path";
 
@@ -53,10 +54,10 @@ export async function POST(req: NextRequest) {
       duration: asset.duration,
       asset,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[POST /api/admin/photography/upload] Error:", error);
     const errorMessage =
-      error?.message ||
+      getErrorMessage(error) ||
       "Cloudinary upload failed. Please check your Cloudinary environment variables.";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
