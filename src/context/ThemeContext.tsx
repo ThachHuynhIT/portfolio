@@ -28,7 +28,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const STORAGE_KEY = "portfolio_theme";
 
 
-// KEEP IN SYNC WITH the inline blocking script in src/app/layout.tsx —
+// KEEP IN SYNC WITH the inline blocking script built in src/lib/theme-init.ts —
 // both must resolve the same theme from the same inputs to avoid a
 // flash of incorrect theme between first paint and hydration.
 function detectPreferredTheme(): Theme {
