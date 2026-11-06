@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-auth";
 import { uploadAndRegisterMedia } from "@/lib/media-service";
+import { getErrorMessage } from "@/lib/utils";
+import {
+  UploadValidationError,
+  assertContentLength,
+  isUploadedFile,
+  validateUpload,
+} from "@/lib/upload-validation";
 import type { MediaAsset } from "@/lib/types";
 
 // POST /api/music/upload — admin only, upload audio file or thumbnail to Cloudinary with standardized prefix
@@ -8,9 +15,32 @@ export async function POST(req: NextRequest) {
   const authError = await requireAdminSession();
   if (authError) return authError;
   try {
-    const formData = await req.formData();
-    const audioFile = formData.get("audio") as File | null;
-    const thumbnailFile = formData.get("thumbnail") as File | null;
+    assertContentLength(req.headers);
+
+    let formData: FormData;
+    try {
+      formData = await req.formData();
+    } catch {
+      return NextResponse.json({ error: "Invalid multipart body" }, { status: 400 });
+    }
+
+    const audioEntry = formData.get("audio");
+    const thumbnailEntry = formData.get("thumbnail");
+    if ((audioEntry !== null && !isUploadedFile(audioEntry)) ||
+        (thumbnailEntry !== null && !isUploadedFile(thumbnailEntry))) {
+      return NextResponse.json({ error: "'audio' and 'thumbnail' must be files" }, { status: 400 });
+    }
+    if (!audioEntry && !thumbnailEntry) {
+      return NextResponse.json(
+        { error: "No files provided. Send 'audio' or 'thumbnail' field." },
+        { status: 400 }
+      );
+    }
+
+    // Validate every part before any upload, so an invalid second part
+    // never leaves the first one uploaded.
+    const audio = audioEntry ? await validateUpload(audioEntry, "audio") : null;
+    const thumbnail = thumbnailEntry ? await validateUpload(thumbnailEntry, "thumbnail") : null;
 
     const result: {
       audioUrl?: string;
@@ -20,52 +50,38 @@ export async function POST(req: NextRequest) {
     } = {};
 
     // Upload audio file with prefix: music-audio-...
-    if (audioFile) {
-      const arrayBuffer = await audioFile.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
-      const audioAsset = await uploadAndRegisterMedia(buffer, {
+    if (audio && audioEntry) {
+      const audioAsset = await uploadAndRegisterMedia(audio.buffer, {
         category: "music",
         subType: "audio",
-        originalName: audioFile.name,
-        mimeType: audioFile.type || "audio/mpeg",
+        originalName: audioEntry.name,
+        mimeType: audio.mimeType,
         resourceType: "video", // Cloudinary uses video resource_type for audio
       });
-
       result.audioUrl = audioAsset.secureUrl;
       result.audioAsset = audioAsset;
     }
 
     // Upload thumbnail image with prefix: music-thumb-...
-    if (thumbnailFile) {
-      const arrayBuffer = await thumbnailFile.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
-      const thumbAsset = await uploadAndRegisterMedia(buffer, {
+    if (thumbnail && thumbnailEntry) {
+      const thumbAsset = await uploadAndRegisterMedia(thumbnail.buffer, {
         category: "music",
         subType: "thumb",
-        originalName: thumbnailFile.name,
-        mimeType: thumbnailFile.type || "image/jpeg",
+        originalName: thumbnailEntry.name,
+        mimeType: thumbnail.mimeType,
         resourceType: "image",
       });
-
       result.thumbnailUrl = thumbAsset.secureUrl;
       result.thumbAsset = thumbAsset;
     }
 
-    if (!result.audioUrl && !result.thumbnailUrl) {
-      return NextResponse.json(
-        { error: "No files provided. Send 'audio' or 'thumbnail' field." },
-        { status: 400 }
-      );
-    }
-
     return NextResponse.json(result, { status: 201 });
-  } catch (error) {
-    console.error("[POST /api/music/upload] Error:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Upload failed" },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    if (error instanceof UploadValidationError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    // Provider errors can carry config details; keep them in server logs only.
+    console.error("[POST /api/music/upload] Upload failed:", getErrorMessage(error));
+    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }
