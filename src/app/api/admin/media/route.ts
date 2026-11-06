@@ -6,7 +6,15 @@ import {
   uploadAndRegisterMedia,
   deleteMediaAsset,
 } from "@/lib/media-service";
-import type { MediaCategory } from "@/lib/types";
+import {
+  UploadValidationError,
+  assertContentLength,
+  isUploadedFile,
+  mediaUploadKind,
+  parseMediaCategory,
+  parseMediaSubType,
+  validateUpload,
+} from "@/lib/upload-validation";
 
 export async function GET(req: NextRequest) {
   const authError = await requireAdminSession();
@@ -67,32 +75,37 @@ export async function POST(req: NextRequest) {
   if (authError) return authError;
 
   try {
-    const formData = await req.formData();
-    const file = formData.get("file") as File | null;
-    const category = (formData.get("category") as MediaCategory) || "general";
-    const subType = (formData.get("subType") as string) || undefined;
+    assertContentLength(req.headers);
 
-    if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    let formData: FormData;
+    try {
+      formData = await req.formData();
+    } catch {
+      return NextResponse.json({ error: "Invalid form data" }, { status: 400 });
     }
 
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const file = formData.get("file");
+    if (!isUploadedFile(file)) {
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
+    const category = parseMediaCategory(formData.get("category"));
+    const subType = parseMediaSubType(formData.get("subType"));
+    const { buffer, mimeType } = await validateUpload(file, mediaUploadKind(file));
 
     const asset = await uploadAndRegisterMedia(buffer, {
       category,
       subType,
       originalName: file.name,
-      mimeType: file.type,
+      mimeType,
     });
 
     return NextResponse.json({ asset }, { status: 201 });
   } catch (error) {
-    console.error("[POST /api/admin/media] Error:", error);
-    return NextResponse.json(
-      { error: getErrorMessage(error) || "Failed to upload file" },
-      { status: 500 }
-    );
+    if (error instanceof UploadValidationError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    console.error("[POST /api/admin/media] Error:", getErrorMessage(error));
+    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }
 

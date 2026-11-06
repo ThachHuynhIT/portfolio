@@ -10,7 +10,9 @@ import { getPublishedNavLinks } from "@/lib/content/nav-links";
 import { getPublishedSocialLinks } from "@/lib/content/social-links";
 import { getPublishedSiteConfig } from "@/lib/content/site-config";
 import { buildMetadata } from "@/lib/seo";
-import { EXCLUDED_ROUTE_PREFIXES } from "@/lib/constants";
+import { getFallbackSiteConfig } from "@/lib/site-config-fallback";
+import { THEME_INIT_SCRIPT } from "@/lib/theme-init";
+import { getErrorMessage } from "@/lib/utils";
 import type { NavLink, SiteConfig, SocialLink } from "@/lib/types";
 
 // Floating overlay with no SSR value — mounted on every route, so keep it
@@ -30,21 +32,21 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
-// Used when the DB is unreachable (e.g. at build time). Placeholder values are
-// unchanged from the previous inline fallback; the fields the old literal
-// omitted are filled with empty values to satisfy SiteConfig.
-const FALLBACK_SITE_CONFIG: SiteConfig = {
-  title: "t",
-  description: "d",
-  ogImage: "",
-  name: "n",
-  url: "http://localhost:3000",
-  resumeUrl: null,
-  author: { name: "a", title: "", bio: "", avatar: "", email: "", location: "" },
-};
+// The catch sits outside the cached reader (getPublishedSiteConfig wraps
+// unstable_cache), so a DB outage falls back to the real typed defaults for
+// this render only and is never cached as a successful response.
+function loadSiteConfig(): Promise<SiteConfig> {
+  return getPublishedSiteConfig().catch((error: unknown) => {
+    console.error(
+      "[layout] site config unavailable, using defaults:",
+      getErrorMessage(error) ?? "unknown error"
+    );
+    return getFallbackSiteConfig();
+  });
+}
 
 export async function generateMetadata(): Promise<Metadata> {
-  const siteConfig = await getPublishedSiteConfig().catch(() => FALLBACK_SITE_CONFIG);
+  const siteConfig = await loadSiteConfig();
 
   // Only alternates/openGraph/twitter come from buildMetadata() — the root
   // layout needs a title *template* (so descendant pages' bare `title`
@@ -103,21 +105,9 @@ export const viewport: Viewport = {
 import GlobalBackground from "@/components/layout/GlobalBackground";
 import MotionProvider from "@/components/layout/MotionProvider";
 
-// KEEP IN SYNC WITH detectPreferredTheme()/isExcludedRoute() in
-// src/context/ThemeContext.tsx — runs before hydration to set data-theme
-// on <html> pre-paint, avoiding a flash of the wrong theme.
-const THEME_INIT_SCRIPT = `(function(){try{
-  var excluded=${JSON.stringify(EXCLUDED_ROUTE_PREFIXES)};
-  var path=window.location.pathname;
-  if(excluded.some(function(p){return path===p||path.indexOf(p+"/")===0})){
-    document.documentElement.setAttribute("data-theme","dark");
-    return;
-  }
-  var stored=localStorage.getItem("portfolio_theme");
-  var theme=stored==="light"||stored==="dark"?stored:
-    (window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
-  document.documentElement.setAttribute("data-theme",theme);
-}catch(e){}})();`;
+// THEME_INIT_SCRIPT (src/lib/theme-init.ts) runs before hydration to set
+// data-theme on <html> pre-paint. Emit it verbatim: its sha256 is pinned in
+// the report-only CSP in next.config.js.
 
 export default async function RootLayout({
   children,
@@ -127,7 +117,7 @@ export default async function RootLayout({
   const [navLinks, socialLinks, siteConfig] = await Promise.all([
     getPublishedNavLinks().catch(() => [] as NavLink[]),
     getPublishedSocialLinks().catch(() => [] as SocialLink[]),
-    getPublishedSiteConfig().catch(() => FALLBACK_SITE_CONFIG),
+    loadSiteConfig(),
   ]);
 
   return (

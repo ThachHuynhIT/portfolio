@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { verifyPasswordHash, createSession, destroySession, verifySession } from "@/lib/admin-auth";
+import { createSession, destroySession, verifySession } from "@/lib/admin-auth";
+import { verifyAdminPassword } from "@/lib/admin-password";
+import { loginSchema } from "@/lib/login-schema";
 import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
 
 const loginRateLimiter = createRateLimiter({ max: 5, windowMs: 15 * 60 * 1000 });
@@ -35,17 +37,19 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json();
-    const { passwordHash } = body;
-
-    if (!passwordHash || typeof passwordHash !== "string") {
+    // Strict parse: only `{ password }` is accepted; the legacy
+    // `{ passwordHash }` payload and invalid JSON are rejected with 400.
+    // Never log the body — it contains the plain password.
+    const body: unknown = await request.json().catch(() => null);
+    const parsed = loginSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
         { error: "Password is required" },
         { status: 400 }
       );
     }
 
-    if (!verifyPasswordHash(passwordHash)) {
+    if (!(await verifyAdminPassword(parsed.data.password))) {
       loginRateLimiter.recordAttempt(ip);
       return NextResponse.json(
         { error: "Invalid password" },

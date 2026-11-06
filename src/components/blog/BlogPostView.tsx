@@ -6,11 +6,11 @@ import { GlassCard } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
 import FlagIcon from "@/components/ui/FlagIcon";
 import Icon from "@/components/ui/Icon";
-import type { BlogPost } from "@/lib/types";
+import type { BlogPostViewMeta } from "@/lib/blog-list";
 import { translateBlogCategory, translateReadTime } from "@/lib/content-overrides";
 
 interface BlogPostViewProps {
-  post: BlogPost;
+  post: BlogPostViewMeta;
   contentEn: React.ReactNode;
   contentVi?: React.ReactNode | null;
 }
@@ -21,7 +21,7 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
   const isVi = locale === "vi";
   const title = isVi && post.title_vi ? post.title_vi : post.title;
   const excerpt = isVi && post.excerpt_vi ? post.excerpt_vi : post.excerpt;
-  const renderedContent = isVi && post.content_vi && contentVi ? contentVi : contentEn;
+  const renderedContent = isVi && post.hasVi && contentVi ? contentVi : contentEn;
 
   return (
     <article className="min-h-screen pt-32 pb-20">
@@ -62,7 +62,7 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
               <FlagIcon code={isVi ? "vi" : "en"} size={14} />
               {isVi ? "Tiếng Việt" : "English"}
             </span>
-            {isVi && !post.content_vi && (
+            {isVi && !post.hasVi && (
               <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 light:text-amber-700">
                 (Đang hiển thị bản gốc EN)
               </span>

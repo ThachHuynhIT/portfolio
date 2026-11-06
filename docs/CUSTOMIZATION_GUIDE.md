@@ -17,7 +17,7 @@ Tài liệu này hướng dẫn từng bước cách tùy chỉnh toàn bộ th�
 
 ## 1. Thay Đổi Thông Tin Cá Nhân & Cấu Hình Trang
 
-Toàn bộ nội dung site nằm trong **PostgreSQL** và được chỉnh qua **Admin CMS** (`/admin`, đăng nhập bằng `ADMIN_PASSWORD`) — không sửa trong code. `src/lib/constants.ts` chỉ còn `EXCLUDED_ROUTE_PREFIXES`.
+Toàn bộ nội dung site nằm trong **PostgreSQL** và được chỉnh qua **Admin CMS** (`/admin`, đăng nhập bằng mật khẩu có hash trong `ADMIN_PASSWORD_SCRYPT`) — không sửa trong code. `src/lib/constants.ts` chỉ còn `EXCLUDED_ROUTE_PREFIXES`.
 
 ### 1.1. Cấu hình site — `/admin/site-config`
 - Tab **General/Author**: tên, tiêu đề, mô tả, URL site, ảnh OG (`ogImage`), thông tin tác giả (tên, chức danh, bio EN/VI, avatar, email, vị trí) và link CV (`resumeUrl` — nút xem CV ở Hero chỉ hiện khi có giá trị).

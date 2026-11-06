@@ -2,54 +2,57 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
-
-async function hashPassword(password: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(password));
-  return Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-}
+import { loginSchema, type LoginInput } from "@/lib/login-schema";
+import { getErrorMessage } from "@/lib/utils";
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const { t } = useTranslation();
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { password: "" },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // The plain password is sent over HTTPS and verified server-side with
+  // salted scrypt; it is never hashed or stored on the client.
+  const onSubmit = async ({ password }: LoginInput) => {
     setError("");
-    setLoading(true);
 
     try {
-      const passwordHash = await hashPassword(password);
       const res = await fetch("/api/admin/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ passwordHash }),
+        body: JSON.stringify({ password }),
       });
 
-      const data = await res.json();
+      const data: unknown = await res.json().catch(() => null);
 
       if (!res.ok) {
-        throw new Error(data.error || t("admin.login.authFailed", "Authentication failed"));
+        const serverError =
+          typeof data === "object" && data !== null && "error" in data && typeof data.error === "string"
+            ? data.error
+            : "";
+        throw new Error(serverError || t("admin.login.authFailed", "Authentication failed"));
       }
 
       router.push("/admin");
       router.refresh();
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unknown error occurred");
-      }
-    } finally {
-      setLoading(false);
+      setError(getErrorMessage(err) || "An unknown error occurred");
     }
   };
+
+  const displayError = error || errors.password?.message || "";
+  const loading = isSubmitting;
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-950">
@@ -73,13 +76,13 @@ export default function AdminLoginPage() {
             <p className="text-slate-500 text-sm mt-1">{t("admin.login.subtitle", "Sign in to manage your content")}</p>
           </div>
 
-          {error && (
-            <div className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium text-center">
-              {error}
+          {displayError && (
+            <div role="alert" className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium text-center">
+              {displayError}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
             <div>
               <label
                 htmlFor="admin-password"
@@ -90,11 +93,12 @@ export default function AdminLoginPage() {
               <input
                 id="admin-password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                {...register("password")}
                 placeholder={t("admin.login.passwordPlaceholder", "••••••••")}
                 required
                 autoFocus
+                aria-invalid={errors.password ? true : undefined}
                 className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/[0.1] rounded-xl text-white text-sm placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/40 transition-all"
               />
             </div>

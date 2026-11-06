@@ -1,23 +1,12 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import crypto from "crypto";
 import { signToken, verifyToken } from "./session-token";
+
+// Password verification lives in admin-password.ts (salted scrypt against
+// ADMIN_PASSWORD_SCRYPT); this module only handles the session cookie.
 
 const SESSION_COOKIE = "admin_session";
 const SESSION_MAX_AGE = 60 * 60 * 24; // 24 hours, in seconds
-
-/**
- * Get the admin password from environment variable. Throws rather than
- * silently falling back to a known default — an unset ADMIN_PASSWORD must
- * fail loudly, not leave the admin panel guarded by "admin123".
- */
-function getAdminPassword(): string {
-  const password = process.env.ADMIN_PASSWORD;
-  if (!password) {
-    throw new Error("ADMIN_PASSWORD environment variable is not set.");
-  }
-  return password;
-}
 
 /**
  * The secret used to sign session cookies. Reuses AUTH_SECRET (already
@@ -29,26 +18,6 @@ function getSessionSecret(): string {
     throw new Error("AUTH_SECRET environment variable is not set.");
   }
   return secret;
-}
-
-function sha256(value: string): Buffer {
-  return crypto.createHash("sha256").update(value).digest();
-}
-
-const HEX_64 = /^[0-9a-f]{64}$/i;
-
-/**
- * Verify a client-hashed password: the client sends SHA-256(password) as a
- * 64-char hex digest instead of the plaintext, so the raw password never
- * appears in the request body. Compares against SHA-256(ADMIN_PASSWORD)
- * using a constant-time comparison of equal-length digests to avoid leaking
- * a match/mismatch through response-timing differences.
- */
-export function verifyPasswordHash(passwordHash: string): boolean {
-  if (!HEX_64.test(passwordHash)) return false;
-  const expected = sha256(getAdminPassword());
-  const actual = Buffer.from(passwordHash.toLowerCase(), "hex");
-  return crypto.timingSafeEqual(actual, expected);
 }
 
 /**

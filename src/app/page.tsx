@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
 import { HeroSection, AboutSection } from "@/components/sections";
 import { SectionSkeleton } from "@/components/ui";
-import { getAllPosts } from "@/lib/blog";
+import { getPostSummaries } from "@/lib/blog";
 import { getPublishedSkills } from "@/lib/content/skills";
 import { getPublishedProjects } from "@/lib/content/projects";
 import { getPublishedPhotos } from "@/lib/content/photography";
@@ -45,7 +45,7 @@ const ContactSection = dynamic(
 
 export default async function Home() {
   const [allPosts, skills, projects, photography, siteConfig] = await Promise.all([
-    getAllPosts(),
+    getPostSummaries(),
     getPublishedSkills(),
     getPublishedProjects(),
     getPublishedPhotos(),

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdminSession } from "@/lib/admin-auth";
+import { createTrackSchema, describeIssues, trackWriteErrorStatus } from "@/lib/music-schema";
+import { getErrorMessage } from "@/lib/utils";
 
 // GET /api/music/tracks — public, fetch all published tracks
 export async function GET() {
@@ -20,34 +22,30 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const authError = await requireAdminSession();
   if (authError) return authError;
+
+  let body: unknown;
   try {
-    const body = await req.json();
-    const { title, artist, album, duration, audioUrl, thumbnailUrl, genre, order, published } = body;
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
 
-    if (!title || !artist || !audioUrl) {
-      return NextResponse.json(
-        { error: "title, artist, and audioUrl are required" },
-        { status: 400 }
-      );
-    }
+  const parsed = createTrackSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid track data", issues: describeIssues(parsed.error) },
+      { status: 400 }
+    );
+  }
 
-    const track = await db.track.create({
-      data: {
-        title,
-        artist,
-        album: album ?? null,
-        duration: duration ? Number(duration) : 0,
-        audioUrl,
-        thumbnailUrl: thumbnailUrl ?? null,
-        genre: genre ?? null,
-        order: order ? Number(order) : 0,
-        published: published !== false,
-      },
-    });
-
+  try {
+    const track = await db.track.create({ data: parsed.data });
     return NextResponse.json(track, { status: 201 });
-  } catch (error) {
-    console.error("[POST /api/music/tracks]", error);
+  } catch (error: unknown) {
+    if (trackWriteErrorStatus(error) === 409) {
+      return NextResponse.json({ error: "Track conflicts with an existing one" }, { status: 409 });
+    }
+    console.error("[POST /api/music/tracks]", getErrorMessage(error));
     return NextResponse.json({ error: "Failed to create track" }, { status: 500 });
   }
 }

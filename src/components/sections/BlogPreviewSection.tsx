@@ -5,11 +5,11 @@ import { motion } from "framer-motion";
 import { AnimatedSection, GlassCard, Icon } from "@/components/ui";
 import { staggerContainer, fadeInUp } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
-import type { BlogPost } from "@/lib/types";
+import type { BlogPostListItem } from "@/lib/types";
 import { translateBlogCategory, translateReadTime } from "@/lib/content-overrides";
 
 interface BlogPreviewSectionProps {
-  posts: BlogPost[];
+  posts: BlogPostListItem[];
 }
 
 export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {

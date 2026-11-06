@@ -1,21 +1,21 @@
 import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { requireAdminSession } from "@/lib/admin-auth";
-import { getPostBySlug } from "@/lib/blog";
-import { db } from "@/lib/db";
+import { blogPostInputSchema, deletePost, findPost, updatePost } from "@/lib/blog";
+import { MdxPolicyError } from "@/lib/mdx-policy";
 
 interface RouteParams {
   params: Promise<{ slug: string }>;
 }
 
 /**
- * GET /api/admin/blog/[slug] — Get full blog post (with content)
+ * GET /api/admin/blog/[slug] — Get full blog post (with EN and VI content), uncached
  */
 export async function GET(_request: Request, { params }: RouteParams) {
   const authError = await requireAdminSession();
   if (authError) return authError;
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  const post = await findPost(slug);
   if (!post) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
@@ -30,57 +30,22 @@ export async function PUT(request: Request, { params }: RouteParams) {
   if (authError) return authError;
   try {
     const { slug } = await params;
+    const parsed = blogPostInputSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
 
-    const existing = await db.cmsBlogPost.findUnique({ where: { slug } });
-    if (!existing) {
+    const post = await updatePost(slug, parsed.data);
+    if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
-    const body = await request.json();
-    const {
-      title,
-      title_vi,
-      excerpt,
-      excerpt_vi,
-      content_vi,
-      date,
-      category,
-      tags,
-      readTime,
-      content,
-    } = body;
-
-    const frontmatter: Record<string, unknown> = {
-      title: title || "",
-      excerpt: excerpt || "",
-      date: date || new Date().toISOString().split("T")[0],
-      category: category || "Uncategorized",
-      tags: tags || [],
-      readTime: readTime || "5 min read",
-    };
-    if (title_vi?.trim()) frontmatter.title_vi = title_vi.trim();
-    if (excerpt_vi?.trim()) frontmatter.excerpt_vi = excerpt_vi.trim();
-    if (content_vi?.trim()) frontmatter.content_vi = content_vi.trim();
-
-    await db.cmsBlogPost.update({
-      where: { slug },
-      data: {
-        title: title || "",
-        titleVi: title_vi?.trim() || null,
-        excerpt: excerpt || "",
-        excerptVi: excerpt_vi?.trim() || null,
-        contentVi: content_vi?.trim() || null,
-        date: date || new Date().toISOString().split("T")[0],
-        category: category || "Uncategorized",
-        tags: tags || [],
-        readTime: readTime || "5 min read",
-        content: content || "",
-      },
-    });
-
     revalidateTag("blog");
-    return NextResponse.json({ slug, ...frontmatter });
-  } catch {
+    return NextResponse.json(post);
+  } catch (error) {
+    if (error instanceof MdxPolicyError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     return NextResponse.json({ error: "Failed to update post" }, { status: 500 });
   }
 }
@@ -93,13 +58,10 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
   if (authError) return authError;
   try {
     const { slug } = await params;
-
-    const existing = await db.cmsBlogPost.findUnique({ where: { slug } });
-    if (!existing) {
+    const deleted = await deletePost(slug);
+    if (!deleted) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
-
-    await db.cmsBlogPost.delete({ where: { slug } });
     revalidateTag("blog");
     return NextResponse.json({ success: true });
   } catch {

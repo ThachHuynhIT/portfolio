@@ -9,9 +9,9 @@ import FlagIcon from "@/components/ui/FlagIcon";
 import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/TranslationContext";
-import type { BlogPost } from "@/lib/types";
+import type { BlogPostListItem } from "@/lib/types";
 
-type BlogMeta = Omit<BlogPost, "content">;
+type BlogMeta = BlogPostListItem;
 
 export default function BlogAdminPage() {
   const router = useRouter();
