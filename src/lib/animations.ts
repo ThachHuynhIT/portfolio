@@ -148,3 +148,11 @@ export const floatAnimation = {
     ease: "easeInOut",
   },
 };
+export const factsStagger: Variants = { visible: { transition: { staggerChildren: 0.06 } } };
+export const shootingStarRow: Variants = { visible: { x: [-20, 0], opacity: [0.6, 1], transition: { duration: 0.45 } } };
+export const factsOrbit: Variants = {
+  visible: { x: [-24, 0], y: [12, 0], rotate: [-3, 0], opacity: [0.6, 1], transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] } },
+};
+export const constellationDraw: Variants = {
+  visible: { strokeDashoffset: [1, 0], transition: { duration: 0.7 } },
+};

@@ -12,6 +12,8 @@ import { getPublishedSiteConfig } from "@/lib/content/site-config";
 import { buildMetadata } from "@/lib/seo";
 import { getFallbackSiteConfig } from "@/lib/site-config-fallback";
 import { THEME_INIT_SCRIPT } from "@/lib/theme-init";
+import { getPostSummaries } from "@/lib/blog";
+import { filterBlogNavLinks } from "@/lib/navigation-section";
 import { getErrorMessage } from "@/lib/utils";
 import type { NavLink, SiteConfig, SocialLink } from "@/lib/types";
 
@@ -121,11 +123,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [navLinks, socialLinks, siteConfig] = await Promise.all([
+  const [allNavLinks, socialLinks, siteConfig, posts] = await Promise.all([
     getPublishedNavLinks().catch(() => [] as NavLink[]),
     getPublishedSocialLinks().catch(() => [] as SocialLink[]),
     loadSiteConfig(),
+    getPostSummaries().catch(() => null),
   ]);
+  // A failed read is unknown, rather than an empty blog. Preserve navigation.
+  const navLinks = filterBlogNavLinks(allNavLinks, posts === null || posts.length > 0);
 
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
