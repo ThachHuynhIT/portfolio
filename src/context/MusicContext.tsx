@@ -698,14 +698,14 @@ export function MusicProvider({
     // Log a play once per track load (guarded by playCountLoggedRef, reset
     // whenever the audio element's source changes) — bumps the local list
     // optimistically so charts/plays counts update immediately, and hits
-    // the increment endpoint server-side.
+    // the play endpoint (POST .../play) server-side.
     if (currentTrack && playCountLoggedRef.current !== currentTrack.id) {
       playCountLoggedRef.current = currentTrack.id;
       const playedTrackId = currentTrack.id;
       setTracks((prev) =>
         prev.map((t) => (t.id === playedTrackId ? { ...t, playCount: t.playCount + 1 } : t))
       );
-      fetch(`/api/music/tracks/${playedTrackId}`).catch(() => {});
+      fetch(`/api/music/tracks/${encodeURIComponent(playedTrackId)}/play`, { method: "POST" }).catch(() => {});
     }
 
     if (sleepTimer.minutes === 0) {
