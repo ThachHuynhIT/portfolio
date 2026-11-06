@@ -1,290 +1,47 @@
 "use client";
-
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useEffect, useRef } from "react";
+import { useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import SectionHeading from "@/components/ui/SectionHeading";
-import { AnimatedSection, ImageWithSkeleton, Icon } from "@/components/ui";
+import Image from "next/image";
 import { useTranslation } from "@/context/LanguageContext";
-import { clipReveal } from "@/lib/animations";
-import cloudinaryImageLoader from "@/lib/cloudinary-image-loader";
+import { pickLocalized } from "@/lib/content-overrides";
 import type { PhotoItem } from "@/lib/types";
-
-export interface PhotoPreviewSectionProps {
-  photography: PhotoItem[];
-}
-
+export interface PhotoPreviewSectionProps { photography: PhotoItem[] }
 export default function PhotoPreviewSection({ photography }: PhotoPreviewSectionProps) {
   const { t, locale } = useTranslation();
-  const reducedMotion = useReducedMotion();
-
-  // Filter featured photos
-  const featuredPhotos: PhotoItem[] = useMemo(() => {
-    const featured = photography.filter((p) => p.featured);
-    return featured.length > 0 ? featured : photography.slice(0, 6);
-  }, [photography]);
-
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [visitedIndices, setVisitedIndices] = useState<Set<number>>(() => new Set([0]));
-
+  const reduced = useReducedMotion();
+  const strip = useRef<HTMLDivElement>(null);
+  const featured = photography.filter((photo) => photo.featured);
+  const photos = (featured.length ? featured : photography).slice(0, 4);
   useEffect(() => {
-    setVisitedIndices((prev) => (prev.has(currentIndex) ? prev : new Set(prev).add(currentIndex)));
-  }, [currentIndex]);
-
-  const nextSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % featuredPhotos.length);
-  }, [featuredPhotos.length]);
-
-  const prevSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + featuredPhotos.length) % featuredPhotos.length);
-  }, [featuredPhotos.length]);
-
-  // Autoplay timer
-  useEffect(() => {
-    if (reducedMotion || !isAutoPlaying || featuredPhotos.length <= 1) return;
-    const interval = setInterval(nextSlide, 5000);
-    return () => clearInterval(interval);
-  }, [reducedMotion, isAutoPlaying, nextSlide, featuredPhotos.length]);
-
-  if (featuredPhotos.length === 0) return null;
-
-  const currentPhoto = featuredPhotos[currentIndex];
-  const photoTitle = locale === "vi" && currentPhoto.title_vi ? currentPhoto.title_vi : currentPhoto.title;
-  const photoDesc = locale === "vi" && currentPhoto.description_vi ? currentPhoto.description_vi : currentPhoto.description;
-  const photoLoc = locale === "vi" && currentPhoto.location_vi ? currentPhoto.location_vi : currentPhoto.location;
-
-  return (
-    <section
-      id="photos"
-      className="relative pt-8 pb-56 overflow-hidden"
-      onMouseEnter={() => setIsAutoPlaying(false)}
-      onMouseLeave={() => setIsAutoPlaying(true)}
-    >
-      <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
-        {/* Header */}
-        <AnimatedSection>
-          <div className="text-center mb-14">
-            <span className="text-xs text-cyan-400 light:text-cyan-700 font-semibold tracking-widest uppercase mb-3 block">
-              {t("photoPreview.badge")}
-            </span>
-            <SectionHeading>
-              {t("photoPreview.titlePrefix")}
-              <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
-                {t("photoPreview.titleHighlight")}
-              </span>
-            </SectionHeading>
-            <p className="text-white/60 light:text-neutral-500 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-              {t("photoPreview.subtitle")}
-            </p>
-          </div>
-        </AnimatedSection>
-
-        {/* Featured Slider Component */}
-        <AnimatedSection variants={clipReveal} className="relative max-w-5xl mx-auto">
-          {/* Main Showcase Card */}
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 light:border-neutral-900/10 shadow-2xl light:shadow-neutral-400/20 bg-slate-950 aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/10] group">
-            {/* Image layer: every visited slide stays mounted and crossfades via opacity,
-                so revisits are instant and first visits keep the previous photo visible
-                (instead of flashing the dark container) while the new one loads. */}
-            <div className="absolute inset-0">
-              {featuredPhotos.map((photo, idx) => {
-                const isActive = idx === currentIndex;
-                if (!isActive && !visitedIndices.has(idx)) return null;
-                return (
-                  <div
-                    key={photo.id}
-                    className={`absolute inset-0 transition-opacity duration-500 ease-out ${
-                      isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-                    }`}
-                  >
-                    <ImageWithSkeleton
-                      src={photo.image}
-                      alt={photo.title}
-                      fill
-                      placeholderSrc={cloudinaryImageLoader({ src: photo.image, width: 32, quality: 30 })}
-                      sizes="(max-width: 1024px) 100vw, 1024px"
-                      className="object-cover object-center"
-                    />
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Hover-reveal detail overlay: darkening scrim + caption only appear on
-                hover so the photo shows clean by default (falls back to always-visible
-                on touch devices, where CSS hover isn't reliable). Phones get the
-                caption below the photo instead (see further down): at that width the
-                overlay is taller than the photo and covered it completely. */}
-            <div className="hidden sm:block absolute inset-0 z-20 transition-opacity duration-300 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
-              {/* Gradient Shadows for readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/50" />
-
-              {/* Slide Content (text has no load latency, so a hard crossfade is fine here) */}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentPhoto.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                  className="absolute bottom-0 inset-x-0 p-6 sm:p-8 lg:p-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4"
-                >
-                  <div className="space-y-2 max-w-xl bg-black/35 backdrop-blur-md rounded-2xl px-4 py-3 sm:px-5 sm:py-4">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-400 text-black shadow-sm">
-                        <Icon name="star" size={11} /> {t("photography.featured")}
-                      </span>
-                      {currentPhoto.category && (
-                        <span className="px-3 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white backdrop-blur-md border border-white/15">
-                          {currentPhoto.category}
-                        </span>
-                      )}
-                      {currentPhoto.camera?.model && (
-                        <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-black/60 text-cyan-300 border border-cyan-500/20">
-                          <Icon name="camera" size={11} /> {currentPhoto.camera.make} {currentPhoto.camera.model}
-                        </span>
-                      )}
-                    </div>
-
-                    <h3 className="text-xl sm:text-3xl font-extrabold text-white tracking-tight">
-                      {photoTitle}
-                    </h3>
-
-                    {photoDesc && (
-                      <p className="text-white/80 text-xs sm:text-sm line-clamp-2 leading-relaxed">
-                        {photoDesc}
-                      </p>
-                    )}
-
-                    {photoLoc && (
-                      <p className="text-cyan-400/90 text-xs flex items-center gap-1 font-medium">
-                        <Icon name="mapPin" size={12} /> {photoLoc}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Thumbnail counter */}
-                  <div className="text-xs font-mono text-white/50 bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-md border border-white/10 self-start sm:self-auto">
-                    {currentIndex + 1} / {featuredPhotos.length}
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* Navigation Arrows */}
-            <button
-              onClick={prevSlide}
-              aria-label="Previous photo"
-              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/50 hover:bg-black/80 text-white/80 hover:text-white border border-white/15 flex items-center justify-center backdrop-blur-md transition-all duration-200 z-30 shadow-lg active:scale-95"
-            >
-              <Icon name="arrowLeft" size={18} />
-            </button>
-            <button
-              onClick={nextSlide}
-              aria-label="Next photo"
-              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/50 hover:bg-black/80 text-white/80 hover:text-white border border-white/15 flex items-center justify-center backdrop-blur-md transition-all duration-200 z-30 shadow-lg active:scale-95"
-            >
-              <Icon name="arrowRight" size={18} />
-            </button>
-          </div>
-
-          {/* Phone caption: sits under the photo so it never covers it. */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentPhoto.id}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="sm:hidden mt-4 px-1 space-y-1.5"
-            >
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-400 text-black">
-                  <Icon name="star" size={11} /> {t("photography.featured")}
-                </span>
-                {currentPhoto.category && (
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-white/10 light:bg-neutral-900/[0.06] text-white/80 light:text-neutral-700 border border-white/15 light:border-neutral-900/10">
-                    {currentPhoto.category}
-                  </span>
-                )}
-                <span className="ml-auto text-xs font-mono text-white/50 light:text-neutral-500">
-                  {currentIndex + 1} / {featuredPhotos.length}
-                </span>
-              </div>
-              <h3 className="text-lg font-extrabold text-white light:text-neutral-900 tracking-tight">{photoTitle}</h3>
-              {photoDesc && (
-                <p className="text-white/70 light:text-neutral-600 text-sm line-clamp-2 leading-relaxed">{photoDesc}</p>
-              )}
-              {photoLoc && (
-                <p className="text-cyan-400 light:text-cyan-700 text-xs flex items-center gap-1 font-medium">
-                  <Icon name="mapPin" size={12} /> {photoLoc}
-                </p>
-              )}
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Dot Indicators */}
-          <div className="flex items-center justify-center gap-0.5 mt-5">
-            {featuredPhotos.map((_, idx) => (
-              // 24px hit area (WCAG target size) around the small visual dot
-              <button
-                key={idx}
-                onClick={() => setCurrentIndex(idx)}
-                aria-label={`Go to slide ${idx + 1}`}
-                aria-current={currentIndex === idx ? "true" : undefined}
-                className="group/dot h-6 min-w-6 flex items-center justify-center"
-              >
-                <span
-                  className={`block h-2 rounded-full transition-all duration-300 ${
-                    currentIndex === idx
-                      ? "w-8 bg-gradient-to-r from-cyan-400 to-purple-500 shadow-sm shadow-cyan-500/50"
-                      : "w-2 bg-white/20 light:bg-neutral-900/15 group-hover/dot:bg-white/40 light:group-hover/dot:bg-neutral-900/25"
-                  }`}
-                />
-              </button>
-            ))}
-          </div>
-
-          {/* Quick Preview Thumbnail Strip — single row, never wraps; scrolls
-              horizontally instead of stacking into extra rows on narrow screens. */}
-          <div className="hidden sm:flex gap-2.5 lg:gap-3 mt-4 px-1 py-2 overflow-x-auto overflow-y-hidden scrollbar-none">
-            {featuredPhotos.slice(0, 6).map((photo, idx) => (
-              <button
-                key={photo.id}
-                onClick={() => setCurrentIndex(idx)}
-                className={`relative flex-1 shrink-0 basis-28 sm:basis-32 lg:basis-0 aspect-[16/10] rounded-xl overflow-hidden border transition-all duration-200 ${
-                  currentIndex === idx
-                    ? "border-cyan-400 ring-2 ring-cyan-400/30 scale-105"
-                    : "border-white/10 light:border-neutral-900/10 opacity-50 hover:opacity-100"
-                }`}
-              >
-                <ImageWithSkeleton
-                  src={photo.image}
-                  alt={photo.title}
-                  fill
-                  sizes="160px"
-                  className="object-cover"
-                />
-              </button>
-            ))}
-          </div>
-        </AnimatedSection>
-
-        {/* View All Photography Gallery CTA Button */}
-        <div className="mt-14 text-center">
-          <Link
-            href="/photography"
-            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-semibold text-white light:text-neutral-900 bg-white/[0.06] light:bg-neutral-900/[0.05] hover:bg-white/[0.12] light:hover:bg-neutral-900/[0.08] border border-white/15 light:border-neutral-900/10 hover:border-cyan-400/40 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 group"
-          >
-            <span>{t("photoPreview.viewAll")}</span>
-            <span className="transition-transform duration-200 group-hover:translate-x-1">
-              <Icon name="arrowRight" size={16} />
-            </span>
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
+    const element = strip.current;
+    if (!element || reduced) return;
+    let visible = false; let frame = 0;
+    const update = () => {
+      frame = 0;
+      if (!visible || document.hidden) return;
+      const rect = element.getBoundingClientRect();
+      const progress = Math.max(-1, Math.min(1, (window.innerHeight / 2 - rect.top - rect.height / 2) / window.innerHeight));
+      element.querySelectorAll<HTMLElement>("[data-photo-parallax]").forEach((item, i) => { item.style.transform = `translateY(${progress * (8 + i * 16 / 3)}px)`; });
+    };
+    const schedule = () => { if (visible && !document.hidden && !frame) frame = requestAnimationFrame(update); };
+    const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) schedule(); else { cancelAnimationFrame(frame); frame = 0; } });
+    observer.observe(element);
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    document.addEventListener("visibilitychange", schedule);
+    return () => { observer.disconnect(); cancelAnimationFrame(frame); window.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule); document.removeEventListener("visibilitychange", schedule); element.querySelectorAll<HTMLElement>("[data-photo-parallax]").forEach((item) => { item.style.transform = ""; }); };
+  }, [reduced, photography]);
+  if (!photos.length) return null;
+  return <section id="photos" className="portfolio-section"><div className="portfolio-column">
+    <div className="text-center mb-10"><SectionHeading>{t("photoPreview.titlePrefix")}{t("photoPreview.titleHighlight")}</SectionHeading><p className="text-portfolio-dust">{t("photoPreview.subtitle")}</p></div>
+    <div ref={strip} className="portfolio-photo-strip">{photos.map((photo, i) => {
+      const title = pickLocalized(locale, photo.title, photo.title_vi) || `${t("photoPreview.photoLabel")} ${i + 1}`;
+      return <Link key={photo.id} href="/photography" className="relative block aspect-[4/5] overflow-hidden snap-start" aria-label={title}>
+        <div data-photo-parallax className="absolute -inset-y-6 inset-x-0"><Image src={photo.image} alt={title} fill sizes="(max-width: 639px) 78vw, (max-width: 1120px) 25vw, 268px" className="object-cover" /></div>
+      </Link>;
+    })}</div>
+    <div className="mt-8 text-center"><Link className="portfolio-text-link" href="/photography">{t("photoPreview.viewAll")}</Link></div>
+  </div></section>;
 }
