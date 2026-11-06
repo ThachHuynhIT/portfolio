@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Be_Vietnam_Pro, Inter, Space_Grotesk } from "next/font/google";
 import dynamic from "next/dynamic";
 import "./globals.css";
 import { Navigation, Footer } from "@/components/ui";
@@ -25,6 +25,13 @@ const GlobalMusicPlayer = dynamic(
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+});
+
+const beVietnamPro = Be_Vietnam_Pro({
+  variable: "--font-be-vietnam-pro",
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 const spaceGrotesk = Space_Grotesk({
@@ -102,7 +109,7 @@ export const viewport: Viewport = {
   ],
 };
 
-import GlobalBackground from "@/components/layout/GlobalBackground";
+import GlobalBackground, { PortfolioScope } from "@/components/layout/GlobalBackground";
 import MotionProvider from "@/components/layout/MotionProvider";
 
 // THEME_INIT_SCRIPT (src/lib/theme-init.ts) runs before hydration to set
@@ -123,7 +130,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${spaceGrotesk.variable} antialiased bg-background text-foreground font-sans`}
+        className={`${inter.variable} ${spaceGrotesk.variable} ${beVietnamPro.variable} antialiased bg-background text-foreground font-sans`}
       >
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <ThemeProvider>
@@ -131,9 +138,11 @@ export default async function RootLayout({
             <GlobalBackground />
             <LanguageProvider>
               <MusicProvider>
-                <Navigation navLinks={navLinks} />
-                <main>{children}</main>
-                <Footer navLinks={navLinks} socialLinks={socialLinks} siteConfig={siteConfig} />
+                <PortfolioScope>
+                  <Navigation navLinks={navLinks} />
+                  <main>{children}</main>
+                  <Footer navLinks={navLinks} socialLinks={socialLinks} siteConfig={siteConfig} />
+                </PortfolioScope>
                 <GlobalMusicPlayer />
               </MusicProvider>
             </LanguageProvider>

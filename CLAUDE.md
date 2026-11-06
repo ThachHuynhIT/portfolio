@@ -63,7 +63,7 @@ Path alias `@/*` maps to `./src/*`.
   - Automatically respects `prefers-reduced-motion` (falls back to a static CSS gradient instead of mounting WebGL).
   - Wraps children in a class-based `SceneErrorBoundary` to gracefully degrade if WebGL crashes.
   - **Never create independent R3F `<Canvas>` roots**; always pass scenes as children into `SceneContainer` (used by `StarryBackground3D` and the Contact `ParticleField`).
-- **Exception**: the Hero (and 404 page) background is `blackhole/BlackHoleCanvas.tsx`, a raymarched black hole with its own imperative `THREE.WebGLRenderer` + loop — not R3F, so it does not go through `SceneContainer`.
+- **Exception**: the homepage fixed page-level layer (and 404 page background) uses `blackhole/BlackHoleCanvas.tsx`, a raymarched black hole with its own imperative `THREE.WebGLRenderer` + loop — not R3F, so it does not go through `SceneContainer`.
 - **Performance Rule**: Use mutable `useRef` for high-frequency values (pointer, scroll) and read them inside `useFrame`/the render loop instead of React state, to avoid re-rendering the DOM at 60 FPS.
 
 ### 2. UI Components & Animations (`src/components/ui`, `src/lib/animations.ts`)

@@ -16,6 +16,7 @@ export const vi: TranslationDict = {
     about: "Giới thiệu",
     skills: "Kỹ năng",
     projects: "Dự án",
+    hobby: "Sở thích",
     music: "Âm nhạc",
     photography: "Nhiếp ảnh",
     blog: "Bài viết",
@@ -23,6 +24,10 @@ export const vi: TranslationDict = {
     getInTouch: "Liên hệ ngay",
   },
   hero: {
+    name: "Huỳnh Nguyễn Thạch",
+    role: "Frontend Software Engineer",
+    context: "Tôi làm giao diện real-time để điều khiển máy công nghiệp.",
+    contextDetail: "3 năm tại ARIS Vietnam · TP. Hồ Chí Minh",
     available: "Sẵn sàng cho dự án mới",
     greetingPrefix: "Xin chào, mình là ",
     greeting: "ThachHuynh",

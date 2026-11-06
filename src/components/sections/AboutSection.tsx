@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
+import SectionHeading from "@/components/ui/SectionHeading";
 import { AnimatedSection, GlassCard } from "@/components/ui";
-import { fadeInUp, staggerContainer } from "@/lib/animations";
+import { orbitIn, staggerContainer } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
 import { resolveSectionText, resolveStatValue } from "@/lib/content-overrides";
 import { ABOUT_STAT_DEFS } from "@/lib/about-stat-defs";
@@ -53,14 +54,14 @@ export default function AboutSection({ siteConfig }: AboutSectionProps) {
                 </span>
               )}
               {(titlePrefix || titleHighlight) && (
-                <h2 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">
+                <SectionHeading>
                   {titlePrefix}
                   {titleHighlight && (
                     <span className="bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent">
                       {titleHighlight}
                     </span>
                   )}
-                </h2>
+                </SectionHeading>
               )}
             </div>
           </AnimatedSection>
@@ -95,7 +96,7 @@ export default function AboutSection({ siteConfig }: AboutSectionProps) {
               className="grid grid-cols-2 gap-4"
             >
               {stats.map((stat) => (
-                <motion.div key={stat.key} variants={fadeInUp}>
+                <motion.div key={stat.key} variants={orbitIn}>
                   <GlassCard className="text-center p-6 h-full">
                     {stat.value && (
                       <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent mb-2">

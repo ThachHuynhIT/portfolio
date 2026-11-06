@@ -82,7 +82,7 @@ export default function TiltCard({
       onKeyDown={onClick ? handleKeyDown : undefined}
       style={{ rotateX: springRotateX, rotateY: springRotateY, perspective: 1000 }}
       className={cn(
-        "relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl",
+        "portfolio-surface relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl",
         "light:border-neutral-900/10 light:bg-neutral-900/[0.04]",
         "group/tilt overflow-hidden",
         onClick && "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500",

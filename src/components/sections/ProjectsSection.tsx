@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import SectionHeading from "@/components/ui/SectionHeading";
 import { AnimatedSection, GlassCard, TiltCard, Button, ImageWithSkeleton, Icon } from "@/components/ui";
 import { staggerContainer, fadeInUp } from "@/lib/animations";
 import { Project, ProjectsSectionContent, SiteConfig } from "@/lib/types";
@@ -223,14 +224,14 @@ export default function ProjectsSection({ projects, siteConfig }: ProjectsSectio
                 </span>
               )}
               {(titlePrefix || titleHighlight) && (
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-4 tracking-tight">
+                <SectionHeading>
                   {titlePrefix}
                   {titleHighlight && (
                     <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
                       {titleHighlight}
                     </span>
                   )}
-                </h2>
+                </SectionHeading>
               )}
               {subtitle && (
                 <p className="text-white/60 light:text-neutral-500 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
