@@ -27,7 +27,7 @@ jobs:
       - run: npm ci
       - name: Type check
         run: npx tsc --noEmit -p .
-      - name: Lint (informational)
-        # ~1400 pre-existing errors; remove continue-on-error once they are cleaned up.
-        run: npm run lint
-        continue-on-error: true
+      - name: Lint
+        run: npm run lint -- --max-warnings=0
+      - name: Unit tests
+        run: npm test

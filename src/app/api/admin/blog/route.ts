@@ -10,6 +10,7 @@ import { db } from "@/lib/db";
 export async function GET() {
   const authError = await requireAdminSession();
   if (authError) return authError;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- `content` is intentionally omitted from the list payload
   const posts = (await getAllPosts()).map(({ content: _content, ...meta }) => meta);
   return NextResponse.json(posts);
 }
@@ -83,8 +84,8 @@ export async function POST(request: Request) {
 
     revalidateTag("blog");
     return NextResponse.json({ slug: safeSlug, ...frontmatter }, { status: 201 });
-  } catch (error: any) {
-    if (error?.code === "P2002") {
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
       return NextResponse.json({ error: "A post with this slug already exists" }, { status: 409 });
     }
     return NextResponse.json({ error: "Failed to create post" }, { status: 500 });

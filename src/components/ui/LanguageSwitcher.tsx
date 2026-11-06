@@ -42,7 +42,6 @@ export default function LanguageSwitcher({
     setLocale(locale === "en" ? "vi" : "en");
   };
 
-  const nextLocale: Locale = locale === "en" ? "vi" : "en";
   const switchLabel =
     locale === "vi"
       ? "Đang chọn Tiếng Việt. Nhấp để chuyển sang English"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -115,7 +115,7 @@ export default function PhotographyAdminPage() {
   const [formAlbumPublished, setFormAlbumPublished] = useState(true);
   const [photoSearchForAlbum, setPhotoSearchForAlbum] = useState("");
 
-  const fetchPhotos = async () => {
+  const fetchPhotos = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/photography");
       if (res.status === 401) {
@@ -130,9 +130,9 @@ export default function PhotographyAdminPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, toast, t.admin.photography.toastLoadFailed]);
 
-  const fetchAlbums = async () => {
+  const fetchAlbums = useCallback(async () => {
     setLoadingAlbums(true);
     try {
       const res = await fetch("/api/admin/photography/albums");
@@ -145,12 +145,12 @@ export default function PhotographyAdminPage() {
     } finally {
       setLoadingAlbums(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchPhotos();
     fetchAlbums();
-  }, []);
+  }, [fetchPhotos, fetchAlbums]);
 
   // ── Photo Modal Handlers ──
   const openCreateModal = () => {
@@ -851,7 +851,7 @@ export default function PhotographyAdminPage() {
           <div className="flex items-center gap-3">
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
+              onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
               className="px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none"
             >
               <option value="all">{t.admin.photography.filterAll} ({photos.length})</option>
@@ -871,7 +871,7 @@ export default function PhotographyAdminPage() {
           <div className="flex items-center gap-3">
             <select
               value={albumStatusFilter}
-              onChange={(e) => setAlbumStatusFilter(e.target.value as any)}
+              onChange={(e) => setAlbumStatusFilter(e.target.value as typeof albumStatusFilter)}
               className="px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none"
             >
               <option value="all">{t.admin.photography.filterAll} ({albums.length})</option>

@@ -38,7 +38,6 @@ import {
   ArrowDown,
   ArrowUpDown,
   ArrowLeftRight,
-  ArrowUpRight,
   Zap,
   Camera,
   Image as ImageIcon,

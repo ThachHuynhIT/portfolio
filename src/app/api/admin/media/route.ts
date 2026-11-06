@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-auth";
+import { getErrorMessage } from "@/lib/utils";
 import {
   getMediaAssets,
   uploadAndRegisterMedia,
@@ -86,10 +87,10 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ asset }, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[POST /api/admin/media] Error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to upload file" },
+      { error: getErrorMessage(error) || "Failed to upload file" },
       { status: 500 }
     );
   }
@@ -109,10 +110,10 @@ export async function DELETE(req: NextRequest) {
 
     await deleteMediaAsset(publicId);
     return NextResponse.json({ success: true, publicId });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[DELETE /api/admin/media] Error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to delete media asset" },
+      { error: getErrorMessage(error) || "Failed to delete media asset" },
       { status: 500 }
     );
   }

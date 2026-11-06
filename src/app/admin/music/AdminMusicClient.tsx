@@ -2,7 +2,6 @@
 
 import { useState, useRef, useMemo } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/TranslationContext";
 import AdminHeader from "@/components/admin/AdminHeader";
@@ -40,7 +39,6 @@ function formatTotalTime(tracks: Track[]): string {
 }
 
 export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] }) {
-  const router = useRouter();
   const { toast } = useToast();
   const { t } = useTranslation();
   const [tracks, setTracks] = useState<Track[]>(initial);
@@ -62,7 +60,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
 
   // Deleting dialog states
   const [deleteTarget, setDeleteTarget] = useState<Track | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [, setIsDeleting] = useState(false);
   const [isBatchDeleteDialogOpen, setIsBatchDeleteDialogOpen] = useState(false);
   const [isBatchOperating, setIsBatchOperating] = useState(false);
 
@@ -357,7 +355,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
           {/* Status Filter */}
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
+            onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
             className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-xs font-medium text-gray-300 focus:outline-none focus:border-purple-500"
           >
             <option value="all">{t.admin.common.allStatus}</option>
@@ -380,7 +378,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
           {/* Sort By */}
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
             className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-xs font-medium text-gray-300 focus:outline-none focus:border-purple-500"
           >
             <option value="order">{t.admin.music.sortOrder}</option>

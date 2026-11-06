@@ -681,7 +681,7 @@ export function MusicProvider({
     const prevIdx = (currentIndex - 1 + tracks.length) % tracks.length;
     setCurrentIndex(prevIdx);
     setIsPlaying(true);
-  }, [tracks, currentIndex, initAudioContext, currentTrack, isPlaying]);
+  }, [tracks, currentIndex, initAudioContext]);
 
   const seekTo = useCallback(
     (newTime: number) => {

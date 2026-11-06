@@ -132,7 +132,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         if (prop in target) {
           return Reflect.get(target, prop, receiver);
         }
-        return (activeDict as any)[prop];
+        return (activeDict as Record<string | symbol, unknown>)[prop];
       },
     }) as TranslationFunction;
   }, [tFn, locale]);
