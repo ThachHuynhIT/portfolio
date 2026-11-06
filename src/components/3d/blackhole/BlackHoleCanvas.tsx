@@ -30,6 +30,7 @@ export interface BlackHoleCanvasProps {
   deferStart?: boolean;
   onStats?: (s: EngineStats) => void;
   onReady?: () => void;
+  onUnavailable?: () => void;
   onInteract?: () => void;
 }
 
@@ -60,6 +61,7 @@ export default function BlackHoleCanvas({
   deferStart = false,
   onStats,
   onReady,
+  onUnavailable,
   onInteract,
 }: BlackHoleCanvasProps) {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -101,7 +103,7 @@ export default function BlackHoleCanvas({
       runCancelDeferred();
       if (deferStart) deferredWarm = true;
       try {
-        if (!BlackHoleEngine.isSupported()) return;
+        if (!BlackHoleEngine.isSupported()) { onUnavailable?.(); return; }
         engine = new BlackHoleEngine(canvas, {
           reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
           container: mount,
@@ -117,6 +119,7 @@ export default function BlackHoleCanvas({
           onInteract,
         });
       } catch (err) {
+        onUnavailable?.();
         console.error("3D scene failed to render, falling back to static background:", err);
       }
       if (scrollEffect) attachScroll();

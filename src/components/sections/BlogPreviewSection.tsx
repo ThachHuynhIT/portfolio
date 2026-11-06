@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import SectionHeading from "@/components/ui/SectionHeading";
 import { AnimatedSection, GlassCard, Icon } from "@/components/ui";
 import { staggerContainer, fadeInUp } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
@@ -29,12 +30,12 @@ export default function BlogPreviewSection({ posts }: BlogPreviewSectionProps) {
             <span className="text-xs text-purple-400 light:text-purple-700 font-semibold tracking-widest uppercase mb-3 block">
               {t("blogPreview.badge")}
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-4 tracking-tight">
+            <SectionHeading>
               {t("blogPreview.titlePrefix")}
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
                 {t("blogPreview.titleHighlight")}
               </span>
-            </h2>
+            </SectionHeading>
             <p className="text-white/60 light:text-neutral-500 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
               {t("blogPreview.subtitle")}
             </p>

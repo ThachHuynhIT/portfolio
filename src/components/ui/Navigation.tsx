@@ -12,6 +12,7 @@ import { mapScrollProgress } from "@/lib/motion-math";
 import { navUnderlineTransition } from "@/lib/animations";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
+import ActionStars from "./ActionStars";
 import type { NavLink } from "@/lib/types";
 
 const SECTION_IDS = ["home", "about", "skills", "projects", "photos", "blog", "contact"];
@@ -26,12 +27,19 @@ export default function Navigation({ navLinks }: NavigationProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdown, setDropdown] = useState<string | null>(null);
   const ringRef = useRef<SVGCircleElement>(null);
+  const scrollStatusRef = useRef({ scrolled: false, section: "home" });
   const headerRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const dropdownButtonRefs = useRef(new Map<string, HTMLButtonElement>());
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearCloseTimer = useCallback(() => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = null;
+  }, []);
+  useEffect(() => clearCloseTimer, [clearCloseTimer]);
 
-  const closeMenus = useCallback(() => { setMobileOpen(false); setDropdown(null); }, []);
+  const closeMenus = useCallback(() => { clearCloseTimer(); setMobileOpen(false); setDropdown(null); }, [clearCloseTimer]);
   useEffect(closeMenus, [pathname, closeMenus]);
 
   useEffect(() => {
@@ -40,7 +48,10 @@ export default function Navigation({ navLinks }: NavigationProps) {
       frame = 0;
       if (document.hidden) return;
       const y = window.scrollY;
-      setIsScrolled(y > 20);
+      if (scrollStatusRef.current.scrolled !== (y > 20)) {
+        scrollStatusRef.current.scrolled = y > 20;
+        setIsScrolled(y > 20);
+      }
       const progress = mapScrollProgress(y, document.documentElement.scrollHeight - window.innerHeight);
       if (ringRef.current) ringRef.current.style.strokeDashoffset = String(1 - progress);
       if (pathname !== "/") return;
@@ -50,7 +61,11 @@ export default function Navigation({ navLinks }: NavigationProps) {
         const rect = el.getBoundingClientRect();
         return [{ id, top: rect.top + y, height: rect.height, hidden: el.hidden || !el.getClientRects().length }];
       });
-      setActiveSection(getActiveSection(sections, y < 120 ? 0 : y + 160));
+      const nextSection = getActiveSection(sections, y < 120 ? 0 : y + 160);
+      if (scrollStatusRef.current.section !== nextSection) {
+        scrollStatusRef.current.section = nextSection;
+        setActiveSection(nextSection);
+      }
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
     update();
@@ -111,7 +126,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
     ? isSectionNavActive(link, activeSection)
     : [link.href, ...(link.children?.map((child) => child.href) ?? [])]
       .some((href) => href !== "/" && !href.startsWith("#") && (pathname === href || pathname.startsWith(`${href}/`)));
-  const itemClass = "portfolio-nav-link relative inline-flex min-h-11 min-w-11 items-center gap-1 px-2 text-sm font-medium rounded-lg transition-colors duration-150 text-portfolio-dust hover:text-portfolio-ink";
+  const itemClass = "portfolio-nav-link relative inline-flex min-h-11 min-w-11 items-center gap-1 px-2 text-sm font-medium rounded-lg transition-colors duration-150 text-portfolio-dust hover:text-portfolio-ink focus:outline-none focus-visible:outline-2 focus-visible:outline-portfolio-accretion";
 
   return (
     <header ref={headerRef} className={cn("fixed inset-x-0 top-0 z-50 border-b px-[env(safe-area-inset-left)] pt-[env(safe-area-inset-top)] transition-colors duration-150", isScrolled || mobileOpen ? "bg-portfolio-void border-portfolio-hairline" : "bg-transparent border-transparent")}>
@@ -125,14 +140,26 @@ export default function Navigation({ navLinks }: NavigationProps) {
           </Link>
           <ul className="hidden items-center gap-1 lg:flex">
             {navLinks.map((link) => (
-              <li key={link.id} className="relative">
+              <li key={link.id} className="relative" onPointerEnter={(event) => {
+                if (event.pointerType !== "mouse" || !link.children?.length) return;
+                clearCloseTimer();
+                setDropdown(link.id);
+              }} onPointerLeave={(event) => {
+                if (event.pointerType !== "mouse" || !link.children?.length) return;
+                clearCloseTimer();
+                closeTimer.current = setTimeout(() => {
+                  // Keyboard focus inside the menu takes precedence over pointer exit.
+                  const button = dropdownButtonRefs.current.get(link.id);
+                  if (!button?.parentElement?.contains(document.activeElement)) setDropdown((current) => current === link.id ? null : current);
+                }, 150);
+              }}>
                 {link.children?.length ? (
                   <>
                     <button ref={(el) => { if (el) dropdownButtonRefs.current.set(link.id, el); else dropdownButtonRefs.current.delete(link.id); }} type="button" aria-expanded={dropdown === link.id} aria-controls={`nav-${link.id}`} onClick={() => setDropdown(dropdown === link.id ? null : link.id)} className={cn(itemClass, active(link) && "text-portfolio-ink")}>
                       {label(link)} <span aria-hidden="true">⌄</span>
                       {active(link) && <motion.span layoutId="portfolio-nav-underline" transition={reducedMotion ? { duration: 0 } : navUnderlineTransition} className="absolute inset-x-2 bottom-1 h-0.5 bg-portfolio-accretion" />}
                     </button>
-                    {dropdown === link.id && <ul id={`nav-${link.id}`} className="absolute left-0 top-full min-w-44 rounded-lg border border-portfolio-hairline bg-portfolio-hull p-2">
+                    {dropdown === link.id && <ul id={`nav-${link.id}`} className="portfolio-nav-dropdown absolute left-0 top-full z-50 min-w-44 rounded-lg border border-portfolio-hairline bg-portfolio-hull p-2">
                       {link.children.map((child) => <li key={child.id}><Link href={resolvedHref(child.href)} onClick={closeMenus} aria-current={active(child) ? "location" : undefined} className={cn(itemClass, "w-full", active(child) && "text-portfolio-accretion")}>{label(child)}</Link></li>)}
                     </ul>}
                   </>
@@ -146,7 +173,7 @@ export default function Navigation({ navLinks }: NavigationProps) {
           <div className="flex items-center gap-1 sm:gap-2">
             <ThemeToggle />
             <LanguageSwitcher appearance="portfolio" />
-            <Link href={resolvedHref("#contact")} onClick={closeMenus} className="portfolio-action portfolio-action-primary hidden min-h-11 items-center px-3 text-sm lg:inline-flex">{t("nav.getInTouch")}</Link>
+            <Link href={resolvedHref("#contact")} onClick={closeMenus} className="portfolio-action portfolio-action-primary hidden min-h-11 items-center px-3 text-sm lg:inline-flex"><ActionStars />{t("nav.getInTouch")}</Link>
             <button ref={menuButtonRef} type="button" onClick={() => setMobileOpen(!mobileOpen)} aria-expanded={mobileOpen} aria-controls="mobile-menu" aria-label={mobileOpen ? t("common.close") : locale === "vi" ? "Mở menu" : "Open menu"} className="flex h-11 w-11 items-center justify-center rounded-lg border border-portfolio-control text-portfolio-ink lg:hidden"><span aria-hidden="true">{mobileOpen ? "✕" : "☰"}</span></button>
           </div>
         </div>

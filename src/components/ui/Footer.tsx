@@ -33,7 +33,7 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
         <div>
           {authorName && <Link href="/" className="inline-flex min-h-11 items-center text-xl font-bold">{authorName}</Link>}
           <div className="mt-3 flex flex-wrap gap-2">
-            {socialLinks.map((social) => <a key={social.id} href={social.url} target="_blank" rel="noopener noreferrer" aria-label={social.name} className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg border border-portfolio-control p-2 text-portfolio-dust transition-colors duration-150 hover:border-portfolio-accretion hover:text-portfolio-ink active:scale-[0.98]">
+            {socialLinks.map((social) => <a key={social.id} href={social.url} target="_blank" rel="noopener noreferrer" aria-label={social.name} data-network={`${social.name} ${social.url}`.toLowerCase()} className="portfolio-social">
               {social.icon && (social.icon.startsWith("http") || social.icon.startsWith("/")) ? (
                 // eslint-disable-next-line @next/next/no-img-element -- CMS social icon URLs are arbitrary
                 <img src={social.icon} alt="" width={24} height={24} loading="lazy" decoding="async" className="h-6 w-6 object-contain" />

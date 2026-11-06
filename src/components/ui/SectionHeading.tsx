@@ -2,17 +2,14 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import type { ReactNode } from "react";
-import { orbitArc, starIgnition } from "@/lib/animations";
+import { headingRise, starIgnition } from "@/lib/animations";
 
 export default function SectionHeading({ children, id }: { children: ReactNode; id?: string }) {
   const reducedMotion = useReducedMotion();
-  return <div className="portfolio-section-heading relative mb-8 w-fit pb-3">
-    <h2 id={id} className="flex items-center gap-3 text-2xl font-bold text-portfolio-ink md:text-4xl">
-      <motion.span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-portfolio-accretion" variants={starIgnition} initial={false} whileInView={reducedMotion ? undefined : "visible"} viewport={{ once: true }} />
-      {children}
+  return <div className="portfolio-section-heading mb-8">
+    <h2 id={id} className="relative inline-block max-w-full pb-3 text-2xl font-bold text-portfolio-ink md:text-4xl">
+      <motion.span variants={headingRise} initial={false} whileInView={reducedMotion ? undefined : "visible"} viewport={{ once: true }}><motion.span aria-hidden="true" className="portfolio-heading-spark mr-3 inline-block h-1.5 w-1.5 rounded-full bg-portfolio-accretion align-middle" variants={starIgnition} initial={false} whileInView={reducedMotion ? undefined : "visible"} viewport={{ once: true }} />{children}</motion.span>
+      <motion.span aria-hidden="true" className="portfolio-heading-line absolute inset-x-0 bottom-0 mx-auto h-px w-2/3 max-w-44 origin-center bg-portfolio-accretion" initial={false} whileInView={reducedMotion ? undefined : { scaleX: [0, 1] }} transition={{ duration: 0.6, delay: 0.2 }} viewport={{ once: true }} />
     </h2>
-    <svg aria-hidden="true" viewBox="0 0 180 16" className="absolute bottom-0 left-4 h-4 w-44 fill-none stroke-portfolio-accretion">
-      <motion.path className="portfolio-orbit-arc" d="M1 14 Q80 -10 179 12" pathLength="1" strokeDasharray="1" variants={orbitArc} initial={reducedMotion ? false : "rest"} whileInView="visible" viewport={{ once: true }} />
-    </svg>
   </div>;
 }

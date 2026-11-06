@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import SectionHeading from "@/components/ui/SectionHeading";
 import { AnimatedSection, Icon } from "@/components/ui";
 import PublicIcon from "@/components/ui/PublicIcon";
 import { isKnownIconName } from "@/lib/icon-names";
@@ -72,14 +73,14 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
               )}
 
               {(titlePrefix || titleHighlight) && (
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-5 tracking-tight">
+                <SectionHeading>
                   {titlePrefix}
                   {titleHighlight && (
                     <span className="bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
                       {titleHighlight}
                     </span>
                   )}
-                </h2>
+                </SectionHeading>
               )}
 
               {subtitle && (
@@ -170,7 +171,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
               return (
                 <div
                   key={category}
-                  className="rounded-3xl bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 p-6 sm:p-7 backdrop-blur-md hover:border-white/20 light:hover:border-neutral-900/15 transition-all shadow-xl light:shadow-neutral-400/10 flex flex-col justify-between"
+                  className="portfolio-surface rounded-3xl bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 p-6 sm:p-7 backdrop-blur-md hover:border-white/20 light:hover:border-neutral-900/15 transition-all shadow-xl light:shadow-neutral-400/10 flex flex-col justify-between"
                 >
                   {/* Category Card Header */}
                   <div className="flex items-center justify-between pb-5 mb-5 border-b border-white/10 light:border-neutral-900/10">

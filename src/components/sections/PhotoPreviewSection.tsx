@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import SectionHeading from "@/components/ui/SectionHeading";
 import { AnimatedSection, ImageWithSkeleton, Icon } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
+import { clipReveal } from "@/lib/animations";
 import cloudinaryImageLoader from "@/lib/cloudinary-image-loader";
 import type { PhotoItem } from "@/lib/types";
 
@@ -14,6 +16,7 @@ export interface PhotoPreviewSectionProps {
 
 export default function PhotoPreviewSection({ photography }: PhotoPreviewSectionProps) {
   const { t, locale } = useTranslation();
+  const reducedMotion = useReducedMotion();
 
   // Filter featured photos
   const featuredPhotos: PhotoItem[] = useMemo(() => {
@@ -39,10 +42,10 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
 
   // Autoplay timer
   useEffect(() => {
-    if (!isAutoPlaying || featuredPhotos.length <= 1) return;
+    if (reducedMotion || !isAutoPlaying || featuredPhotos.length <= 1) return;
     const interval = setInterval(nextSlide, 5000);
     return () => clearInterval(interval);
-  }, [isAutoPlaying, nextSlide, featuredPhotos.length]);
+  }, [reducedMotion, isAutoPlaying, nextSlide, featuredPhotos.length]);
 
   if (featuredPhotos.length === 0) return null;
 
@@ -65,12 +68,12 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
             <span className="text-xs text-cyan-400 light:text-cyan-700 font-semibold tracking-widest uppercase mb-3 block">
               {t("photoPreview.badge")}
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white light:text-neutral-900 mb-4 tracking-tight">
+            <SectionHeading>
               {t("photoPreview.titlePrefix")}
               <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
                 {t("photoPreview.titleHighlight")}
               </span>
-            </h2>
+            </SectionHeading>
             <p className="text-white/60 light:text-neutral-500 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
               {t("photoPreview.subtitle")}
             </p>
@@ -78,7 +81,7 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
         </AnimatedSection>
 
         {/* Featured Slider Component */}
-        <div className="relative max-w-5xl mx-auto">
+        <AnimatedSection variants={clipReveal} className="relative max-w-5xl mx-auto">
           {/* Main Showcase Card */}
           <div className="relative overflow-hidden rounded-3xl border border-white/10 light:border-neutral-900/10 shadow-2xl light:shadow-neutral-400/20 bg-slate-950 aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/10] group">
             {/* Image layer: every visited slide stays mounted and crossfades via opacity,
@@ -267,7 +270,7 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
               </button>
             ))}
           </div>
-        </div>
+        </AnimatedSection>
 
         {/* View All Photography Gallery CTA Button */}
         <div className="mt-14 text-center">

@@ -1,28 +1,15 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useInView } from "framer-motion";
-import dynamic from "next/dynamic";
+import SectionHeading from "@/components/ui/SectionHeading";
 import { AnimatedSection, GlassCard, Button } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
-import { usePerformanceTier } from "@/hooks/usePerformanceTier";
 import { cn } from "@/lib/utils";
 import { pickLocalized, resolveRequiredText, resolveSectionText } from "@/lib/content-overrides";
 import type { SiteConfig } from "@/lib/types";
-
-// Dynamic imports for 3D components
-const SceneContainer = dynamic(
-  () => import("@/components/3d/SceneContainer"),
-  { ssr: false }
-);
-
-const ParticleField = dynamic(
-  () => import("@/components/3d/ParticleField"),
-  { ssr: false }
-);
 
 interface ContactFormData {
   name: string;
@@ -38,19 +25,19 @@ export interface ContactSectionProps {
 export default function ContactSection({ siteConfig }: ContactSectionProps) {
   const { t, locale } = useTranslation();
   const contact = siteConfig.sectionsContent?.contact;
-  const [isMounted, setIsMounted] = useState(false);
-  const sectionRef = useRef<HTMLElement>(null);
-  const honeypotRef = useRef<HTMLInputElement>(null);
-  // Only mount the WebGL canvas once the section is about to scroll into
-  // view — avoids a 3rd concurrent Canvas running from page load while the
-  // visitor is still looking at the Hero section above.
-  const isNearView = useInView(sectionRef, { once: true, margin: "200px" });
-  const performanceTier = usePerformanceTier();
+  const formCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setIsMounted(true);
+    const card = formCardRef.current;
+    if (!card || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => {
+      card.dataset.starsActive = String(entry.isIntersecting);
+    }, { threshold: 0 });
+    observer.observe(card);
+    return () => observer.disconnect();
   }, []);
 
+  const honeypotRef = useRef<HTMLInputElement>(null);
   const contactSchema = useMemo(
     () =>
       z.object({
@@ -203,24 +190,8 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
   return (
     <section
       id="contact"
-      ref={sectionRef}
       className="relative pt-8 pb-32 overflow-hidden"
     >
-      {/* 3D Particle Background */}
-      {isMounted && isNearView && (
-        <div className="absolute inset-0 opacity-40">
-          <SceneContainer>
-            <ambientLight intensity={0.5} />
-            <ParticleField
-              count={performanceTier === "low" ? 200 : 500}
-              color="#8b5cf6"
-              size={0.02}
-              spread={25}
-            />
-          </SceneContainer>
-        </div>
-      )}
-
       <div className="relative z-10 container mx-auto px-4 sm:px-6 max-w-7xl">
         {(badge || titlePrefix || titleHighlight || subtitle) && (
           <AnimatedSection>
@@ -231,14 +202,14 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                 </span>
               )}
               {(titlePrefix || titleHighlight) && (
-                <h2 className="text-4xl md:text-5xl font-bold text-white light:text-neutral-900 mb-6">
+                <SectionHeading>
                   {titlePrefix}
                   {titleHighlight && (
                     <span className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
                       {titleHighlight}
                     </span>
                   )}
-                </h2>
+                </SectionHeading>
               )}
               {subtitle && (
                 <p className="text-white/60 light:text-neutral-500 max-w-2xl mx-auto">{subtitle}</p>
@@ -250,7 +221,11 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
         <div className="grid lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
           {/* Contact Form */}
           <AnimatedSection>
-            <GlassCard className="p-8">
+            <div ref={formCardRef} data-stars-active="false" className="portfolio-contact-card rounded-2xl border border-portfolio-hairline p-8">
+              <div className="bg-stars" aria-hidden="true">
+                {Array.from({ length: 5 }, (_, index) => <span key={index} className="star" />)}
+              </div>
+              <div className="portfolio-contact-content">
               {formState.status !== "idle" && (
                 <div
                   role="status"
@@ -444,7 +419,7 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                   type="submit"
                   size="lg"
                   variant="primary"
-                  className="w-full"
+                  className="portfolio-action-contained w-full"
                   disabled={isSubmitting}
                 >
                   {isSubmitting
@@ -452,7 +427,8 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
                     : resolveRequiredText(locale, contact?.sendButton, contact?.sendButton_vi, t("contact.sendButton"))}
                 </Button>
               </form>
-            </GlassCard>
+              </div>
+            </div>
           </AnimatedSection>
 
           {/* Contact Info */}
