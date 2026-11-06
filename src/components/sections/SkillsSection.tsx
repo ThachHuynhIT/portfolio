@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedSection, Icon } from "@/components/ui";
-import { isKnownIconName } from "@/components/ui/Icon";
+import PublicIcon from "@/components/ui/PublicIcon";
+import { isKnownIconName } from "@/lib/icon-names";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { useTranslation } from "@/context/LanguageContext";
 import { resolveRequiredText, resolveSectionText } from "@/lib/content-overrides";
@@ -65,7 +66,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
             <div className="text-center mb-12">
               {badge && (
                 <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/[0.04] light:bg-neutral-900/[0.04] text-cyan-400 light:text-cyan-700 border border-white/10 light:border-neutral-900/10 mb-4 backdrop-blur-md">
-                  <Icon name="zap" size={14} />
+                  <PublicIcon name="zap" size={14} />
                   <span>{badge}</span>
                 </span>
               )}
@@ -101,7 +102,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                 : "bg-white/[0.04] light:bg-neutral-900/[0.04] text-slate-400 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.06] border border-white/5 light:border-neutral-900/10"
             }`}
           >
-            <Icon name="sparkles" size={14} />
+            <PublicIcon name="sparkles" size={14} />
             <span>{t("photography.all") || "Tất cả"}</span>
             <span
               className={`text-[10px] px-1.5 py-0.5 rounded-full ${
@@ -231,7 +232,7 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
                             ) : skill.icon ? (
                               <span className="text-base leading-none">{skill.icon}</span>
                             ) : (
-                              <Icon name="zap" size={16} />
+                              <PublicIcon name="zap" size={16} />
                             )}
                           </div>
 
