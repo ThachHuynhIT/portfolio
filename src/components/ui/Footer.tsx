@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/context/LanguageContext";
-import Icon, { isKnownIconName } from "@/components/ui/Icon";
+import Icon from "@/components/ui/Icon";
+import { isKnownIconName } from "@/lib/icon-names";
 import { pickLocalized } from "@/lib/content-overrides";
 import type { NavLink, SocialLink, SiteConfig } from "@/lib/types";
 
