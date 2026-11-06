@@ -1,9 +1,11 @@
 "use client";
 
-import { motion, useInView, Variants } from "framer-motion";
+import { motion, useInView, useReducedMotion, Variants } from "framer-motion";
 import { useRef, ReactNode } from "react";
+import { progressiveSection } from "@/lib/animations";
 
 interface AnimatedSectionProps {
+  progressive?: boolean;
   children: ReactNode;
   className?: string;
   variants?: Variants;
@@ -35,7 +37,9 @@ export default function AnimatedSection({
   variants = defaultVariants,
   delay = 0,
   once = true,
+  progressive = false,
 }: AnimatedSectionProps) {
+  const reducedMotion = useReducedMotion();
   const ref = useRef(null);
   const isInView = useInView(ref, {
     once,
@@ -45,9 +49,11 @@ export default function AnimatedSection({
   return (
     <motion.div
       ref={ref}
-      initial="hidden"
-      animate={isInView ? "visible" : "hidden"}
-      variants={variants}
+      initial={progressive ? false : "hidden"}
+      animate={progressive ? undefined : isInView ? "visible" : "hidden"}
+      whileInView={progressive && !reducedMotion ? "visible" : undefined}
+      viewport={progressive ? { once } : undefined}
+      variants={progressive ? progressiveSection : variants}
       transition={{ delay }}
       className={className}
     >

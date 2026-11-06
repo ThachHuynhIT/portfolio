@@ -1,180 +1,38 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import dynamic from "next/dynamic";
-import { Button } from "@/components/ui";
 import { useTranslation } from "@/context/LanguageContext";
-import { useTheme } from "@/context/ThemeContext";
 import { resolveSectionText } from "@/lib/content-overrides";
 import type { SiteConfig } from "@/lib/types";
+import HeroCanvas from "./HeroCanvas";
+import HeroActions from "./HeroActions";
 
-// Same raymarched black hole engine as the 404 page (src/components/3d/blackhole),
-// used here in non-interactive/decorative mode — the sole 3D visual in the
-// Hero. Mounts its own canvas + WebGLRenderer (not an R3F scene), so it
-// doesn't go through SceneContainer.
-const BlackHoleCanvas = dynamic(
-  () => import("@/components/3d/blackhole/BlackHoleCanvas"),
-  { ssr: false }
-);
-
-// Only opened on click — keep it out of the Hero's initial JS.
-const CVPreviewModal = dynamic(() => import("@/components/ui/CVPreviewModal"), { ssr: false });
-
-export interface HeroSectionProps {
-  siteConfig: SiteConfig;
-}
-
+export interface HeroSectionProps { siteConfig: SiteConfig }
 export default function HeroSection({ siteConfig }: HeroSectionProps) {
   const { t, locale } = useTranslation();
-  const { resolvedTheme } = useTheme();
   const hero = siteConfig.sectionsContent?.hero;
-
-  // Blank values (cleared in /admin/site-config) hide their element.
+  const name = siteConfig.author.name?.trim() || t("hero.name");
+  const role = (locale === "vi" ? siteConfig.author.title_vi?.trim() : undefined)
+    || siteConfig.author.title?.trim() || t("hero.role");
+  const context = resolveSectionText(locale, hero?.bio, hero?.bio_vi, t("hero.context"));
   const available = resolveSectionText(locale, hero?.available, hero?.available_vi, t("hero.available"));
-  const greetingPrefix = resolveSectionText(locale, hero?.greetingPrefix, hero?.greetingPrefix_vi, t("hero.greetingPrefix"));
-  const firstName = siteConfig.author.name.trim().split(" ")[0];
-  const bio = resolveSectionText(
-    locale,
-    hero?.bio,
-    hero?.bio_vi,
-    locale === "vi" && siteConfig.author.bio_vi ? siteConfig.author.bio_vi : t("hero.bio")
-  );
-  const viewWorkLabel = resolveSectionText(locale, hero?.viewWork, hero?.viewWork_vi, t("hero.viewWork"));
-  const viewCVLabel = resolveSectionText(locale, hero?.viewCV, hero?.viewCV_vi, t("hero.viewCV"));
-  const showViewCV = Boolean(siteConfig.resumeUrl && viewCVLabel);
+  const viewWork = resolveSectionText(locale, hero?.viewWork, hero?.viewWork_vi, t("hero.viewWork"));
+  const viewCV = resolveSectionText(locale, hero?.viewCV, hero?.viewCV_vi, t("hero.viewCV"));
 
-  const [isMounted, setIsMounted] = useState(false);
-  const [isCVOpen, setIsCVOpen] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const handleViewWork = useCallback(() => {
-    document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
-  }, []);
-
-  return (
-    <section
-      id="home"
-      className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-background py-20 lg:py-0"
-    >
-      {/* Black hole — sole 3D visual in the Hero. Fixed (not absolute) so it
-          stays pinned in the viewport instead of scrolling away with the
-          Hero's own box; later sections' opaque backgrounds naturally cover
-          it once scrolled past. Faded at the edges so it reads as part of
-          the background rather than a hard-edged canvas. */}
-      {isMounted && (
-        <div
-          className="fixed inset-0 pointer-events-none"
-          style={{
-            maskImage: "radial-gradient(ellipse 65% 65% at 50% 45%, black 45%, transparent 85%)",
-            WebkitMaskImage: "radial-gradient(ellipse 65% 65% at 50% 45%, black 45%, transparent 85%)",
-          }}
-        >
-          <BlackHoleCanvas
-            className="absolute inset-0"
-            interactive={false}
-            scrollEffect
-            deferStart
-            brightness={resolvedTheme === "light" ? 0.6 : 1}
-            particleBrightness={resolvedTheme === "light" ? 0.45 : 0.75}
-          />
-        </div>
-      )}
-
-      {/* Readability scrim — the black hole is a page-wide persistent
-          background now, not just a Hero accent, so text everywhere needs a
-          contrast floor independent of what the render happens to look
-          like underneath. Unmasked (unlike the canvas above) so it covers
-          the full viewport, not just the center. */}
-      {isMounted && (
-        <div
-          className="fixed inset-0 pointer-events-none"
-          style={{
-            // Light theme needs a much heavier scrim: most cards site-wide use
-            // near-transparent bg-neutral-900/[0.04] + mid-gray text, designed
-            // against a plain page background — against the render's varying
-            // brightness that combo loses almost all contrast otherwise.
-            background: resolvedTheme === "light" ? "rgba(255,255,255,0.82)" : "rgba(5,5,5,0.45)",
-          }}
-        />
-      )}
-
-      {/* Content Overlay */}
-      <div className="relative z-10 container mx-auto px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Badge */}
-          {available && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 backdrop-blur-sm mb-8"
-            >
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-sm text-white/70 light:text-neutral-600">{available}</span>
-            </motion.div>
-          )}
-
-          {/* Heading */}
-          {(greetingPrefix || firstName) && (
-            <h1
-              className="animate-fade-up text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight text-balance"
-            >
-              {greetingPrefix && (
-                <span className="text-white light:text-neutral-900">{greetingPrefix}</span>
-              )}
-              {firstName && (
-                <span
-                  className={`bg-gradient-to-r from-purple-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent ${greetingPrefix ? "ml-2 sm:ml-3" : ""}`}
-                >
-                  {firstName}
-                </span>
-              )}
-            </h1>
-          )}
-
-          {/* Subtitle */}
-          {bio && (
-            <p
-              className="animate-fade-up [animation-delay:100ms] text-lg sm:text-xl md:text-2xl text-white/70 light:text-neutral-600 mb-12 max-w-2xl mx-auto leading-relaxed"
-            >
-              {bio}
-            </p>
-          )}
-
-          {/* CTA Buttons */}
-          {(viewWorkLabel || showViewCV) && (
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center"
-            >
-              {viewWorkLabel && (
-                <Button size="lg" variant="primary" onClick={handleViewWork}>
-                  {viewWorkLabel}
-                </Button>
-              )}
-              {showViewCV && (
-                <Button size="lg" variant="outline" onClick={() => setIsCVOpen(true)}>
-                  {viewCVLabel}
-                </Button>
-              )}
-            </motion.div>
-          )}
-        </div>
-
-        {showViewCV && siteConfig.resumeUrl && (
-          <CVPreviewModal
-            url={siteConfig.resumeUrl}
-            isOpen={isCVOpen}
-            onClose={() => setIsCVOpen(false)}
-          />
-        )}
+  return <section id="home" className="portfolio-hero relative isolate flex min-h-[100svh] items-center overflow-hidden bg-portfolio-void pt-28 pb-12">
+    <HeroCanvas />
+    <div aria-hidden="true" className="portfolio-hero-scrim pointer-events-none absolute inset-0 z-[1]" />
+    <div className="relative z-10 mx-auto w-full max-w-[1120px] px-4">
+      <div className="portfolio-hero-copy max-w-[42rem]">
+        {available && <p className="mb-4 flex items-center gap-2 text-sm text-portfolio-dust">
+          <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-green-500" />
+          {available}
+        </p>}
+        {name && <h1 className="portfolio-hero-name mb-6 text-[clamp(2.25rem,6.1vw,5.5rem)] leading-[1.12] font-extrabold tracking-[-0.035em] text-portfolio-ink">{name}</h1>}
+        {role && <p className="portfolio-hero-role mb-4 text-xl font-semibold text-portfolio-ink md:text-2xl">{role}</p>}
+        {context && <p className="portfolio-hero-context max-w-[42ch] text-base leading-relaxed text-portfolio-dust md:text-lg">{context}</p>}
+        <p className="portfolio-hero-context mt-3 text-sm leading-relaxed text-portfolio-dust md:text-base">{t("hero.contextDetail")}</p>
+        <HeroActions resumeUrl={siteConfig.resumeUrl} viewWork={viewWork} viewCV={viewCV} />
       </div>
-    </section>
-  );
+    </div>
+  </section>;
 }

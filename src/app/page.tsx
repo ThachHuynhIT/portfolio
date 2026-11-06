@@ -57,18 +57,16 @@ export default async function Home() {
     <>
       {/* Above-the-fold immediate render for instant FCP */}
       <HeroSection siteConfig={siteConfig} />
-      {/* Transparent spacer (not part of Hero's opaque bg-background box) so the
-          global starfield still shows through the gap before About, instead of
-          extending Hero's solid background into a dead, decoration-less band. */}
-      <div className="h-48" aria-hidden="true" />
-      <AboutSection siteConfig={siteConfig} />
+      <div id="portfolio-sections" className="relative bg-portfolio-void/90">
+        <AboutSection siteConfig={siteConfig} />
 
-      {/* Below-the-fold code-split sections */}
-      <SkillsSection skills={skills} siteConfig={siteConfig} />
-      <ProjectsSection projects={projects} siteConfig={siteConfig} />
-      <PhotoPreviewSection photography={photography} />
-      <BlogPreviewSection posts={recentPosts} />
-      <ContactSection siteConfig={siteConfig} />
+        {/* Below-the-fold code-split sections */}
+        <SkillsSection skills={skills} siteConfig={siteConfig} />
+        <ProjectsSection projects={projects} siteConfig={siteConfig} />
+        <PhotoPreviewSection photography={photography} />
+        <BlogPreviewSection posts={recentPosts} />
+        <ContactSection siteConfig={siteConfig} />
+      </div>
     </>
   );
 }
