@@ -43,7 +43,7 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
         </div>
         <nav aria-label={t("footer.quickLinks")}>
           <ul className="flex flex-wrap gap-x-5 gap-y-1 md:max-w-md">
-            {navLinks.map((link) => <li key={link.id}><Link href={link.href.startsWith("#") && pathname !== "/" ? `/${link.href}` : link.href} className="inline-flex min-h-11 items-center text-sm text-portfolio-dust transition-colors duration-150 hover:text-portfolio-accretion">
+            {navLinks.flatMap((link) => link.children?.length ? link.children : [link]).map((link) => <li key={link.id}><Link href={link.href.startsWith("#") && pathname !== "/" ? `/${link.href}` : link.href} className="inline-flex min-h-11 items-center text-sm text-portfolio-dust transition-colors duration-150 hover:text-portfolio-accretion">
               {locale === "vi" && link.label_vi?.trim() ? link.label_vi : link.label}
             </Link></li>)}
           </ul>
