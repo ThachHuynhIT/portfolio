@@ -48,7 +48,7 @@ Rollback: nếu cần quay về bản cũ, khôi phục `ADMIN_PASSWORD` trên V
 - `ADMIN_PASSWORD_SCRYPT` phải là **hash** (`scrypt$…$…`), không phải mật khẩu thường. Đặt mật khẩu thường vào đây thì mọi lần đăng nhập đều bị từ chối và server log `ADMIN_PASSWORD_SCRYPT is missing or malformed`.
 - Trong `.env` / `.env.local`, Next.js mở rộng `$tên` thành biến môi trường, nên phải escape: `ADMIN_PASSWORD_SCRYPT=scrypt\$<salt>\$<key>`. Trên Vercel dán nguyên `scrypt$<salt>$<key>`, không có `\`.
 - Không đặt mật khẩu thật hay hash vào `.env.example` (file này được commit).
-- Không dùng lại bất kỳ chuỗi nào từng xuất hiện trong repo (kể cả mật khẩu mặc định cũ trong lịch sử git của `src/lib/admin-auth.ts`) — repo là public.
+- Chọn mật khẩu mới, dài và chưa từng xuất hiện ở bất kỳ đâu trong repo (repo là public).
 
 **Giới hạn đã biết (chấp nhận ở quy mô hiện tại)**:
 

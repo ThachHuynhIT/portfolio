@@ -464,4 +464,3 @@ Frame rate trên điện thoại tầm trung **chưa đo** (không có thiết b
 - Blog demo (`react-three-fiber-guide`, `framer-motion-guide`): người dùng chọn **giữ lại** (08/11/2026) — không xoá.
 - Ảnh cho dự án Zonenop Game và Portfolio: chưa có.
 - Frame rate điện thoại tầm trung: chưa đo.
-- **Bảo mật:** mật khẩu admin đang dùng trùng mật khẩu mặc định cũ còn trong lịch sử git public → phải đổi mật khẩu (tạo hash mới, cập nhật `.env` và Vercel).
