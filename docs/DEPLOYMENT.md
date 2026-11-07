@@ -43,10 +43,23 @@ Remove-Item Env:PORTFOLIO_PASSWORD_ONCE
 
 Rollback: nếu cần quay về bản cũ, khôi phục `ADMIN_PASSWORD` trên Vercel trước khi redeploy bản cũ.
 
+**Lưu ý khi đặt biến**:
+
+- `ADMIN_PASSWORD_SCRYPT` phải là **hash** (`scrypt$…$…`), không phải mật khẩu thường. Đặt mật khẩu thường vào đây thì mọi lần đăng nhập đều bị từ chối và server log `ADMIN_PASSWORD_SCRYPT is missing or malformed`.
+- Trong `.env` / `.env.local`, Next.js mở rộng `$tên` thành biến môi trường, nên phải escape: `ADMIN_PASSWORD_SCRYPT=scrypt\$<salt>\$<key>`. Trên Vercel dán nguyên `scrypt$<salt>$<key>`, không có `\`.
+- Không đặt mật khẩu thật hay hash vào `.env.example` (file này được commit).
+- Không dùng lại bất kỳ chuỗi nào từng xuất hiện trong repo (kể cả mật khẩu mặc định cũ trong lịch sử git của `src/lib/admin-auth.ts`) — repo là public.
+
 **Giới hạn đã biết (chấp nhận ở quy mô hiện tại)**:
 
 - **Rate limiter theo từng instance**: giới hạn 5 lần sai / 15 phút / IP nằm trong bộ nhớ của process (`src/lib/rate-limit.ts`). Trên Vercel serverless, mỗi instance có bộ đếm riêng và bộ đếm mất khi cold start, nên số lần thử không được cộng dồn giữa các instance.
 - **Không revoke session phía server trước khi hết hạn**: session là cookie `admin_session` ký HMAC bằng `AUTH_SECRET`, hiệu lực 24 giờ, không lưu phía server. Đăng xuất chỉ xoá cookie trên trình duyệt; một token đã bị sao chép vẫn dùng được tới khi hết hạn. Cách duy nhất để vô hiệu hoá mọi session ngay lập tức là đổi `AUTH_SECRET`.
+
+### 1.2. Content Security Policy (`next.config.js`)
+
+- **Enforcing**: chỉ `Content-Security-Policy: frame-ancestors 'none'` (+ `X-Frame-Options: DENY`) — site không thể bị nhúng vào trang khác. Không chặn CV iframe hay media bên trong site.
+- **Report-only**: policy đầy đủ (`Content-Security-Policy-Report-Only`) gồm `script-src 'self'` + sha256 của `THEME_INIT_SCRIPT`. Đổi script này thì `src/lib/security-headers.test.ts` báo hash mới cần cập nhật.
+- **Giới hạn đã biết**: hash chỉ bao phủ script theme. Next 14 App Router còn chèn inline script RSC/hydration không có nonce, nên trình duyệt báo vi phạm report-only trên mọi trang (đo 11/2026: ~20 thông báo trên `/`). Promote sang enforcing sẽ làm hỏng trang nếu không chuyển sang nonce + render động — trade-off đã chốt là giữ static rendering, CSP đầy đủ ở report-only.
 
 ---
 

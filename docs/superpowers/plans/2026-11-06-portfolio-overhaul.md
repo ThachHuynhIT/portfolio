@@ -427,3 +427,41 @@ Sáu câu hỏi trước đã chốt: không store F7, không JSX F8, bỏ Parti
 Task 1→2 (G, PR Phase 0) →3→4→5→6→7→8 (G, PR Phase 1 core); 8b là sub-phase bắt buộc, PR riêng không gate store. Tiếp theo 9→10→11 (G/U, PR Phase 2) →12→13 (G/U, PR Phase 3 + **approval**) →14→15→16→17→18→19 (G/U, PR Phase 4) →20 (G/U, PR Phase 5). Task 21 chỉ backlog.
 
 Hoàn tất phase khi checks bắt buộc xanh, evidence được ghi và gate của phase được đáp ứng. Hoàn tất overhaul Phase 0–5 không có nghĩa Phase 6 đã triển khai hay hai giới hạn F7/CSP report-only đã được khắc phục. Khi bàn giao phải liệt kê chính xác trạng thái các gate còn mở.
+
+## Kết quả kiểm chứng Task 20 (08/11/2026)
+
+Chạy trên `feature/portfolio-verification` (stack trên Phase 4), `next build` + `next start`, Playwright Chromium, máy dev (không throttle CPU/mạng).
+
+**G (checks):** `tsc --noEmit` ✅ · `eslint . --max-warnings=0` ✅ · Vitest 33 file / 211 test ✅ · `next build` ✅.
+
+**Hiệu năng `/`:**
+
+| Chỉ số | Trước overhaul | Sau |
+| --- | --- | --- |
+| First Load JS (`next build`) | 237 kB | 192 kB (route 9.62 kB) |
+| JS tải lúc đầu (trình duyệt) | — | 26 file, ~435 kB transfer |
+| LCP / CLS (local, không throttle) | — | 2,03 s / 0 |
+| Chiều cao trang 390px | ~10.500 px | 7.378 px |
+| Chiều cao trang 320 / 768 / 1440px | — | 8.130 / 6.412 / 5.710 px |
+
+Frame rate trên điện thoại tầm trung **chưa đo** (không có thiết bị trong phiên này) — mục tiêu 60 fps còn mở.
+
+**U (UI/a11y):**
+- Không tràn ngang ở 320/768/1440 × dark/light; mọi `<img>` có `alt`; SVG trang trí `aria-hidden`; phần tử tương tác đều có tên (trừ honeypot `aria-hidden`, `tabindex=-1`).
+- Contrast chữ so với nền CSS đã composite: thấp nhất dark 7,33:1, light 5,14:1 (CTA chính dark 10,98 / light 5,42; text link accretion dark 11,09 / light 5,14; tiêu đề blog dark 15,72 / light 18,58; link footer dark 7,85 / light 7,13). Viền input ≥7:1. Phép đo không tính pixel canvas hố đen phía sau.
+- Không JS: tên, 4 facts, 20 skills, 3 dự án, anchor `#projects`, mailto và form đều render.
+- Reduced motion: không mount canvas, đường chòm sao ở trạng thái cuối (dashoffset 0), ảnh không parallax.
+- Dialog dự án: `aria-modal`, có tiêu đề liên kết, focus vào trong, Tab không thoát ra, Escape đóng và trả focus về nút mở.
+- EN ⇄ VI: `lang` đổi, About/facts/nhóm skills/mô tả dự án đổi đúng và đổi ngược lại được.
+- Route: `/`, `/projects`, `/photography`, `/blog`, `/blog/[slug]`, `/music`, `/couple`, `/admin/login`, `/tools/json-validator` trả 200; `/creative` 404 (không còn link nào trỏ tới). Không có console error.
+- Link chữ (View Live, Source Code, All projects…) cao 40px: đạt WCAG 2.5.8 (≥24px); quy định ≥44×44 của plan áp cho toggle/social/nút icon và đã đạt.
+
+**CSP:** header enforcing `frame-ancestors 'none'` + `X-Frame-Options: DENY`; report-only đầy đủ. Trên `/` có ~20 vi phạm report-only từ inline script Next/RSC (đúng giới hạn đã ghi trong `docs/DEPLOYMENT.md` §1.2); giữ report-only theo quyết định đã chốt.
+
+**Nội dung (§ content spec):** đã nhập qua admin API của phiên `/admin` ngày 08/11/2026: site config/title/meta "Frontend Software Engineer", author, xoá override cũ trong `sectionsContent` (dùng defaults en/vi), 20 skills theo CV (9 skill cũ chỉ ẩn, không xoá), 5 dự án (2 mới; SUUTA/KMJ bỏ `featured`), nav Hobby `href` → `#`, ẩn mục Games (`/games` không tồn tại). Câu "I usually reply within a day" không dùng (chưa được xác nhận).
+
+**Gate còn mở / quyết định:**
+- Blog demo (`react-three-fiber-guide`, `framer-motion-guide`): người dùng chọn **giữ lại** (08/11/2026) — không xoá.
+- Ảnh cho dự án Zonenop Game và Portfolio: chưa có.
+- Frame rate điện thoại tầm trung: chưa đo.
+- **Bảo mật:** mật khẩu admin đang dùng trùng mật khẩu mặc định cũ còn trong lịch sử git public → phải đổi mật khẩu (tạo hash mới, cập nhật `.env` và Vercel).
