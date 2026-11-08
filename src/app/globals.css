@@ -212,6 +212,15 @@
 .portfolio-hero-scrim {
   background: radial-gradient(ellipse 80% 130% at 0% 50%, var(--portfolio-void) 0% 48%, color-mix(in srgb, var(--portfolio-void) 96%, transparent) 62%, transparent 90%);
 }
+/* Light theme: the full-height near-white scrim washed out the whole left
+   half of the hole. Hug the text block instead (shorter vertical radius), so
+   the hole stays clear above and below the copy while the copy keeps its
+   backing where it crosses the shadow. */
+@media (min-width: 768px) {
+  [data-theme="light"] .portfolio-hero-scrim {
+    background: radial-gradient(ellipse 80% 58% at 0% 56%, var(--portfolio-void) 0% 52%, color-mix(in srgb, var(--portfolio-void) 92%, transparent) 66%, transparent 92%);
+  }
+}
 .portfolio-hero-name, .portfolio-hero-role, .portfolio-hero-context,
 .portfolio-hero-actions { opacity: 1; }
 /* No backwards/both fill: readable base styles also apply before a delay,
@@ -221,13 +230,21 @@
   from { transform: scale(0.25); opacity: 0.2; }
   to { transform: scale(1); opacity: 1; }
 }
-.portfolio-light-stars {
+/* Static starfield behind the whole page-level black hole, so the area
+   beside it is never a flat Void. Dots flip per theme; --star-scroll gives
+   the nearest layer a slight parallax (set by HomeBlackHole, 0 with reduced
+   motion). */
+.portfolio-stars {
+  --star-a: rgba(236, 233, 228, 0.32); --star-b: rgba(236, 233, 228, 0.22); --star-c: rgba(236, 233, 228, 0.16);
   background-color: transparent;
-  background-image: radial-gradient(circle, rgba(16,19,26,0.14) 0.7px, transparent 1px),
-    radial-gradient(circle, rgba(16,19,26,0.1) 0.8px, transparent 1.1px),
-    radial-gradient(circle, rgba(16,19,26,0.08) 0.6px, transparent 1px);
+  background-image: radial-gradient(circle, var(--star-a) 0.7px, transparent 1px),
+    radial-gradient(circle, var(--star-b) 0.8px, transparent 1.1px),
+    radial-gradient(circle, var(--star-c) 0.6px, transparent 1px);
   background-size: 113px 127px, 191px 173px, 251px 229px;
-  background-position: 0 var(--star-scroll, 0px), 31px 47px, 71px 13px;
+  background-position: 0 var(--star-scroll, 0px), 31px calc(47px + var(--star-scroll, 0px) * 0.6), 71px calc(13px + var(--star-scroll, 0px) * 0.3);
+}
+[data-theme="light"] .portfolio-stars {
+  --star-a: rgba(16, 19, 26, 0.14); --star-b: rgba(16, 19, 26, 0.1); --star-c: rgba(16, 19, 26, 0.08);
 }
 .portfolio-footer-star {
   pointer-events: none;

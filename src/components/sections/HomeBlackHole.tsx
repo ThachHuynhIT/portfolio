@@ -10,6 +10,7 @@ const BlackHoleCanvas = dynamic(() => import("@/components/3d/blackhole/BlackHol
 export default function HomeBlackHole() {
   const { resolvedTheme } = useTheme();
   const ref = useRef<HTMLDivElement>(null);
+  const stars = useRef<HTMLDivElement>(null);
   const [motionAllowed, setMotionAllowed] = useState(false);
   // "Settled" once the canvas has faded in over the silhouette (or WebGL is
   // unavailable): the silhouette's breathing pauses, since nothing shows it.
@@ -32,6 +33,7 @@ export default function HomeBlackHole() {
       const framing = mapHomeBlackHole(media.matches ? 0 : window.scrollY,
         document.getElementById("home")?.offsetHeight ?? window.innerHeight, resolvedTheme === "light", window.innerWidth < 768);
       el.style.transform = `translate3d(${framing.x}vw, ${framing.y}vh, 0) scale(${framing.scale})`;
+      stars.current?.style.setProperty("--star-scroll", `${media.matches ? 0 : Math.round(-window.scrollY * 0.06)}px`);
       el.style.opacity = String(framing.opacity);
       el.style.setProperty("--loader-play", document.hidden ? "paused" : "running");
     };
@@ -59,7 +61,7 @@ export default function HomeBlackHole() {
   }, [resolvedTheme]);
 
   return <div aria-hidden="true" className="portfolio-home-blackhole pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-    {resolvedTheme === "light" && <div className="portfolio-light-stars absolute inset-0" />}
+    <div ref={stars} className="portfolio-stars absolute inset-0" />
     <div ref={ref} className="absolute inset-0 origin-right">
       <div className="portfolio-hero-canvas absolute">
         <div className="portfolio-blackhole-fallback absolute inset-0" data-settled={settled ? "" : undefined}>
