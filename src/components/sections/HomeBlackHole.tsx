@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { mapHomeBlackHole } from "@/lib/home-black-hole";
 
@@ -11,20 +11,15 @@ export default function HomeBlackHole() {
   const { resolvedTheme } = useTheme();
   const ref = useRef<HTMLDivElement>(null);
   const [motionAllowed, setMotionAllowed] = useState(false);
-  const [ready, setReady] = useState(false);
-  const [loaderGone, setLoaderGone] = useState(false);
-  const onReady = useCallback(() => setReady(true), []);
-  const onUnavailable = useCallback(() => setLoaderGone(true), []);
+  // "Settled" once the canvas has faded in over the silhouette (or WebGL is
+  // unavailable): the silhouette's breathing pauses, since nothing shows it.
+  const [settled, setSettled] = useState(false);
+  const onReady = useCallback(() => { window.setTimeout(() => setSettled(true), 1300); }, []);
+  const onUnavailable = useCallback(() => setSettled(true), []);
 
   useEffect(() => {
-    setReady(false);
-    setLoaderGone(false);
+    setSettled(false);
   }, [resolvedTheme, motionAllowed]);
-  useEffect(() => {
-    if (!ready) return;
-    const timeout = window.setTimeout(() => setLoaderGone(true), 700);
-    return () => window.clearTimeout(timeout);
-  }, [ready]);
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const updateMotion = () => setMotionAllowed(!media.matches);
@@ -67,11 +62,13 @@ export default function HomeBlackHole() {
     {resolvedTheme === "light" && <div className="portfolio-light-stars absolute inset-0" />}
     <div ref={ref} className="absolute inset-0 origin-right">
       <div className="portfolio-hero-canvas absolute">
-        <div className="portfolio-blackhole-fallback absolute inset-0" />
+        <div className="portfolio-blackhole-fallback absolute inset-0" data-settled={settled ? "" : undefined}>
+          <span className="portfolio-bh-part portfolio-bh-glow" />
+          <span className="portfolio-bh-part portfolio-bh-disk" />
+          <span className="portfolio-bh-part portfolio-bh-ring" />
+          <span className="portfolio-bh-part portfolio-bh-core" />
+        </div>
         {motionAllowed && <BlackHoleCanvas className="absolute inset-0" interactive={false} deferStart scrollEffect scrollScope="page" onReady={onReady} onUnavailable={onUnavailable} brightness={resolvedTheme === "light" ? 1.15 : 1} particleBrightness={resolvedTheme === "light" ? 0.9 : 0.75} />}
-        {motionAllowed && !loaderGone && <div className="portfolio-hole-loader" style={{ opacity: ready ? 0 : 1 }}>
-          {Array.from({ length: 5 }, (_, index) => <i key={index} style={{ "--ring": index } as CSSProperties} />)}
-        </div>}
       </div>
     </div>
   </div>;

@@ -160,10 +160,54 @@
   -webkit-mask-image: radial-gradient(ellipse closest-side at 55% 45%, black 55%, transparent 100%);
   mask-image: radial-gradient(ellipse closest-side at 55% 45%, black 55%, transparent 100%);
 }
-/* Round, neutral stand-in shown before the canvas paints (and with reduced
-   motion): `circle closest-side` keeps it a true circle at any canvas size. */
-.portfolio-blackhole-fallback {
-  background: radial-gradient(circle closest-side at 55% 45%, var(--portfolio-void) 0 17%, color-mix(in srgb, var(--portfolio-ink) 9%, transparent) 21%, transparent 42%);
+/* Static silhouette of the black hole, adapted from necatimertmetin (MIT):
+   https://uiverse.io/necatimertmetin/tidy-falcon-23 — softened and neutral.
+   It is server-rendered, so it shows before any JS, stands in for the canvas
+   with reduced motion, and sits exactly where the engine's first frame draws
+   the hole (lensing lifts the visible shadow above the canvas center), so
+   the canvas fade-in reads as the same object coming
+   alive. Sizes use container units of the canvas box (cqh); the center and
+   sizes were matched by overlaying the live first frame at 50% opacity. */
+/* The shadow stays dark in both themes, like the rendered hole (dark Void). */
+.portfolio-blackhole-fallback { container-type: size; --portfolio-bh-shadow: #05070d; }
+.portfolio-bh-part {
+  position: absolute; left: 53.5%; top: 39.5%; border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.portfolio-bh-glow {
+  width: 120cqh; height: 120cqh;
+  background: radial-gradient(circle, color-mix(in srgb, var(--portfolio-ink) 10%, transparent) 20%, color-mix(in srgb, var(--portfolio-ink) 4%, transparent) 45%, transparent 70%);
+}
+.portfolio-bh-disk {
+  width: 170cqh; height: 17cqh; top: 63%;
+  transform: translate(-50%, -50%) rotate(8deg);
+  background: radial-gradient(ellipse closest-side, color-mix(in srgb, var(--portfolio-ink) 22%, transparent), color-mix(in srgb, var(--portfolio-ink) 7%, transparent) 60%, transparent);
+  filter: blur(6px);
+}
+.portfolio-bh-ring {
+  width: 54cqh; height: 54cqh;
+  box-shadow: 0 0 3cqh 1.2cqh color-mix(in srgb, var(--portfolio-ink) 20%, transparent),
+    inset 0 0 2cqh color-mix(in srgb, var(--portfolio-ink) 16%, transparent);
+}
+.portfolio-bh-core {
+  width: 54cqh; height: 54cqh;
+  /* Feathered edge: a hard-edged disc reads as a ball, not a hole. */
+  background: radial-gradient(circle closest-side, var(--portfolio-bh-shadow) 0 80%, color-mix(in srgb, var(--portfolio-bh-shadow) 60%, transparent) 90%, transparent 100%);
+}
+/* The only motion: the halo breathes slowly while the canvas loads.
+   Opacity/transform only, so it stays off the main thread. */
+@media (prefers-reduced-motion: no-preference) {
+  .portfolio-bh-glow, .portfolio-bh-ring {
+    animation-name: portfolio-bh-breathe; animation-duration: 4500ms;
+    animation-timing-function: ease-in-out; animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-play-state: var(--loader-play, running);
+  }
+  .portfolio-blackhole-fallback[data-settled] .portfolio-bh-part { animation-play-state: paused; }
+}
+@keyframes portfolio-bh-breathe {
+  from { opacity: 0.65; transform: translate(-50%, -50%) scale(0.985); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1.015); }
 }
 .portfolio-hero-scrim {
   background: radial-gradient(ellipse 80% 130% at 0% 50%, var(--portfolio-void) 0% 48%, color-mix(in srgb, var(--portfolio-void) 96%, transparent) 62%, transparent 90%);
@@ -523,31 +567,6 @@ body {
 @keyframes portfolio-menu-enter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 .portfolio-heading-spark { box-shadow: 0 0 12px var(--portfolio-accretion); }
 
-/* Adapted from elijahgummer, MIT: https://uiverse.io/elijahgummer/polite-earwig-72
-   Softened: neutral glow only (no border, no accent color), fewer rings,
-   slower and dimmer, so the wait reads as the hole quietly drawing light in
-   rather than a spinner. */
-.portfolio-hole-loader {
-  position: absolute; left: 55%; top: 45%; width: 20%; aspect-ratio: 1;
-  transform: translate(-50%, -50%); transition: opacity 700ms ease-out;
-}
-.portfolio-hole-loader i {
-  position: absolute; inset: 0; border-radius: 50%; opacity: 0;
-  box-shadow: 0 0 28px color-mix(in srgb, var(--portfolio-ink) 22%, transparent),
-    inset 0 0 18px color-mix(in srgb, var(--portfolio-ink) 12%, transparent);
-  /* Longhands: the production CSS minifier drops the spaces around var() inside
-     an `animation` shorthand, which invalidates the whole declaration. */
-  animation-name: portfolio-ring-drift; animation-duration: 4800ms;
-  animation-delay: calc(var(--ring) * -960ms); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
-  animation-iteration-count: infinite;
-  animation-play-state: var(--loader-play, running);
-}
-@keyframes portfolio-ring-drift {
-  0% { transform: scale(1.6); opacity: 0; }
-  45% { transform: scale(1); opacity: 0.5; }
-  100% { transform: scale(0.4); opacity: 0; }
-}
-
 /* All characters retain their final inline layout, including word wrapping. */
 .portfolio-typed-character { position: relative; opacity: 1; }
 .portfolio-typing-caret { display: none; }
@@ -674,7 +693,7 @@ body {
 @keyframes portfolio-sheen { from { opacity: 1; transform: translateX(-110%); } to { opacity: 1; transform: translateX(110%); } }
 @media (prefers-reduced-motion: reduce) {
   .portfolio-typed-character { animation: none !important; opacity: 1 !important; }
-  .portfolio-typing-caret, .portfolio-hole-loader, .portfolio-action-stars,
+  .portfolio-typing-caret, .portfolio-action-stars,
   .portfolio-theme .portfolio-action-secondary::before, .portfolio-theme .portfolio-action-secondary::after,
   .portfolio-theme .portfolio-social::after { display: none !important; }
   .portfolio-theme .portfolio-action, .portfolio-theme .portfolio-social { transform: none !important; transition: color 150ms, background-color 150ms, border-color 150ms; }
