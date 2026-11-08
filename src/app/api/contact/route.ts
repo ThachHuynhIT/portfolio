@@ -22,12 +22,16 @@ export async function POST(request: Request) {
     }
     rateLimiter.recordAttempt(ip);
 
-    const body = await request.json();
+    const body: unknown = await request.json().catch(() => null);
+    if (typeof body !== "object" || body === null) {
+      return NextResponse.json({ error: "Invalid input." }, { status: 400 });
+    }
 
     // A filled honeypot means a bot filled every field it could find.
     // Report success without touching the DB or Resend — never reveal
     // detection.
-    if (typeof body.website === "string" && body.website.length > 0) {
+    const honeypot = (body as { website?: unknown }).website;
+    if (typeof honeypot === "string" && honeypot.length > 0) {
       return NextResponse.json({ success: true });
     }
 

@@ -3,10 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 const requireAdminSession = vi.fn<() => Promise<NextResponse | null>>();
 const uploadAndRegisterMedia = vi.fn();
+const deleteMediaAsset = vi.fn();
 
 vi.mock("@/lib/admin-auth", () => ({ requireAdminSession: () => requireAdminSession() }));
 vi.mock("@/lib/media-service", () => ({
   uploadAndRegisterMedia: (...args: unknown[]) => uploadAndRegisterMedia(...args),
+  deleteMediaAsset: (...args: unknown[]) => deleteMediaAsset(...args),
 }));
 
 import { POST as photoUpload } from "@/app/api/admin/photography/upload/route";
@@ -36,6 +38,7 @@ const fakeAsset = {
 beforeEach(() => {
   requireAdminSession.mockReset().mockResolvedValue(null);
   uploadAndRegisterMedia.mockReset().mockResolvedValue(fakeAsset);
+  deleteMediaAsset.mockReset().mockResolvedValue(true);
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
@@ -108,5 +111,19 @@ describe("upload routes", () => {
     );
     expect(musicRes.status).toBe(500);
     expect(await musicRes.json()).toEqual({ error: "Upload failed" });
+  });
+
+  it("rolls_back_audio_when_thumbnail_upload_fails", async () => {
+    uploadAndRegisterMedia
+      .mockResolvedValueOnce({ ...fakeAsset, publicId: "audio-1" })
+      .mockRejectedValueOnce(new Error("thumbnail failed"));
+    const res = await musicUpload(
+      multipart("http://localhost/api/music/upload", {
+        audio: file(MP3, "song.mp3", "audio/mpeg"),
+        thumbnail: file(JPEG, "cover.jpg", "image/jpeg"),
+      })
+    );
+    expect(res.status).toBe(500);
+    expect(deleteMediaAsset).toHaveBeenCalledWith("audio-1");
   });
 });

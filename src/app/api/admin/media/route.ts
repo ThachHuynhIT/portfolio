@@ -124,10 +124,11 @@ export async function DELETE(req: NextRequest) {
     await deleteMediaAsset(publicId);
     return NextResponse.json({ success: true, publicId });
   } catch (error) {
-    console.error("[DELETE /api/admin/media] Error:", error);
+    // Provider errors can carry config details; keep them in server logs only.
+    console.error("[DELETE /api/admin/media] Error:", getErrorMessage(error));
     return NextResponse.json(
-      { error: getErrorMessage(error) || "Failed to delete media asset" },
-      { status: 500 }
+      { error: "Failed to delete media asset. It is still in the library; try again." },
+      { status: 502 }
     );
   }
 }
