@@ -137,7 +137,7 @@ Công cụ kiểm tra tính toàn vẹn dữ liệu JSON:
 
 ---
 
-### 3.4. Hệ Thống Design System & Animation (`src/app/globals.css`, `src/lib/animations.ts`)
+### 3.4. Hệ Thống Design System & Animation (`src/app/globals.css`, `src/lib/design-tokens.ts`, `src/lib/ui-presets.ts`, `src/lib/animations.ts`)
 
 - **Tailwind CSS v4**: Cấu hình theme trực tiếp qua `@theme inline`. Có hai lớp token:
   - **Public (scoped)** — khối `.portfolio-theme` (bọc các trang công khai) định nghĩa `--portfolio-void` `#05070D`, `--portfolio-hull` `#0C1018`, `--portfolio-ink` `#ECE9E4`, `--portfolio-dust` `#9BA1AC`, `--portfolio-accretion` `#F2B45A` (+ `-hover`, `--portfolio-on-accretion`), `--portfolio-hairline`, `--portfolio-control`; bản light (`[data-theme="light"] .portfolio-theme`) đổi sang Void `#F5F6F8`, Hull `#FFFFFF`, Ink `#10131A`, Dust `#4F5562`, Accretion `#9A5B0B`. Utility tương ứng: `bg-portfolio-hull`, `text-portfolio-ink`, `text-portfolio-accretion`… Font public: Be Vietnam Pro (fallback Inter).
@@ -148,6 +148,11 @@ Công cụ kiểm tra tính toàn vẹn dữ liệu JSON:
   - About `factsStagger`/`factsOrbit`; Skills `constellationDraw` (vẽ đường một lần, layout tất định từ `src/lib/constellation-layout.ts`); Projects lensing khi hover/focus (CSS variables qua ref); Photo strip parallax 8–24px (một rAF, dừng ngoài viewport); Blog `shootingStarRow`; Contact signal rings khi gửi + vòng nhỏ khi copy email.
   - Giá trị tần suất cao (pointer, scroll) ghi vào ref/CSS variable, không setState mỗi frame. Ngoài hố đen, tối đa một vòng lặp liên tục trong viewport.
   - `fadeInUp`, `staggerContainer`, `blurFadeIn`… vẫn còn cho các trang chưa chuyển; `TiltCard`/`GlassCard` không còn dùng trên trang chủ.
+- **Design Tokens (nguồn chân lý cho màu & kích thước dùng chung)** — chi tiết tại [`docs/DESIGN_TOKENS.md`](DESIGN_TOKENS.md):
+  - `globals.css` khai báo thang màu thương hiệu (`--purple-400/500/600`, `--cyan-400/500/600`) và mọi hiệu ứng CSS thuần (gradient, glow, scrollbar, focus ring, selection, palette code block `--code-*`) đều đọc từ đó.
+  - `src/lib/design-tokens.ts` export token đơn lẻ cho phía TSX: `surface.*`, `border.*`, `text.*`, `status.*`, `brand.*`, `radius.*`, `layout.*`, `gap.*`, `iconSize.*`, `motion.*`, `elevation.*`, `zIndex.*`, `focus.*`, `heading.*`. Mỗi token đã kèm sẵn biến thể `light:`; token hậu tố `Dark` không kèm, dành cho route trong `EXCLUDED_ROUTE_PREFIXES`.
+  - `src/lib/ui-presets.ts` ghép token thành công thức hoàn chỉnh (`presets.card`, `presets.input`, `presets.inputDark`, `presets.badge.*`, `presets.section`...). `<GlassCard />` dựng trên lớp này; `<Button />` dùng token `portfolio-*` (mục trên).
+  - Nguyên tắc: giá trị dùng ở từ 3 component trở lên thì đưa vào token, đặt tên theo **vai trò** (`radius.card`) chứ không theo giá trị. Luôn ghép bằng `cn()` để class thêm vào ghi đè được token.
 
 ---
 

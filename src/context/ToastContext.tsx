@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { radius } from "@/lib/design-tokens";
 
 export type ToastType = "success" | "error" | "info" | "warning";
 
@@ -35,14 +37,14 @@ export function useToast() {
 
 const TOAST_ICONS: Record<ToastType, React.ReactNode> = {
   success: (
-    <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 border border-emerald-500/30">
+    <div className={cn("w-6 h-6", radius.pill, "bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 border border-emerald-500/30")}>
       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
         <polyline points="20 6 9 17 4 12" />
       </svg>
     </div>
   ),
   error: (
-    <div className="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center flex-shrink-0 border border-rose-500/30">
+    <div className={cn("w-6 h-6", radius.pill, "bg-rose-500/20 text-rose-400 flex items-center justify-center flex-shrink-0 border border-rose-500/30")}>
       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
         <line x1="18" y1="6" x2="6" y2="18" />
         <line x1="6" y1="6" x2="18" y2="18" />
@@ -50,7 +52,7 @@ const TOAST_ICONS: Record<ToastType, React.ReactNode> = {
     </div>
   ),
   warning: (
-    <div className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0 border border-amber-500/30">
+    <div className={cn("w-6 h-6", radius.pill, "bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0 border border-amber-500/30")}>
       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
         <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
         <line x1="12" y1="9" x2="12" y2="13" />
@@ -59,7 +61,7 @@ const TOAST_ICONS: Record<ToastType, React.ReactNode> = {
     </div>
   ),
   info: (
-    <div className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center flex-shrink-0 border border-cyan-500/30">
+    <div className={cn("w-6 h-6", radius.pill, "bg-cyan-500/20 text-cyan-400 flex items-center justify-center flex-shrink-0 border border-cyan-500/30")}>
       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
         <circle cx="12" cy="12" r="10" />
         <line x1="12" y1="16" x2="12" y2="12" />
@@ -142,7 +144,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
               <button
                 onClick={() => dismiss(t.id)}
-                className="text-slate-400 hover:text-white p-1 -mr-1 -mt-1 rounded-lg hover:bg-white/5 transition-colors"
+                className={cn("text-slate-400 hover:text-white p-1 -mr-1 -mt-1", radius.chip, "hover:bg-white/5 transition-colors")}
                 aria-label="Close notification"
               >
                 <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

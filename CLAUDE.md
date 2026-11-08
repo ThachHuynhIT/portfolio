@@ -36,7 +36,7 @@ npx tsc --noEmit -p .   # Type check
 ## 📚 Project Documentation Index
 
 Detailed documentation (Vietnamese) lives in [`docs/`](docs/):
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/FEATURES.md`](docs/FEATURES.md), [`docs/CUSTOMIZATION_GUIDE.md`](docs/CUSTOMIZATION_GUIDE.md), [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/FEATURES.md`](docs/FEATURES.md), [`docs/CUSTOMIZATION_GUIDE.md`](docs/CUSTOMIZATION_GUIDE.md), [`docs/DESIGN_TOKENS.md`](docs/DESIGN_TOKENS.md), [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
 
 ---
 
@@ -83,6 +83,11 @@ Path alias `@/*` maps to `./src/*`.
 - **Public pages use scoped tokens** on `.portfolio-theme` (approved direction: `docs/superpowers/specs/2026-11-06-portfolio-design-direction.md`): `--portfolio-void` `#05070D`, `--portfolio-hull` `#0C1018`, `--portfolio-ink` `#ECE9E4`, `--portfolio-dust` `#9BA1AC`, `--portfolio-accretion` `#F2B45A` (+ `-hover`, `--portfolio-on-accretion`), `--portfolio-hairline`, `--portfolio-control`, with light values under `[data-theme="light"] .portfolio-theme` (Accretion `#9A5B0B` keeps text ≥4.5:1). Use the `*-portfolio-*` utilities (`bg-portfolio-hull`, `text-portfolio-dust`…) — they flip per theme, so no `light:` pair is needed. Font: Be Vietnam Pro (fallback Inter). Layout/state classes: `.portfolio-section`, `.portfolio-column`, `.portfolio-solid`, `.portfolio-case`, `.portfolio-action*`, `.portfolio-text-link`, `.portfolio-input`.
 - Legacy tokens (`--background: #050505`, `--foreground: #fafafa`, `--purple-500: #8b5cf6`, `--cyan-500: #06b6d4`) stay for dark-only routes, the lightbox and not-yet-converted pages; they also flip per theme. No raw dark hex in shared public components.
 - Legacy utility classes (not on the homepage): `.gradient-text`, `.glass`, `.glow-purple`, `.glow-cyan`, `.animate-float`, `.animate-pulse-glow`, `.animate-gradient`.
+- **Shared colors and sizes (admin, legacy and not-yet-converted pages) are tokenized — do not hand-write repeated values.** See `docs/DESIGN_TOKENS.md` for the full inventory.
+  - `src/lib/design-tokens.ts` — individual tokens (`surface.card`, `border.subtle`, `text.muted`, `radius.card`, `motion.base`, `zIndex.nav`, `brand.gradient`, ...). Each already bundles its `light:` variant; `*Dark` tokens carry none and are for the excluded routes.
+  - `src/lib/ui-presets.ts` — whole recipes composed from those tokens (`presets.card`, `presets.input`, `presets.inputDark`, `presets.badge.success`, ...).
+  - `src/app/globals.css` — CSS custom properties for anything styled in plain CSS. The brand scale (`--purple-400/500/600`, `--cyan-400/500/600`) drives the gradients, glows, focus ring, scrollbar and selection; `--code-*` drives the blog syntax theme. These hex values are mirrored by `palette` in `design-tokens.ts` — **change both together**.
+  - Rule of thumb: a value used in 3+ components belongs in a token, named by role (`radius.card`) not by value. Compose with `cn()` so appended classes override the token.
 
 ### 5. Light/Dark Theme Toggle
 - **Dark is the default/original look.** `globals.css` declares `@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));` — any Tailwind class prefixed `light:` (e.g. `light:text-neutral-900`) applies **only** when an ancestor (or the element itself) has `data-theme="light"`. When styling a component, **add** `light:` classes alongside the existing unprefixed ones; never remove/replace the dark classes.

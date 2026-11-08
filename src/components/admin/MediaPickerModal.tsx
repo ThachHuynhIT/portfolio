@@ -5,6 +5,8 @@ import { createPortal } from "react-dom";
 import Icon from "@/components/ui/Icon";
 import { useTranslation } from "@/context/LanguageContext";
 import type { MediaAsset, MediaCategory } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { border, gap, radius, surface, text } from "@/lib/design-tokens";
 
 interface MediaPickerModalProps {
   isOpen: boolean;
@@ -122,26 +124,26 @@ export default function MediaPickerModal({
 
       {/* Modal Window */}
       <div
-        className="relative z-10 w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+        className={cn("relative z-10 w-full max-w-5xl bg-slate-900 border border-slate-800", radius.card, "shadow-2xl overflow-hidden flex flex-col max-h-[85vh]")}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="p-4 px-6 border-b border-white/5 flex items-center justify-between bg-slate-950/60">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+            <div className={cn("w-8 h-8", radius.chip, "bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400")}>
               <Icon name="image" size={16} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white leading-tight">{finalTitle}</h3>
+              <h3 className={cn("text-sm font-bold", text.primaryDark, "leading-tight")}>{finalTitle}</h3>
               <p className="text-[11px] text-slate-500">
                 {t("admin.media.searchPlaceholder", "Click on any image to select and apply to field.")}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className={cn("flex items-center", gap.base)}>
             {/* Quick upload right inside modal */}
-            <label className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-all shadow-sm">
+            <label className={cn("cursor-pointer flex items-center gap-1.5 px-3 py-1.5", radius.control, "bg-violet-600 hover:bg-violet-500", text.primaryDark, "text-xs font-medium transition-all shadow-sm")}>
               <input
                 type="file"
                 accept="image/*"
@@ -150,7 +152,7 @@ export default function MediaPickerModal({
                 onChange={handleQuickUpload}
               />
               {uploading ? (
-                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className={cn("w-3 h-3 border-2 border-white border-t-transparent", radius.pill, "animate-spin")} />
               ) : (
                 <Icon name="plus" size={13} />
               )}
@@ -164,7 +166,7 @@ export default function MediaPickerModal({
                 e.stopPropagation();
                 onClose();
               }}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all text-xs flex items-center justify-center"
+              className={cn("p-1.5", radius.chip, "text-slate-400 hover:text-white hover:bg-white/5 transition-all text-xs flex items-center justify-center")}
               aria-label={t("admin.common.close", "Close modal")}
             >
               <Icon name="close" size={16} />
@@ -174,14 +176,14 @@ export default function MediaPickerModal({
 
         {/* Toolbar: Search & Category Filter */}
         <div className="p-4 border-b border-white/5 bg-slate-900/80 space-y-3">
-          <div className="flex items-center gap-3">
+          <div className={cn("flex items-center", gap.base)}>
             <div className="flex-1 relative">
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("admin.media.searchPlaceholder", "Search images by filename, tag...")}
-                className="w-full bg-slate-950 border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
+                className={cn("w-full bg-slate-950", border.subtleDark, radius.control, "pl-9 pr-3 py-1.5 text-xs", text.primaryDark, "placeholder-slate-500 focus:outline-none focus:border-violet-500")}
               />
               <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
                 <Icon name="search" size={13} />
@@ -216,16 +218,16 @@ export default function MediaPickerModal({
         <div className="p-5 flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex flex-col items-center justify-center min-h-[260px]">
-              <div className="w-7 h-7 border-2 border-violet-500 border-t-transparent rounded-full animate-spin mb-2" />
+              <div className={cn("w-7 h-7 border-2 border-violet-500 border-t-transparent", radius.pill, "animate-spin mb-2")} />
               <p className="text-slate-400 text-xs">{t("admin.common.loading", "Loading media from library…")}</p>
             </div>
           ) : assets.length === 0 ? (
-            <div className="flex flex-col items-center justify-center min-h-[260px] text-center p-6 border border-dashed border-white/10 rounded-2xl">
+            <div className={cn("flex flex-col items-center justify-center min-h-[260px] text-center p-6 border border-dashed border-white/10", radius.card)}>
               <div className="flex justify-center mb-1 text-slate-500"><Icon name="image" size={24} /></div>
               <p className="text-sm font-medium text-slate-300">{t("admin.common.noResults", "No images found")}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            <div className={cn("grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5", gap.base)}>
               {assets.map((asset) => (
                 <button
                   key={asset.id}
@@ -236,7 +238,7 @@ export default function MediaPickerModal({
                     onSelect(asset.secureUrl, asset);
                     onClose();
                   }}
-                  className="group relative bg-slate-950 border border-white/5 hover:border-violet-500 rounded-xl overflow-hidden cursor-pointer transition-all duration-150 hover:scale-[1.02] shadow-md flex flex-col text-left"
+                  className={cn("group relative bg-slate-950 border border-white/5 hover:border-violet-500", radius.control, "overflow-hidden cursor-pointer transition-all duration-150 hover:scale-[1.02] shadow-md flex flex-col text-left")}
                 >
                   <div className="aspect-square w-full relative bg-black/40 overflow-hidden flex items-center justify-center">
                     <img
@@ -247,13 +249,13 @@ export default function MediaPickerModal({
                     />
 
                     {/* Badge Category */}
-                    <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-black/70 text-slate-300 border border-white/10 uppercase">
+                    <span className={cn("absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-black/70 text-slate-300", border.subtleDark, "uppercase")}>
                       {asset.category}
                     </span>
 
                     {/* Selection overlay */}
                     <div className="absolute inset-0 bg-violet-600/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-violet-600 text-white text-[11px] font-semibold shadow-lg">
+                      <span className={cn("inline-flex items-center gap-1 px-2.5 py-1", radius.chip, "bg-violet-600", text.primaryDark, "text-[11px] font-semibold shadow-lg")}>
                         {t("admin.common.confirm", "Select this image")} <Icon name="check" size={11} />
                       </span>
                     </div>
@@ -279,11 +281,11 @@ export default function MediaPickerModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-3 border-t border-white/5 bg-slate-950/60">
+        <div className={cn("flex items-center justify-end", gap.base, "px-6 py-3 border-t border-white/5 bg-slate-950/60")}>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+            className={cn("px-4 py-1.5 text-xs font-medium text-slate-300 hover:text-white", surface.cardDark, "hover:bg-white/10", border.subtleDark, radius.control, "transition-all")}
           >
             {t("admin.common.close", "Close")}
           </button>
