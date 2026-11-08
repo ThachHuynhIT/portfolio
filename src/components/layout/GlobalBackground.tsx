@@ -1,12 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { type ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { useTheme } from "@/context/ThemeContext";
 import { isExcludedRoute } from "@/lib/constants";
-
-const StarryBackground3D = dynamic(() => import("@/components/3d/StarryBackground3D"), { ssr: false });
 
 export function PortfolioScope({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -15,9 +11,11 @@ export function PortfolioScope({ children }: { children: ReactNode }) {
 
 export default function GlobalBackground() {
   const pathname = usePathname();
-  const { resolvedTheme, isMounted } = useTheme();
-  if (pathname?.startsWith("/admin") || !isMounted) return null;
-  if (pathname === "/") return null;
-  if (resolvedTheme === "light") return <div className="fixed inset-0 -z-10 bg-gradient-radial from-purple-300/25 via-cyan-100/15 to-transparent" />;
-  return <StarryBackground3D />;
+  if (pathname === "/" || ["/admin", "/couple"].some((prefix) => pathname === prefix || pathname?.startsWith(`${prefix}/`))) return null;
+  const isMusic = pathname === "/music" || pathname?.startsWith("/music/");
+  return (
+    <div aria-hidden="true" data-portfolio-dark={isMusic ? "true" : undefined} className="portfolio-theme pointer-events-none fixed inset-0 -z-10 bg-portfolio-void">
+      <div className="portfolio-stars absolute inset-0" />
+    </div>
+  );
 }

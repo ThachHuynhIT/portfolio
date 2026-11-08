@@ -135,6 +135,18 @@
   --portfolio-hairline: rgba(16,19,26,0.14);
   --portfolio-control: #747B89;
 }
+[data-theme] .portfolio-theme[data-portfolio-dark="true"],
+.portfolio-theme[data-portfolio-dark="true"] {
+  --portfolio-void: #05070D;
+  --portfolio-hull: #0C1018;
+  --portfolio-ink: #ECE9E4;
+  --portfolio-dust: #9BA1AC;
+  --portfolio-accretion: #F2B45A;
+  --portfolio-accretion-hover: #F7C579;
+  --portfolio-on-accretion: #05070D;
+  --portfolio-hairline: rgba(236,233,228,0.12);
+  --portfolio-control: #747B89;
+}
 .portfolio-theme .font-sans {
   font-family: var(--font-be-vietnam-pro), var(--font-inter), sans-serif;
 }
@@ -253,6 +265,12 @@
 }
 [data-theme="light"] .portfolio-stars {
   --star-a: rgba(16, 19, 26, 0.14); --star-b: rgba(16, 19, 26, 0.1); --star-c: rgba(16, 19, 26, 0.08);
+}
+.portfolio-theme[data-portfolio-dark="true"].portfolio-stars,
+.portfolio-theme[data-portfolio-dark="true"] .portfolio-stars {
+  --star-a: rgba(236, 233, 228, 0.32);
+  --star-b: rgba(236, 233, 228, 0.22);
+  --star-c: rgba(236, 233, 228, 0.16);
 }
 .portfolio-footer-star {
   pointer-events: none;
@@ -870,3 +888,21 @@ body {
 /* Pending signal temporarily owns the contact animation budget. */
 .portfolio-contact-card[data-signal="pending"] .star { animation-play-state: paused; }
 @keyframes portfolio-check-settle { from { transform: scale(.85); opacity: .5; } to { transform: scale(1); opacity: 1; } }
+
+/* Opt-in shell for non-home public pages. */
+.portfolio-page {
+  position: relative;
+  min-height: 100svh;
+  color: var(--portfolio-ink);
+  padding-top: 7rem;
+}
+.portfolio-page .portfolio-section:first-of-type { padding-top: 0; }
+.portfolio-page-header { margin-bottom: 2rem; overflow-wrap: anywhere; }
+.portfolio-page-header .portfolio-page-intro { max-width: 68ch; }
+.portfolio-page-header h1 {
+  text-shadow: 0 0 10px var(--portfolio-void), 0 0 22px var(--portfolio-void), 0 0 40px color-mix(in srgb, var(--portfolio-void) 70%, transparent);
+}
+.portfolio-page-header .portfolio-page-intro {
+  text-shadow: 0 0 8px var(--portfolio-void), 0 0 18px var(--portfolio-void);
+}
+.portfolio-page .portfolio-surface { background-color: var(--portfolio-hull); border-color: var(--portfolio-hairline); }
