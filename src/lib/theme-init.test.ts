@@ -15,8 +15,10 @@ type Env = {
 // returns the data-theme it set on <html> (undefined if it set none).
 function runScript(script: string, env: Env): string | undefined {
   const attributes: Record<string, string> = {};
+  const classes = new Set<string>();
   const context = {
     window: {
+      setTimeout: () => 0,
       location: { pathname: env.path },
       matchMedia: (query: string) => {
         if (env.matchMediaThrows) throw new Error("matchMedia unavailable");
@@ -31,6 +33,7 @@ function runScript(script: string, env: Env): string | undefined {
     },
     document: {
       documentElement: {
+        classList: { add: (name: string) => classes.add(name), remove: (name: string) => classes.delete(name) },
         setAttribute: (name: string, value: string) => {
           attributes[name] = value;
         },
@@ -38,6 +41,7 @@ function runScript(script: string, env: Env): string | undefined {
     },
   };
   runInNewContext(script, context);
+  expect(classes.has("js-typing")).toBe(true);
   return attributes["data-theme"];
 }
 

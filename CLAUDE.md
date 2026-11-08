@@ -45,7 +45,7 @@ Detailed documentation (Vietnamese) lives in [`docs/`](docs/):
 Path alias `@/*` maps to `./src/*`.
 
 ### Route Structure (`src/app`)
-- **`/` (`page.tsx`)**: One-page portfolio composing sections in order: `HeroSection` ➔ `AboutSection` ➔ `SkillsSection` ➔ `ProjectsSection` ➔ `PhotoPreviewSection` ➔ `BlogPreviewSection` ➔ `ContactSection` (data fetched server-side from `src/lib/content/*` and `src/lib/blog.ts`).
+- **`/` (`page.tsx`)**: One-page portfolio composing sections in order: `HeroSection` ➔ `AboutSection` ➔ `SkillsSection` ➔ `ProjectsSection` ➔ `PhotoPreviewSection` ➔ `BlogPreviewSection` ➔ `ContactSection` (data fetched server-side from `src/lib/content/*` and `src/lib/blog.ts`). `HomeBlackHole` is a fixed page-level black hole behind all sections, so sections must not paint opaque full-width Void bands; dense content sits on solid Hull surfaces (`.portfolio-solid`). `BlogPreviewSection` returns `null` with no posts, and `layout.tsx` drops `/blog` nav/footer links via `filterBlogNavLinks()` (`src/lib/navigation-section.ts`).
 - **`/blog` & `/blog/[slug]`**: MDX blog. Posts are rows of `CmsBlogPost` in Postgres, read via `src/lib/blog.ts` and rendered with `next-mdx-remote/rsc` (EN + optional VI body). Bodies must pass `src/lib/mdx-policy.ts` (no ESM, `{expressions}`, JSX or raw HTML; checked on admin write and before render). Public reads (`getPostSummaries`, `getPostBySlug`) are `unstable_cache`d with tag `blog`; list views get `BlogPostListItem` (no MDX bodies). `content/blog/*.mdx` is only the legacy source for `scripts/migrate-json-to-db.ts`.
 - **`/projects`, `/photography` (+ `/photography/album/[slug]`), `/music`**: full project gallery, photo gallery/albums (Masonry/Grid/Compare/Story + lightbox), music lounge (`Track`/`Playlist` models). `GlobalMusicPlayer` is mounted in the root layout.
 - **`/admin/**` + `/api/admin/**`**: CMS for all content. `src/middleware.ts` guards `/admin` pages (signed `admin_session` cookie, `AUTH_SECRET`); API routes call `requireAdminSession()` from `src/lib/admin-auth.ts`. `/api/music/tracks*` and `/api/music/upload` check the session for writes (POST/PATCH/DELETE, upload); the public GETs stay open and are read-only (`GET /api/music/tracks/[id]` returns published tracks only); plays are recorded with `POST /api/music/tracks/[id]/play` (same-origin, rate-limited). Uploads go through `src/lib/upload-validation.ts` (size caps, MIME+extension allowlist, magic-byte check).
@@ -62,13 +62,14 @@ Path alias `@/*` maps to `./src/*`.
   - Configures the R3F `<Canvas>`.
   - Automatically respects `prefers-reduced-motion` (falls back to a static CSS gradient instead of mounting WebGL).
   - Wraps children in a class-based `SceneErrorBoundary` to gracefully degrade if WebGL crashes.
-  - **Never create independent R3F `<Canvas>` roots**; always pass scenes as children into `SceneContainer` (used by `StarryBackground3D` and the Contact `ParticleField`).
-- **Exception**: the Hero (and 404 page) background is `blackhole/BlackHoleCanvas.tsx`, a raymarched black hole with its own imperative `THREE.WebGLRenderer` + loop — not R3F, so it does not go through `SceneContainer`.
+  - **Never create independent R3F `<Canvas>` roots**; always pass scenes as children into `SceneContainer` (used by `StarryBackground3D`). `ParticleField` was removed; the Contact background is CSS shooting stars (`.portfolio-contact-stars`).
+- **Exception**: the homepage fixed page-level layer (and 404 page background) uses `blackhole/BlackHoleCanvas.tsx`, a raymarched black hole with its own imperative `THREE.WebGLRenderer` + loop — not R3F, so it does not go through `SceneContainer`.
 - **Performance Rule**: Use mutable `useRef` for high-frequency values (pointer, scroll) and read them inside `useFrame`/the render loop instead of React state, to avoid re-rendering the DOM at 60 FPS.
 
 ### 2. UI Components & Animations (`src/components/ui`, `src/lib/animations.ts`)
 - Generic building blocks (`Button`, `GlassCard`, `TiltCard`, `AnimatedSection`, `Navigation`, `Footer`, `Skeleton*`, `ImageWithSkeleton`, `Icon`, …) are re-exported via `src/components/ui/index.ts`.
-- Use `AnimatedSection` with variants from `src/lib/animations.ts` (`fadeInUp`, `fadeInLeft`, `blurFadeIn`, `staggerContainer`) rather than inline Framer Motion configurations.
+- Use `AnimatedSection` with variants from `src/lib/animations.ts` (`fadeInUp`, `fadeInLeft`, `blurFadeIn`, `staggerContainer`, plus the homepage set `orbitIn`, `clipReveal`, `factsStagger`/`factsOrbit`, `constellationDraw`, `shootingStarRow`) rather than inline Framer Motion configurations.
+- Homepage motion rule: one entrance moment per section, `viewport={{ once: true }}`, reduced motion renders the final state; transform/opacity (or one-shot clip-path/stroke-dashoffset) only; at most one continuous loop in view besides the black hole. Content must render without JS.
 - Use `cn()` helper (`src/lib/utils.ts`) combining `clsx` + `tailwind-merge` for dynamic classes.
 
 ### 3. Data Management
@@ -79,8 +80,9 @@ Path alias `@/*` maps to `./src/*`.
 
 ### 4. Styling Conventions
 - Tailwind v4 is configured via `@import "tailwindcss"` + `@theme inline` in `src/app/globals.css` (no `tailwind.config.js`).
-- Design tokens: `--background: #050505`, `--foreground: #fafafa`, `--purple-500: #8b5cf6`, `--cyan-500: #06b6d4`. These tokens flip automatically per theme (see below), so `bg-background`/`text-foreground` need no extra work.
-- Reusable utility classes: `.gradient-text`, `.glass`, `.glow-purple`, `.glow-cyan`, `.animate-float`, `.animate-pulse-glow`, `.animate-gradient`.
+- **Public pages use scoped tokens** on `.portfolio-theme` (approved direction: `docs/superpowers/specs/2026-11-06-portfolio-design-direction.md`): `--portfolio-void` `#05070D`, `--portfolio-hull` `#0C1018`, `--portfolio-ink` `#ECE9E4`, `--portfolio-dust` `#9BA1AC`, `--portfolio-accretion` `#F2B45A` (+ `-hover`, `--portfolio-on-accretion`), `--portfolio-hairline`, `--portfolio-control`, with light values under `[data-theme="light"] .portfolio-theme` (Accretion `#9A5B0B` keeps text ≥4.5:1). Use the `*-portfolio-*` utilities (`bg-portfolio-hull`, `text-portfolio-dust`…) — they flip per theme, so no `light:` pair is needed. Font: Be Vietnam Pro (fallback Inter). Layout/state classes: `.portfolio-section`, `.portfolio-column`, `.portfolio-solid`, `.portfolio-case`, `.portfolio-action*`, `.portfolio-text-link`, `.portfolio-input`.
+- Legacy tokens (`--background: #050505`, `--foreground: #fafafa`, `--purple-500: #8b5cf6`, `--cyan-500: #06b6d4`) stay for dark-only routes, the lightbox and not-yet-converted pages; they also flip per theme. No raw dark hex in shared public components.
+- Legacy utility classes (not on the homepage): `.gradient-text`, `.glass`, `.glow-purple`, `.glow-cyan`, `.animate-float`, `.animate-pulse-glow`, `.animate-gradient`.
 
 ### 5. Light/Dark Theme Toggle
 - **Dark is the default/original look.** `globals.css` declares `@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));` — any Tailwind class prefixed `light:` (e.g. `light:text-neutral-900`) applies **only** when an ancestor (or the element itself) has `data-theme="light"`. When styling a component, **add** `light:` classes alongside the existing unprefixed ones; never remove/replace the dark classes.
@@ -90,4 +92,4 @@ Path alias `@/*` maps to `./src/*`.
 - When converting a component: use `light:text-neutral-900/800/600/500` for `text-white` at decreasing opacity, `light:bg-neutral-900/[0.0N]` for `bg-white/N` surfaces, `light:border-neutral-900/10-15` for `border-white/N`, and `light:bg-white/70-90` for `bg-black/N` used as page/card chrome. Do **not** add a `light:` variant to a `bg-black/N` (or similar) overlay that sits on top of a photo/thumbnail for caption legibility — that overlay is correct in both themes.
 
 ### 6. Form Handling
-- Forms must use `react-hook-form` + `@hookform/resolvers` + `zod` schemas for validation (as demonstrated in `ContactSection.tsx`).
+- Forms must use `react-hook-form` + `@hookform/resolvers` + `zod` schemas for validation (as demonstrated in `src/components/sections/ContactForm.tsx`; shared schema in `src/lib/contact-schema.ts`).

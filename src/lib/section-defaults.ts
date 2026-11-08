@@ -1,6 +1,6 @@
 import { en } from "@/locales/en";
 import { vi } from "@/locales/vi";
-import { ABOUT_STAT_DEFS } from "@/lib/about-stat-defs";
+
 import type {
   AboutSectionContent,
   ContactSectionContent,
@@ -9,13 +9,10 @@ import type {
   SkillsSectionContent,
 } from "@/lib/types";
 
-// ABOUT_STAT_DEFS lives in a locale-free module so client sections (AboutSection)
-// can import it without pulling both dictionaries into their bundle.
-export { ABOUT_STAT_DEFS };
 
 /**
  * Builds the *currently effective* copy for a homepage section, sourced from
- * src/locales/{en,vi}.ts (plus ABOUT_STAT_DEFS for About's stat values).
+ * src/locales/{en,vi}.ts.
  * Used to pre-fill the admin JSON editors so admins see real starting values
  * instead of an empty "{}" they'd have to guess field names for.
  */
@@ -50,12 +47,7 @@ export function getAboutDefaults(): AboutSectionContent {
     bioP2_vi: vi.about.bioP2,
     bioP3: en.about.bioP3,
     bioP3_vi: vi.about.bioP3,
-    stats: ABOUT_STAT_DEFS.map((def) => ({
-      label: en.about.stats[def.key],
-      label_vi: vi.about.stats[def.key],
-      value: def.fallbackValue,
-      value_vi: def.fallbackValue,
-    })) as AboutSectionContent["stats"],
+    facts: (["experience", "focus", "education", "location"] as const).map((key) => ({ label: en.about.facts[key].label, label_vi: vi.about.facts[key].label, value: en.about.facts[key].value, value_vi: vi.about.facts[key].value })),
   };
 }
 

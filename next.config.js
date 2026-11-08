@@ -6,7 +6,7 @@ process.env.NEXT_IGNORE_INCORRECT_LOCKFILE = "1";
 // TS, so the value is pinned here and src/lib/security-headers.test.ts
 // recomputes it from buildThemeInitScript() and fails on any drift (the
 // failure message prints the new value to paste here).
-const THEME_INIT_SCRIPT_HASH = "'sha256-8SgP8QpJK+AT0brrgHYBc89v6XcPqUDW59EQm/wIrzE='";
+const THEME_INIT_SCRIPT_HASH = "'sha256-zC0vgAPLp50tCB7bzSaWuHCSVTUCBrURF/kEbhRRPyE='";
 
 const CLOUDINARY = "https://res.cloudinary.com";
 
