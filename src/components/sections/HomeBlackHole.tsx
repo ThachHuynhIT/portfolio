@@ -22,7 +22,7 @@ export default function HomeBlackHole() {
   }, [resolvedTheme, motionAllowed]);
   useEffect(() => {
     if (!ready) return;
-    const timeout = window.setTimeout(() => setLoaderGone(true), 400);
+    const timeout = window.setTimeout(() => setLoaderGone(true), 700);
     return () => window.clearTimeout(timeout);
   }, [ready]);
   useEffect(() => {
@@ -70,7 +70,7 @@ export default function HomeBlackHole() {
         <div className="portfolio-blackhole-fallback absolute inset-0" />
         {motionAllowed && <BlackHoleCanvas className="absolute inset-0" interactive={false} deferStart scrollEffect scrollScope="page" onReady={onReady} onUnavailable={onUnavailable} brightness={resolvedTheme === "light" ? 1.15 : 1} particleBrightness={resolvedTheme === "light" ? 0.9 : 0.75} />}
         {motionAllowed && !loaderGone && <div className="portfolio-hole-loader" style={{ opacity: ready ? 0 : 1 }}>
-          {Array.from({ length: 10 }, (_, index) => <i key={index} style={{ "--ring": index } as CSSProperties} />)}
+          {Array.from({ length: 5 }, (_, index) => <i key={index} style={{ "--ring": index } as CSSProperties} />)}
         </div>}
       </div>
     </div>

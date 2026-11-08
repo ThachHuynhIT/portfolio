@@ -521,25 +521,28 @@ body {
 @keyframes portfolio-menu-enter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 .portfolio-heading-spark { box-shadow: 0 0 12px var(--portfolio-accretion); }
 
-/* Adapted from elijahgummer, MIT: https://uiverse.io/elijahgummer/polite-earwig-72 */
+/* Adapted from elijahgummer, MIT: https://uiverse.io/elijahgummer/polite-earwig-72
+   Softened: glow only (no hard border), fewer rings, slower and dimmer, so the
+   wait reads as the hole quietly drawing light in rather than a spinner. */
 .portfolio-hole-loader {
-  position: absolute; left: 55%; top: 45%; width: 24%; aspect-ratio: 1;
-  transform: translate(-50%, -50%); transition: opacity 400ms ease-out;
+  position: absolute; left: 55%; top: 45%; width: 20%; aspect-ratio: 1;
+  transform: translate(-50%, -50%); transition: opacity 700ms ease-out;
 }
 .portfolio-hole-loader i {
-  position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--portfolio-accretion);
-  box-shadow: 0 0 14px color-mix(in srgb, var(--portfolio-accretion) 50%, transparent), inset 0 0 12px color-mix(in srgb, var(--portfolio-accretion) 30%, transparent);
+  position: absolute; inset: 0; border-radius: 50%; opacity: 0;
+  box-shadow: 0 0 28px color-mix(in srgb, var(--portfolio-accretion) 28%, transparent),
+    inset 0 0 18px color-mix(in srgb, var(--portfolio-accretion) 18%, transparent);
   /* Longhands: the production CSS minifier drops the spaces around var() inside
      an `animation` shorthand, which invalidates the whole declaration. */
-  animation-name: portfolio-ring-fall; animation-duration: 2400ms;
-  animation-delay: calc(var(--ring) * -240ms); animation-timing-function: ease-in;
+  animation-name: portfolio-ring-drift; animation-duration: 4800ms;
+  animation-delay: calc(var(--ring) * -960ms); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
   animation-iteration-count: infinite;
   animation-play-state: var(--loader-play, running);
 }
-@keyframes portfolio-ring-fall {
-  0% { transform: scale(2); opacity: 0; }
-  35% { transform: scale(1); opacity: 0.75; }
-  100% { transform: scale(0.1); opacity: 0; }
+@keyframes portfolio-ring-drift {
+  0% { transform: scale(1.6); opacity: 0; }
+  45% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(0.4); opacity: 0; }
 }
 
 /* All characters retain their final inline layout, including word wrapping. */
