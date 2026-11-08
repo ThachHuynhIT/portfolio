@@ -6,7 +6,7 @@ Tài liệu này mô tả chi tiết kiến trúc kỹ thuật, luồng dữ li�
 
 ## 1. Tổng Quan Kiến Trúc (Architecture Overview)
 
-Dự án được xây dựng dựa trên **Next.js 14 App Router** với ngôn ngữ **TypeScript** ở chế độ `strict: true`.
+Dự án được xây dựng dựa trên **Next.js 15 App Router** (React 19) với ngôn ngữ **TypeScript** ở chế độ `strict: true`.
 
 ```mermaid
 graph TD

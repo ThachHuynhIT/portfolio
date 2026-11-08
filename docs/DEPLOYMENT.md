@@ -59,7 +59,7 @@ Rollback: nếu cần quay về bản cũ, khôi phục `ADMIN_PASSWORD` trên V
 
 - **Enforcing**: chỉ `Content-Security-Policy: frame-ancestors 'none'` (+ `X-Frame-Options: DENY`) — site không thể bị nhúng vào trang khác. Không chặn CV iframe hay media bên trong site.
 - **Report-only**: policy đầy đủ (`Content-Security-Policy-Report-Only`) gồm `script-src 'self'` + sha256 của `THEME_INIT_SCRIPT`. Đổi script này thì `src/lib/security-headers.test.ts` báo hash mới cần cập nhật.
-- **Giới hạn đã biết**: hash chỉ bao phủ script theme. Next 14 App Router còn chèn inline script RSC/hydration không có nonce, nên trình duyệt báo vi phạm report-only trên mọi trang (đo 11/2026: ~20 thông báo trên `/`). Promote sang enforcing sẽ làm hỏng trang nếu không chuyển sang nonce + render động — trade-off đã chốt là giữ static rendering, CSP đầy đủ ở report-only.
+- **Giới hạn đã biết**: hash chỉ bao phủ script theme. Next 15 App Router còn chèn inline script RSC/hydration không có nonce, nên trình duyệt báo vi phạm report-only trên mọi trang (đo 11/2026: ~20 thông báo trên `/`). Promote sang enforcing sẽ làm hỏng trang nếu không chuyển sang nonce + render động — trade-off đã chốt là giữ static rendering, CSP đầy đủ ở report-only.
 
 ---
 
@@ -85,7 +85,7 @@ Mở trình duyệt tại `http://localhost:3000` để xác nhận các trang h
 
 ## 3. Triển Khai Lên Vercel (Khuyến Nghị Hàng Đầu)
 
-Vì dự án được xây dựng bằng Next.js 14, **Vercel** là nền tảng tối ưu nhất (Zero Configuration):
+Vì dự án được xây dựng bằng Next.js 15, **Vercel** là nền tảng tối ưu nhất (Zero Configuration):
 
 1. Đẩy mã nguồn lên kho lưu trữ GitHub / GitLab / Bitbucket.
 2. Truy cập [vercel.com](https://vercel.com) và chọn **Add New Project**.

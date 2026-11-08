@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Be_Vietnam_Pro, Inter, Space_Grotesk } from "next/font/google";
-import dynamic from "next/dynamic";
 import "./globals.css";
 import { Navigation, Footer } from "@/components/ui";
 import { MusicProvider } from "@/context/MusicContext";
+import GlobalMusicPlayer from "@/components/music/GlobalMusicPlayerLazy";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { getPublishedNavLinks } from "@/lib/content/nav-links";
@@ -17,12 +17,7 @@ import { filterBlogNavLinks } from "@/lib/navigation-section";
 import { getErrorMessage } from "@/lib/utils";
 import type { NavLink, SiteConfig, SocialLink } from "@/lib/types";
 
-// Floating overlay with no SSR value — mounted on every route, so keep it
-// out of the initial/shared bundle.
-const GlobalMusicPlayer = dynamic(
-  () => import("@/components/music/GlobalMusicPlayer"),
-  { ssr: false }
-);
+
 
 const inter = Inter({
   variable: "--font-inter",
