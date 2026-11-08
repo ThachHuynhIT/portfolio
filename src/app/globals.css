@@ -160,8 +160,10 @@
   -webkit-mask-image: radial-gradient(ellipse closest-side at 55% 45%, black 55%, transparent 100%);
   mask-image: radial-gradient(ellipse closest-side at 55% 45%, black 55%, transparent 100%);
 }
+/* Round, neutral stand-in shown before the canvas paints (and with reduced
+   motion): `circle closest-side` keeps it a true circle at any canvas size. */
 .portfolio-blackhole-fallback {
-  background: radial-gradient(ellipse at 55% 45%, var(--portfolio-void) 0 9%, color-mix(in srgb, var(--portfolio-accretion) 33%, transparent) 10%, transparent 27%);
+  background: radial-gradient(circle closest-side at 55% 45%, var(--portfolio-void) 0 17%, color-mix(in srgb, var(--portfolio-ink) 9%, transparent) 21%, transparent 42%);
 }
 .portfolio-hero-scrim {
   background: radial-gradient(ellipse 80% 130% at 0% 50%, var(--portfolio-void) 0% 48%, color-mix(in srgb, var(--portfolio-void) 96%, transparent) 62%, transparent 90%);
@@ -522,16 +524,17 @@ body {
 .portfolio-heading-spark { box-shadow: 0 0 12px var(--portfolio-accretion); }
 
 /* Adapted from elijahgummer, MIT: https://uiverse.io/elijahgummer/polite-earwig-72
-   Softened: glow only (no hard border), fewer rings, slower and dimmer, so the
-   wait reads as the hole quietly drawing light in rather than a spinner. */
+   Softened: neutral glow only (no border, no accent color), fewer rings,
+   slower and dimmer, so the wait reads as the hole quietly drawing light in
+   rather than a spinner. */
 .portfolio-hole-loader {
   position: absolute; left: 55%; top: 45%; width: 20%; aspect-ratio: 1;
   transform: translate(-50%, -50%); transition: opacity 700ms ease-out;
 }
 .portfolio-hole-loader i {
   position: absolute; inset: 0; border-radius: 50%; opacity: 0;
-  box-shadow: 0 0 28px color-mix(in srgb, var(--portfolio-accretion) 28%, transparent),
-    inset 0 0 18px color-mix(in srgb, var(--portfolio-accretion) 18%, transparent);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--portfolio-ink) 22%, transparent),
+    inset 0 0 18px color-mix(in srgb, var(--portfolio-ink) 12%, transparent);
   /* Longhands: the production CSS minifier drops the spaces around var() inside
      an `animation` shorthand, which invalidates the whole declaration. */
   animation-name: portfolio-ring-drift; animation-duration: 4800ms;
