@@ -62,7 +62,7 @@ export default function HomeBlackHole() {
 
   return <div aria-hidden="true" className="portfolio-home-blackhole pointer-events-none fixed inset-0 -z-10 overflow-hidden">
     <div ref={stars} className="portfolio-stars absolute inset-0" />
-    <div ref={ref} className="absolute inset-0 origin-right">
+    <div ref={ref} className="portfolio-bh-frame absolute inset-0">
       <div className="portfolio-hero-canvas absolute">
         <div className="portfolio-blackhole-fallback absolute inset-0" data-settled={settled ? "" : undefined}>
           <span className="portfolio-bh-part portfolio-bh-glow" />

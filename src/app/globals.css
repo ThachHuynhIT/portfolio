@@ -152,6 +152,9 @@
 .portfolio-nav-link:active { transform: scale(0.98); }
 .portfolio-nav-link:focus:not(:focus-visible) { outline: none; }
 
+/* Scroll framing scales around the hole's center (the canvas box center:
+   left 20% + 108% / 2 = 74%), so the hole keeps its horizontal position. */
+.portfolio-bh-frame { transform-origin: 74% 50%; }
 .portfolio-hero-canvas {
   inset: 0 -28% 0 20%;
   transform-origin: 65% 45%;
@@ -164,33 +167,34 @@
    https://uiverse.io/necatimertmetin/tidy-falcon-23 — softened and neutral.
    It is server-rendered, so it shows before any JS, stands in for the canvas
    with reduced motion, and sits exactly where the engine's first frame draws
-   the hole (lensing lifts the visible shadow above the canvas center), so
+   the hole: the engine's camera looks at the origin, so the shadow is
+   centered on the canvas box at every aspect ratio, with a diameter of
+   ~40% of the canvas height (r = 13.5 rs, 50° vertical FOV). So
    the canvas fade-in reads as the same object coming
-   alive. Sizes use container units of the canvas box (cqh); the center and
-   sizes were matched by overlaying the live first frame at 50% opacity. */
+   alive. Sizes use container units of the canvas box (cqh), so they track
+   the canvas height exactly like the perspective projection does. */
 /* The shadow stays dark in both themes, like the rendered hole (dark Void). */
 .portfolio-blackhole-fallback { container-type: size; --portfolio-bh-shadow: #05070d; }
 .portfolio-bh-part {
-  position: absolute; left: 53.5%; top: 39.5%; border-radius: 50%;
+  position: absolute; left: 50%; top: 50%; border-radius: 50%;
   transform: translate(-50%, -50%);
 }
 .portfolio-bh-glow {
-  width: 120cqh; height: 120cqh;
+  width: 110cqh; height: 110cqh;
   background: radial-gradient(circle, color-mix(in srgb, var(--portfolio-ink) 10%, transparent) 20%, color-mix(in srgb, var(--portfolio-ink) 4%, transparent) 45%, transparent 70%);
 }
 .portfolio-bh-disk {
-  width: 170cqh; height: 17cqh; top: 63%;
-  transform: translate(-50%, -50%) rotate(8deg);
+  width: 170cqh; height: 14cqh; top: 57%;
   background: radial-gradient(ellipse closest-side, color-mix(in srgb, var(--portfolio-ink) 22%, transparent), color-mix(in srgb, var(--portfolio-ink) 7%, transparent) 60%, transparent);
   filter: blur(6px);
 }
 .portfolio-bh-ring {
-  width: 54cqh; height: 54cqh;
+  width: 42cqh; height: 42cqh;
   box-shadow: 0 0 3cqh 1.2cqh color-mix(in srgb, var(--portfolio-ink) 20%, transparent),
     inset 0 0 2cqh color-mix(in srgb, var(--portfolio-ink) 16%, transparent);
 }
 .portfolio-bh-core {
-  width: 54cqh; height: 54cqh;
+  width: 44cqh; height: 44cqh;
   /* Feathered edge: a hard-edged disc reads as a ball, not a hole. */
   background: radial-gradient(circle closest-side, var(--portfolio-bh-shadow) 0 80%, color-mix(in srgb, var(--portfolio-bh-shadow) 60%, transparent) 90%, transparent 100%);
 }
@@ -211,6 +215,10 @@
 }
 .portfolio-hero-scrim {
   background: radial-gradient(ellipse 80% 130% at 0% 50%, var(--portfolio-void) 0% 48%, color-mix(in srgb, var(--portfolio-void) 96%, transparent) 62%, transparent 90%);
+  /* The hero clips this scrim, which drew a hard horizontal edge into About;
+     fade it out over the hero's bottom instead (mobile has its own mask). */
+  -webkit-mask-image: linear-gradient(to bottom, black 72%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 72%, transparent 100%);
 }
 /* Light theme: the full-height near-white scrim washed out the whole left
    half of the hole. Hug the text block instead (shorter vertical radius), so
@@ -266,6 +274,7 @@
   .portfolio-hero { align-items: flex-end; }
   .portfolio-hero-copy { padding-top: 7rem; }
   .portfolio-hero-canvas { inset: -8% -35% 22%; transform-origin: 50% 30%; }
+  .portfolio-bh-frame { transform-origin: 50% 35%; }
   .portfolio-hero-scrim {
     background: linear-gradient(0deg, var(--portfolio-void) 0%, color-mix(in srgb, var(--portfolio-void) 96%, transparent) 64%, color-mix(in srgb, var(--portfolio-void) 20%, transparent) 90%);
     /* Fade out over the hero's bottom padding so the page-level black hole
@@ -549,30 +558,25 @@ body {
 /* Phase 3 round 2: public scope keeps fixed art behind content, above the body. */
 .portfolio-scope { position: relative; isolation: isolate; }
 .portfolio-home-blackhole { background: var(--portfolio-void); }
+/* The sections veil fades in over the first ~28rem instead of starting at a
+   hard horizontal edge under the hero; after that it is flat (a flat veil
+   avoids the quantized bands of a long dark gradient). */
 .portfolio-sections {
-  /* A flat veil avoids quantized vertical bands from the old dark gradient. */
-  background: color-mix(in srgb, var(--portfolio-void) 20%, transparent);
+  --sections-veil: color-mix(in srgb, var(--portfolio-void) 20%, transparent);
+  background: linear-gradient(to bottom, transparent, var(--sections-veil) 28rem);
 }
 [data-theme="light"] .portfolio-sections {
-  background: color-mix(in srgb, var(--portfolio-void) 15%, transparent);
+  --sections-veil: color-mix(in srgb, var(--portfolio-void) 15%, transparent);
 }
-/* Soft local scrim behind each section intro: keeps Dust text readable over
-   the black hole without a hard-edged box. The ellipse is opaque at the text
-   and fades to transparent before the box edges. */
-#portfolio-sections .text-center:has(> .portfolio-section-heading) {
-  position: relative;
-  isolation: isolate;
-  padding: 1rem;
+/* Section intros stay readable over the black hole with a soft shadow that
+   radiates from the letters themselves (stacked Void text-shadows), instead
+   of a box-sized scrim behind the whole intro. Void flips per theme. */
+#portfolio-sections .text-center:has(> .portfolio-section-heading) { padding: 1rem; }
+#portfolio-sections .portfolio-section-heading h2 {
+  text-shadow: 0 0 10px var(--portfolio-void), 0 0 22px var(--portfolio-void), 0 0 40px color-mix(in srgb, var(--portfolio-void) 70%, transparent);
 }
-#portfolio-sections .text-center:has(> .portfolio-section-heading)::before {
-  content: "";
-  position: absolute;
-  /* Stays inside the box: sections are overflow-hidden, so an outset scrim
-     would be clipped into a straight edge. */
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(closest-side, var(--portfolio-void) 55%, color-mix(in srgb, var(--portfolio-void) 70%, transparent) 75%, transparent 100%);
+#portfolio-sections .text-center:has(> .portfolio-section-heading) > p {
+  text-shadow: 0 0 8px var(--portfolio-void), 0 0 18px var(--portfolio-void);
 }
 .portfolio-heading-line { margin-inline: 0; transform-origin: left; }
 .text-center .portfolio-heading-line { margin-inline: auto; transform-origin: center; }
