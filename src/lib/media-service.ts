@@ -211,7 +211,17 @@ export async function uploadAndRegisterMedia(
     createdAt: uploadResult.created_at || new Date().toISOString(),
   };
 
-  await saveMediaAsset(asset);
+  try {
+    await saveMediaAsset(asset);
+  } catch (error) {
+    // Don't leave an unregistered file behind on Cloudinary.
+    await cloudinary.uploader
+      .destroy(uploadResult.public_id, { resource_type: uploadResult.resource_type as "image" | "video" | "raw" })
+      .catch((cleanupError: unknown) =>
+        console.error(`[MediaService] Cleanup after failed registration failed for ${uploadResult.public_id}:`, cleanupError)
+      );
+    throw error;
+  }
   return asset;
 }
 
@@ -310,18 +320,28 @@ export async function saveMediaAsset(asset: MediaAsset): Promise<void> {
  */
 export async function deleteMediaAsset(publicId: string): Promise<boolean> {
   const asset = await db.cmsMediaAsset.findUnique({ where: { publicId } });
+  const resType = (asset?.resourceType || "image") as "image" | "video" | "raw";
 
-  try {
-    const resType = asset?.resourceType || "image";
-    await cloudinary.uploader.destroy(publicId, { resource_type: resType as "image" | "video" | "raw" });
-  } catch (err) {
-    console.warn(`[MediaService] Cloudinary destroy failed for ${publicId}:`, err);
+  // Keep the registry row unless the remote file is really gone, so a failed
+  // delete can be retried from the media library. A provider error throws.
+  const result: unknown = await cloudinary.uploader.destroy(publicId, { resource_type: resType });
+  if (!isDestroyConfirmed(result)) {
+    throw new Error(`Cloudinary did not delete ${publicId}`);
   }
 
   if (asset) {
     await db.cmsMediaAsset.delete({ where: { publicId } });
   }
   return true;
+}
+
+/**
+ * Cloudinary's destroy() answers `{ result: "ok" }`, or `{ result: "not found" }`
+ * when the file is already gone — both mean the remote copy no longer exists.
+ */
+export function isDestroyConfirmed(result: unknown): boolean {
+  const status = (result as { result?: unknown } | null)?.result;
+  return status === "ok" || status === "not found";
 }
 
 /**

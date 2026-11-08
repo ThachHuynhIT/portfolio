@@ -6,9 +6,7 @@ import AlbumDetailView from "@/components/photography/AlbumDetailView";
 import { buildMetadata } from "@/lib/seo";
 
 interface AlbumPageProps {
-  params: {
-    slug: string;
-  };
+  params: Promise<{ slug: string }>;
 }
 
 // Static + ISR: data is unstable_cache'd under the "photography" tag and
@@ -16,8 +14,9 @@ interface AlbumPageProps {
 // cached route — no need to SSR the whole gallery on every request.
 
 export async function generateMetadata({ params }: AlbumPageProps): Promise<Metadata> {
+  const { slug } = await params;
   const albums = await getPublishedAlbums();
-  const album = albums.find((a) => a.slug === params.slug || a.id === params.slug);
+  const album = albums.find((a) => a.slug === slug || a.id === slug);
 
   if (!album || album.photoIds.length === 0) {
     return { title: "Album Not Found | Photography Showcase" };
@@ -36,9 +35,10 @@ export async function generateMetadata({ params }: AlbumPageProps): Promise<Meta
 }
 
 export default async function AlbumPage({ params }: AlbumPageProps) {
+  const { slug } = await params;
   const [albums, allPhotos] = await Promise.all([getPublishedAlbums(), getPublishedPhotos()]);
 
-  const album = albums.find((a) => a.slug === params.slug || a.id === params.slug);
+  const album = albums.find((a) => a.slug === slug || a.id === slug);
   if (!album) {
     notFound();
   }

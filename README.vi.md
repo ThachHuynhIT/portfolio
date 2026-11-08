@@ -4,7 +4,7 @@
 
 Một nền tảng Portfolio cá nhân cao cấp kết hợp đồ họa không gian 3D tương tác, nền tảng Blog MDX hiệu năng cao, Thư viện Nhiếp ảnh nghệ thuật & Album, Trình phát nhạc toàn cục, Hệ thống Quản trị CMS và hỗ trợ Đa ngôn ngữ (Song ngữ EN / VI).
 
-Được xây dựng với **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS v4**, **React Three Fiber (Three.js)**, **Framer Motion** và kiến trúc tối ưu hiệu năng với **Lazy & Skeleton Loading**.
+Được xây dựng với **Next.js 15 (App Router)**, **TypeScript**, **Tailwind CSS v4**, **React Three Fiber (Three.js)**, **Framer Motion** và kiến trúc tối ưu hiệu năng với **Lazy & Skeleton Loading**.
 
 ---
 
@@ -69,7 +69,7 @@ Một nền tảng Portfolio cá nhân cao cấp kết hợp đồ họa không 
 
 | Lớp (Layer) | Công nghệ | Mục đích |
 |---|---|---|
-| **Core Framework** | [Next.js 14 (App Router)](https://nextjs.org/) | Framework React chuẩn sản xuất, hỗ trợ SSR, SSG, RSC và Route Handlers |
+| **Core Framework** | [Next.js 15 (App Router)](https://nextjs.org/) | Framework React chuẩn sản xuất, hỗ trợ SSR, SSG, RSC và Route Handlers |
 | **Language** | [TypeScript](https://www.typescriptlang.org/) | Strict Type Checking đảm bảo độ tin cậy của mã nguồn |
 | **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Styling hiện đại với `@theme inline`, biến CSS và animation tùy chỉnh |
 | **3D Graphics** | [Three.js](https://threejs.org/) / [React Three Fiber](https://r3f.docs.pmnd.rs/) / [Drei](https://github.com/pmndrs/drei) | Kết xuất khung cảnh không gian 3D WebGL và trường sao động |

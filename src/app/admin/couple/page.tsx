@@ -560,11 +560,13 @@ export default function CoupleAdminPage() {
     setData({ ...data, bucketList: updated });
 
     try {
-      await fetch("/api/admin/couple", {
+      // Single-item update: the bulk `{ section, items }` path only reorders.
+      const res = await fetch("/api/admin/couple", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ section: "bucketList", items: updated }),
+        body: JSON.stringify({ section: "bucketList", id: item.id, done: !item.done }),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       toast.success(item.done ? "Đã chuyển thành chưa xong" : "Đã hoàn thành! 🎉");
     } catch {
       toast.error("Không thể cập nhật trạng thái");

@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { mapHomeBlackHole } from "@/lib/home-black-hole";
 
@@ -10,21 +10,17 @@ const BlackHoleCanvas = dynamic(() => import("@/components/3d/blackhole/BlackHol
 export default function HomeBlackHole() {
   const { resolvedTheme } = useTheme();
   const ref = useRef<HTMLDivElement>(null);
+  const stars = useRef<HTMLDivElement>(null);
   const [motionAllowed, setMotionAllowed] = useState(false);
-  const [ready, setReady] = useState(false);
-  const [loaderGone, setLoaderGone] = useState(false);
-  const onReady = useCallback(() => setReady(true), []);
-  const onUnavailable = useCallback(() => setLoaderGone(true), []);
+  // "Settled" once the canvas has faded in over the silhouette (or WebGL is
+  // unavailable): the silhouette's breathing pauses, since nothing shows it.
+  const [settled, setSettled] = useState(false);
+  const onReady = useCallback(() => { window.setTimeout(() => setSettled(true), 1300); }, []);
+  const onUnavailable = useCallback(() => setSettled(true), []);
 
   useEffect(() => {
-    setReady(false);
-    setLoaderGone(false);
+    setSettled(false);
   }, [resolvedTheme, motionAllowed]);
-  useEffect(() => {
-    if (!ready) return;
-    const timeout = window.setTimeout(() => setLoaderGone(true), 400);
-    return () => window.clearTimeout(timeout);
-  }, [ready]);
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const updateMotion = () => setMotionAllowed(!media.matches);
@@ -37,6 +33,7 @@ export default function HomeBlackHole() {
       const framing = mapHomeBlackHole(media.matches ? 0 : window.scrollY,
         document.getElementById("home")?.offsetHeight ?? window.innerHeight, resolvedTheme === "light", window.innerWidth < 768);
       el.style.transform = `translate3d(${framing.x}vw, ${framing.y}vh, 0) scale(${framing.scale})`;
+      stars.current?.style.setProperty("--star-scroll", `${media.matches ? 0 : Math.round(-window.scrollY * 0.06)}px`);
       el.style.opacity = String(framing.opacity);
       el.style.setProperty("--loader-play", document.hidden ? "paused" : "running");
     };
@@ -64,14 +61,16 @@ export default function HomeBlackHole() {
   }, [resolvedTheme]);
 
   return <div aria-hidden="true" className="portfolio-home-blackhole pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-    {resolvedTheme === "light" && <div className="portfolio-light-stars absolute inset-0" />}
-    <div ref={ref} className="absolute inset-0 origin-right">
+    <div ref={stars} className="portfolio-stars absolute inset-0" />
+    <div ref={ref} className="portfolio-bh-frame absolute inset-0">
       <div className="portfolio-hero-canvas absolute">
-        <div className="portfolio-blackhole-fallback absolute inset-0" />
+        <div className="portfolio-blackhole-fallback absolute inset-0" data-settled={settled ? "" : undefined}>
+          <span className="portfolio-bh-part portfolio-bh-glow" />
+          <span className="portfolio-bh-part portfolio-bh-disk" />
+          <span className="portfolio-bh-part portfolio-bh-ring" />
+          <span className="portfolio-bh-part portfolio-bh-core" />
+        </div>
         {motionAllowed && <BlackHoleCanvas className="absolute inset-0" interactive={false} deferStart scrollEffect scrollScope="page" onReady={onReady} onUnavailable={onUnavailable} brightness={resolvedTheme === "light" ? 1.15 : 1} particleBrightness={resolvedTheme === "light" ? 0.9 : 0.75} />}
-        {motionAllowed && !loaderGone && <div className="portfolio-hole-loader" style={{ opacity: ready ? 0 : 1 }}>
-          {Array.from({ length: 10 }, (_, index) => <i key={index} style={{ "--ring": index } as CSSProperties} />)}
-        </div>}
       </div>
     </div>
   </div>;

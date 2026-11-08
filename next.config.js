@@ -10,7 +10,7 @@ const THEME_INIT_SCRIPT_HASH = "'sha256-zC0vgAPLp50tCB7bzSaWuHCSVTUCBrURF/kEbhRR
 
 const CLOUDINARY = "https://res.cloudinary.com";
 
-// Full policy, REPORT-ONLY by decision (spec F4): Next 14 / RSC inject inline
+// Full policy, REPORT-ONLY by decision (spec F4): Next 15 / RSC inject inline
 // scripts the theme hash does not cover, so enforcing this would break the
 // app without nonces (which would force dynamic rendering). Violations are
 // logged in the browser console for review; never enforce it as-is.
@@ -52,8 +52,8 @@ const nextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
+  serverExternalPackages: ["heic-convert", "libheif-js"],
   experimental: {
-    serverComponentsExternalPackages: ["heic-convert", "libheif-js"],
     optimizePackageImports: ["framer-motion"],
   },
   webpack: (config, { isServer }) => {

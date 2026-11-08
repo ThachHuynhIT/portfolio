@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-auth";
-import { uploadAndRegisterMedia } from "@/lib/media-service";
+import { deleteMediaAsset, uploadAndRegisterMedia } from "@/lib/media-service";
 import { getErrorMessage } from "@/lib/utils";
 import {
   UploadValidationError,
@@ -64,15 +64,26 @@ export async function POST(req: NextRequest) {
 
     // Upload thumbnail image with prefix: music-thumb-...
     if (thumbnail && thumbnailEntry) {
-      const thumbAsset = await uploadAndRegisterMedia(thumbnail.buffer, {
-        category: "music",
-        subType: "thumb",
-        originalName: thumbnailEntry.name,
-        mimeType: thumbnail.mimeType,
-        resourceType: "image",
-      });
-      result.thumbnailUrl = thumbAsset.secureUrl;
-      result.thumbAsset = thumbAsset;
+      try {
+        const thumbAsset = await uploadAndRegisterMedia(thumbnail.buffer, {
+          category: "music",
+          subType: "thumb",
+          originalName: thumbnailEntry.name,
+          mimeType: thumbnail.mimeType,
+          resourceType: "image",
+        });
+        result.thumbnailUrl = thumbAsset.secureUrl;
+        result.thumbAsset = thumbAsset;
+      } catch (error) {
+        // The client gets nothing back on failure, so roll back the audio
+        // uploaded above instead of leaving an orphan in the media library.
+        if (result.audioAsset) {
+          await deleteMediaAsset(result.audioAsset.publicId).catch((cleanupError: unknown) =>
+            console.error("[POST /api/music/upload] Audio rollback failed:", getErrorMessage(cleanupError))
+          );
+        }
+        throw error;
+      }
     }
 
     return NextResponse.json(result, { status: 201 });

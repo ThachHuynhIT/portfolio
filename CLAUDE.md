@@ -7,7 +7,7 @@ This file provides guidance to Claude Code and other AI coding assistants when w
 ## 🔧 Language & Tech Stack
 
 - **Primary Language**: TypeScript (TS) with strict mode enabled (`tsconfig.json`)
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 15 (App Router, React 19)
 - **Styling**: Tailwind CSS v4 (inlined in `globals.css` with `@theme inline`)
 - **3D Graphics**: React Three Fiber (`@react-three/fiber`), `drei`, `three`
 - **Animation**: Framer Motion

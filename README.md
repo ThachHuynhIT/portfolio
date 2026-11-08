@@ -4,7 +4,7 @@
 
 A personal portfolio platform that combines interactive 3D graphics, a fast MDX blog, an art photography library with albums, a global music player, a full admin CMS and bilingual support (EN / VI).
 
-Built with **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS v4**, **React Three Fiber (Three.js)**, **Framer Motion**, and a performance-first architecture with **lazy & skeleton loading**.
+Built with **Next.js 15 (App Router)**, **TypeScript**, **Tailwind CSS v4**, **React Three Fiber (Three.js)**, **Framer Motion**, and a performance-first architecture with **lazy & skeleton loading**.
 
 ---
 
@@ -69,7 +69,7 @@ Built with **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS v4**, **R
 
 | Layer | Technology | Purpose |
 |---|---|---|
-| **Core framework** | [Next.js 14 (App Router)](https://nextjs.org/) | Production React framework with SSR, SSG, RSC and Route Handlers |
+| **Core framework** | [Next.js 15 (App Router)](https://nextjs.org/) | Production React framework with SSR, SSG, RSC and Route Handlers |
 | **Language** | [TypeScript](https://www.typescriptlang.org/) | Strict type checking for reliable code |
 | **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Modern styling with `@theme inline`, CSS variables and custom animations |
 | **3D graphics** | [Three.js](https://threejs.org/) / [React Three Fiber](https://r3f.docs.pmnd.rs/) / [Drei](https://github.com/pmndrs/drei) | WebGL 3D space scenes and dynamic star fields |

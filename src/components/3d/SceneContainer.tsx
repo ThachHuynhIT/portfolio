@@ -93,7 +93,7 @@ function useIsTabVisible() {
  * section-scoped scene (e.g. Contact particles) otherwise keeps rendering
  * after the visitor scrolls back up.
  */
-function useIsInView(ref: RefObject<HTMLElement>, enabled: boolean) {
+function useIsInView(ref: RefObject<HTMLElement | null>, enabled: boolean) {
   const [inView, setInView] = useState(true);
 
   useEffect(() => {
