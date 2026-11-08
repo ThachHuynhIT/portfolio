@@ -152,6 +152,9 @@
 .portfolio-nav-link:active { transform: scale(0.98); }
 .portfolio-nav-link:focus:not(:focus-visible) { outline: none; }
 
+/* Scroll framing scales around the hole's center (the canvas box center:
+   left 20% + 108% / 2 = 74%), so the hole keeps its horizontal position. */
+.portfolio-bh-frame { transform-origin: 74% 50%; }
 .portfolio-hero-canvas {
   inset: 0 -28% 0 20%;
   transform-origin: 65% 45%;
@@ -160,11 +163,71 @@
   -webkit-mask-image: radial-gradient(ellipse closest-side at 55% 45%, black 55%, transparent 100%);
   mask-image: radial-gradient(ellipse closest-side at 55% 45%, black 55%, transparent 100%);
 }
-.portfolio-blackhole-fallback {
-  background: radial-gradient(ellipse at 55% 45%, var(--portfolio-void) 0 9%, color-mix(in srgb, var(--portfolio-accretion) 33%, transparent) 10%, transparent 27%);
+/* Static silhouette of the black hole, adapted from necatimertmetin (MIT):
+   https://uiverse.io/necatimertmetin/tidy-falcon-23 — softened and neutral.
+   It is server-rendered, so it shows before any JS, stands in for the canvas
+   with reduced motion, and sits exactly where the engine's first frame draws
+   the hole: the engine's camera looks at the origin, so the shadow is
+   centered on the canvas box at every aspect ratio, with a diameter of
+   ~40% of the canvas height (r = 13.5 rs, 50° vertical FOV). So
+   the canvas fade-in reads as the same object coming
+   alive. Sizes use container units of the canvas box (cqh), so they track
+   the canvas height exactly like the perspective projection does. */
+/* The shadow stays dark in both themes, like the rendered hole (dark Void). */
+.portfolio-blackhole-fallback { container-type: size; --portfolio-bh-shadow: #05070d; }
+.portfolio-bh-part {
+  position: absolute; left: 50%; top: 50%; border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.portfolio-bh-glow {
+  width: 110cqh; height: 110cqh;
+  background: radial-gradient(circle, color-mix(in srgb, var(--portfolio-ink) 10%, transparent) 20%, color-mix(in srgb, var(--portfolio-ink) 4%, transparent) 45%, transparent 70%);
+}
+.portfolio-bh-disk {
+  width: 170cqh; height: 14cqh; top: 57%;
+  background: radial-gradient(ellipse closest-side, color-mix(in srgb, var(--portfolio-ink) 22%, transparent), color-mix(in srgb, var(--portfolio-ink) 7%, transparent) 60%, transparent);
+  filter: blur(6px);
+}
+.portfolio-bh-ring {
+  width: 42cqh; height: 42cqh;
+  box-shadow: 0 0 3cqh 1.2cqh color-mix(in srgb, var(--portfolio-ink) 20%, transparent),
+    inset 0 0 2cqh color-mix(in srgb, var(--portfolio-ink) 16%, transparent);
+}
+.portfolio-bh-core {
+  width: 44cqh; height: 44cqh;
+  /* Feathered edge: a hard-edged disc reads as a ball, not a hole. */
+  background: radial-gradient(circle closest-side, var(--portfolio-bh-shadow) 0 80%, color-mix(in srgb, var(--portfolio-bh-shadow) 60%, transparent) 90%, transparent 100%);
+}
+/* The only motion: the halo breathes slowly while the canvas loads.
+   Opacity/transform only, so it stays off the main thread. */
+@media (prefers-reduced-motion: no-preference) {
+  .portfolio-bh-glow, .portfolio-bh-ring {
+    animation-name: portfolio-bh-breathe; animation-duration: 4500ms;
+    animation-timing-function: ease-in-out; animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-play-state: var(--loader-play, running);
+  }
+  .portfolio-blackhole-fallback[data-settled] .portfolio-bh-part { animation-play-state: paused; }
+}
+@keyframes portfolio-bh-breathe {
+  from { opacity: 0.65; transform: translate(-50%, -50%) scale(0.985); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1.015); }
 }
 .portfolio-hero-scrim {
   background: radial-gradient(ellipse 80% 130% at 0% 50%, var(--portfolio-void) 0% 48%, color-mix(in srgb, var(--portfolio-void) 96%, transparent) 62%, transparent 90%);
+  /* The hero clips this scrim, which drew a hard horizontal edge into About;
+     fade it out over the hero's bottom instead (mobile has its own mask). */
+  -webkit-mask-image: linear-gradient(to bottom, black 72%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 72%, transparent 100%);
+}
+/* Light theme: the full-height near-white scrim washed out the whole left
+   half of the hole. Hug the text block instead (shorter vertical radius), so
+   the hole stays clear above and below the copy while the copy keeps its
+   backing where it crosses the shadow. */
+@media (min-width: 768px) {
+  [data-theme="light"] .portfolio-hero-scrim {
+    background: radial-gradient(ellipse 80% 58% at 0% 56%, var(--portfolio-void) 0% 52%, color-mix(in srgb, var(--portfolio-void) 92%, transparent) 66%, transparent 92%);
+  }
 }
 .portfolio-hero-name, .portfolio-hero-role, .portfolio-hero-context,
 .portfolio-hero-actions { opacity: 1; }
@@ -175,13 +238,21 @@
   from { transform: scale(0.25); opacity: 0.2; }
   to { transform: scale(1); opacity: 1; }
 }
-.portfolio-light-stars {
+/* Static starfield behind the whole page-level black hole, so the area
+   beside it is never a flat Void. Dots flip per theme; --star-scroll gives
+   the nearest layer a slight parallax (set by HomeBlackHole, 0 with reduced
+   motion). */
+.portfolio-stars {
+  --star-a: rgba(236, 233, 228, 0.32); --star-b: rgba(236, 233, 228, 0.22); --star-c: rgba(236, 233, 228, 0.16);
   background-color: transparent;
-  background-image: radial-gradient(circle, rgba(16,19,26,0.14) 0.7px, transparent 1px),
-    radial-gradient(circle, rgba(16,19,26,0.1) 0.8px, transparent 1.1px),
-    radial-gradient(circle, rgba(16,19,26,0.08) 0.6px, transparent 1px);
+  background-image: radial-gradient(circle, var(--star-a) 0.7px, transparent 1px),
+    radial-gradient(circle, var(--star-b) 0.8px, transparent 1.1px),
+    radial-gradient(circle, var(--star-c) 0.6px, transparent 1px);
   background-size: 113px 127px, 191px 173px, 251px 229px;
-  background-position: 0 var(--star-scroll, 0px), 31px 47px, 71px 13px;
+  background-position: 0 var(--star-scroll, 0px), 31px calc(47px + var(--star-scroll, 0px) * 0.6), 71px calc(13px + var(--star-scroll, 0px) * 0.3);
+}
+[data-theme="light"] .portfolio-stars {
+  --star-a: rgba(16, 19, 26, 0.14); --star-b: rgba(16, 19, 26, 0.1); --star-c: rgba(16, 19, 26, 0.08);
 }
 .portfolio-footer-star {
   pointer-events: none;
@@ -203,6 +274,7 @@
   .portfolio-hero { align-items: flex-end; }
   .portfolio-hero-copy { padding-top: 7rem; }
   .portfolio-hero-canvas { inset: -8% -35% 22%; transform-origin: 50% 30%; }
+  .portfolio-bh-frame { transform-origin: 50% 35%; }
   .portfolio-hero-scrim {
     background: linear-gradient(0deg, var(--portfolio-void) 0%, color-mix(in srgb, var(--portfolio-void) 96%, transparent) 64%, color-mix(in srgb, var(--portfolio-void) 20%, transparent) 90%);
     /* Fade out over the hero's bottom padding so the page-level black hole
@@ -486,30 +558,25 @@ body {
 /* Phase 3 round 2: public scope keeps fixed art behind content, above the body. */
 .portfolio-scope { position: relative; isolation: isolate; }
 .portfolio-home-blackhole { background: var(--portfolio-void); }
+/* The sections veil fades in over the first ~28rem instead of starting at a
+   hard horizontal edge under the hero; after that it is flat (a flat veil
+   avoids the quantized bands of a long dark gradient). */
 .portfolio-sections {
-  /* A flat veil avoids quantized vertical bands from the old dark gradient. */
-  background: color-mix(in srgb, var(--portfolio-void) 20%, transparent);
+  --sections-veil: color-mix(in srgb, var(--portfolio-void) 20%, transparent);
+  background: linear-gradient(to bottom, transparent, var(--sections-veil) 28rem);
 }
 [data-theme="light"] .portfolio-sections {
-  background: color-mix(in srgb, var(--portfolio-void) 15%, transparent);
+  --sections-veil: color-mix(in srgb, var(--portfolio-void) 15%, transparent);
 }
-/* Soft local scrim behind each section intro: keeps Dust text readable over
-   the black hole without a hard-edged box. The ellipse is opaque at the text
-   and fades to transparent before the box edges. */
-#portfolio-sections .text-center:has(> .portfolio-section-heading) {
-  position: relative;
-  isolation: isolate;
-  padding: 1rem;
+/* Section intros stay readable over the black hole with a soft shadow that
+   radiates from the letters themselves (stacked Void text-shadows), instead
+   of a box-sized scrim behind the whole intro. Void flips per theme. */
+#portfolio-sections .text-center:has(> .portfolio-section-heading) { padding: 1rem; }
+#portfolio-sections .portfolio-section-heading h2 {
+  text-shadow: 0 0 10px var(--portfolio-void), 0 0 22px var(--portfolio-void), 0 0 40px color-mix(in srgb, var(--portfolio-void) 70%, transparent);
 }
-#portfolio-sections .text-center:has(> .portfolio-section-heading)::before {
-  content: "";
-  position: absolute;
-  /* Stays inside the box: sections are overflow-hidden, so an outset scrim
-     would be clipped into a straight edge. */
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(closest-side, var(--portfolio-void) 55%, color-mix(in srgb, var(--portfolio-void) 70%, transparent) 75%, transparent 100%);
+#portfolio-sections .text-center:has(> .portfolio-section-heading) > p {
+  text-shadow: 0 0 8px var(--portfolio-void), 0 0 18px var(--portfolio-void);
 }
 .portfolio-heading-line { margin-inline: 0; transform-origin: left; }
 .text-center .portfolio-heading-line { margin-inline: auto; transform-origin: center; }
@@ -520,27 +587,6 @@ body {
 }
 @keyframes portfolio-menu-enter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 .portfolio-heading-spark { box-shadow: 0 0 12px var(--portfolio-accretion); }
-
-/* Adapted from elijahgummer, MIT: https://uiverse.io/elijahgummer/polite-earwig-72 */
-.portfolio-hole-loader {
-  position: absolute; left: 55%; top: 45%; width: 24%; aspect-ratio: 1;
-  transform: translate(-50%, -50%); transition: opacity 400ms ease-out;
-}
-.portfolio-hole-loader i {
-  position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--portfolio-accretion);
-  box-shadow: 0 0 14px color-mix(in srgb, var(--portfolio-accretion) 50%, transparent), inset 0 0 12px color-mix(in srgb, var(--portfolio-accretion) 30%, transparent);
-  /* Longhands: the production CSS minifier drops the spaces around var() inside
-     an `animation` shorthand, which invalidates the whole declaration. */
-  animation-name: portfolio-ring-fall; animation-duration: 2400ms;
-  animation-delay: calc(var(--ring) * -240ms); animation-timing-function: ease-in;
-  animation-iteration-count: infinite;
-  animation-play-state: var(--loader-play, running);
-}
-@keyframes portfolio-ring-fall {
-  0% { transform: scale(2); opacity: 0; }
-  35% { transform: scale(1); opacity: 0.75; }
-  100% { transform: scale(0.1); opacity: 0; }
-}
 
 /* All characters retain their final inline layout, including word wrapping. */
 .portfolio-typed-character { position: relative; opacity: 1; }
@@ -668,7 +714,7 @@ body {
 @keyframes portfolio-sheen { from { opacity: 1; transform: translateX(-110%); } to { opacity: 1; transform: translateX(110%); } }
 @media (prefers-reduced-motion: reduce) {
   .portfolio-typed-character { animation: none !important; opacity: 1 !important; }
-  .portfolio-typing-caret, .portfolio-hole-loader, .portfolio-action-stars,
+  .portfolio-typing-caret, .portfolio-action-stars,
   .portfolio-theme .portfolio-action-secondary::before, .portfolio-theme .portfolio-action-secondary::after,
   .portfolio-theme .portfolio-social::after { display: none !important; }
   .portfolio-theme .portfolio-action, .portfolio-theme .portfolio-social { transform: none !important; transition: color 150ms, background-color 150ms, border-color 150ms; }
