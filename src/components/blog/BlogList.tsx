@@ -3,12 +3,12 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { GlassCard } from "@/components/ui";
-import { BlogPost } from "@/lib/types";
+import type { BlogPostListItem } from "@/lib/types";
 import { useTranslation } from "@/context/LanguageContext";
 import { translateBlogCategory, translateReadTime } from "@/lib/content-overrides";
 
 interface BlogListProps {
-  posts: BlogPost[];
+  posts: BlogPostListItem[];
   categories: string[];
 }
 
@@ -23,6 +23,8 @@ export default function BlogList({ posts, categories }: BlogListProps) {
         : posts,
     [posts, selectedCategory]
   );
+
+  if (!posts.length) return <div className="py-16 text-center text-portfolio-dust">{t("blog.empty")}</div>;
 
   return (
     <>

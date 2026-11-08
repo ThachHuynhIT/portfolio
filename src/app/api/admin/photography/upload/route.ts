@@ -1,45 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-auth";
+import { getErrorMessage } from "@/lib/utils";
 import { uploadAndRegisterMedia } from "@/lib/media-service";
-import path from "path";
+import {
+  UploadValidationError,
+  assertContentLength,
+  isUploadedFile,
+  parsePhotoSubType,
+  validateUpload,
+} from "@/lib/upload-validation";
 
 export async function POST(req: NextRequest) {
   const authError = await requireAdminSession();
   if (authError) return authError;
 
   try {
-    const formData = await req.formData();
-    const file = formData.get("file") as File | null;
-    const isBefore = formData.get("isBefore") === "true";
-    const subTypeInput = formData.get("subType") as string | null;
+    assertContentLength(req.headers);
 
-    if (!file) {
+    let formData: FormData;
+    try {
+      formData = await req.formData();
+    } catch {
+      return NextResponse.json({ error: "Invalid multipart body" }, { status: 400 });
+    }
+
+    const file = formData.get("file");
+    if (!isUploadedFile(file)) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const isVideo = file.type.toLowerCase().startsWith("video/");
+    const subType = parsePhotoSubType(
+      formData.get("subType"),
+      formData.get("isBefore") === "true",
+      isVideo
+    );
+    const upload = await validateUpload(file, isVideo ? "video" : "photo");
 
-    const ext = (path.extname(file.name) || "").toLowerCase();
-    const mimeType = file.type || "image/jpeg";
-    const isVideo =
-      mimeType.startsWith("video/") ||
-      [".mp4", ".webm", ".mov", ".m4v", ".mkv"].includes(ext);
-
-    let subType = "processed";
-    if (isVideo) {
-      subType = "video";
-    } else if (isBefore || subTypeInput === "raw") {
-      subType = "raw";
-    } else if (subTypeInput) {
-      subType = subTypeInput;
-    }
-
-    const asset = await uploadAndRegisterMedia(buffer, {
+    const asset = await uploadAndRegisterMedia(upload.buffer, {
       category: "photo",
       subType,
       originalName: file.name,
-      mimeType,
+      mimeType: upload.mimeType,
       resourceType: isVideo ? "video" : "image",
       tags: ["photography", isVideo ? "video" : "photo", subType],
     });
@@ -53,11 +55,12 @@ export async function POST(req: NextRequest) {
       duration: asset.duration,
       asset,
     });
-  } catch (error: any) {
-    console.error("[POST /api/admin/photography/upload] Error:", error);
-    const errorMessage =
-      error?.message ||
-      "Cloudinary upload failed. Please check your Cloudinary environment variables.";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof UploadValidationError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    // Provider errors can carry config details; keep them in server logs only.
+    console.error("[POST /api/admin/photography/upload] Upload failed:", getErrorMessage(error));
+    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }

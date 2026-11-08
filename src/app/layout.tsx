@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Be_Vietnam_Pro, Inter, Space_Grotesk } from "next/font/google";
 import dynamic from "next/dynamic";
 import "./globals.css";
 import { Navigation, Footer } from "@/components/ui";
@@ -10,7 +10,12 @@ import { getPublishedNavLinks } from "@/lib/content/nav-links";
 import { getPublishedSocialLinks } from "@/lib/content/social-links";
 import { getPublishedSiteConfig } from "@/lib/content/site-config";
 import { buildMetadata } from "@/lib/seo";
-import { EXCLUDED_ROUTE_PREFIXES } from "@/lib/constants";
+import { getFallbackSiteConfig } from "@/lib/site-config-fallback";
+import { THEME_INIT_SCRIPT } from "@/lib/theme-init";
+import { getPostSummaries } from "@/lib/blog";
+import { filterBlogNavLinks } from "@/lib/navigation-section";
+import { getErrorMessage } from "@/lib/utils";
+import type { NavLink, SiteConfig, SocialLink } from "@/lib/types";
 
 // Floating overlay with no SSR value — mounted on every route, so keep it
 // out of the initial/shared bundle.
@@ -24,13 +29,33 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+const beVietnamPro = Be_Vietnam_Pro({
+  variable: "--font-be-vietnam-pro",
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+});
+
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
 });
 
+// The catch sits outside the cached reader (getPublishedSiteConfig wraps
+// unstable_cache), so a DB outage falls back to the real typed defaults for
+// this render only and is never cached as a successful response.
+function loadSiteConfig(): Promise<SiteConfig> {
+  return getPublishedSiteConfig().catch((error: unknown) => {
+    console.error(
+      "[layout] site config unavailable, using defaults:",
+      getErrorMessage(error) ?? "unknown error"
+    );
+    return getFallbackSiteConfig();
+  });
+}
+
 export async function generateMetadata(): Promise<Metadata> {
-  const siteConfig = await getPublishedSiteConfig().catch(()=>({title:'t',description:'d',ogImage:'',name:'n',url:'http://localhost:3000',author:{name:'a'}} as any));
+  const siteConfig = await loadSiteConfig();
 
   // Only alternates/openGraph/twitter come from buildMetadata() — the root
   // layout needs a title *template* (so descendant pages' bare `title`
@@ -86,40 +111,31 @@ export const viewport: Viewport = {
   ],
 };
 
-import GlobalBackground from "@/components/layout/GlobalBackground";
+import GlobalBackground, { PortfolioScope } from "@/components/layout/GlobalBackground";
 import MotionProvider from "@/components/layout/MotionProvider";
 
-// KEEP IN SYNC WITH detectPreferredTheme()/isExcludedRoute() in
-// src/context/ThemeContext.tsx — runs before hydration to set data-theme
-// on <html> pre-paint, avoiding a flash of the wrong theme.
-const THEME_INIT_SCRIPT = `(function(){try{
-  var excluded=${JSON.stringify(EXCLUDED_ROUTE_PREFIXES)};
-  var path=window.location.pathname;
-  if(excluded.some(function(p){return path===p||path.indexOf(p+"/")===0})){
-    document.documentElement.setAttribute("data-theme","dark");
-    return;
-  }
-  var stored=localStorage.getItem("portfolio_theme");
-  var theme=stored==="light"||stored==="dark"?stored:
-    (window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
-  document.documentElement.setAttribute("data-theme",theme);
-}catch(e){}})();`;
+// THEME_INIT_SCRIPT (src/lib/theme-init.ts) runs before hydration to set
+// data-theme on <html> pre-paint. Emit it verbatim: its sha256 is pinned in
+// the report-only CSP in next.config.js.
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [navLinks, socialLinks, siteConfig] = await Promise.all([
-    getPublishedNavLinks().catch(()=>[] as any),
-    getPublishedSocialLinks().catch(()=>[] as any),
-    getPublishedSiteConfig().catch(()=>({title:'t',description:'d',ogImage:'',name:'n',url:'http://localhost:3000',author:{name:'a'}} as any)),
+  const [allNavLinks, socialLinks, siteConfig, posts] = await Promise.all([
+    getPublishedNavLinks().catch(() => [] as NavLink[]),
+    getPublishedSocialLinks().catch(() => [] as SocialLink[]),
+    loadSiteConfig(),
+    getPostSummaries().catch(() => null),
   ]);
+  // A failed read is unknown, rather than an empty blog. Preserve navigation.
+  const navLinks = filterBlogNavLinks(allNavLinks, posts === null || posts.length > 0);
 
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${spaceGrotesk.variable} antialiased bg-background text-foreground font-sans`}
+        className={`${inter.variable} ${spaceGrotesk.variable} ${beVietnamPro.variable} antialiased bg-background text-foreground font-sans`}
       >
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <ThemeProvider>
@@ -127,9 +143,11 @@ export default async function RootLayout({
             <GlobalBackground />
             <LanguageProvider>
               <MusicProvider>
-                <Navigation navLinks={navLinks} />
-                <main>{children}</main>
-                <Footer navLinks={navLinks} socialLinks={socialLinks} siteConfig={siteConfig} />
+                <PortfolioScope>
+                  <Navigation navLinks={navLinks} />
+                  <main>{children}</main>
+                  <Footer navLinks={navLinks} socialLinks={socialLinks} siteConfig={siteConfig} />
+                </PortfolioScope>
                 <GlobalMusicPlayer />
               </MusicProvider>
             </LanguageProvider>

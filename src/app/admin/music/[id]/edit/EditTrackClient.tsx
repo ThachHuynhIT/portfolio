@@ -3,8 +3,9 @@
 import TrackForm from "@/components/music/admin/TrackForm";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { useTranslation } from "@/context/TranslationContext";
+import type { Track } from "@/generated/prisma";
 
-export default function EditTrackClient({ track }: { track: any }) {
+export default function EditTrackClient({ track }: { track: Track }) {
   const { t } = useTranslation();
 
   return (

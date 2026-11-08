@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/TranslationContext";
@@ -173,8 +173,10 @@ export default function TrackForm({ initialData, mode }: TrackFormProps) {
         ...formData,
         audioUrl: finalAudioUrl,
         thumbnailUrl: finalThumbUrl || null,
-        duration: formData.duration ? Number(formData.duration) : 0,
-        order: Number(formData.order) || 0,
+        // Track.duration / Track.order are integer columns; the API rejects
+        // fractional or non-numeric values instead of coercing them.
+        duration: formData.duration ? Math.round(Number(formData.duration)) : 0,
+        order: formData.order ? Math.round(Number(formData.order)) : 0,
       };
 
       const url =

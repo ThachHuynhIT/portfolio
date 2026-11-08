@@ -8,6 +8,7 @@ export { default as LanguageSwitcher } from "./LanguageSwitcher";
 export { default as ThemeToggle } from "./ThemeToggle";
 export { default as FlagIcon } from "./FlagIcon";
 export { default as Icon } from "./Icon";
+export { default as PublicIcon } from "./PublicIcon";
 export {
   Skeleton,
   CardSkeleton,

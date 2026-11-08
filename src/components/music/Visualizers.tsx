@@ -7,25 +7,13 @@ import { useMusic } from "@/context/MusicContext";
 // 1. SPECTRUM BARS VISUALIZER (Real-time 36-band Audio Spectrum)
 // ─────────────────────────────────────────────────────────────────────────────
 export function SpectrumBarsVisualizer() {
-  const { isPlaying, audioFrequencyData, audioMetrics } = useMusic();
+  const { isPlaying, audioFrequencyData } = useMusic();
 
   return (
     <div className="music-spectrum-bars" aria-hidden="true">
       {audioFrequencyData.map((val, i) => {
         // Minimum height 6% so bars look sleek even when low, scaling up to 100%
         const height = isPlaying ? Math.max(6, Math.min(100, val)) : 6;
-        const isBassBin = i < 8;
-        const isMidBin = i >= 8 && i < 24;
-
-        // Dynamic color hue shift based on frequency index and bass drop
-        let barColor = "var(--music-primary)";
-        if (isBassBin) {
-          barColor = `rgba(168, 85, 247, ${0.7 + audioMetrics.bass * 0.3})`;
-        } else if (isMidBin) {
-          barColor = `rgba(6, 182, 212, ${0.7 + audioMetrics.mid * 0.3})`;
-        } else {
-          barColor = `rgba(236, 72, 153, ${0.7 + audioMetrics.treble * 0.3})`;
-        }
 
         return (
           <div

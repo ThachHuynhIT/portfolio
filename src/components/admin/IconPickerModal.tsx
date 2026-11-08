@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import AdminModal from "@/components/admin/AdminModal";
-import Icon, { TECH_BRAND_ICON_NAMES, SOCIAL_BRAND_ICON_NAMES } from "@/components/ui/Icon";
+import Icon from "@/components/ui/Icon";
+import { TECH_BRAND_ICON_NAMES, SOCIAL_BRAND_ICON_NAMES } from "@/lib/icon-names";
 
 /**
  * A general-purpose curated emoji set for content that's purely decorative

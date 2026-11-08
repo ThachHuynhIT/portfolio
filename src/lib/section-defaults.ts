@@ -1,5 +1,6 @@
 import { en } from "@/locales/en";
 import { vi } from "@/locales/vi";
+
 import type {
   AboutSectionContent,
   ContactSectionContent,
@@ -8,23 +9,10 @@ import type {
   SkillsSectionContent,
 } from "@/lib/types";
 
-/**
- * Fixed 4-slot stat definitions for the About section, in the order the
- * homepage renders them. The stat *values* ("3+", "9+", ...) have no home in
- * the locale files — they're literal fallbacks baked into the component —
- * so this is the single source of truth both AboutSection.tsx and the admin
- * defaults below read from, keeping them from drifting apart.
- */
-export const ABOUT_STAT_DEFS = [
-  { key: "years", fallbackValue: "3+" },
-  { key: "projects", fallbackValue: "3+" },
-  { key: "clients", fallbackValue: "3+" },
-  { key: "tech", fallbackValue: "9+" },
-] as const;
 
 /**
  * Builds the *currently effective* copy for a homepage section, sourced from
- * src/locales/{en,vi}.ts (plus ABOUT_STAT_DEFS for About's stat values).
+ * src/locales/{en,vi}.ts.
  * Used to pre-fill the admin JSON editors so admins see real starting values
  * instead of an empty "{}" they'd have to guess field names for.
  */
@@ -59,12 +47,7 @@ export function getAboutDefaults(): AboutSectionContent {
     bioP2_vi: vi.about.bioP2,
     bioP3: en.about.bioP3,
     bioP3_vi: vi.about.bioP3,
-    stats: ABOUT_STAT_DEFS.map((def) => ({
-      label: en.about.stats[def.key],
-      label_vi: vi.about.stats[def.key],
-      value: def.fallbackValue,
-      value_vi: def.fallbackValue,
-    })) as AboutSectionContent["stats"],
+    facts: (["experience", "focus", "education", "location"] as const).map((key) => ({ label: en.about.facts[key].label, label_vi: vi.about.facts[key].label, value: en.about.facts[key].value, value_vi: vi.about.facts[key].value })),
   };
 }
 

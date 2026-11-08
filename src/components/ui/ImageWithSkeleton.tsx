@@ -37,6 +37,11 @@ export default function ImageWithSkeleton({
 }: ImageWithSkeletonProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  // Priority (LCP) images paint as soon as the browser decodes them: no
+  // opacity-0 waiting on hydration + onLoad, and no skeleton/placeholder
+  // layered over them. Non-priority images keep the fade-in behavior.
+  const isVisible = priority || isLoaded;
+  const showLoadingLayers = !priority && !isLoaded && !hasError;
 
   // If no source provided
   if (!src) {
@@ -58,7 +63,7 @@ export default function ImageWithSkeleton({
       } ${containerClassName}`}
     >
       {/* Instant low-res/blurred placeholder painted while the real image loads */}
-      {placeholderSrc && !isLoaded && !hasError && (
+      {placeholderSrc && showLoadingLayers && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={placeholderSrc}
@@ -69,11 +74,9 @@ export default function ImageWithSkeleton({
       )}
 
       {/* Shimmer Skeleton Placeholder while loading */}
-      {!isLoaded && !hasError && (
+      {showLoadingLayers && (
         <div
-          className={`absolute inset-0 z-0 ${
-            isLoaded ? "opacity-0" : "opacity-100"
-          } transition-opacity duration-500 ${skeletonClassName}`}
+          className={`absolute inset-0 z-0 opacity-100 transition-opacity duration-500 ${skeletonClassName}`}
         >
           <Skeleton className="w-full h-full rounded-none" />
           <TwinklingStars />
@@ -89,7 +92,8 @@ export default function ImageWithSkeleton({
       ) : (
         <Image
           src={src}
-          alt={alt || "Image"}
+          // Respect alt="" for decorative images; only fall back when alt is missing.
+          alt={alt ?? "Image"}
           fill={fill}
           width={!fill ? width || 600 : undefined}
           height={!fill ? height || 400 : undefined}
@@ -99,7 +103,7 @@ export default function ImageWithSkeleton({
           onLoad={() => setIsLoaded(true)}
           onError={() => setHasError(true)}
           className={`${className} transition-opacity duration-500 ease-out ${
-            isLoaded ? "opacity-100" : "opacity-0"
+            isVisible ? "opacity-100" : "opacity-0"
           }`}
           {...props}
         />

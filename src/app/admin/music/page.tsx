@@ -1,8 +1,6 @@
 import { Metadata } from "next";
-import Link from "next/link";
 import { db } from "@/lib/db";
 import AdminMusicClient from "./AdminMusicClient";
-import AdminHeader from "@/components/admin/AdminHeader";
 
 export const metadata: Metadata = {
   title: "Music Management | Admin",

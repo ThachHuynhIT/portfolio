@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./couple.module.css";
-import type { CalendarType, CoupleData, CouplePhotoMemory } from "@/lib/types";
+import type { CalendarType, CoupleData } from "@/lib/types";
 import { lunarLabel, nextOccurrence } from "@/lib/couple-events";
 import { daysBetween, parseYmd, todayYmd } from "@/lib/ymd";
 import { useTranslation } from "@/context/LanguageContext";
@@ -409,7 +409,7 @@ function HeroSection() {
 // ============================================================
 function PhotosSection() {
   const { data } = useCouple();
-  const photos = data.photos || [];
+  const photos = useMemo(() => data.photos || [], [data.photos]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 

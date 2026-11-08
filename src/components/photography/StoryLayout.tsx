@@ -12,7 +12,7 @@ interface StoryLayoutProps {
 }
 
 export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps) {
-  const { t, locale } = useTranslation();
+  const { locale } = useTranslation();
   return (
     <div className="max-w-4xl mx-auto space-y-16">
       {photos.map((photo, index) => {

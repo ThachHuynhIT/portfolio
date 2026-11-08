@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/admin-auth";
+import { getErrorMessage } from "@/lib/utils";
 import { syncAssetsFromCloudinary } from "@/lib/media-service";
 
 export async function POST() {
@@ -14,10 +15,10 @@ export async function POST() {
       added: result.added,
       total: result.total,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[POST /api/admin/media/sync] Error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to sync from Cloudinary" },
+      { error: getErrorMessage(error) || "Failed to sync from Cloudinary" },
       { status: 500 }
     );
   }

@@ -1,4 +1,4 @@
-import { getAllPosts, getAllCategories } from "@/lib/blog";
+import { getPostSummaries, getAllCategories } from "@/lib/blog";
 import BlogList from "@/components/blog/BlogList";
 import { buildMetadata } from "@/lib/seo";
 
@@ -9,7 +9,7 @@ export const metadata = buildMetadata({
 });
 
 export default async function BlogPage() {
-  const [posts, categories] = await Promise.all([getAllPosts(), getAllCategories()]);
+  const [posts, categories] = await Promise.all([getPostSummaries(), getAllCategories()]);
 
   return (
     <div className="min-h-screen pt-32 pb-20">

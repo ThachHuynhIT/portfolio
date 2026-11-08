@@ -9,7 +9,57 @@ Tài liệu này hướng dẫn cách build, kiểm thử và deploy ứng dụn
 - **Node.js**: Phiên bản `>= 18.17.0` (Khuyến nghị sử dụng LTS Node 20+).
 - **Package Manager**: `npm` (hoặc `pnpm`, `yarn`, `bun`). `package-lock.json` được commit — dùng `npm ci` để cài đúng phiên bản.
 - **PostgreSQL** (VD: Neon) — mọi trang nội dung đọc từ DB, kể cả lúc build.
-- **Biến môi trường**: xem [`.env.example`](../.env.example) (`DATABASE_URL`, `AUTH_SECRET`, `ADMIN_PASSWORD`, `CLOUDINARY_*`, `RESEND_API_KEY`, `CONTACT_NOTIFICATION_EMAIL`). `npm install` tự chạy `prisma generate` (postinstall).
+- **Biến môi trường**: xem [`.env.example`](../.env.example) (`DATABASE_URL`, `AUTH_SECRET`, `ADMIN_PASSWORD_SCRYPT`, `CLOUDINARY_*`, `RESEND_API_KEY`, `CONTACT_NOTIFICATION_EMAIL`). `npm install` tự chạy `prisma generate` (postinstall).
+
+### 1.1. Mật khẩu admin (`ADMIN_PASSWORD_SCRYPT`)
+
+Trang `/admin/login` gửi mật khẩu dạng thường qua HTTPS (`POST /api/admin/auth` với body `{ "password": "..." }`); server so khớp bằng Node `crypto.scrypt` + `timingSafeEqual` (`src/lib/admin-password.ts`). Payload cũ `{ "passwordHash": ... }` (SHA-256 phía client) bị từ chối với 400, và **không còn fallback sang `ADMIN_PASSWORD`**.
+
+- **Định dạng**: `scrypt$<salt 16 byte, hex>$<key 64 byte, hex>`, tham số `N=16384, r=8, p=1`.
+- **Fail closed**: thiếu biến hoặc sai định dạng thì mọi lần đăng nhập đều thất bại (server log một dòng cảnh báo, không in giá trị).
+- Hash chỉ đặt vào env local (`.env.local`) hoặc env của deployment, **không bao giờ commit vào repo**.
+
+**Cách tạo (khuyến nghị)** — script đọc mật khẩu từ prompt ẩn/stdin hoặc biến `PORTFOLIO_PASSWORD_ONCE`, không bao giờ nhận qua tham số dòng lệnh, và chỉ in ra hash:
+
+```bash
+node scripts/hash-admin-password.mjs
+```
+
+**Cách thay thế** — lệnh một lần trong PowerShell, nhập mật khẩu ẩn, không để mật khẩu trong history:
+
+```powershell
+$credential = Get-Credential -UserName admin -Message 'Mat khau admin de tao scrypt hash'
+$env:PORTFOLIO_PASSWORD_ONCE = $credential.GetNetworkCredential().Password
+node -e 'const {randomBytes,scrypt}=require("node:crypto");const salt=randomBytes(16);scrypt(process.env.PORTFOLIO_PASSWORD_ONCE,salt,64,{N:16384,r:8,p:1},(err,key)=>{if(err)throw err;console.log(["scrypt",salt.toString("hex"),key.toString("hex")].join("$"));});'
+Remove-Item Env:PORTFOLIO_PASSWORD_ONCE
+```
+
+**Thứ tự rollout (quan trọng)** — vì không có fallback, deploy code mới trước khi có biến sẽ khoá đăng nhập admin:
+
+1. Tạo hash bằng một trong hai cách trên.
+2. Trên Vercel (*Settings → Environment Variables*), thêm `ADMIN_PASSWORD_SCRYPT` cho các môi trường cần thiết **trước khi** deploy code mới.
+3. Deploy, rồi kiểm tra đăng nhập `/admin` bằng mật khẩu.
+4. Sau khi đăng nhập thành công, xoá `ADMIN_PASSWORD` khỏi Vercel (biến này không còn được đọc).
+
+Rollback: nếu cần quay về bản cũ, khôi phục `ADMIN_PASSWORD` trên Vercel trước khi redeploy bản cũ.
+
+**Lưu ý khi đặt biến**:
+
+- `ADMIN_PASSWORD_SCRYPT` phải là **hash** (`scrypt$…$…`), không phải mật khẩu thường. Đặt mật khẩu thường vào đây thì mọi lần đăng nhập đều bị từ chối và server log `ADMIN_PASSWORD_SCRYPT is missing or malformed`.
+- Trong `.env` / `.env.local`, Next.js mở rộng `$tên` thành biến môi trường, nên phải escape: `ADMIN_PASSWORD_SCRYPT=scrypt\$<salt>\$<key>`. Trên Vercel dán nguyên `scrypt$<salt>$<key>`, không có `\`.
+- Không đặt mật khẩu thật hay hash vào `.env.example` (file này được commit).
+- Chọn mật khẩu mới, dài và chưa từng xuất hiện ở bất kỳ đâu trong repo (repo là public).
+
+**Giới hạn đã biết (chấp nhận ở quy mô hiện tại)**:
+
+- **Rate limiter theo từng instance**: giới hạn 5 lần sai / 15 phút / IP nằm trong bộ nhớ của process (`src/lib/rate-limit.ts`). Trên Vercel serverless, mỗi instance có bộ đếm riêng và bộ đếm mất khi cold start, nên số lần thử không được cộng dồn giữa các instance.
+- **Không revoke session phía server trước khi hết hạn**: session là cookie `admin_session` ký HMAC bằng `AUTH_SECRET`, hiệu lực 24 giờ, không lưu phía server. Đăng xuất chỉ xoá cookie trên trình duyệt; một token đã bị sao chép vẫn dùng được tới khi hết hạn. Cách duy nhất để vô hiệu hoá mọi session ngay lập tức là đổi `AUTH_SECRET`.
+
+### 1.2. Content Security Policy (`next.config.js`)
+
+- **Enforcing**: chỉ `Content-Security-Policy: frame-ancestors 'none'` (+ `X-Frame-Options: DENY`) — site không thể bị nhúng vào trang khác. Không chặn CV iframe hay media bên trong site.
+- **Report-only**: policy đầy đủ (`Content-Security-Policy-Report-Only`) gồm `script-src 'self'` + sha256 của `THEME_INIT_SCRIPT`. Đổi script này thì `src/lib/security-headers.test.ts` báo hash mới cần cập nhật.
+- **Giới hạn đã biết**: hash chỉ bao phủ script theme. Next 14 App Router còn chèn inline script RSC/hydration không có nonce, nên trình duyệt báo vi phạm report-only trên mọi trang (đo 11/2026: ~20 thông báo trên `/`). Promote sang enforcing sẽ làm hỏng trang nếu không chuyển sang nonce + render động — trade-off đã chốt là giữ static rendering, CSP đầy đủ ở report-only.
 
 ---
 

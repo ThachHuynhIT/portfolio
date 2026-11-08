@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { requireAdminSession } from "@/lib/admin-auth";
+import { getErrorMessage } from "@/lib/utils";
 import { parseYmd } from "@/lib/ymd";
 import {
   getCoupleData,
@@ -164,10 +165,10 @@ export async function POST(req: NextRequest) {
 
     revalidateTag("couple");
     return NextResponse.json({ success: true, item }, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[POST /api/admin/couple] Error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to process request" },
+      { error: getErrorMessage(error) || "Failed to process request" },
       { status: 500 }
     );
   }
@@ -275,10 +276,10 @@ export async function PUT(req: NextRequest) {
 
     revalidateTag("couple");
     return NextResponse.json({ success: true, item: updated });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[PUT /api/admin/couple] Error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to update" },
+      { error: getErrorMessage(error) || "Failed to update" },
       { status: 500 }
     );
   }
@@ -330,10 +331,10 @@ export async function DELETE(req: NextRequest) {
 
     revalidateTag("couple");
     return NextResponse.json({ success: true, id });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[DELETE /api/admin/couple] Error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to delete" },
+      { error: getErrorMessage(error) || "Failed to delete" },
       { status: 500 }
     );
   }

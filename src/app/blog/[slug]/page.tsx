@@ -3,8 +3,10 @@ import { Metadata } from "next";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
-import { getPostBySlug, getAllPosts } from "@/lib/blog";
+import { getPostBySlug, getPostSummaries } from "@/lib/blog";
+import { mdxPolicyRemarkPlugins, validateMdxSource } from "@/lib/mdx-policy";
 import BlogPostView from "@/components/blog/BlogPostView";
+import { toBlogPostViewMeta } from "@/lib/blog-list";
 import { cn } from "@/lib/utils";
 import { buildMetadata } from "@/lib/seo";
 
@@ -14,7 +16,7 @@ interface BlogPostPageProps {
 
 // Generate static params for all blog posts
 export async function generateStaticParams() {
-  const posts = await getAllPosts();
+  const posts = await getPostSummaries();
   return posts.map((post) => ({ slug: post.slug }));
 }
 
@@ -122,6 +124,36 @@ const mdxComponents = {
   ),
 };
 
+/**
+ * Applies the MDX policy (no ESM, expressions or JSX; safe URLs only) before
+ * compiling. Stored content that breaks the policy is never compiled or run:
+ * a neutral notice is shown instead, without any error detail.
+ */
+async function renderMdxBody(source: string) {
+  try {
+    await validateMdxSource(source);
+  } catch {
+    return (
+      <p className="text-white/70 light:text-neutral-600 leading-relaxed mb-4">
+        This content could not be displayed.
+      </p>
+    );
+  }
+
+  return (
+    <MDXRemote
+      source={source}
+      components={mdxComponents}
+      options={{
+        mdxOptions: {
+          remarkPlugins: mdxPolicyRemarkPlugins,
+          rehypePlugins: [rehypeHighlight, rehypeSlug],
+        },
+      }}
+    />
+  );
+}
+
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const resolvedParams = await params;
   const post = await getPostBySlug(resolvedParams.slug);
@@ -130,33 +162,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
-  const contentEn = (
-    <MDXRemote
-      source={post.content}
-      components={mdxComponents}
-      options={{
-        mdxOptions: {
-          rehypePlugins: [rehypeHighlight, rehypeSlug],
-        },
-      }}
-    />
-  );
-
-  const contentVi = post.content_vi ? (
-    <MDXRemote
-      source={post.content_vi}
-      components={mdxComponents}
-      options={{
-        mdxOptions: {
-          rehypePlugins: [rehypeHighlight, rehypeSlug],
-        },
-      }}
-    />
-  ) : null;
+  const [contentEn, contentVi] = await Promise.all([
+    renderMdxBody(post.content),
+    post.content_vi ? renderMdxBody(post.content_vi) : Promise.resolve(null),
+  ]);
 
   return (
     <BlogPostView
-      post={post}
+      post={toBlogPostViewMeta(post)}
       contentEn={contentEn}
       contentVi={contentVi}
     />

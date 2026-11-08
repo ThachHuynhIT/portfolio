@@ -9,12 +9,14 @@ import Icon from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
 
 interface LanguageSwitcherProps {
+  appearance?: "legacy" | "portfolio";
   variant?: "pill" | "toggle" | "dropdown";
   className?: string;
   size?: "sm" | "md";
 }
 
 export default function LanguageSwitcher({
+  appearance = "legacy",
   variant = "pill",
   className,
   size = "sm",
@@ -42,7 +44,6 @@ export default function LanguageSwitcher({
     setLocale(locale === "en" ? "vi" : "en");
   };
 
-  const nextLocale: Locale = locale === "en" ? "vi" : "en";
   const switchLabel =
     locale === "vi"
       ? "Đang chọn Tiếng Việt. Nhấp để chuyển sang English"
@@ -50,6 +51,15 @@ export default function LanguageSwitcher({
 
   // Flag dimensions based on size
   const flagDimensions = size === "sm" ? { width: 20, height: 14 } : { width: 24, height: 16 };
+
+  // Public navigation opts in; shared admin/music/couple consumers keep the
+  // original variants and styling below, including their original targets.
+  if (appearance === "portfolio") {
+    return <button type="button" onClick={toggleLanguage} aria-label={switchLabel} title={switchLabel}
+      className={cn("portfolio-control inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-portfolio-control bg-portfolio-hull px-3 text-sm font-semibold text-portfolio-ink transition-colors duration-150 hover:border-portfolio-accretion active:scale-[0.98]", className)}>
+      <span aria-hidden="true">{locale === "en" ? "EN" : "VI"}</span>
+    </button>;
+  }
 
   // Compact Pill Flag Toggle (Default - ideal for Navbar, Admin Bar, Music Sidebar)
   if (variant === "pill") {

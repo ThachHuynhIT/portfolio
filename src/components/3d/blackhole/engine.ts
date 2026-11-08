@@ -84,6 +84,8 @@ export class BlackHoleEngine {
   private rtLow: THREE.WebGLRenderTarget;
   private raymarchMat: THREE.ShaderMaterial;
   private quad: THREE.Mesh;
+  private postMat: THREE.ShaderMaterial;
+  private postGeo: THREE.BufferGeometry;
   private particles: ParticleSystem;
 
   private canvas: HTMLCanvasElement;
@@ -200,7 +202,7 @@ export class BlackHoleEngine {
     });
 
     // --- post scene: upscale + CA + vignette (rendered by the composer) ---
-    const postMat = new THREE.ShaderMaterial({
+    const postMat = (this.postMat = new THREE.ShaderMaterial({
       vertexShader: POST_VERT,
       fragmentShader: POST_FRAG,
       uniforms: {
@@ -209,8 +211,8 @@ export class BlackHoleEngine {
       },
       depthTest: false,
       depthWrite: false,
-    });
-    const postGeo = new THREE.BufferGeometry();
+    }));
+    const postGeo = (this.postGeo = new THREE.BufferGeometry());
     postGeo.setAttribute(
       "position",
       new THREE.BufferAttribute(
@@ -357,6 +359,7 @@ export class BlackHoleEngine {
    * without needing their own smoothing. Independent of `interactive`.
    */
   setScrollProgress(t: number) {
+    if (this.disposed) return;
     const p = clamp(t, 0, 1);
     this.tgt.phi = PHI_HORIZONTAL + (PHI_TOP - PHI_HORIZONTAL) * p;
     this.tgt.radius = RADIUS_NEAR + (RADIUS_FAR - RADIUS_NEAR) * p;
@@ -501,22 +504,48 @@ export class BlackHoleEngine {
     }
   };
 
+  /**
+   * Idempotent teardown, in a fixed order: mark disposed (so any callback
+   * that still fires — a queued rAF, compileAsync resolving, an observer
+   * entry — bails out) → cancel the rAF and detach every listener/observer →
+   * free GPU resources → renderer.dispose() → forceContextLoss() on this
+   * renderer's own context, so remounts (theme switch, home <-> 404) don't
+   * pile up live WebGL contexts until the browser starts evicting them.
+   */
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+
     cancelAnimationFrame(this.raf);
+    this.raf = 0;
+    this.dragging = false;
     this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
     this.visibilityObserver?.disconnect();
+    this.visibilityObserver = null;
     window.removeEventListener("resize", this.onResize);
     window.removeEventListener("pointermove", this.onPointerMove);
     window.removeEventListener("pointerup", this.onPointerUp);
     this.canvas.removeEventListener("pointerdown", this.onPointerDown);
     this.canvas.removeEventListener("wheel", this.onWheel);
+
     this.particles.dispose();
     this.quad.geometry.dispose();
     this.raymarchMat.dispose();
+    this.postGeo.dispose();
+    this.postMat.dispose();
     this.rtLow.dispose();
+    // EffectComposer.dispose() only frees its own ping-pong targets and copy
+    // pass; each pass (bloom mips, shader quads) owns GPU resources too.
+    for (const pass of this.composer.passes) pass.dispose();
     this.composer.dispose();
+
     this.renderer.dispose();
+    this.renderer.forceContextLoss();
+
+    if (process.env.NODE_ENV !== "production") {
+      const w = window as unknown as Record<string, unknown>;
+      if (w.__bh === this) delete w.__bh;
+    }
   }
 }

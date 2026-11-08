@@ -37,6 +37,9 @@ export interface BlogPost {
   content: string;
 }
 
+/** Blog metadata for lists/previews: never carries the EN or VI MDX body. */
+export type BlogPostListItem = Omit<BlogPost, "content" | "content_vi">;
+
 // Skill Types
 export interface Skill {
   id: string;
@@ -134,6 +137,7 @@ export interface AboutStatContent {
 }
 
 export interface AboutSectionContent {
+  facts?: AboutStatContent[];
   badge?: string;
   badge_vi?: string;
   titlePrefix?: string;
@@ -441,6 +445,3 @@ export interface CoupleData {
   workSchedules: CoupleWorkSchedule[];
   workOverrides: CoupleWorkOverride[];
 }
-
-
-

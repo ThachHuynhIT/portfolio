@@ -143,7 +143,6 @@ export function CardSkeleton({ className = "" }: { className?: string }) {
  * Section Skeleton for dynamic below-the-fold imports
  */
 export function SectionSkeleton({
-  title = "Loading section...",
   cardCount = 3,
   className = "",
 }: {
