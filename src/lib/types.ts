@@ -137,6 +137,7 @@ export interface AboutStatContent {
 }
 
 export interface AboutSectionContent {
+  facts?: AboutStatContent[];
   badge?: string;
   badge_vi?: string;
   titlePrefix?: string;
@@ -444,6 +445,3 @@ export interface CoupleData {
   workSchedules: CoupleWorkSchedule[];
   workOverrides: CoupleWorkOverride[];
 }
-
-
-

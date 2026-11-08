@@ -57,7 +57,7 @@ Mọi cặp màu phải được đo lại khi triển khai; số trong bảng l
 ### Bố cục
 
 - Căn trái mọi section, kể cả hero. Một cột nội dung rộng tối đa ~1120px, lề 16px trên mobile.
-- Black hole **chỉ thuộc về hero**: `absolute` trong hero, lệch sang phải trên desktop để chữ nằm trên vùng tối ổn định; trên mobile nằm phía trên/sau tên với scrim phía dưới. Các section sau có nền Void đặc.
+- Black hole là một lớp `fixed` cấp trang trên `/`: giữ khung hero lệch phải trên desktop, phía trên tên trên mobile; khi cuộn thu nhỏ về cạnh phải (scale 0.62, opacity 0.42 dark / 0.24 light) và ở lại hết trang. Section dùng veil/scrim nhẹ, card vẫn rõ chữ. Reduced motion dùng glow tĩnh, không WebGL.
 
 ```
 Desktop hero                          Mobile hero
@@ -108,14 +108,14 @@ Mục tiêu: trang sinh động hơn với hiệu ứng vũ trụ, nhưng mỗi 
 
 ### 8.1 Lớp nền
 
-- **Starfield chiều sâu:** giữ `StarryBackground3D` (đi qua `SceneContainer`) cho trang chủ, nhưng chỉ hiện **sau hero** (hero đã có black hole), mật độ và độ sáng thấp, ba lớp sao trôi parallax theo scroll (đọc scroll bằng `useRef` trong `useFrame`, không state). Các section có nền Void bán đặc (khoảng 88–92% độ phủ) để sao lấp lánh mờ phía sau mà chữ vẫn đạt tương phản. Light theme: sao chuyển thành chấm Ink rất nhạt hoặc tắt hẳn (quyết định khi làm prototype).
-- **Chuyển cảnh hero → About:** dùng `scrollEffect` sẵn có của black hole: khi cuộn, black hole thu nhỏ và mờ dần như bị hút về xa; không pin hero.
+- **Lớp nền trang chủ:** chỉ một black hole WebGL fixed; không mount StarryBackground3D trên `/` (route khác giữ nguyên). Light theme có thể giữ chấm CSS. Renderer vẫn deferStart, camera scrollEffect theo toàn trang, tạm dừng khi tab ẩn.
+- **Hero → About:** black hole di chuyển và thu nhỏ về khung companion ở cạnh phải rồi giữ nguyên; không biến mất, không pin hero.
 
 ### 8.2 Từng thành phần
 
 | Thành phần | Hiệu ứng | Kích hoạt |
 | --- | --- | --- |
-| **Hero** | "Chân trời sự kiện": black hole bung sáng từ một điểm; tên hiện bằng blur → nét kèm scale 0.98 → 1 như ánh sáng bị bẻ cong; vai trò và CTA nối tiếp. Tổng ≤ 1.2 s, CTA hiện trước 1 s. Viết bằng CSS keyframes để chạy cả khi chưa hydrate; nội dung vẫn đọc được ở frame cuối khi không có JS. | Tải trang, một lần |
+| **Hero** | "Chân trời sự kiện": black hole bung sáng từ một điểm; tên gõ từng grapheme (≤ 1.6 s), caret tắt sau 1 s; vai trò, trạng thái, ngữ cảnh và CTA nối tiếp. Không blur chữ. Viết bằng CSS keyframes để chạy cả khi chưa hydrate; nội dung vẫn đọc được ở frame cuối khi không có JS. | Tải trang, một lần |
 | **Navigation** | Vòng quỹ đạo mảnh quanh logo "TH" lấp đầy theo tiến độ cuộn trang. Gạch chân active trượt giữa các mục (Framer Motion `layoutId`). | Cuộn / chuyển section |
 | **Heading section** | "Sao bừng sáng": một chấm Accretion nhỏ cạnh heading loé lên một lần, rồi một cung quỹ đạo mảnh vẽ dưới heading (`stroke-dashoffset`). | Vào viewport, một lần |
 | **About** | Facts hiện lần lượt như các hành tinh vào quỹ đạo: dịch nhẹ theo cung (không thẳng đứng), cách nhau 60 ms. | Vào viewport, một lần |
@@ -130,8 +130,8 @@ Mục tiêu: trang sinh động hơn với hiệu ứng vũ trụ, nhưng mỗi 
 ### 8.3 Ràng buộc kỹ thuật
 
 - Chỉ dùng Framer Motion (đã có) và CSS; không thêm thư viện (gsap sẽ bị gỡ ở Phase 0). Variants đặt trong `src/lib/animations.ts`, dùng `AnimatedSection` khi hợp.
-- Chỉ animate `transform`, `opacity`, `filter: blur` ngắn, `stroke-dashoffset`; không animate layout.
-- Không tạo `<Canvas>` R3F mới; starfield dùng component có sẵn qua `SceneContainer`. Mọi vòng lặp dừng khi khuất màn hình hoặc tab ẩn.
+- Chỉ animate `transform`, `opacity`, `clip-path` cho reveal một lần; không blur chữ hoặc animate layout. `stroke-dashoffset` chỉ dành cho hình trang trí; không animate layout.
+- Không tạo `<Canvas>` R3F mới; homepage chỉ có black hole imperative; starfield ở route khác qua `SceneContainer`. Mọi vòng lặp dừng khi khuất màn hình hoặc tab ẩn.
 - `prefers-reduced-motion`: tắt parallax, starfield trôi, vẽ đường và hero sequence; hiện trạng thái cuối ngay. Nội dung không bao giờ phụ thuộc animation để hiện ra.
 - Ngân sách: cùng lúc chỉ một hiệu ứng lặp liên tục trong viewport ngoài black hole/starfield; 60 fps trên điện thoại tầm trung; không tăng đáng kể JS ban đầu của `/` (đo trước/sau).
 - Hiệu ứng "một lần" dùng `viewport={{ once: true }}`; không chạy lại khi cuộn ngược.

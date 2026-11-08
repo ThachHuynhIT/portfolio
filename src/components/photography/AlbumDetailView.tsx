@@ -76,9 +76,9 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
             <div className="absolute inset-0 z-0">
               <ImageWithSkeleton
                 src={coverUrl}
-                alt={albumTitle}
+                alt=""
                 fill
-                priority
+                sizes="100vw"
                 className="object-cover object-center opacity-30 blur-[2px] scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/85 to-slate-950/60 backdrop-blur-[1px]" />

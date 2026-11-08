@@ -15,6 +15,8 @@ import { EXCLUDED_ROUTE_PREFIXES } from "@/lib/constants";
 export function buildThemeInitScript(prefixes: readonly string[]): string {
   return [
     "(function(){try{",
+    'document.documentElement.classList.add("js-typing");',
+    'window.setTimeout(function(){if(!document.querySelector("[data-typing=ready]"))document.documentElement.classList.remove("js-typing")},4000);',
     `var excluded=${JSON.stringify(prefixes)};`,
     "var path=window.location.pathname;",
     'if(excluded.some(function(p){return path===p||path.indexOf(p+"/")===0})){',

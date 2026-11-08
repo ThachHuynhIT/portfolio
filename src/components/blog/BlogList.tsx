@@ -24,6 +24,8 @@ export default function BlogList({ posts, categories }: BlogListProps) {
     [posts, selectedCategory]
   );
 
+  if (!posts.length) return <div className="py-16 text-center text-portfolio-dust">{t("blog.empty")}</div>;
+
   return (
     <>
       {/* Header */}

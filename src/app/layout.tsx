@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Be_Vietnam_Pro, Inter, Space_Grotesk } from "next/font/google";
 import dynamic from "next/dynamic";
 import "./globals.css";
 import { Navigation, Footer } from "@/components/ui";
@@ -12,6 +12,8 @@ import { getPublishedSiteConfig } from "@/lib/content/site-config";
 import { buildMetadata } from "@/lib/seo";
 import { getFallbackSiteConfig } from "@/lib/site-config-fallback";
 import { THEME_INIT_SCRIPT } from "@/lib/theme-init";
+import { getPostSummaries } from "@/lib/blog";
+import { filterBlogNavLinks } from "@/lib/navigation-section";
 import { getErrorMessage } from "@/lib/utils";
 import type { NavLink, SiteConfig, SocialLink } from "@/lib/types";
 
@@ -25,6 +27,13 @@ const GlobalMusicPlayer = dynamic(
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+});
+
+const beVietnamPro = Be_Vietnam_Pro({
+  variable: "--font-be-vietnam-pro",
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 const spaceGrotesk = Space_Grotesk({
@@ -102,7 +111,7 @@ export const viewport: Viewport = {
   ],
 };
 
-import GlobalBackground from "@/components/layout/GlobalBackground";
+import GlobalBackground, { PortfolioScope } from "@/components/layout/GlobalBackground";
 import MotionProvider from "@/components/layout/MotionProvider";
 
 // THEME_INIT_SCRIPT (src/lib/theme-init.ts) runs before hydration to set
@@ -114,16 +123,19 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [navLinks, socialLinks, siteConfig] = await Promise.all([
+  const [allNavLinks, socialLinks, siteConfig, posts] = await Promise.all([
     getPublishedNavLinks().catch(() => [] as NavLink[]),
     getPublishedSocialLinks().catch(() => [] as SocialLink[]),
     loadSiteConfig(),
+    getPostSummaries().catch(() => null),
   ]);
+  // A failed read is unknown, rather than an empty blog. Preserve navigation.
+  const navLinks = filterBlogNavLinks(allNavLinks, posts === null || posts.length > 0);
 
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${spaceGrotesk.variable} antialiased bg-background text-foreground font-sans`}
+        className={`${inter.variable} ${spaceGrotesk.variable} ${beVietnamPro.variable} antialiased bg-background text-foreground font-sans`}
       >
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <ThemeProvider>
@@ -131,9 +143,11 @@ export default async function RootLayout({
             <GlobalBackground />
             <LanguageProvider>
               <MusicProvider>
-                <Navigation navLinks={navLinks} />
-                <main>{children}</main>
-                <Footer navLinks={navLinks} socialLinks={socialLinks} siteConfig={siteConfig} />
+                <PortfolioScope>
+                  <Navigation navLinks={navLinks} />
+                  <main>{children}</main>
+                  <Footer navLinks={navLinks} socialLinks={socialLinks} siteConfig={siteConfig} />
+                </PortfolioScope>
                 <GlobalMusicPlayer />
               </MusicProvider>
             </LanguageProvider>

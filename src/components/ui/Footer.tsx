@@ -1,163 +1,55 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import { motion, useInView } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/context/LanguageContext";
-import Icon, { isKnownIconName } from "@/components/ui/Icon";
-import { pickLocalized } from "@/lib/content-overrides";
+import Icon from "./Icon";
+import { isKnownIconName } from "@/lib/icon-names";
+import { isExcludedRoute } from "@/lib/constants";
 import type { NavLink, SocialLink, SiteConfig } from "@/lib/types";
 
-export interface FooterProps {
-  navLinks: NavLink[];
-  socialLinks: SocialLink[];
-  siteConfig: SiteConfig;
-}
-
+export interface FooterProps { navLinks: NavLink[]; socialLinks: SocialLink[]; siteConfig: SiteConfig }
 export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProps) {
   const { t, locale } = useTranslation();
   const pathname = usePathname();
-  const currentYear = new Date().getFullYear();
-
-  // Blank site-config fields (cleared in /admin/site-config) are hidden.
+  const [entered, setEntered] = useState(false);
+  const footerRef = useRef<HTMLElement>(null);
+  const inView = useInView(footerRef);
+  const [tabVisible, setTabVisible] = useState(true);
+  useEffect(() => {
+    const update = () => setTabVisible(!document.hidden);
+    update();
+    document.addEventListener("visibilitychange", update);
+    return () => document.removeEventListener("visibilitychange", update);
+  }, []);
+  if (isExcludedRoute(pathname)) return null;
   const authorName = siteConfig.author.name.trim();
-  const authorBio = pickLocalized(locale, siteConfig.author.bio, siteConfig.author.bio_vi);
-  const authorEmail = siteConfig.author.email.trim();
-  const authorLocation = pickLocalized(locale, siteConfig.author.location, siteConfig.author.location_vi);
-
-  const getNavLabel = (link: { href: string; label: string; label_vi?: string }) => {
-    if (locale === "vi" && link.label_vi?.trim()) {
-      return link.label_vi;
-    }
-    const cleanKey = link.href.replace(/^[/#]+/, "");
-    const translationKey = `nav.${cleanKey || "home"}`;
-    const translated = t(translationKey);
-    return translated !== translationKey ? translated : link.label;
-  };
-
-  if (
-    pathname?.startsWith("/admin") ||
-    pathname?.startsWith("/music") ||
-    pathname?.startsWith("/couple")
-  ) {
-    return null;
-  }
-
-  return (
-    <footer className="relative border-t border-white/10 light:border-neutral-900/10 bg-black/50 light:bg-white/60 backdrop-blur-xl">
-      {/* Gradient line */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
-
-      <div className="container mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-          {/* Brand */}
-          <div className="md:col-span-2">
-            {authorName && (
-              <Link
-                href="/"
-                className="inline-block text-3xl font-bold bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent mb-4"
-              >
-                {authorName}
-              </Link>
-            )}
-            {authorBio && (
-              <p className="text-white/60 light:text-neutral-600 max-w-md mb-6">{authorBio}</p>
-            )}
-            <div className="flex gap-4">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.name}
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/5 light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 flex items-center justify-center text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 hover:bg-white/10 light:hover:bg-neutral-900/[0.08] hover:border-white/20 light:hover:border-neutral-900/20 transition-all duration-300 overflow-hidden p-1.5"
-                  aria-label={social.name}
-                >
-                  {social.icon && (social.icon.startsWith("http") || social.icon.startsWith("/")) ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- small CMS icon from an arbitrary URL; component is slated for redesign
-                    <img
-                      src={social.icon}
-                      alt={social.name}
-                      width={28}
-                      height={28}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full object-contain rounded-full"
-                    />
-                  ) : isKnownIconName(social.icon) ? (
-                    <Icon name={social.icon} size={20} />
-                  ) : (
-                    <span className="text-xs font-bold uppercase tracking-wider">{social.name.slice(0, 2)}</span>
-                  )}
-                </a>
-              ))}
-            </div>
+  return <motion.footer ref={footerRef} onViewportEnter={() => setEntered(true)} viewport={{ once: true }} className="portfolio-footer relative overflow-hidden border-t border-portfolio-hairline bg-portfolio-void text-portfolio-ink">
+    <span aria-hidden="true" className={entered ? "portfolio-footer-star portfolio-footer-star-started" : "portfolio-footer-star"} style={{ animationPlayState: inView && tabVisible ? "running" : "paused" }} />
+    <div className="portfolio-footer-content mx-auto max-w-[1120px] px-4 py-12">
+      <div className="flex flex-col justify-between gap-8 md:flex-row">
+        <div>
+          {authorName && <Link href="/" className="inline-flex min-h-11 items-center text-xl font-bold">{authorName}</Link>}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {socialLinks.map((social) => <a key={social.id} href={social.url} target="_blank" rel="noopener noreferrer" aria-label={social.name} data-network={`${social.name} ${social.url}`.toLowerCase()} className="portfolio-social">
+              {social.icon && (social.icon.startsWith("http") || social.icon.startsWith("/")) ? (
+                // eslint-disable-next-line @next/next/no-img-element -- CMS social icon URLs are arbitrary
+                <img src={social.icon} alt="" width={24} height={24} loading="lazy" decoding="async" className="h-6 w-6 object-contain" />
+              ) : isKnownIconName(social.icon) ? <Icon name={social.icon} size={20} /> : <span className="text-xs font-bold">{social.name.slice(0, 2)}</span>}
+            </a>)}
           </div>
-
-          {/* Quick Links */}
-          <div>
-            <h4 className="text-white light:text-neutral-900 font-semibold mb-4">{t("footer.quickLinks")}</h4>
-            <ul className="space-y-3">
-              {navLinks.map((link) => {
-                const resolvedHref = link.href.startsWith("#")
-                  ? pathname === "/"
-                    ? link.href
-                    : `/${link.href}`
-                  : link.href;
-
-                return (
-                  <li key={link.id || link.href}>
-                    <Link
-                      href={resolvedHref}
-                      className="text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 transition-colors duration-300"
-                    >
-                      {getNavLabel(link)}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-
-          {/* Contact Info */}
-          {(authorEmail || authorLocation) && (
-            <div>
-              <h4 className="text-white light:text-neutral-900 font-semibold mb-4">{t("footer.getInTouch")}</h4>
-              <ul className="space-y-3">
-                {authorEmail && (
-                  <li>
-                    <a
-                      href={`mailto:${authorEmail}`}
-                      className="text-white/60 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 transition-colors duration-300"
-                    >
-                      {authorEmail}
-                    </a>
-                  </li>
-                )}
-                {authorLocation && (
-                  <li className="text-white/60 light:text-neutral-600">{authorLocation}</li>
-                )}
-              </ul>
-            </div>
-          )}
         </div>
-
-        {/* Bottom Bar */}
-        <div className="mt-16 pt-8 border-t border-white/10 light:border-neutral-900/10 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-white/60 light:text-neutral-600 text-sm">
-            © {currentYear}{authorName ? ` ${authorName}.` : ""} {t("footer.rightsReserved")}
-          </p>
-          <p className="text-white/60 light:text-neutral-600 text-sm">
-            {t("footer.builtWith")}{" "}
-            <span className="text-transparent bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text">
-              Next.js
-            </span>{" "}
-            {t("footer.and")}{" "}
-            <span className="text-transparent bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text">
-              Three.js
-            </span>
-          </p>
-        </div>
+        <nav aria-label={t("footer.quickLinks")}>
+          <ul className="flex flex-wrap gap-x-5 gap-y-1 md:max-w-md">
+            {navLinks.flatMap((link) => link.children?.length ? link.children : [link]).map((link) => <li key={link.id}><Link href={link.href.startsWith("#") && pathname !== "/" ? `/${link.href}` : link.href} className="inline-flex min-h-11 items-center text-sm text-portfolio-dust transition-colors duration-150 hover:text-portfolio-accretion">
+              {locale === "vi" && link.label_vi?.trim() ? link.label_vi : link.label}
+            </Link></li>)}
+          </ul>
+        </nav>
       </div>
-    </footer>
-  );
+      <p className="mt-10 border-t border-portfolio-hairline pt-6 text-sm text-portfolio-dust">© {new Date().getFullYear()}{authorName ? ` ${authorName}.` : ""} {t("footer.rightsReserved")}</p>
+    </div>
+  </motion.footer>;
 }

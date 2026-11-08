@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useMemo } from "react";
+import React, { useRef, useMemo, type RefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 import * as THREE from "three";
@@ -80,12 +80,47 @@ function CosmicParticles({ count = 1200 }: { count?: number }) {
  * StarryBackground3D - Complete 3D Starry Sky background without any bulky shapes.
  * Provides a stunning deep-space aesthetic that runs seamlessly across the portfolio.
  */
-export default function StarryBackground3D({ still = false }: { still?: boolean }) {
+function PortfolioStars({ scrollRef, count }: { scrollRef: RefObject<number>; count: number }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const positions = useMemo(() => [0, 1, 2].map((layer) => {
+    const points = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      // Stable geometry, including remounts; no SSR/client random mismatch.
+      points[i * 3] = (Math.sin(i * 127.1 + layer * 31.7) * 43758.5453 % 1) * 18;
+      points[i * 3 + 1] = (Math.sin(i * 269.5 + layer * 13.3) * 22578.1459 % 1) * 14;
+      points[i * 3 + 2] = -layer * 4;
+    }
+    return points;
+  }), [count]);
+  useFrame(() => {
+    groupRef.current?.children.forEach((layer, index) => {
+      layer.position.y = (scrollRef.current ?? 0) * (index + 1) * 0.00012;
+    });
+  });
+  return <group ref={groupRef}>{positions.map((points, layer) => <points key={layer}>
+    <bufferGeometry><bufferAttribute attach="attributes-position" args={[points, 3]} /></bufferGeometry>
+    <pointsMaterial color="#ECE9E4" size={0.018 + layer * 0.006} transparent opacity={0.22 + layer * 0.05} sizeAttenuation depthWrite={false} />
+  </points>)}</group>;
+}
+
+export default function StarryBackground3D({ still = false, portfolio = false, paused = false, scrollRef }: {
+  still?: boolean;
+  portfolio?: boolean;
+  paused?: boolean;
+  scrollRef?: RefObject<number>;
+}) {
+  const fallbackScrollRef = useRef(0);
   // This canvas is mounted globally on every non-admin route, so on
   // touch/low-core devices we halve the point counts to keep it cheap
   // even while other decorative canvases run concurrently on the same page.
   const performanceTier = usePerformanceTier();
   const isLowTier = performanceTier === "low";
+
+  if (portfolio) return <div aria-hidden="true" className="fixed inset-0 -z-10 pointer-events-none overflow-hidden bg-[#05070D]" style={{ visibility: paused ? "hidden" : "visible" }}>
+    <SceneContainer paused={paused} still={still} fallback={null} className="h-full w-full">
+      <PortfolioStars scrollRef={scrollRef ?? fallbackScrollRef} count={isLowTier ? 90 : 160} />
+    </SceneContainer>
+  </div>;
 
   return (
     <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden bg-[#030014]">
