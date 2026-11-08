@@ -12,6 +12,8 @@ import StoryLayout from "./StoryLayout";
 import PhotoLightboxModal from "./PhotoLightboxModal";
 import Icon from "@/components/ui/Icon";
 import { useTranslation } from "@/context/LanguageContext";
+import { cn } from "@/lib/utils";
+import { border, elevation, gap, layout, motion as motionTokens, radius, text } from "@/lib/design-tokens";
 
 type LayoutMode = "masonry" | "grid" | "compare" | "story";
 
@@ -138,21 +140,21 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
   };
 
   return (
-    <div className="min-h-screen pt-28 pb-24 text-white light:text-neutral-900">
+    <div className={cn("min-h-screen pt-28 pb-24", text.primary)}>
       {/* Background ambient lighting */}
       <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-tr from-purple-600/10 via-indigo-600/10 to-cyan-500/10 blur-[130px] rounded-full" />
-        <div className="absolute bottom-10 right-10 w-[500px] h-[500px] bg-cyan-600/5 blur-[120px] rounded-full" />
+        <div className={cn("absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-tr from-purple-600/10 via-indigo-600/10 to-cyan-500/10 blur-[130px]", radius.pill)} />
+        <div className={cn("absolute bottom-10 right-10 w-[500px] h-[500px] bg-cyan-600/5 blur-[120px]", radius.pill)} />
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
+      <div className={cn(layout.container)}>
         {/* ── Hero Header ──
             NOTE: this banner sits on a fixed background photo with a dark
             gradient overlay for text legibility ("theater" style, same
             rationale as the lightbox) — its internal overlay/text stays
             dark-only in both themes; only the outer card border gets a
             light: counterpart so it remains visible against a light page. */}
-        <section className="relative overflow-hidden rounded-3xl border border-white/10 light:border-neutral-900/10 mb-10 shadow-2xl bg-slate-950">
+        <section className={cn("relative overflow-hidden", radius.panel, border.subtle, "mb-10 shadow-2xl bg-slate-950")}>
           <div className="absolute inset-0 z-0">
             <ImageWithSkeleton
               src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2000&q=85"
@@ -171,7 +173,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
             transition={{ duration: 0.5 }}
             className="relative z-10 text-center max-w-3xl mx-auto px-6 py-14 sm:py-20"
           >
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest bg-black/60 text-cyan-300 border border-cyan-500/30 backdrop-blur-md mb-5 shadow-sm">
+            <span className={cn("inline-flex items-center", gap.tight, "px-3.5 py-1.5", radius.pill, "text-xs font-semibold uppercase tracking-widest bg-black/60 text-cyan-300 border border-cyan-500/30", elevation.blur, "mb-5 shadow-sm")}>
               <Icon name="camera" size={14} />
               <span>{t("photography.badge")}</span>
             </span>
@@ -188,7 +190,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
             </p>
 
             {/* Quick Stats Badges */}
-            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mt-8 text-xs font-mono">
+            <div className={cn("flex flex-wrap items-center justify-center", gap.base, "sm:gap-4 mt-8 text-xs font-mono")}>
               <button
                 type="button"
                 onClick={() => setActiveTab("photos")}
@@ -198,7 +200,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     : "bg-black/60 border-white/15 text-slate-300 hover:text-white"
                 }`}
               >
-                <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                <span className={cn("w-2 h-2", radius.pill, "bg-purple-400 animate-pulse")} />
                 <span><strong>{stats.total}</strong> {t("photography.totalPhotos")}</span>
               </button>
 
@@ -218,17 +220,17 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
               )}
 
               {stats.featuredCount > 0 && (
-                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 backdrop-blur-md text-amber-300 shadow-md">
+                <div className={cn("flex items-center", gap.tight, "px-3.5 py-1.5", radius.pill, "bg-amber-500/10 border border-amber-500/30", elevation.blur, "text-amber-300 shadow-md")}>
                   <Icon name="star" size={13} className="text-amber-400" />
                   <span><strong>{stats.featuredCount}</strong> {t("photography.featured")}</span>
                 </div>
               )}
-              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-slate-300 shadow-md">
-                <span className="w-2 h-2 rounded-full bg-cyan-400" />
+              <div className={cn("flex items-center", gap.tight, "px-3.5 py-1.5", radius.pill, "bg-black/60 border border-white/15", elevation.blur, "text-slate-300 shadow-md")}>
+                <span className={cn("w-2 h-2", radius.pill, "bg-cyan-400")} />
                 <span><strong>{stats.catsCount}</strong> {t("photography.categoriesCount")}</span>
               </div>
-              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-slate-300 shadow-md">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <div className={cn("flex items-center", gap.tight, "px-3.5 py-1.5", radius.pill, "bg-black/60 border border-white/15", elevation.blur, "text-slate-300 shadow-md")}>
+                <span className={cn("w-2 h-2", radius.pill, "bg-emerald-400")} />
                 <span><strong>{stats.withBeforeAfter}</strong> {t("photography.beforeAfterCount")}</span>
               </div>
             </div>
@@ -236,7 +238,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
         </section>
 
         {/* ── Main View Switcher: All Photos vs Albums ── */}
-        <div className="flex items-center justify-center sm:justify-start gap-2 p-1.5 rounded-2xl bg-white/[0.04] light:bg-neutral-900/[0.04] border border-white/10 light:border-neutral-900/10 w-fit mb-8 shadow-inner">
+        <div className={cn("flex items-center justify-center sm:justify-start", gap.tight, "p-1.5", radius.card, "bg-white/[0.04] light:bg-neutral-900/[0.04]", border.subtle, "w-fit mb-8 shadow-inner")}>
           <button
             type="button"
             onClick={() => setActiveTab("photos")}
@@ -269,7 +271,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
           <div className="space-y-8">
             {/* Controls Toolbar (Categories, Search & Layout Switcher) */}
             <section className="space-y-5">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className={cn("flex flex-col md:flex-row md:items-center justify-between", gap.loose)}>
                 {/* Search Input */}
                 <div className="relative w-full md:w-80">
                   <Icon
@@ -282,7 +284,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={t("photography.searchPlaceholder")}
-                    className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 transition-all light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-900 light:placeholder-neutral-400"
+                    className={cn("w-full pl-10 pr-9 py-2.5", radius.control, "bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 transition-all light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-900 light:placeholder-neutral-400")}
                   />
                   {searchQuery && (
                     <button
@@ -297,7 +299,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                 </div>
 
                 {/* Layout Mode Switcher */}
-                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.04] border border-white/10 light:bg-neutral-900/[0.04] light:border-neutral-900/10 self-start md:self-auto">
+                <div className={cn("flex items-center gap-1.5 p-1", radius.control, "bg-white/[0.04] border border-white/10 light:bg-neutral-900/[0.04] light:border-neutral-900/10 self-start md:self-auto")}>
                   <button
                     type="button"
                     onClick={() => setLayoutMode("masonry")}
@@ -357,7 +359,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
               </div>
 
               {/* Categories Horizontal Pills */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+              <div className={cn("flex items-center", gap.tight, "overflow-x-auto pb-2 scrollbar-none")}>
                 <button
                   type="button"
                   onClick={() => setSelectedCategory("all")}
@@ -425,8 +427,8 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
             {/* Active Layout Display */}
             <section>
               {filteredPhotos.length === 0 ? (
-                <div className="text-center py-20 bg-white/[0.02] border border-white/5 rounded-3xl p-8 light:bg-neutral-900/[0.03] light:border-neutral-900/10">
-                  <div className="w-12 h-12 rounded-full bg-white/5 text-slate-400 flex items-center justify-center mx-auto mb-3 light:bg-neutral-900/[0.04] light:text-neutral-500">
+                <div className={cn("text-center py-20 bg-white/[0.02] border border-white/5", radius.panel, "p-8 light:bg-neutral-900/[0.03] light:border-neutral-900/10")}>
+                  <div className={cn("w-12 h-12", radius.pill, "bg-white/5 text-slate-400 flex items-center justify-center mx-auto mb-3 light:bg-neutral-900/[0.04] light:text-neutral-500")}>
                     <Icon name="search" size={20} />
                   </div>
                   <h3 className="text-lg font-semibold text-white mb-1 light:text-neutral-900">
@@ -441,7 +443,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                       setSelectedCategory("all");
                       setSearchQuery("");
                     }}
-                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors light:bg-neutral-900/[0.06] light:hover:bg-neutral-900/10 light:text-neutral-900"
+                    className={cn("px-4 py-2", radius.control, "bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors light:bg-neutral-900/[0.06] light:hover:bg-neutral-900/10 light:text-neutral-900")}
                   >
                     Reset Filters
                   </button>
@@ -490,7 +492,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
         {activeTab === "albums" && (
           <section className="space-y-8">
             {/* Search Bar for Albums */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between", gap.loose)}>
               <div className="relative w-full sm:w-80">
                 <Icon
                   name="search"
@@ -502,7 +504,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                   value={albumSearchQuery}
                   onChange={(e) => setAlbumSearchQuery(e.target.value)}
                   placeholder={t("photography.searchAlbumsPlaceholder") || "Tìm kiếm album..."}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 transition-all light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-900 light:placeholder-neutral-400"
+                  className={cn("w-full pl-10 pr-4 py-2.5", radius.control, "bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 transition-all light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-900 light:placeholder-neutral-400")}
                 />
                 {albumSearchQuery && (
                   <button
@@ -522,8 +524,8 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
 
             {/* Albums Grid */}
             {filteredAlbums.length === 0 ? (
-              <div className="text-center py-20 bg-white/[0.02] border border-white/5 rounded-3xl p-8 light:bg-neutral-900/[0.03] light:border-neutral-900/10">
-                <div className="w-12 h-12 rounded-full bg-white/5 text-slate-400 flex items-center justify-center mx-auto mb-3 light:bg-neutral-900/[0.04] light:text-neutral-500">
+              <div className={cn("text-center py-20 bg-white/[0.02] border border-white/5", radius.panel, "p-8 light:bg-neutral-900/[0.03] light:border-neutral-900/10")}>
+                <div className={cn("w-12 h-12", radius.pill, "bg-white/5 text-slate-400 flex items-center justify-center mx-auto mb-3 light:bg-neutral-900/[0.04] light:text-neutral-500")}>
                   <Icon name="grid" size={20} />
                 </div>
                 <h3 className="text-lg font-semibold text-white mb-1 light:text-neutral-900">
@@ -535,7 +537,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                 <button
                   type="button"
                   onClick={() => setAlbumSearchQuery("")}
-                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors light:bg-neutral-900/[0.06] light:hover:bg-neutral-900/10 light:text-neutral-900"
+                  className={cn("px-4 py-2", radius.control, "bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors light:bg-neutral-900/[0.06] light:hover:bg-neutral-900/10 light:text-neutral-900")}
                 >
                   {t("photography.resetAlbumSearch") || "Đặt lại tìm kiếm"}
                 </button>
@@ -559,7 +561,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     <Link
                       key={album.id}
                       href={`/photography/album/${album.slug}`}
-                      className="group relative rounded-3xl overflow-hidden bg-slate-900/60 border border-white/10 hover:border-cyan-500/40 shadow-xl hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-300 flex flex-col light:bg-white light:border-neutral-900/10 light:shadow-neutral-400/10"
+                      className={cn("group relative", radius.panel, "overflow-hidden bg-slate-900/60 border border-white/10 hover:border-cyan-500/40 shadow-xl hover:shadow-2xl hover:shadow-cyan-500/10", motionTokens.base, "flex flex-col light:bg-white light:border-neutral-900/10 light:shadow-neutral-400/10")}
                     >
                       {/* Cover Photo */}
                       <div className="relative aspect-[16/10] w-full bg-slate-950 overflow-hidden light:bg-slate-100">
@@ -575,8 +577,8 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/25 to-transparent opacity-85 group-hover:opacity-60 transition-opacity" />
 
                         {/* Top Badges */}
-                        <div className="absolute top-3.5 left-3.5 flex items-center gap-2 z-10">
-                          <span className="px-3 py-1 rounded-full text-xs font-bold bg-black/70 text-cyan-300 backdrop-blur-md border border-white/15 shadow flex items-center gap-1.5">
+                        <div className={cn("absolute top-3.5 left-3.5 flex items-center", gap.tight, "z-10")}>
+                          <span className={cn("px-3 py-1", radius.pill, "text-xs font-bold bg-black/70 text-cyan-300", elevation.blur, "border border-white/15 shadow flex items-center gap-1.5")}>
                             <Icon name="image" size={12} />
                             <span>{photoCount} {t("photography.photosInAlbum") || "tác phẩm"}</span>
                           </span>
@@ -584,7 +586,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
 
                         {album.featured && (
                           <div className="absolute top-3.5 right-3.5 z-10">
-                            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/90 text-black shadow-lg flex items-center gap-1">
+                            <span className={cn("px-2.5 py-1", radius.pill, "text-xs font-bold bg-amber-500/90 text-black shadow-lg flex items-center gap-1")}>
                               <Icon name="star" size={12} /> {t("photography.featured")}
                             </span>
                           </div>
@@ -610,7 +612,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                             {previewPhotos.map((p, idx) => (
                               <div
                                 key={p.id}
-                                className="relative w-7 h-7 rounded-full overflow-hidden border-2 border-slate-900 bg-slate-800 light:border-white light:bg-neutral-100"
+                                className={cn("relative w-7 h-7", radius.pill, "overflow-hidden border-2 border-slate-900 bg-slate-800 light:border-white light:bg-neutral-100")}
                                 style={{ zIndex: 3 - idx }}
                               >
                                 <ImageWithSkeleton
@@ -623,7 +625,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                               </div>
                             ))}
                             {photoCount > 3 && (
-                              <div className="w-7 h-7 rounded-full bg-white/10 border-2 border-slate-900 flex items-center justify-center text-[10px] font-bold text-slate-300 light:bg-neutral-900/10 light:border-white light:text-neutral-600">
+                              <div className={cn("w-7 h-7", radius.pill, "bg-white/10 border-2 border-slate-900 flex items-center justify-center text-[10px] font-bold text-slate-300 light:bg-neutral-900/10 light:border-white light:text-neutral-600")}>
                                 +{photoCount - 3}
                               </div>
                             )}

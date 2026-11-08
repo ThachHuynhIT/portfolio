@@ -7,6 +7,8 @@ import Icon from "@/components/ui/Icon";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import { ToastProvider } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
+import { cn } from "@/lib/utils";
+import { elevation, gap, radius, surface, text } from "@/lib/design-tokens";
 
 // Maps pathname prefixes to translation keys + default labels + icons
 const BREADCRUMBS: Record<string, { key: string; defaultLabel: string; icon: string }> = {
@@ -33,7 +35,7 @@ export default function AdminLayout({
   const isLoginPage = pathname === "/admin/login";
 
   if (isLoginPage) {
-    return <div className="min-h-screen bg-slate-950 text-white">{children}</div>;
+    return <div className={cn("min-h-screen bg-slate-950", text.primaryDark)}>{children}</div>;
   }
 
   const match = Object.entries(BREADCRUMBS).find(([prefix]) =>
@@ -48,12 +50,12 @@ export default function AdminLayout({
 
   return (
     <ToastProvider>
-      <div className="h-screen w-screen overflow-hidden bg-slate-950 text-white flex">
+      <div className={cn("h-screen w-screen overflow-hidden bg-slate-950", text.primaryDark, "flex")}>
         <AdminSidebar />
 
         <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
           {/* ── Top bar: Breadcrumb & Language Switcher ── */}
-          <header className="h-14 border-b border-white/5 bg-slate-950/80 backdrop-blur-md flex items-center justify-between px-6 gap-3 flex-shrink-0 z-10">
+          <header className={cn("h-14 border-b border-white/5 bg-slate-950/80", elevation.blur, "flex items-center justify-between px-6", gap.base, "flex-shrink-0 z-10")}>
             {/* Left: Breadcrumbs */}
             <div className="flex items-center gap-2.5 min-w-0">
               <Link
@@ -76,19 +78,19 @@ export default function AdminLayout({
             </div>
 
             {/* Right: Quick Switcher (Flags) & View Site link */}
-            <div className="flex items-center gap-3 flex-shrink-0">
+            <div className={cn("flex items-center", gap.base, "flex-shrink-0")}>
               {/* Flag-based Language Switcher */}
-              <div className="flex items-center gap-2">
+              <div className={cn("flex items-center", gap.tight)}>
                 <LanguageSwitcher variant="pill" size="sm" />
               </div>
 
-              <div className="h-4 w-px bg-white/10" />
+              <div className={cn("h-4 w-px", surface.raisedDark)} />
 
               <Link
                 href="/"
                 target="_blank"
                 title={t("admin.sidebar.viewSite", "View Site")}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/10 flex items-center gap-1.5 text-xs font-medium"
+                className={cn("p-1.5", radius.chip, "text-slate-400 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/10 flex items-center gap-1.5 text-xs font-medium")}
               >
                 <Icon name="globe" size={14} className="text-slate-400" />
                 <span className="hidden sm:inline text-xs text-slate-400 hover:text-slate-200">

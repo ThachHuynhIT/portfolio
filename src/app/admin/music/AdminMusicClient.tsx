@@ -7,6 +7,8 @@ import { useTranslation } from "@/context/TranslationContext";
 import AdminHeader from "@/components/admin/AdminHeader";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import Icon from "@/components/ui/Icon";
+import { cn } from "@/lib/utils";
+import { elevation, gap, radius, text } from "@/lib/design-tokens";
 
 interface Track {
   id: string;
@@ -262,7 +264,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
         action={
           <Link
             href="/admin/music/new"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20"
+            className={cn("inline-flex items-center", gap.tight, "px-4 py-2", radius.control, "bg-violet-600 hover:bg-violet-500", text.primaryDark, "text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20")}
           >
             <span className="text-base leading-none">+</span>
             {t.admin.music.addTrack}
@@ -271,24 +273,24 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
       />
 
       {/* ── Top Metric Banner ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 backdrop-blur-md">
+      <div className={cn("grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5", gap.loose)}>
+        <div className={cn("p-4", radius.card, "bg-gray-900/90 border border-gray-800", elevation.blur)}>
           <div className="flex items-center justify-between">
             <span className="text-gray-400 text-xs font-semibold uppercase">
               {t.admin.music.statTotalTracks}
             </span>
             <Icon name="music" size={18} />
           </div>
-          <p className="text-2xl font-bold text-white mt-2">{tracks.length}</p>
+          <p className={cn("text-2xl font-bold", text.primaryDark, "mt-2")}>{tracks.length}</p>
           <span className="text-xs text-gray-500">{genres.length - 1} genres</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 backdrop-blur-md">
+        <div className={cn("p-4", radius.card, "bg-gray-900/90 border border-gray-800", elevation.blur)}>
           <div className="flex items-center justify-between">
             <span className="text-gray-400 text-xs font-semibold uppercase">
               {t.admin.music.statPublished}
             </span>
-            <span className="w-3 h-3 rounded-full bg-emerald-400" />
+            <span className={cn("w-3 h-3", radius.pill, "bg-emerald-400")} />
           </div>
           <p className="text-2xl font-bold text-emerald-400 mt-2">{publishedCount}</p>
           <span className="text-xs text-gray-500">
@@ -296,7 +298,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
           </span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 backdrop-blur-md">
+        <div className={cn("p-4", radius.card, "bg-gray-900/90 border border-gray-800", elevation.blur)}>
           <div className="flex items-center justify-between">
             <span className="text-gray-400 text-xs font-semibold uppercase">
               {t.admin.music.statTotalPlays}
@@ -307,7 +309,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
           <span className="text-xs text-gray-500">{t.admin.music.liveListens}</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 backdrop-blur-md">
+        <div className={cn("p-4", radius.card, "bg-gray-900/90 border border-gray-800", elevation.blur)}>
           <div className="flex items-center justify-between">
             <span className="text-gray-400 text-xs font-semibold uppercase">
               {t.admin.music.statLibraryTime}
@@ -318,10 +320,10 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
           <span className="text-xs text-gray-500">{t.admin.music.audioRuntime}</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-900/40 to-cyan-900/40 border border-purple-500/20 flex flex-col justify-center items-center text-center">
+        <div className={cn("p-4", radius.card, "bg-gradient-to-br from-purple-900/40 to-cyan-900/40 border border-purple-500/20 flex flex-col justify-center items-center text-center")}>
           <Link
             href="/admin/music/new"
-            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 transition-all text-center"
+            className={cn("w-full py-2.5 px-4", radius.control, "bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500", text.primaryDark, "font-semibold text-sm shadow-lg shadow-purple-500/25 transition-all text-center")}
           >
             + {t.admin.music.addTrack}
           </Link>
@@ -329,7 +331,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
       </div>
 
       {/* ── Toolbar & Filters ── */}
-      <div className="p-4 rounded-2xl bg-gray-900/70 border border-gray-800 flex flex-wrap items-center justify-between gap-4">
+      <div className={cn("p-4", radius.card, "bg-gray-900/70 border border-gray-800 flex flex-wrap items-center justify-between", gap.loose)}>
         {/* Search */}
         <div className="relative min-w-[240px] flex-1 max-w-md">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"><Icon name="search" size={13} /></span>
@@ -338,7 +340,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
             placeholder={t.admin.music.searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-8 py-2 bg-gray-800/80 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-purple-500 transition-all placeholder:text-gray-500"
+            className={cn("w-full pl-9 pr-8 py-2 bg-gray-800/80 border border-gray-700", radius.control, "text-sm", text.primaryDark, "focus:outline-none focus:border-purple-500 transition-all placeholder:text-gray-500")}
           />
           {search && (
             <button
@@ -356,7 +358,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-            className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-xs font-medium text-gray-300 focus:outline-none focus:border-purple-500"
+            className={cn("px-3 py-2 bg-gray-800 border border-gray-700", radius.control, "text-xs font-medium text-gray-300 focus:outline-none focus:border-purple-500")}
           >
             <option value="all">{t.admin.common.allStatus}</option>
             <option value="published">{t.admin.common.published}</option>
@@ -367,7 +369,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
           <select
             value={genreFilter}
             onChange={(e) => setGenreFilter(e.target.value)}
-            className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-xs font-medium text-gray-300 focus:outline-none focus:border-purple-500"
+            className={cn("px-3 py-2 bg-gray-800 border border-gray-700", radius.control, "text-xs font-medium text-gray-300 focus:outline-none focus:border-purple-500")}
           >
             <option value="all">{t.admin.music.allGenres}</option>
             {genres.filter((g) => g !== "all").map((g) => (
@@ -379,7 +381,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-xs font-medium text-gray-300 focus:outline-none focus:border-purple-500"
+            className={cn("px-3 py-2 bg-gray-800 border border-gray-700", radius.control, "text-xs font-medium text-gray-300 focus:outline-none focus:border-purple-500")}
           >
             <option value="order">{t.admin.music.sortOrder}</option>
             <option value="plays">{t.admin.music.sortPlays}</option>
@@ -388,7 +390,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
           </select>
 
           {/* View Toggle */}
-          <div className="flex items-center bg-gray-800 rounded-xl border border-gray-700 p-0.5">
+          <div className={cn("flex items-center bg-gray-800", radius.control, "border border-gray-700 p-0.5")}>
             <button
               onClick={() => setViewMode("table")}
               className={`p-1.5 rounded-lg text-xs transition-colors ${viewMode === "table" ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"}`}
@@ -409,8 +411,8 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
 
       {/* ── Batch Actions Bar ── */}
       {selectedIds.size > 0 && (
-        <div className="p-3 px-4 rounded-xl bg-purple-950/40 border border-purple-500/30 flex items-center justify-between text-sm animate-fade-in">
-          <div className="flex items-center gap-3">
+        <div className={cn("p-3 px-4", radius.control, "bg-purple-950/40 border border-purple-500/30 flex items-center justify-between text-sm animate-fade-in")}>
+          <div className={cn("flex items-center", gap.base)}>
             <span className="font-semibold text-purple-300">
               {t.admin.music.selectedCount.replace("{count}", String(selectedIds.size))}
             </span>
@@ -421,25 +423,25 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
               {t.admin.music.deselectAll}
             </button>
           </div>
-          <div className="flex items-center gap-2">
+          <div className={cn("flex items-center", gap.tight)}>
             <button
               onClick={() => handleBatchPublish(true)}
               disabled={isBatchOperating}
-              className="px-3 py-1.5 bg-emerald-600/80 hover:bg-emerald-600 text-white text-xs font-semibold rounded-lg transition-all"
+              className={cn("px-3 py-1.5 bg-emerald-600/80 hover:bg-emerald-600", text.primaryDark, "text-xs font-semibold", radius.chip, "transition-all")}
             >
               {t.admin.music.publishSelected}
             </button>
             <button
               onClick={() => handleBatchPublish(false)}
               disabled={isBatchOperating}
-              className="px-3 py-1.5 bg-yellow-600/80 hover:bg-yellow-600 text-white text-xs font-semibold rounded-lg transition-all"
+              className={cn("px-3 py-1.5 bg-yellow-600/80 hover:bg-yellow-600", text.primaryDark, "text-xs font-semibold", radius.chip, "transition-all")}
             >
               {t.admin.music.unpublishSelected}
             </button>
             <button
               onClick={() => setIsBatchDeleteDialogOpen(true)}
               disabled={isBatchOperating}
-              className="px-3 py-1.5 bg-red-600/80 hover:bg-red-600 text-white text-xs font-semibold rounded-lg transition-all"
+              className={cn("px-3 py-1.5 bg-red-600/80 hover:bg-red-600", text.primaryDark, "text-xs font-semibold", radius.chip, "transition-all")}
             >
               {t.admin.music.deleteSelected}
             </button>
@@ -449,9 +451,9 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
 
       {/* ── Empty State ── */}
       {filtered.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl bg-gray-900 border border-gray-800 text-gray-400">
+        <div className={cn("p-12 text-center", radius.card, "bg-gray-900 border border-gray-800 text-gray-400")}>
           <div className="flex justify-center mb-3"><Icon name="music" size={32} /></div>
-          <h3 className="text-lg font-bold text-white mb-1">{t.admin.music.noTracksFound}</h3>
+          <h3 className={cn("text-lg font-bold", text.primaryDark, "mb-1")}>{t.admin.music.noTracksFound}</h3>
           <p className="text-sm max-w-sm mx-auto mb-4 text-gray-500">
             {tracks.length === 0
               ? t.admin.music.noTracksDesc
@@ -460,14 +462,14 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
           {tracks.length === 0 ? (
             <Link
               href="/admin/music/new"
-              className="inline-flex px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium text-sm transition-all"
+              className={cn("inline-flex px-4 py-2", radius.control, "bg-purple-600 hover:bg-purple-500", text.primaryDark, "font-medium text-sm transition-all")}
             >
               {t.admin.music.addTrack}
             </Link>
           ) : (
             <button
               onClick={() => { setSearch(""); setStatusFilter("all"); setGenreFilter("all"); }}
-              className="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium transition-all"
+              className={cn("px-4 py-2", radius.control, "bg-gray-800 hover:bg-gray-700", text.primaryDark, "text-sm font-medium transition-all")}
             >
               {t.admin.music.resetFilters}
             </button>
@@ -475,7 +477,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
         </div>
       ) : viewMode === "table" ? (
         /* ── TABLE VIEW ── */
-        <div className="overflow-x-auto rounded-2xl border border-gray-800 bg-gray-900/60">
+        <div className={cn("overflow-x-auto", radius.card, "border border-gray-800 bg-gray-900/60")}>
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-gray-800 text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-900/90">
@@ -534,8 +536,8 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
 
                     {/* Title + Thumb */}
                     <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-xl overflow-hidden bg-gray-800 flex-shrink-0 border border-gray-700">
+                      <div className={cn("flex items-center", gap.base)}>
+                        <div className={cn("w-11 h-11", radius.control, "overflow-hidden bg-gray-800 flex-shrink-0 border border-gray-700")}>
                           {track.thumbnailUrl ? (
                             <img src={track.thumbnailUrl} alt="" className="w-full h-full object-cover" />
                           ) : (
@@ -543,7 +545,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                           )}
                         </div>
                         <div className="min-w-0">
-                          <span className="font-semibold text-white block truncate max-w-[200px]">
+                          <span className={cn("font-semibold", text.primaryDark, "block truncate max-w-[200px]")}>
                             {track.title}
                           </span>
                           <span className="text-xs text-gray-400 block truncate max-w-[200px]">
@@ -557,7 +559,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                     <td className="p-4 text-gray-400">{track.album || "—"}</td>
                     <td className="p-4">
                       {track.genre ? (
-                        <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                        <span className={cn("inline-block px-2.5 py-0.5", radius.pill, "text-xs font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20")}>
                           {track.genre}
                         </span>
                       ) : (
@@ -591,16 +593,16 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
 
                     {/* Action buttons */}
                     <td className="p-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className={cn("flex items-center justify-end", gap.tight)}>
                         <Link
                           href={`/admin/music/${track.id}/edit`}
-                          className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white rounded-lg text-xs font-semibold transition-colors border border-gray-700"
+                          className={cn("px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white", radius.chip, "text-xs font-semibold transition-colors border border-gray-700")}
                         >
                           {t.admin.common.edit}
                         </Link>
                         <button
                           onClick={() => setDeleteTarget(track)}
-                          className="px-3 py-1.5 bg-red-950/30 hover:bg-red-900/50 text-red-400 hover:text-red-300 rounded-lg text-xs font-semibold transition-colors border border-red-800/40"
+                          className={cn("px-3 py-1.5 bg-red-950/30 hover:bg-red-900/50 text-red-400 hover:text-red-300", radius.chip, "text-xs font-semibold transition-colors border border-red-800/40")}
                         >
                           {t.admin.common.delete}
                         </button>
@@ -628,7 +630,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
               >
                 <div>
                   {/* Card Cover & Quick Play */}
-                  <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-800 mb-3 group">
+                  <div className={cn("relative aspect-square", radius.control, "overflow-hidden bg-gray-800 mb-3 group")}>
                     {track.thumbnailUrl ? (
                       <img src={track.thumbnailUrl} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -673,7 +675,7 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                   </div>
 
                   {/* Info */}
-                  <h4 className="font-bold text-white text-base truncate mb-0.5">{track.title}</h4>
+                  <h4 className={cn("font-bold", text.primaryDark, "text-base truncate mb-0.5")}>{track.title}</h4>
                   <p className="text-gray-400 text-xs truncate mb-2">{track.artist}</p>
 
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
@@ -684,16 +686,16 @@ export default function AdminMusicClient({ tracks: initial }: { tracks: Track[] 
                 </div>
 
                 {/* Card Actions */}
-                <div className="flex items-center gap-2 pt-3 border-t border-gray-800">
+                <div className={cn("flex items-center", gap.tight, "pt-3 border-t border-gray-800")}>
                   <Link
                     href={`/admin/music/${track.id}/edit`}
-                    className="flex-1 text-center py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold rounded-lg transition-all"
+                    className={cn("flex-1 text-center py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold", radius.chip, "transition-all")}
                   >
                     {t.admin.common.edit}
                   </Link>
                   <button
                     onClick={() => setDeleteTarget(track)}
-                    className="px-3 py-1.5 bg-red-950/30 hover:bg-red-900/50 text-red-400 text-xs font-semibold rounded-lg transition-all"
+                    className={cn("px-3 py-1.5 bg-red-950/30 hover:bg-red-900/50 text-red-400 text-xs font-semibold", radius.chip, "transition-all")}
                   >
                     {t.admin.common.delete}
                   </button>

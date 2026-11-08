@@ -11,6 +11,8 @@ import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
 import type { NavLink, NavSubLink } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { border, gap, motion, radius, surface, text } from "@/lib/design-tokens";
 
 type SubLinkForm = Pick<NavSubLink, "label" | "label_vi" | "href"> & { id?: string };
 
@@ -230,11 +232,11 @@ export default function NavLinksAdminPage() {
         icon="nav"
         closeHref="/admin"
         action={
-          <div className="flex items-center gap-3">
+          <div className={cn("flex items-center", gap.base)}>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as "all" | "published" | "draft")}
-              className="px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none"
+              className={cn("px-3 py-2 bg-slate-900", border.subtleDark, radius.control, "text-xs text-slate-300 focus:outline-none")}
             >
               <option value="all">{t("admin.common.all", "All")} ({links.length})</option>
               <option value="published">{t("admin.common.published", "Published")} ({links.filter((l) => l.published !== false).length})</option>
@@ -242,7 +244,7 @@ export default function NavLinksAdminPage() {
             </select>
             <button
               onClick={openCreateModal}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20 cursor-pointer"
+              className={cn("inline-flex items-center gap-1.5 px-4 py-2", radius.control, "bg-violet-600 hover:bg-violet-500", text.primaryDark, "text-sm font-semibold transition-colors shadow-lg shadow-violet-500/20 cursor-pointer")}
             >
               <span className="text-base leading-none">+</span>
               {t("admin.navLinks.addLink", "Add Link")}
@@ -251,7 +253,7 @@ export default function NavLinksAdminPage() {
         }
       />
 
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className={cn("bg-gray-900 border border-gray-800", radius.card, "overflow-hidden shadow-xl")}>
         <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-gray-300">
           <thead className="bg-gray-950 text-gray-400 uppercase text-xs border-b border-gray-800">
@@ -270,8 +272,8 @@ export default function NavLinksAdminPage() {
               return (
                 <tr key={link.id} className="hover:bg-gray-800/50 transition-colors group">
                   <td className="px-4 py-3 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="w-7 text-xs text-slate-400 font-mono font-bold bg-white/5 py-1 px-1.5 rounded-lg border border-white/5">
+                    <div className={cn("flex items-center justify-center", gap.tight)}>
+                      <span className={cn("w-7 text-xs text-slate-400 font-mono font-bold", surface.cardDark, "py-1 px-1.5", radius.chip, "border border-white/5")}>
                         #{originalIndex + 1}
                       </span>
                       <div className="flex flex-col gap-0.5">
@@ -279,7 +281,7 @@ export default function NavLinksAdminPage() {
                           type="button"
                           disabled={originalIndex === 0}
                           onClick={() => handleMove(originalIndex, "up")}
-                          className="w-6 h-5 flex items-center justify-center rounded bg-white/5 hover:bg-purple-600/30 text-[10px] text-slate-300 hover:text-purple-300 disabled:opacity-20 disabled:hover:bg-white/5 disabled:hover:text-slate-500 transition-all active:scale-95 cursor-pointer"
+                          className={cn("w-6 h-5 flex items-center justify-center rounded", surface.cardDark, "hover:bg-purple-600/30 text-[10px] text-slate-300 hover:text-purple-300 disabled:opacity-20 disabled:hover:bg-white/5 disabled:hover:text-slate-500 transition-all", motion.press, "cursor-pointer")}
                           title="Move Up"
                         >
                           <Icon name="arrowUp" size={12} />
@@ -288,7 +290,7 @@ export default function NavLinksAdminPage() {
                           type="button"
                           disabled={originalIndex === links.length - 1}
                           onClick={() => handleMove(originalIndex, "down")}
-                          className="w-6 h-5 flex items-center justify-center rounded bg-white/5 hover:bg-purple-600/30 text-[10px] text-slate-300 hover:text-purple-300 disabled:opacity-20 disabled:hover:bg-white/5 disabled:hover:text-slate-500 transition-all active:scale-95 cursor-pointer"
+                          className={cn("w-6 h-5 flex items-center justify-center rounded", surface.cardDark, "hover:bg-purple-600/30 text-[10px] text-slate-300 hover:text-purple-300 disabled:opacity-20 disabled:hover:bg-white/5 disabled:hover:text-slate-500 transition-all", motion.press, "cursor-pointer")}
                           title="Move Down"
                         >
                           <Icon name="arrowDown" size={12} />
@@ -300,7 +302,7 @@ export default function NavLinksAdminPage() {
                   {/* Bilingual Labels */}
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1.5 font-semibold text-white">
+                      <div className={cn("flex items-center gap-1.5 font-semibold", text.primaryDark)}>
                         <FlagIcon locale="en" width={14} height={9} />
                         <span>{link.label}</span>
                       </div>
@@ -319,7 +321,7 @@ export default function NavLinksAdminPage() {
                     {link.href}
                     {!!link.children?.length && (
                       <div className="mt-1 font-sans">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-500/10 text-violet-300 border border-violet-500/20">
+                        <span className={cn("inline-flex items-center gap-1 px-2 py-0.5", radius.pill, "text-[10px] font-semibold bg-violet-500/10 text-violet-300 border border-violet-500/20")}>
                           {link.children.length} sub-item{link.children.length > 1 ? "s" : ""}
                         </span>
                       </div>
@@ -343,13 +345,13 @@ export default function NavLinksAdminPage() {
                   <td className="px-6 py-4 text-right space-x-2">
                     <button
                       onClick={() => openEditModal(link)}
-                      className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg text-xs font-medium transition-all cursor-pointer"
+                      className={cn("px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-400", radius.chip, "text-xs font-medium transition-all cursor-pointer")}
                     >
                       {t("admin.common.edit", "Edit")}
                     </button>
                     <button
                       onClick={() => setDeleteTarget(link)}
-                      className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-medium transition-all cursor-pointer"
+                      className={cn("px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400", radius.chip, "text-xs font-medium transition-all cursor-pointer")}
                     >
                       {t("admin.common.delete", "Delete")}
                     </button>
@@ -391,7 +393,7 @@ export default function NavLinksAdminPage() {
                 value={formLabel}
                 onChange={(e) => setFormLabel(e.target.value)}
                 placeholder={t("admin.navLinks.fieldLabelEnPlaceholder", "e.g. Projects")}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm"
+                className={cn("w-full pl-10 pr-4 py-2.5 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500 text-sm")}
                 required
               />
             </div>
@@ -408,7 +410,7 @@ export default function NavLinksAdminPage() {
                 value={formLabelVi}
                 onChange={(e) => setFormLabelVi(e.target.value)}
                 placeholder={t("admin.navLinks.fieldLabelViPlaceholder", "Ví dụ: Dự án")}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm"
+                className={cn("w-full pl-10 pr-4 py-2.5 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500 text-sm")}
               />
             </div>
           </FormField>
@@ -420,13 +422,13 @@ export default function NavLinksAdminPage() {
               value={formHref}
               onChange={(e) => setFormHref(e.target.value)}
               placeholder={t("admin.navLinks.fieldHrefPlaceholder", "#projects, /blog, /music, etc.")}
-              className="w-full px-4 py-2.5 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500 text-sm font-mono"
+              className={cn("w-full px-4 py-2.5 bg-slate-950", border.subtleDark, radius.control, text.primaryDark, "focus:outline-none focus:border-purple-500 text-sm font-mono")}
               required
             />
           </FormField>
 
           <div className="pt-2">
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-300">
+            <label className={cn("flex items-center", gap.tight, "cursor-pointer text-xs font-medium text-slate-300")}>
               <input
                 type="checkbox"
                 checked={formPublished}
@@ -445,7 +447,7 @@ export default function NavLinksAdminPage() {
               <button
                 type="button"
                 onClick={addSubLink}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 text-xs font-semibold transition-colors cursor-pointer"
+                className={cn("inline-flex items-center gap-1 px-2.5 py-1", radius.chip, "bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 text-xs font-semibold transition-colors cursor-pointer")}
               >
                 <span className="text-sm leading-none">+</span>
                 {t("admin.navLinks.addSubItem", "Add sub-item")}
@@ -459,34 +461,34 @@ export default function NavLinksAdminPage() {
             )}
 
             {formChildren.map((child, index) => (
-              <div key={index} className="flex items-start gap-2 bg-slate-950/60 border border-white/10 rounded-xl p-2.5">
-                <div className="flex-1 grid grid-cols-2 gap-2">
+              <div key={index} className={cn("flex items-start", gap.tight, "bg-slate-950/60", border.subtleDark, radius.control, "p-2.5")}>
+                <div className={cn("flex-1 grid grid-cols-2", gap.tight)}>
                   <input
                     type="text"
                     value={child.label}
                     onChange={(e) => updateSubLink(index, { label: e.target.value })}
                     placeholder={t("admin.navLinks.fieldLabelEnPlaceholder", "e.g. Projects")}
-                    className="w-full px-2.5 py-1.5 bg-slate-950 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500 text-xs"
+                    className={cn("w-full px-2.5 py-1.5 bg-slate-950", border.subtleDark, radius.chip, text.primaryDark, "focus:outline-none focus:border-purple-500 text-xs")}
                   />
                   <input
                     type="text"
                     value={child.label_vi}
                     onChange={(e) => updateSubLink(index, { label_vi: e.target.value })}
                     placeholder={t("admin.navLinks.fieldLabelViPlaceholder", "Ví dụ: Dự án")}
-                    className="w-full px-2.5 py-1.5 bg-slate-950 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500 text-xs"
+                    className={cn("w-full px-2.5 py-1.5 bg-slate-950", border.subtleDark, radius.chip, text.primaryDark, "focus:outline-none focus:border-purple-500 text-xs")}
                   />
                   <input
                     type="text"
                     value={child.href}
                     onChange={(e) => updateSubLink(index, { href: e.target.value })}
                     placeholder={t("admin.navLinks.fieldHrefPlaceholder", "#projects, /blog, /music, etc.")}
-                    className="col-span-2 w-full px-2.5 py-1.5 bg-slate-950 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500 text-xs font-mono"
+                    className={cn("col-span-2 w-full px-2.5 py-1.5 bg-slate-950", border.subtleDark, radius.chip, text.primaryDark, "focus:outline-none focus:border-purple-500 text-xs font-mono")}
                   />
                 </div>
                 <button
                   type="button"
                   onClick={() => removeSubLink(index)}
-                  className="px-2 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-medium transition-all cursor-pointer"
+                  className={cn("px-2 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400", radius.chip, "text-xs font-medium transition-all cursor-pointer")}
                 >
                   {t("admin.common.delete", "Delete")}
                 </button>

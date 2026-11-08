@@ -7,6 +7,8 @@ import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/LanguageContext";
 import type { MediaCategory } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { border, elevation, gap, radius, surface, text } from "@/lib/design-tokens";
 
 interface MediaImagePickerProps {
   label: string;
@@ -82,13 +84,13 @@ export default function MediaImagePicker({
   return (
     <div className="space-y-2">
       {/* Label and Option Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between", gap.tight)}>
         <label htmlFor={id} className="text-xs font-semibold text-slate-200">
           {label} {required && <span className="text-red-400">*</span>}
         </label>
 
         {/* 3 Source Modes Switcher */}
-        <div className="flex items-center bg-slate-950/80 rounded-lg p-0.5 border border-white/10 text-xs">
+        <div className={cn("flex items-center bg-slate-950/80", radius.chip, "p-0.5", border.subtleDark, "text-xs")}>
           <button
             type="button"
             onClick={(e) => {
@@ -152,13 +154,13 @@ export default function MediaImagePicker({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="https://... (paste Cloudinary or external image URL)"
-            className="w-full px-4 py-2 bg-slate-950/80 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 font-mono"
+            className={cn("w-full px-4 py-2 bg-slate-950/80", border.subtleDark, radius.control, "text-xs", text.primaryDark, "focus:outline-none focus:border-violet-500 font-mono")}
           />
         </div>
       ) : activeTab === "upload" ? (
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-white/15 hover:border-violet-500/60 bg-slate-950/40 rounded-xl p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-1.5"
+          className={cn("border-2 border-dashed border-white/15 hover:border-violet-500/60 bg-slate-950/40", radius.control, "p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-1.5")}
         >
           <input
             ref={fileInputRef}
@@ -169,13 +171,13 @@ export default function MediaImagePicker({
             className="hidden"
           />
           {isUploading ? (
-            <div className="flex items-center gap-2 text-violet-400 text-xs py-2">
-              <div className="w-4 h-4 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
+            <div className={cn("flex items-center", gap.tight, "text-violet-400 text-xs py-2")}>
+              <div className={cn("w-4 h-4 border-2 border-violet-400 border-t-transparent", radius.pill, "animate-spin")} />
               <span>{t("admin.common.saving", "Uploading to Cloudinary…")}</span>
             </div>
           ) : (
             <>
-              <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400">
+              <div className={cn("w-8 h-8", radius.chip, "bg-violet-500/10 flex items-center justify-center text-violet-400")}>
                 <Icon name="uploadCloud" size={16} />
               </div>
               <p className="text-xs font-medium text-slate-300">
@@ -189,7 +191,7 @@ export default function MediaImagePicker({
         </div>
       ) : (
         /* Library Mode */
-        <div className="flex items-center gap-2">
+        <div className={cn("flex items-center", gap.tight)}>
           <button
             type="button"
             onClick={(e) => {
@@ -197,7 +199,7 @@ export default function MediaImagePicker({
               e.stopPropagation();
               setIsModalOpen(true);
             }}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-950/80 hover:bg-slate-900 border border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white rounded-xl text-xs font-medium transition-all group"
+            className={cn("flex-1 flex items-center justify-center", gap.tight, "px-4 py-2.5 bg-slate-950/80 hover:bg-slate-900", border.subtleDark, "hover:border-violet-500/40 text-slate-300 hover:text-white", radius.control, "text-xs font-medium transition-all group")}
           >
             <Icon name="folder" size={14} />
             <span>{t("admin.media.searchPlaceholder", "Open Cloud Library to choose image…")}</span>
@@ -207,10 +209,10 @@ export default function MediaImagePicker({
 
       {/* Image Preview Card (if value exists) */}
       {value && (
-        <div className="flex items-center gap-3 p-2.5 bg-slate-950/60 border border-white/10 rounded-xl mt-2">
+        <div className={cn("flex items-center", gap.base, "p-2.5 bg-slate-950/60", border.subtleDark, radius.control, "mt-2")}>
           <div
             onClick={() => setShowLightbox(true)}
-            className="w-14 h-14 rounded-lg bg-black/40 overflow-hidden flex-shrink-0 relative border border-white/10 cursor-zoom-in group/thumb"
+            className={cn("w-14 h-14", radius.chip, "bg-black/40 overflow-hidden flex-shrink-0 relative", border.subtleDark, "cursor-zoom-in group/thumb")}
             title={t("admin.common.preview", "Click to view full image")}
           >
             <img
@@ -222,7 +224,7 @@ export default function MediaImagePicker({
                 (e.target as HTMLElement).style.display = "none";
               }}
             />
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-white">
+            <div className={cn("absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center", text.primaryDark)}>
               <Icon name="search" size={14} />
             </div>
           </div>
@@ -231,7 +233,7 @@ export default function MediaImagePicker({
             <p className="text-xs text-slate-300 font-mono truncate" title={value}>
               {value}
             </p>
-            <div className="flex items-center gap-2 mt-1">
+            <div className={cn("flex items-center", gap.tight, "mt-1")}>
               <button
                 type="button"
                 onClick={(e) => {
@@ -262,7 +264,7 @@ export default function MediaImagePicker({
           <button
             type="button"
             onClick={() => onChange("")}
-            className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            className={cn("p-1.5", radius.chip, "text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors")}
             title={t("admin.common.remove", "Remove image")}
           >
             <Icon name="close" size={14} />
@@ -291,7 +293,7 @@ export default function MediaImagePicker({
           }}
         >
           {/* Dark frosted backdrop */}
-          <div className="absolute inset-0 bg-black/90 backdrop-blur-md transition-opacity" />
+          <div className={cn("absolute inset-0 bg-black/90", elevation.blur, "transition-opacity")} />
 
           {/* Lightbox container */}
           <div
@@ -299,25 +301,25 @@ export default function MediaImagePicker({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Top Toolbar */}
-            <div className="w-full flex items-center justify-between pb-3 text-xs text-white/80 gap-3">
-              <span className="font-mono text-[11px] text-slate-300 truncate max-w-sm sm:max-w-md bg-slate-900/90 px-3 py-1.5 rounded-xl border border-white/10 shadow">
+            <div className={cn("w-full flex items-center justify-between pb-3 text-xs text-white/80", gap.base)}>
+              <span className={cn("font-mono text-[11px] text-slate-300 truncate max-w-sm sm:max-w-md bg-slate-900/90 px-3 py-1.5", radius.control, border.subtleDark, "shadow")}>
                 {value}
               </span>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className={cn("flex items-center", gap.tight, "flex-shrink-0")}>
                 <button
                   type="button"
                   onClick={() => {
                     navigator.clipboard.writeText(value);
                     toast.success("Image URL copied to clipboard!");
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-xs transition-all shadow"
+                  className={cn("px-3 py-1.5", radius.control, surface.raisedDark, "hover:bg-white/20", text.primaryDark, "font-medium text-xs transition-all shadow")}
                 >
                   Copy URL
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowLightbox(false)}
-                  className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all text-sm flex items-center justify-center shadow"
+                  className={cn("w-8 h-8", radius.control, surface.raisedDark, "hover:bg-white/20", text.primaryDark, "transition-all text-sm flex items-center justify-center shadow")}
                   title="Close (Esc)"
                 >
                   <Icon name="close" size={14} />
@@ -326,11 +328,11 @@ export default function MediaImagePicker({
             </div>
 
             {/* Original Image Frame */}
-            <div className="relative rounded-2xl overflow-hidden border border-white/15 shadow-2xl bg-black/70 flex items-center justify-center max-h-[82vh] max-w-full">
+            <div className={cn("relative", radius.card, "overflow-hidden border border-white/15 shadow-2xl bg-black/70 flex items-center justify-center max-h-[82vh] max-w-full")}>
               <img
                 src={value}
                 alt="Full original preview"
-                className="max-h-[80vh] max-w-full object-contain select-none rounded-xl"
+                className={cn("max-h-[80vh] max-w-full object-contain select-none", radius.control)}
               />
             </div>
           </div>
