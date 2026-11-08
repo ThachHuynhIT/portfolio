@@ -19,7 +19,7 @@ const SkillsSection = dynamic(
 const ProjectsSection = dynamic(
   () => import("@/components/sections/ProjectsSection"),
   {
-    loading: () => <SectionSkeleton title="Featured Projects" cardCount={3} />,
+    loading: () => <SectionSkeleton title="Projects" cardCount={3} />,
   }
 );
 
@@ -33,7 +33,7 @@ const PhotoPreviewSection = dynamic(
 const BlogPreviewSection = dynamic(
   () => import("@/components/sections/BlogPreviewSection"),
   {
-    loading: () => <SectionSkeleton title="Blog" cardCount={3} />,
+    loading: () => <SectionSkeleton title="Writing" cardCount={3} />,
   }
 );
 
@@ -65,8 +65,8 @@ export default async function Home() {
         {/* Below-the-fold code-split sections */}
         <SkillsSection skills={skills} siteConfig={siteConfig} />
         <ProjectsSection projects={projects} siteConfig={siteConfig} />
-        <PhotoPreviewSection photography={photography} />
-        <BlogPreviewSection posts={recentPosts} />
+        {photography.length > 0 && <PhotoPreviewSection photography={photography} />}
+        {recentPosts.length > 0 && <BlogPreviewSection posts={recentPosts} />}
         <ContactSection siteConfig={siteConfig} />
       </div>
     </>

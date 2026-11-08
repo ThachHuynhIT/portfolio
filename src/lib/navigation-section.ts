@@ -1,3 +1,14 @@
+import type { NavLink } from "./types";
+
+export function filterBlogNavLinks(links: readonly NavLink[], hasPosts: boolean): NavLink[] {
+  return links.flatMap((link) => {
+    if (!hasPosts && ["/blog", "#blog", "/#blog"].includes(link.href)) return [];
+    const children = link.children ? filterBlogNavLinks(link.children, hasPosts) : undefined;
+    if (link.children?.length && !children?.length && (!link.href.trim() || link.href === "#")) return [];
+    return [{ ...link, ...(children ? { children } : {}) }];
+  });
+}
+
 /** Nav destinations are structural, never inferred from translated labels. */
 export function getSectionNavTarget(sectionId: string): string {
   return sectionId === "photos" || sectionId === "blog" ? "hobby" : sectionId;

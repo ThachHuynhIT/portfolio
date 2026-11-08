@@ -26,9 +26,9 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
   }, []);
   if (isExcludedRoute(pathname)) return null;
   const authorName = siteConfig.author.name.trim();
-  return <motion.footer ref={footerRef} onViewportEnter={() => setEntered(true)} viewport={{ once: true }} className="relative overflow-hidden border-t border-portfolio-hairline bg-portfolio-void text-portfolio-ink">
+  return <motion.footer ref={footerRef} onViewportEnter={() => setEntered(true)} viewport={{ once: true }} className="portfolio-footer relative overflow-hidden border-t border-portfolio-hairline bg-portfolio-void text-portfolio-ink">
     <span aria-hidden="true" className={entered ? "portfolio-footer-star portfolio-footer-star-started" : "portfolio-footer-star"} style={{ animationPlayState: inView && tabVisible ? "running" : "paused" }} />
-    <div className="mx-auto max-w-[1120px] px-4 py-12">
+    <div className="portfolio-footer-content mx-auto max-w-[1120px] px-4 py-12">
       <div className="flex flex-col justify-between gap-8 md:flex-row">
         <div>
           {authorName && <Link href="/" className="inline-flex min-h-11 items-center text-xl font-bold">{authorName}</Link>}
@@ -43,7 +43,7 @@ export default function Footer({ navLinks, socialLinks, siteConfig }: FooterProp
         </div>
         <nav aria-label={t("footer.quickLinks")}>
           <ul className="flex flex-wrap gap-x-5 gap-y-1 md:max-w-md">
-            {navLinks.map((link) => <li key={link.id}><Link href={link.href.startsWith("#") && pathname !== "/" ? `/${link.href}` : link.href} className="inline-flex min-h-11 items-center text-sm text-portfolio-dust transition-colors duration-150 hover:text-portfolio-accretion">
+            {navLinks.flatMap((link) => link.children?.length ? link.children : [link]).map((link) => <li key={link.id}><Link href={link.href.startsWith("#") && pathname !== "/" ? `/${link.href}` : link.href} className="inline-flex min-h-11 items-center text-sm text-portfolio-dust transition-colors duration-150 hover:text-portfolio-accretion">
               {locale === "vi" && link.label_vi?.trim() ? link.label_vi : link.label}
             </Link></li>)}
           </ul>
