@@ -1,17 +1,16 @@
 import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { requireAdminSession } from "@/lib/admin-auth";
-import { getAllPosts } from "@/lib/blog";
-import { db } from "@/lib/db";
+import { blogPostInputSchema, createPost, listPostSummaries } from "@/lib/blog";
+import { MdxPolicyError } from "@/lib/mdx-policy";
 
 /**
- * GET /api/admin/blog — List all blog posts (frontmatter only)
+ * GET /api/admin/blog — List all blog posts (metadata only, no EN/VI body)
  */
 export async function GET() {
   const authError = await requireAdminSession();
   if (authError) return authError;
-  const posts = (await getAllPosts()).map(({ content: _content, ...meta }) => meta);
-  return NextResponse.json(posts);
+  return NextResponse.json(await listPostSummaries());
 }
 
 /**
@@ -21,71 +20,28 @@ export async function POST(request: Request) {
   const authError = await requireAdminSession();
   if (authError) return authError;
   try {
-    const body = await request.json();
-    const {
-      slug,
-      title,
-      title_vi,
-      excerpt,
-      excerpt_vi,
-      content_vi,
-      date,
-      category,
-      tags,
-      readTime,
-      content,
-    } = body;
-
-    if (!slug || !title) {
+    const parsed = blogPostInputSchema.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+    const input = parsed.data;
+    if (!input.slug || !input.title) {
       return NextResponse.json({ error: "Slug and title are required" }, { status: 400 });
     }
 
-    // Ensure slug is URL-safe
-    const safeSlug = slug
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "");
-
-    const existing = await db.cmsBlogPost.findUnique({ where: { slug: safeSlug } });
-    if (existing) {
+    const result = await createPost(input);
+    if (result.status === "invalid_slug") {
+      return NextResponse.json({ error: "Slug must contain letters or numbers" }, { status: 400 });
+    }
+    if (result.status === "conflict") {
       return NextResponse.json({ error: "A post with this slug already exists" }, { status: 409 });
     }
 
-    const frontmatter: Record<string, unknown> = {
-      title,
-      excerpt: excerpt || "",
-      date: date || new Date().toISOString().split("T")[0],
-      category: category || "Uncategorized",
-      tags: tags || [],
-      readTime: readTime || "5 min read",
-    };
-    if (title_vi?.trim()) frontmatter.title_vi = title_vi.trim();
-    if (excerpt_vi?.trim()) frontmatter.excerpt_vi = excerpt_vi.trim();
-    if (content_vi?.trim()) frontmatter.content_vi = content_vi.trim();
-
-    await db.cmsBlogPost.create({
-      data: {
-        id: safeSlug,
-        slug: safeSlug,
-        title,
-        titleVi: title_vi?.trim() || undefined,
-        excerpt: excerpt || "",
-        excerptVi: excerpt_vi?.trim() || undefined,
-        contentVi: content_vi?.trim() || undefined,
-        date: date || new Date().toISOString().split("T")[0],
-        category: category || "Uncategorized",
-        tags: tags || [],
-        readTime: readTime || "5 min read",
-        content: content || "",
-      },
-    });
-
     revalidateTag("blog");
-    return NextResponse.json({ slug: safeSlug, ...frontmatter }, { status: 201 });
-  } catch (error: any) {
-    if (error?.code === "P2002") {
-      return NextResponse.json({ error: "A post with this slug already exists" }, { status: 409 });
+    return NextResponse.json(result.post, { status: 201 });
+  } catch (error) {
+    if (error instanceof MdxPolicyError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
     return NextResponse.json({ error: "Failed to create post" }, { status: 500 });
   }

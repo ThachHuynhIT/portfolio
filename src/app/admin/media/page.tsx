@@ -47,7 +47,7 @@ export default function MediaAdminPage() {
   const { t, locale } = useTranslation();
 
   const getCategoryLabel = (id: string, fallback: string) => {
-    return (t.admin.media.categories as any)?.[id] || fallback;
+    return (t.admin.media.categories as Record<string, string> | undefined)?.[id] || fallback;
   };
 
   const [assets, setAssets] = useState<MediaAsset[]>([]);
@@ -104,7 +104,7 @@ export default function MediaAdminPage() {
       const data = await res.json();
       setAssets(data.assets || []);
       if (data.stats) setStats(data.stats);
-    } catch (err: any) {
+    } catch (err) {
       console.error("[MediaAdminPage] Error:", err);
       const msg = err instanceof Error ? err.message : "Error loading media";
       toast.error(msg);
@@ -137,7 +137,7 @@ export default function MediaAdminPage() {
       );
       toast.success(data.message || successMsg);
       await fetchMedia(false);
-    } catch (err: any) {
+    } catch (err) {
       const msg = err instanceof Error ? err.message : "Error syncing from Cloudinary";
       toast.error(msg);
     } finally {
@@ -176,7 +176,7 @@ export default function MediaAdminPage() {
       }
       setDeleteTarget(null);
       await fetchMedia(false);
-    } catch (err: any) {
+    } catch (err) {
       const msg = err instanceof Error ? err.message : "Error deleting file";
       toast.error(msg);
     } finally {

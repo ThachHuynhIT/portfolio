@@ -162,7 +162,7 @@ Xem chi tiết ở [mục 8](#8-form-liên-hệ). Có nền hạt 3D (`SceneCont
 
 ### 7.2. Xác Thực
 - Cơ chế đơn giản: mật khẩu đơn (không phải hệ thống nhiều user; model `AdminUser` có trong schema nhưng **không được dùng**).
-- `src/lib/admin-auth.ts`: client gửi SHA-256 của mật khẩu, server so khớp (constant-time) với SHA-256(`ADMIN_PASSWORD`) — thiếu biến này thì đăng nhập báo lỗi, không có mật khẩu mặc định. Session là cookie httpOnly `admin_session` = `<expiresAt>.<HMAC-SHA256(AUTH_SECRET)>` (`src/lib/session-token.ts`, Web Crypto), không lưu session phía server.
+- `src/lib/admin-auth.ts`: form đăng nhập gửi mật khẩu qua HTTPS; server kiểm tra bằng scrypt có salt với `ADMIN_PASSWORD_SCRYPT` (`src/lib/admin-password.ts`, so sánh constant-time) — thiếu hoặc sai định dạng thì từ chối đăng nhập, không có mật khẩu mặc định. Giới hạn 5 lần sai/15 phút tính trong bộ nhớ từng instance. Session là cookie httpOnly `admin_session` = `<expiresAt>.<HMAC-SHA256(AUTH_SECRET)>` (`src/lib/session-token.ts`, Web Crypto), không lưu session phía server.
 - `src/middleware.ts` (Edge middleware) chặn mọi `/admin/*` (trừ `/admin/login`) nếu chưa đăng nhập; đăng nhập rồi vào `/admin/login` sẽ redirect về `/admin`.
 - Mỗi route `/api/admin/**` tự gọi `requireAdminSession()` (phòng thủ 2 lớp) — **ngoại trừ** các route nhạc `/api/music/*`, xem [mục 13](#13-điểm-cần-lưu-ý--rủi-ro-kỹ-thuật).
 

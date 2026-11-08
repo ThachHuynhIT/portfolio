@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
@@ -9,11 +9,11 @@ import FlagIcon from "@/components/ui/FlagIcon";
 import Icon from "@/components/ui/Icon";
 import { useToast } from "@/context/ToastContext";
 import { useTranslation } from "@/context/TranslationContext";
-import type { BlogPost } from "@/lib/types";
+import type { BlogPostListItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { gap, radius, text } from "@/lib/design-tokens";
 
-type BlogMeta = Omit<BlogPost, "content">;
+type BlogMeta = BlogPostListItem;
 
 export default function BlogAdminPage() {
   const router = useRouter();
@@ -23,7 +23,7 @@ export default function BlogAdminPage() {
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<BlogMeta | null>(null);
 
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/blog");
       if (res.status === 401) {
@@ -38,11 +38,11 @@ export default function BlogAdminPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, toast, t.admin.blog.toastLoadFailed]);
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [fetchPosts]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;

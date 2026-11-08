@@ -2,15 +2,7 @@
 
 import { ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/utils";
-import {
-  border,
-  brand,
-  focus,
-  motion,
-  radius,
-  surface,
-  text,
-} from "@/lib/design-tokens";
+import ActionStars from "./ActionStars";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "ghost" | "outline";
@@ -26,31 +18,29 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "relative inline-flex items-center justify-center font-medium",
-          motion.base,
-          focus.ring,
-          focus.disabled,
+          "portfolio-button portfolio-action relative inline-flex min-h-11 items-center justify-center rounded-lg font-medium transition-[color,background-color,border-color,transform,opacity] duration-150 active:scale-[0.98]",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-portfolio-accretion focus-visible:ring-offset-2 focus-visible:ring-offset-portfolio-void",
+          "disabled:cursor-not-allowed disabled:opacity-50",
           {
             // Sizes
-            [`px-4 py-2 text-sm ${radius.chip}`]: size === "sm",
-            [`px-6 py-3 text-base ${radius.control}`]: size === "md",
-            [`px-8 py-4 text-lg ${radius.card}`]: size === "lg",
+            "px-4 py-2 text-sm rounded-lg": size === "sm",
+            "px-6 py-3 text-base rounded-lg": size === "md",
+            "px-8 py-4 text-lg rounded-lg": size === "lg",
             // Variants
-            [`${brand.gradient} text-white ${brand.gradientHover} ${brand.glow} ${brand.glowHover}`]:
+            "portfolio-button-primary portfolio-action-primary bg-portfolio-accretion text-portfolio-on-accretion hover:bg-portfolio-accretion-hover":
               variant === "primary",
-            [`${surface.raised} ${text.primary} ${surface.raisedHover} backdrop-blur-sm ${border.subtle}`]:
+            "portfolio-action-secondary bg-portfolio-hull text-portfolio-ink border border-portfolio-control hover:border-portfolio-accretion":
               variant === "secondary",
-            // `light:text-neutral-700` is intentionally one step lighter than
-            // `text.secondary` here — ghost buttons sit on bare backgrounds.
-            [`text-white/80 light:text-neutral-700 ${text.mutedHover} ${surface.faintHover}`]:
+            "text-portfolio-ink hover:bg-portfolio-ink/5":
               variant === "ghost",
-            [`${border.strong} ${text.primary} ${surface.faintHover} ${border.strongHover}`]:
+            "portfolio-action-secondary border border-portfolio-control text-portfolio-ink hover:border-portfolio-accretion hover:bg-portfolio-ink/5":
               variant === "outline",
           },
           className
         )}
         {...props}
       >
+        {variant === "primary" && <ActionStars />}
         {children}
       </button>
     );

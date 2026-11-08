@@ -142,7 +142,7 @@ Copy `.env.example` to `.env.local` (Next.js) and `.env` (Prisma CLI / scripts) 
 | Variable | Used for |
 |---|---|
 | `DATABASE_URL` | Postgres (Neon, …) — required, every page reads from the DB |
-| `AUTH_SECRET`, `ADMIN_PASSWORD` | Session cookie signing & `/admin` login password |
+| `AUTH_SECRET`, `ADMIN_PASSWORD_SCRYPT` | Session cookie signing & salted scrypt hash of the `/admin` password (generate with `node scripts/hash-admin-password.mjs`, see `docs/DEPLOYMENT.md`) |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Media upload & management |
 | `RESEND_API_KEY`, `CONTACT_NOTIFICATION_EMAIL` | Email for new contact messages |
 

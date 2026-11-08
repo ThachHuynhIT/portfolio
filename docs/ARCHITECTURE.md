@@ -59,7 +59,7 @@ portfolio/
 │   │   ├── api/               # admin/**, contact, couple, music/{tracks,upload}
 │   │   └── blog/, projects/, photography/ (+ album/[slug]), music/, couple/, tools/json-validator/
 │   ├── components/
-│   │   ├── 3d/                # SceneContainer, ParticleField, StarryBackground3D, blackhole/ (BlackHoleCanvas + engine)
+│   │   ├── 3d/                # SceneContainer, StarryBackground3D, blackhole/ (BlackHoleCanvas + engine)
 │   │   ├── admin/, blog/, music/, photography/, projects/, sections/, tools/, layout/ (GlobalBackground)
 │   │   └── ui/                # Button, GlassCard, TiltCard, AnimatedSection, Navigation, Footer, Skeleton, ImageWithSkeleton, ThemeToggle, LanguageSwitcher, Icon,...
 │   ├── context/               # LanguageContext, MusicContext, ThemeContext, ToastContext
@@ -89,14 +89,12 @@ Phân hệ 3D được xây dựng dựa trên `@react-three/fiber` (R3F), `@rea
    - Quản lý khởi tạo `<Canvas>` của Three.js với cấu hình camera tối ưu.
    - **Tự động nhận diện `prefers-reduced-motion`**: Nếu người dùng bật chế độ giảm chuyển động trong hệ điều hành, hệ thống sẽ render Fallback CSS gradient thay vì khởi động WebGL context để tiết kiệm GPU và bảo vệ trải nghiệm người dùng.
    - **`SceneErrorBoundary`**: Bọc toàn bộ 3D scene trong một Error Boundary cấp component. Khi WebGL bị crash hoặc driver GPU không hỗ trợ, màn hình sẽ fallback an toàn mà không làm sập toàn bộ trang web.
-   - Dùng cho `StarryBackground3D` (nền sao toàn site qua `GlobalBackground`) và `ParticleField` của Contact.
+   - Dùng cho `StarryBackground3D` (nền sao toàn site qua `GlobalBackground`). `ParticleField` đã bị xoá trong đợt overhaul 11/2026; nền Contact là CSS shooting stars (`.portfolio-contact-stars`, dừng bằng IntersectionObserver).
 
-2. **Hố đen Hero (`blackhole/BlackHoleCanvas.tsx`)** — ngoại lệ không đi qua `SceneContainer`:
-   - Engine raymarching Schwarzschild tự quản lý `THREE.WebGLRenderer` + vòng lặp riêng (không phải R3F), tự co giãn theo phần tử cha (`ResizeObserver`), tôn trọng `prefers-reduced-motion`.
-   - Hero dùng chế độ trang trí (`interactive={false}`, `scrollEffect`): camera nghiêng/zoom dần theo vị trí cuộn của cả trang; sự kiện cuộn được throttle bằng `requestAnimationFrame` và cập nhật thẳng vào engine, không qua React state. Trang 404 dùng cùng engine.
-
-3. **Hệ Thống Hạt (`ParticleField.tsx`)**:
-   - `Float32Array` vị trí/vận tốc cấp phát một lần theo `count` (mặc định 1000; Contact dùng 500, hoặc 200 trên máy yếu), cập nhật trong `useFrame`.
+2. **Hố đen trang chủ (`sections/HomeBlackHole.tsx` → `blackhole/BlackHoleCanvas.tsx`)** — ngoại lệ không đi qua `SceneContainer`:
+   - Engine raymarching Schwarzschild tự quản lý `THREE.WebGLRenderer` + vòng lặp riêng (không phải R3F), tự co giãn theo phần tử cha (`ResizeObserver`).
+   - `HomeBlackHole` là lớp `fixed` toàn trang trên `/` ("companion" phía sau mọi section): import động `ssr: false`, `deferStart`, `scrollScope="page"`; khi `prefers-reduced-motion` hoặc WebGL không dùng được thì không mount canvas mà để nền tĩnh. Camera đổi theo cuộn qua `requestAnimationFrame`, không qua React state. Trang 404 dùng cùng engine.
+   - Vì hố đen nằm sau toàn trang, các section không phủ nền Void đặc full-width: `#portfolio-sections` chỉ có veil nhẹ + scrim mềm sau tiêu đề, khối nội dung dày dùng bề mặt Hull đặc (`.portfolio-solid`).
 
 ---
 
@@ -141,17 +139,20 @@ Công cụ kiểm tra tính toàn vẹn dữ liệu JSON:
 
 ### 3.4. Hệ Thống Design System & Animation (`src/app/globals.css`, `src/lib/design-tokens.ts`, `src/lib/ui-presets.ts`, `src/lib/animations.ts`)
 
-- **Tailwind CSS v4**: Cấu hình theme trực tiếp qua `@theme inline` và biến CSS Custom Properties (`--background: #050505`, `--foreground`, `--purple-500`, `--cyan-500`).
+- **Tailwind CSS v4**: Cấu hình theme trực tiếp qua `@theme inline`. Có hai lớp token:
+  - **Public (scoped)** — khối `.portfolio-theme` (bọc các trang công khai) định nghĩa `--portfolio-void` `#05070D`, `--portfolio-hull` `#0C1018`, `--portfolio-ink` `#ECE9E4`, `--portfolio-dust` `#9BA1AC`, `--portfolio-accretion` `#F2B45A` (+ `-hover`, `--portfolio-on-accretion`), `--portfolio-hairline`, `--portfolio-control`; bản light (`[data-theme="light"] .portfolio-theme`) đổi sang Void `#F5F6F8`, Hull `#FFFFFF`, Ink `#10131A`, Dust `#4F5562`, Accretion `#9A5B0B`. Utility tương ứng: `bg-portfolio-hull`, `text-portfolio-ink`, `text-portfolio-accretion`… Font public: Be Vietnam Pro (fallback Inter).
+  - **Legacy** (`--background: #050505`, `--foreground`, `--purple-500`, `--cyan-500`, `.glass`, `.gradient-text`…) — vẫn dùng cho `/admin`, `/couple`, `/music`, lightbox và các trang chưa chuyển; không xoá.
+- **Class bố cục trang chủ** (`globals.css`): `.portfolio-section`, `.portfolio-column` (≤1120px, gutter 16px), `.portfolio-solid` (bề mặt Hull, radius 8px), `.portfolio-case` (thẻ dự án, glow theo `--lens-x/--lens-y`), `.portfolio-constellation*`, `.portfolio-photo-strip`, `.portfolio-input`, `.portfolio-signal-ring`, `.portfolio-copy-ring`, `.portfolio-action*` (nút), `.portfolio-text-link`.
+- **Motion** (`src/lib/animations.ts`): mỗi section một khoảnh khắc chuyển động, `viewport={{ once: true }}`, reduced-motion = trạng thái cuối:
+  - Hero: typewriter + `orbitIn`/`clipReveal`; `SectionHeading`: star-ignition + accent line.
+  - About `factsStagger`/`factsOrbit`; Skills `constellationDraw` (vẽ đường một lần, layout tất định từ `src/lib/constellation-layout.ts`); Projects lensing khi hover/focus (CSS variables qua ref); Photo strip parallax 8–24px (một rAF, dừng ngoài viewport); Blog `shootingStarRow`; Contact signal rings khi gửi + vòng nhỏ khi copy email.
+  - Giá trị tần suất cao (pointer, scroll) ghi vào ref/CSS variable, không setState mỗi frame. Ngoài hố đen, tối đa một vòng lặp liên tục trong viewport.
+  - `fadeInUp`, `staggerContainer`, `blurFadeIn`… vẫn còn cho các trang chưa chuyển; `TiltCard`/`GlassCard` không còn dùng trên trang chủ.
 - **Design Tokens (nguồn chân lý cho màu & kích thước dùng chung)** — chi tiết tại [`docs/DESIGN_TOKENS.md`](DESIGN_TOKENS.md):
   - `globals.css` khai báo thang màu thương hiệu (`--purple-400/500/600`, `--cyan-400/500/600`) và mọi hiệu ứng CSS thuần (gradient, glow, scrollbar, focus ring, selection, palette code block `--code-*`) đều đọc từ đó.
   - `src/lib/design-tokens.ts` export token đơn lẻ cho phía TSX: `surface.*`, `border.*`, `text.*`, `status.*`, `brand.*`, `radius.*`, `layout.*`, `gap.*`, `iconSize.*`, `motion.*`, `elevation.*`, `zIndex.*`, `focus.*`, `heading.*`. Mỗi token đã kèm sẵn biến thể `light:`; token hậu tố `Dark` không kèm, dành cho route trong `EXCLUDED_ROUTE_PREFIXES`.
-  - `src/lib/ui-presets.ts` ghép token thành công thức hoàn chỉnh (`presets.card`, `presets.input`, `presets.inputDark`, `presets.badge.*`, `presets.section`...). `<GlassCard />` và `<Button />` đã dựng trên lớp này.
+  - `src/lib/ui-presets.ts` ghép token thành công thức hoàn chỉnh (`presets.card`, `presets.input`, `presets.inputDark`, `presets.badge.*`, `presets.section`...). `<GlassCard />` dựng trên lớp này; `<Button />` dùng token `portfolio-*` (mục trên).
   - Nguyên tắc: giá trị dùng ở từ 3 component trở lên thì đưa vào token, đặt tên theo **vai trò** (`radius.card`) chứ không theo giá trị. Luôn ghép bằng `cn()` để class thêm vào ghi đè được token.
-- **Standardized Micro-Animations**:
-  - `fadeInUp`, `fadeInLeft`, `fadeInRight`, `scaleUp`: Xuất hiện với độ trễ chuyển động mượt mà.
-  - `staggerContainer`: Điều phối xuất hiện lần lượt cho các danh sách (skills, project cards).
-  - `blurFadeIn`: Hiệu ứng mờ dần kết hợp blur; `floatAnimation`: bay lên-xuống lặp vô hạn.
-  - Nghiêng thẻ 3D theo con trỏ nằm trong component `TiltCard.tsx` (spring của Framer Motion), không phải variant.
 
 ---
 
@@ -164,17 +165,17 @@ Giao diện gốc của site là **Dark** (không đổi); Light mode được t
 - **Chống FOUC (Flash of Unstyled/Incorrect Content)**: một inline script chặn render trong `layout.tsx` (`THEME_INIT_SCRIPT`) chạy **trước khi React hydrate**, set sẵn `data-theme` bằng đúng logic của `ThemeContext.tsx` — 2 nơi này bắt buộc đồng bộ.
 - **Route ngoại lệ luôn Dark**: `EXCLUDED_ROUTE_PREFIXES` (`src/lib/constants.ts`) = `/admin`, `/couple`, `/music` — `resolvedTheme` bị ép về `"dark"` bất kể lựa chọn người dùng khi đang ở các route này.
 - **Ngoại lệ theo component**: modal `PhotoLightboxModal.tsx` trong module Photography chủ đích luôn Dark ("theater mode"), độc lập với theme hiện tại của trang.
-- Design tokens theo theme (`--background`, `--foreground`, `--glass-bg`, `--glow-purple-color`, `--glow-cyan-color`, `--scrollbar-*`, `--selection-*`) được định nghĩa lại trong khối `[data-theme="light"]` — các utility Tailwind theo token (`bg-background`, `text-foreground`) tự đổi màu mà **không** cần tiền tố `light:`.
+- Design tokens theo theme (`--background`, `--foreground`, `--glass-bg`, `--glow-purple-color`, `--glow-cyan-color`, `--scrollbar-*`, `--selection-*`) được định nghĩa lại trong khối `[data-theme="light"]` — các utility Tailwind theo token (`bg-background`, `text-foreground`) tự đổi màu mà **không** cần tiền tố `light:`. Token `--portfolio-*` (mục 3.4) cũng tự đổi theo theme, nên component trang chủ dùng token thay cho cặp class `text-white`/`light:text-neutral-900`.
+- Kiểm chứng 11/2026 (Task 20): mọi chữ trên trang chủ đạt ≥4.5:1 so với nền CSS đã composite (dark thấp nhất 7.33:1, light 5.14:1), viền input ≥7:1. Phép đo không tính pixel của canvas hố đen phía sau; vùng chữ dày luôn nằm trên bề mặt Hull đặc hoặc scrim.
 
 ---
 
 ### 3.6. Điều Hướng & Cuộn Trang (`src/components/ui/Navigation.tsx`)
 
-- **Breakpoint pill nav**: menu ngang dạng pill (desktop) chuyển sang hamburger (mobile) tại breakpoint Tailwind `lg` (**1024px**). Vì 7 nhãn tiếng Việt + logo + cụm control bên phải (theme toggle, language switcher, nút "Liên hệ ngay") không vừa 1 dòng ở khoảng 1024–1279px với padding/gap mặc định, phần pill (gap giữa item, padding mỗi item, gap cụm control phải, padding nút CTA) đã được thu gọn để vừa khít trong khoảng ~976px nội dung khả dụng tại 1024px — xem class `gap-1`, `px-2`, `px-2.5`, `gap-2` trong component.
-- **Cơ chế đệm section cho việc cuộn tới mục (scroll-to-section padding)**: các section lớn trên trang chủ (`About`, `Skills`, `Projects`, `PhotoPreview`, `BlogPreview`, `Contact`) dùng `pt-8` (đệm nhỏ, cố định) thay vì `py-*` đối xứng. Phần khoảng trắng lớn còn lại được dồn sang `pb-*` của section **đứng trước đó** trong chuỗi hiển thị (`page.tsx`), giữ nguyên tổng khoảng cách giữa 2 section liền kề như thiết kế gốc — chỉ đổi "chủ sở hữu" khoảng đệm. Nhờ vậy khi bấm menu nhảy tới 1 section (`handleNavClick`), trang cuộn thẳng tới nội dung thay vì dừng lại giữa 1 khoảng trắng ở đầu section.
-  - Riêng `HeroSection` không tham gia cơ chế trên vì có nền `bg-background` đặc (che phía sau canvas hố đen) — nếu cộng thêm `pb-*` trực tiếp vào section này, phần đệm sẽ vô tình che luôn nền sao toàn site (`GlobalBackground`/`StarryBackground3D`, `fixed -z-10`) phía sau, tạo một dải đen "chết" không có hiệu ứng gì khi cuộn. Khoảng cách Hero → About vì vậy được tạo bằng 1 `<div className="h-48" />` (transparent spacer) đặt trực tiếp trong `page.tsx`, nằm ngoài box đặc của Hero.
-  - `HeroSection` có padding riêng biệt (`py-20 lg:py-0`) chỉ để tạo khoảng thở cho nội dung (badge/heading/mô tả/nút) trên màn hình ≤1024px khi text xuống nhiều dòng hơn — không liên quan tới cơ chế nối tiếp section ở trên.
-- **Race điều kiện với Framer Motion khi đóng mobile menu**: đóng menu mobile (`AnimatePresence` animate `height: 0 → auto`) khiến Framer Motion tạm thời gọi `window.scrollTo(0, 0)` nội bộ để đo layout (`measureAllKeyframes`) rồi phục hồi lại vị trí cuộn cũ. Nếu `handleNavClick` gọi `window.scrollTo({ top, behavior: "smooth" })` ngay trong cùng tick với `setIsMobileMenuOpen(false)`, lệnh đo của Framer chạy sau đó sẽ ghi đè/huỷ animation cuộn, khiến trang bật ngược về đầu (0) thay vì tới đúng section. Cách khắc phục: dời lệnh `scrollTo` thật sự vào trong `requestAnimationFrame` lồng đôi, chạy sau khi Framer hoàn tất chu kỳ đo — cần nhớ pattern này nếu sau này thêm animation layout mới đi kèm scroll thủ công trong `Navigation.tsx`.
+- **Breakpoint**: menu ngang (desktop) chuyển sang nút menu (mobile) tại `lg` (**1024px**). Mục có `children` (vd. "Hobby") là nút dropdown, không phải link; `href` của mục cha không được dùng (để `#`). Footer trải phẳng các mục con thay cho mục cha.
+- **Cuộn tới section**: link `#section` dùng anchor gốc của trình duyệt; khoảng trống dưới thanh nav fixed lấy từ `scroll-padding-top` trên `html` (`globals.css`). Các section trang chủ dùng `.portfolio-section` (`padding: 2rem 0 6rem`), không cần spacer hay dời `pb-*` như trước.
+- **Section đang xem**: một listener scroll/resize gom qua `requestAnimationFrame`, chỉ `setState` khi section thay đổi (`getActiveSection`), không render lại mỗi frame.
+- **Ẩn Blog khi trống**: `layout.tsx` gọi `filterBlogNavLinks(navLinks, hasPosts)` (`src/lib/navigation-section.ts`) nên nav và footer bỏ link `/blog`, `#blog` khi không còn bài; `BlogPreviewSection` trả về `null`.
 
 ---
 

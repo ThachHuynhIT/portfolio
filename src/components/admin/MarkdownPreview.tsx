@@ -63,6 +63,7 @@ const mdxComponents = {
         className={cn(radius.card, border.subtleDark, "max-h-[480px] w-auto max-w-full mx-auto object-cover shadow-xl")}
         loading="lazy"
         {...props}
+        alt={props.alt ?? ""}
       />
       {props.alt && (
         <span className="block text-center text-xs text-gray-400 mt-2 italic">

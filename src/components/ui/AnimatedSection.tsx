@@ -1,30 +1,20 @@
 "use client";
 
-import { motion, useInView, Variants } from "framer-motion";
-import { useRef, ReactNode } from "react";
+import { motion, useInView, useReducedMotion, Variants } from "framer-motion";
+import { Children, useRef, ReactNode } from "react";
+import { progressiveSection, staggerContainer, warpIn } from "@/lib/animations";
 
 interface AnimatedSectionProps {
+  progressive?: boolean;
   children: ReactNode;
   className?: string;
   variants?: Variants;
   delay?: number;
   once?: boolean;
+  container?: boolean;
 }
 
-const defaultVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    y: 50,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      ease: [0.25, 0.46, 0.45, 0.94],
-    },
-  },
-};
+const defaultVariants = warpIn;
 
 /**
  * Animated section component that triggers animation when entering viewport
@@ -35,7 +25,10 @@ export default function AnimatedSection({
   variants = defaultVariants,
   delay = 0,
   once = true,
+  progressive = false,
+  container = false,
 }: AnimatedSectionProps) {
+  const reducedMotion = useReducedMotion();
   const ref = useRef(null);
   const isInView = useInView(ref, {
     once,
@@ -45,13 +38,15 @@ export default function AnimatedSection({
   return (
     <motion.div
       ref={ref}
-      initial="hidden"
-      animate={isInView ? "visible" : "hidden"}
-      variants={variants}
+      initial={reducedMotion || progressive ? false : "hidden"}
+      animate={reducedMotion ? { opacity: 1, x: 0, y: 0, scale: 1, rotate: 0, clipPath: "inset(0)" } : progressive ? undefined : isInView ? "visible" : "hidden"}
+      whileInView={progressive && !reducedMotion ? "visible" : undefined}
+      viewport={progressive ? { once } : undefined}
+      variants={reducedMotion ? undefined : container ? staggerContainer : progressive ? progressiveSection : variants}
       transition={{ delay }}
-      className={className}
+      className={`portfolio-entrance ${className}`}
     >
-      {children}
+      {container ? Children.map(children, (child) => <motion.div variants={reducedMotion ? undefined : warpIn}>{child}</motion.div>) : children}
     </motion.div>
   );
 }

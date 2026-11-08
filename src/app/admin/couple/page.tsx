@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import AdminModal from "@/components/admin/AdminModal";
@@ -25,7 +25,7 @@ import type {
 import { occurrenceInYear } from "@/lib/couple-events";
 import { parseYmd, todayYmd } from "@/lib/ymd";
 import WorkScheduleTab from "@/components/admin/couple/WorkScheduleTab";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 import { border, elevation, gap, motion, radius, surface, text } from "@/lib/design-tokens";
 
 type TabId =
@@ -168,7 +168,7 @@ export default function CoupleAdminPage() {
   // -------------------------------------------------------------
   // Data Fetching
   // -------------------------------------------------------------
-  const fetchData = async (showLoading = true) => {
+  const fetchData = useCallback(async (showLoading = true) => {
     try {
       if (showLoading) setLoading(true);
       const res = await fetch("/api/admin/couple");
@@ -193,11 +193,11 @@ export default function CoupleAdminPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, toast]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   // -------------------------------------------------------------
   // Generic Delete Handler
@@ -227,7 +227,7 @@ export default function CoupleAdminPage() {
   ) => {
     const newStatus = item.published === false;
     try {
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         section,
         published: newStatus,
       };
@@ -335,8 +335,8 @@ export default function CoupleAdminPage() {
       toast.success(editingPhoto ? "Cập nhật ảnh thành công!" : "Thêm ảnh mới thành công!");
       setIsPhotoModalOpen(false);
       await fetchData(false);
-    } catch (err: any) {
-      toast.error(err.message || "Lỗi khi lưu ảnh");
+    } catch (err) {
+      toast.error(getErrorMessage(err) || "Lỗi khi lưu ảnh");
     }
   };
 
@@ -388,8 +388,8 @@ export default function CoupleAdminPage() {
       toast.success(editingMemory ? "Cập nhật mốc kỷ niệm thành công!" : "Thêm mốc kỷ niệm mới thành công!");
       setIsMemoryModalOpen(false);
       await fetchData(false);
-    } catch (err: any) {
-      toast.error(err.message || "Lỗi khi lưu mốc kỷ niệm");
+    } catch (err) {
+      toast.error(getErrorMessage(err) || "Lỗi khi lưu mốc kỷ niệm");
     }
   };
 
@@ -444,8 +444,8 @@ export default function CoupleAdminPage() {
       toast.success(editingBirthday ? "Cập nhật ngày sinh thành công!" : "Thêm ngày sinh thành công!");
       setIsBirthdayModalOpen(false);
       await fetchData(false);
-    } catch (err: any) {
-      toast.error(err.message || "Lỗi khi lưu ngày sinh");
+    } catch (err) {
+      toast.error(getErrorMessage(err) || "Lỗi khi lưu ngày sinh");
     }
   };
 
@@ -495,8 +495,8 @@ export default function CoupleAdminPage() {
       toast.success(editingDate ? "Cập nhật ngày đặc biệt thành công!" : "Thêm ngày đặc biệt thành công!");
       setIsDateModalOpen(false);
       await fetchData(false);
-    } catch (err: any) {
-      toast.error(err.message || "Lỗi khi lưu ngày đặc biệt");
+    } catch (err) {
+      toast.error(getErrorMessage(err) || "Lỗi khi lưu ngày đặc biệt");
     }
   };
 
@@ -546,8 +546,8 @@ export default function CoupleAdminPage() {
       toast.success(editingBucket ? "Cập nhật dự định thành công!" : "Thêm dự định mới thành công!");
       setIsBucketModalOpen(false);
       await fetchData(false);
-    } catch (err: any) {
-      toast.error(err.message || "Lỗi khi lưu dự định");
+    } catch (err) {
+      toast.error(getErrorMessage(err) || "Lỗi khi lưu dự định");
     }
   };
 
@@ -566,7 +566,7 @@ export default function CoupleAdminPage() {
         body: JSON.stringify({ section: "bucketList", items: updated }),
       });
       toast.success(item.done ? "Đã chuyển thành chưa xong" : "Đã hoàn thành! 🎉");
-    } catch (err) {
+    } catch {
       toast.error("Không thể cập nhật trạng thái");
       fetchData(false);
     }
@@ -618,8 +618,8 @@ export default function CoupleAdminPage() {
       toast.success(editingLetter ? "Cập nhật thư tình thành công!" : "Gửi thư tình mới thành công! 💕");
       setIsLetterModalOpen(false);
       await fetchData(false);
-    } catch (err: any) {
-      toast.error(err.message || "Lỗi khi lưu thư");
+    } catch (err) {
+      toast.error(getErrorMessage(err) || "Lỗi khi lưu thư");
     }
   };
 
@@ -671,8 +671,8 @@ export default function CoupleAdminPage() {
       toast.success(editingFavorite ? "Cập nhật sở thích thành công!" : "Thêm sở thích mới thành công!");
       setIsFavoriteModalOpen(false);
       await fetchData(false);
-    } catch (err: any) {
-      toast.error(err.message || "Lỗi khi lưu sở thích");
+    } catch (err) {
+      toast.error(getErrorMessage(err) || "Lỗi khi lưu sở thích");
     }
   };
 
@@ -908,7 +908,7 @@ export default function CoupleAdminPage() {
               <span className="text-xs text-slate-500 whitespace-nowrap">{t.admin.common.filter}:</span>
               <select
                 value={photoStatusFilter}
-                onChange={(e) => setPhotoStatusFilter(e.target.value as any)}
+                onChange={(e) => setPhotoStatusFilter(e.target.value as typeof photoStatusFilter)}
                 className={cn("bg-slate-950", border.subtleDark, radius.control, "px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-pink-500/50")}
               >
                 <option value="all">{t.admin.common.all} ({data?.photos?.length || 0})</option>

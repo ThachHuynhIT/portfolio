@@ -1,0 +1,78 @@
+/** Lazy registry: remaining stroke icons for admin, couple and tools pages. Loaded on demand by `Icon`. */
+import type { LucideIcon } from "lucide-react";
+import {
+  LayoutDashboard,
+  Settings,
+  Award,
+  Briefcase,
+  Newspaper,
+  Link2,
+  LogOut,
+  Plus,
+  Pencil,
+  Trash2,
+  Eye,
+  Activity,
+  ArrowUpDown,
+  CornerDownRight,
+  FileText,
+  Brain,
+  Mail,
+  Users,
+  FolderOpen,
+  BookOpen,
+  Cake,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  RefreshCw,
+  UploadCloud,
+  PartyPopper,
+  Gift,
+  Loader2,
+  Copy,
+  Table,
+  House,
+} from "lucide-react";
+import type { AdminIconName } from "@/lib/icon-names";
+import type { StrokeIconProps } from "./frames";
+
+const ADMIN_ICONS: Record<AdminIconName, LucideIcon> = {
+  dashboard: LayoutDashboard,
+  settings: Settings,
+  skills: Award,
+  projects: Briefcase,
+  blog: Newspaper,
+  links: Link2,
+  logout: LogOut,
+  plus: Plus,
+  edit: Pencil,
+  trash: Trash2,
+  eye: Eye,
+  activity: Activity,
+  arrowUpDown: ArrowUpDown,
+  cornerDownRight: CornerDownRight,
+  fileText: FileText,
+  brain: Brain,
+  mail: Mail,
+  users: Users,
+  folderOpen: FolderOpen,
+  bookOpen: BookOpen,
+  cake: Cake,
+  checkCircle: CheckCircle2,
+  xCircle: XCircle,
+  alertTriangle: AlertTriangle,
+  refresh: RefreshCw,
+  uploadCloud: UploadCloud,
+  partyPopper: PartyPopper,
+  gift: Gift,
+  loader: Loader2,
+  copy: Copy,
+  table: Table,
+  home: House,
+};
+
+export default function AdminIcon({ name, size, className, filled }: StrokeIconProps<AdminIconName>) {
+  const Comp = ADMIN_ICONS[name];
+  return <Comp size={size} className={className} fill={filled ? "currentColor" : "none"} />;
+}

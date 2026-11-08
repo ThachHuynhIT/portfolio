@@ -76,26 +76,26 @@ function nestedField<T extends object>(parentKey: string, key: string, label: st
   };
 }
 
-/** One label/value slot inside About's fixed 4-item `stats` array. */
-function statField<T extends object>(index: number, sub: "label" | "value", label: string): FieldSpec<T> {
+/** One label/value slot inside About's fixed 4-item `facts` array. */
+function factField<T extends object>(index: number, sub: "label" | "value", label: string): FieldSpec<T> {
   const viSub = `${sub}_vi`;
   const keyFor = (lang: Lang) => (lang === "vi" ? viSub : sub);
   return {
-    id: `stats.${index}.${sub}`,
+    id: `facts.${index}.${sub}`,
     label,
     getValue: (content, lang) => {
-      const stats = (content as { stats?: Rec[] } | undefined)?.stats;
-      return stats?.[index]?.[keyFor(lang)] as string | undefined;
+      const facts = (content as { facts?: Rec[] } | undefined)?.facts;
+      return facts?.[index]?.[keyFor(lang)] as string | undefined;
     },
     getPlaceholder: (defaults, lang) => {
-      const stats = (defaults as { stats?: Rec[] }).stats;
-      return (stats?.[index]?.[keyFor(lang)] as string) ?? "";
+      const facts = (defaults as { facts?: Rec[] }).facts;
+      return (facts?.[index]?.[keyFor(lang)] as string) ?? "";
     },
     setValue: (content, lang, newValue) => {
-      const base = (content as { stats?: Rec[] }) ?? {};
-      const stats = [...(base.stats ?? [{}, {}, {}, {}])];
-      stats[index] = { ...(stats[index] ?? {}), [keyFor(lang)]: newValue };
-      return { ...base, stats } as unknown as T;
+      const base = (content as { facts?: Rec[] }) ?? {};
+      const facts = [...(base.facts ?? [{}, {}, {}, {}])];
+      facts[index] = { ...(facts[index] ?? {}), [keyFor(lang)]: newValue };
+      return { ...base, facts } as unknown as T;
     },
   };
 }
@@ -116,14 +116,14 @@ export const ABOUT_FIELDS: FieldSpec<AboutSectionContent>[] = [
   flatField("bioP1", "Bio Paragraph 1", { multiline: true, rows: 3 }),
   flatField("bioP2", "Bio Paragraph 2", { multiline: true, rows: 3 }),
   flatField("bioP3", "Bio Paragraph 3", { multiline: true, rows: 3 }),
-  statField(0, "label", "Stat 1 Label (Years)"),
-  statField(0, "value", "Stat 1 Value (Years)"),
-  statField(1, "label", "Stat 2 Label (Projects)"),
-  statField(1, "value", "Stat 2 Value (Projects)"),
-  statField(2, "label", "Stat 3 Label (Clients)"),
-  statField(2, "value", "Stat 3 Value (Clients)"),
-  statField(3, "label", "Stat 4 Label (Tech)"),
-  statField(3, "value", "Stat 4 Value (Tech)"),
+  factField(0, "label", "Fact 1 Label (Experience)"),
+  factField(0, "value", "Fact 1 Value (Experience)"),
+  factField(1, "label", "Fact 2 Label (Focus)"),
+  factField(1, "value", "Fact 2 Value (Focus)"),
+  factField(2, "label", "Fact 3 Label (Education)"),
+  factField(2, "value", "Fact 3 Value (Education)"),
+  factField(3, "label", "Fact 4 Label (Based in)"),
+  factField(3, "value", "Fact 4 Value (Based in)"),
 ];
 
 export const SKILLS_FIELDS: FieldSpec<SkillsSectionContent>[] = [

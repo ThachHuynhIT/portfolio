@@ -34,9 +34,6 @@ export default function AdminFormFooter({
   const { t } = useTranslation();
 
   const finalCloseLabel = closeLabel || t("admin.common.close", "Close");
-  const finalSaveLabel = isSaving
-    ? t("admin.common.saving", "Saving...")
-    : saveLabel || t("admin.common.save", "Save");
 
   const closeBtnContent = (
     <span className="inline-flex items-center justify-center">

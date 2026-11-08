@@ -3,6 +3,7 @@ import { requireAdminSession } from "@/lib/admin-auth";
 import { serialize } from "next-mdx-remote/serialize";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
+import { mdxPolicyRemarkPlugins, validateMdxSource } from "@/lib/mdx-policy";
 
 export async function POST(request: Request) {
   const authError = await requireAdminSession();
@@ -10,14 +11,18 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const content = body.content || "";
+    const content: string = typeof body?.content === "string" ? body.content : "";
 
     if (!content.trim()) {
       return NextResponse.json({ mdxSource: null });
     }
 
+    // Same policy as admin writes and public render: reject before compiling.
+    await validateMdxSource(content);
+
     const mdxSource = await serialize(content, {
       mdxOptions: {
+        remarkPlugins: mdxPolicyRemarkPlugins,
         rehypePlugins: [rehypeHighlight, rehypeSlug],
       },
     });

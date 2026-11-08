@@ -25,6 +25,7 @@ export default function GlassCard({
   return (
     <div
       className={cn(
+        "portfolio-surface",
         presets.card,
         hover &&
           cn(

@@ -142,7 +142,7 @@ Sao chép `.env.example` thành `.env.local` (Next.js) và `.env` (Prisma CLI / 
 | Biến | Dùng cho |
 |---|---|
 | `DATABASE_URL` | Postgres (Neon…) — bắt buộc, mọi trang đọc dữ liệu từ DB |
-| `AUTH_SECRET`, `ADMIN_PASSWORD` | Ký cookie phiên & mật khẩu đăng nhập `/admin` |
+| `AUTH_SECRET`, `ADMIN_PASSWORD_SCRYPT` | Ký cookie phiên & hash scrypt có salt của mật khẩu `/admin` (tạo bằng `node scripts/hash-admin-password.mjs`, xem `docs/DEPLOYMENT.md`) |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Upload/quản lý media |
 | `RESEND_API_KEY`, `CONTACT_NOTIFICATION_EMAIL` | Email báo tin nhắn liên hệ mới |
 

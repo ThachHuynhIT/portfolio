@@ -33,7 +33,7 @@ function formatTime(seconds: number): string {
 }
 
 function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const {
     tracks,
     setTracks,
@@ -55,9 +55,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
     activeTab,
     setActiveTab,
     isPlayerCollapsed,
-    setIsPlayerCollapsed,
     togglePlayerCollapsed,
-    isMobileSidebarOpen,
     setIsMobileSidebarOpen,
     likedTrackIds,
     toggleLike,

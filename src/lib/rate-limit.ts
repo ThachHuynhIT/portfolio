@@ -48,6 +48,15 @@ export function createRateLimiter({
     clearAttempts(key: string): void {
       attempts.delete(key);
     },
+
+    // Seconds until `key`'s current window resets (for a Retry-After
+    // header); 0 when there is no active window. Read-only.
+    getRetryAfterSeconds(key: string): number {
+      const record = attempts.get(key);
+      if (!record) return 0;
+      const remainingMs = record.resetAt - Date.now();
+      return remainingMs > 0 ? Math.ceil(remainingMs / 1000) : 0;
+    },
   };
 }
 
@@ -62,4 +71,27 @@ export function getClientIp(headerList: Headers): string {
   const forwardedFor = headerList.get("x-forwarded-for");
   const ips = forwardedFor?.split(",").map((ip) => ip.trim()).filter(Boolean);
   return ips?.[ips.length - 1] || "unknown";
+}
+
+// CSRF-style guard for unauthenticated, state-changing public endpoints
+// (e.g. recording a music play). Fetch Metadata is authoritative when the
+// browser sends it: only `same-origin` passes. Otherwise an Origin header
+// must match the request host. Requests with neither header (non-browser
+// clients, which can forge both anyway) are allowed; the per-IP limiter
+// is what bounds those.
+export function isSameOriginRequest(headerList: Headers, requestUrl: string): boolean {
+  const fetchSite = headerList.get("sec-fetch-site");
+  if (fetchSite) return fetchSite === "same-origin";
+
+  const origin = headerList.get("origin");
+  if (!origin) return true;
+
+  let originHost: string;
+  try {
+    originHost = new URL(origin).host;
+  } catch {
+    return false;
+  }
+  const requestHost = headerList.get("host") ?? new URL(requestUrl).host;
+  return originHost === requestHost;
 }

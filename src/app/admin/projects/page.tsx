@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import AdminModal from "@/components/admin/AdminModal";
@@ -46,7 +46,7 @@ export default function ProjectsAdminPage() {
   const [formPublished, setFormPublished] = useState(true);
   const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/projects");
       if (res.status === 401) {
@@ -61,11 +61,11 @@ export default function ProjectsAdminPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, toast]);
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [fetchProjects]);
 
   const openCreateModal = () => {
     setActiveLang("en");

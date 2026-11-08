@@ -4,6 +4,9 @@ import { Canvas } from "@react-three/fiber";
 import { Component, Suspense, ReactNode, RefObject, useEffect, useRef, useState } from "react";
 
 interface SceneContainerProps {
+  fallback?: ReactNode;
+  /** Explicit occlusion gate for fixed scenes hidden behind the homepage hero. */
+  paused?: boolean;
   children: ReactNode;
   className?: string;
   /**
@@ -28,7 +31,7 @@ const STATIC_FALLBACK = (
  * a static background instead of taking down the page.
  */
 class SceneErrorBoundary extends Component<
-  { children: ReactNode },
+  { children: ReactNode; fallback: ReactNode },
   { hasError: boolean }
 > {
   state = { hasError: false };
@@ -43,14 +46,14 @@ class SceneErrorBoundary extends Component<
 
   render() {
     if (this.state.hasError) {
-      return STATIC_FALLBACK;
+      return this.props.fallback;
     }
     return this.props.children;
   }
 }
 
 function usePrefersReducedMotion() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean | null>(null);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -76,6 +79,7 @@ function useIsTabVisible() {
 
   useEffect(() => {
     const handleVisibilityChange = () => setIsVisible(!document.hidden);
+    handleVisibilityChange();
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () =>
       document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -89,16 +93,17 @@ function useIsTabVisible() {
  * section-scoped scene (e.g. Contact particles) otherwise keeps rendering
  * after the visitor scrolls back up.
  */
-function useIsInView(ref: RefObject<HTMLElement>) {
+function useIsInView(ref: RefObject<HTMLElement>, enabled: boolean) {
   const [inView, setInView] = useState(true);
 
   useEffect(() => {
+    if (!enabled) return;
     const el = ref.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
     const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting));
     observer.observe(el);
     return () => observer.disconnect();
-  }, [ref]);
+  }, [ref, enabled]);
 
   return inView;
 }
@@ -112,23 +117,25 @@ export default function SceneContainer({
   className = "",
   highQuality = false,
   still = false,
+  paused = false,
+  fallback = STATIC_FALLBACK,
 }: SceneContainerProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const isTabVisible = useIsTabVisible();
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useIsInView(containerRef);
+  const isInView = useIsInView(containerRef, prefersReducedMotion === false);
 
-  if (prefersReducedMotion) {
-    return <div className={`absolute inset-0 ${className}`}>{STATIC_FALLBACK}</div>;
+  if (prefersReducedMotion !== false) {
+    return <div className={`absolute inset-0 ${className}`}>{fallback}</div>;
   }
 
   return (
     <div ref={containerRef} className={`absolute inset-0 ${className}`}>
-      <SceneErrorBoundary>
+      <SceneErrorBoundary fallback={fallback}>
         <Canvas
           camera={{ position: [0, 0, 8], fov: 50 }}
           dpr={highQuality ? [1, 2] : [1, 1.5]}
-          frameloop={!isTabVisible || !isInView ? "never" : still ? "demand" : "always"}
+          frameloop={paused || !isTabVisible || !isInView ? "never" : still ? "demand" : "always"}
           gl={{
             antialias: highQuality,
             alpha: true,

@@ -2,7 +2,6 @@
 
 import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMusic, TabView } from "@/context/MusicContext";
 import { useTranslation } from "@/context/LanguageContext";
@@ -18,22 +17,16 @@ export default function MusicSidebar() {
     genres,
     activeTab,
     setActiveTab,
-    deckMode,
     setDeckMode,
     selectedGenre,
     setSelectedGenre,
-    showOnlyLiked,
     setShowOnlyLiked,
     likedTrackIds,
-    visualizerStyle,
-    setVisualizerStyle,
     isMobileSidebarOpen,
     setIsMobileSidebarOpen,
     isPlaying,
     audioMetrics,
   } = useMusic();
-
-  const pathname = usePathname();
 
   const handleTabClick = (tab: TabView) => {
     setActiveTab(tab);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import AdminModal from "@/components/admin/AdminModal";
@@ -33,7 +33,7 @@ export default function SocialLinksAdminPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
   const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
 
-  const fetchLinks = async () => {
+  const fetchLinks = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/social-links");
       if (res.status === 401) {
@@ -48,11 +48,11 @@ export default function SocialLinksAdminPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, toast]);
 
   useEffect(() => {
     fetchLinks();
-  }, []);
+  }, [fetchLinks]);
 
   const openCreateModal = () => {
     setFormName("");
@@ -177,7 +177,7 @@ export default function SocialLinksAdminPage() {
           <div className={cn("flex items-center", gap.base)}>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
+              onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
               className={cn("px-3 py-2 bg-slate-900", border.subtleDark, radius.control, "text-xs text-slate-300 focus:outline-none")}
             >
               <option value="all">{t("admin.common.all", "All Links")} ({links.length})</option>

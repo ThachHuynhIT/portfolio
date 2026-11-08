@@ -110,7 +110,7 @@ export default function PhotoLightboxModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center select-none">
+        <div data-legacy-typography className="fixed inset-0 z-50 flex items-center justify-center select-none">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}

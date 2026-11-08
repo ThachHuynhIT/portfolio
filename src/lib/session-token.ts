@@ -57,7 +57,11 @@ export async function signToken(payload: string, secret: string): Promise<string
 // callers are responsible for interpreting/validating the payload itself
 // (e.g. checking an expiry timestamp encoded in it).
 export async function verifyToken(token: string, secret: string): Promise<string | null> {
-  const [payload, signature] = token.split(".");
+  // Exactly `<payload>.<signature>`: extra segments (e.g. a valid token with
+  // ".anything" appended) must not verify.
+  const parts = token.split(".");
+  if (parts.length !== 2) return null;
+  const [payload, signature] = parts;
   if (!payload || !signature) return null;
 
   const signatureBytes = hexToBytes(signature);

@@ -9,7 +9,26 @@ const compat = new FlatCompat({ baseDirectory: import.meta.dirname });
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
-    ignores: [".next/**", "out/**", "build/**", "next-env.d.ts", "src/generated/**"],
+    ignores: [
+      ".next/**",
+      "out/**",
+      "build/**",
+      "next-env.d.ts",
+      "src/generated/**",
+      // Local tooling output, not project source.
+      ".claude/worktrees/**",
+      ".agents/**",
+      ".hallmark/**",
+      ".superpowers/**",
+    ],
+  },
+  {
+    // Admin CMS screens preview arbitrary user-supplied URLs and local blob: URLs
+    // (uploads before they are saved), which next/image cannot optimize or whitelist.
+    files: ["src/app/admin/**", "src/components/admin/**", "src/components/music/admin/**"],
+    rules: {
+      "@next/next/no-img-element": "off",
+    },
   },
 ];
 
