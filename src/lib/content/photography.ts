@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import { generateId } from "@/lib/data-manager";
 import type { PhotoItem, PhotoAlbum } from "@/lib/types";
+import { toPublicAlbum, type AlbumMember } from "@/lib/album-cover";
 import type { CmsPhoto, CmsPhotoAlbum, Prisma } from "@/generated/prisma";
 
 type TxClient = Prisma.TransactionClient;
@@ -188,6 +189,11 @@ export async function updatePhoto(id: string, updates: Partial<PhotoItem>): Prom
         },
       });
 
+      // Keep the denormalized cover URL in sync when the cover photo's image is replaced.
+      if (updates.image !== undefined && updated.image !== existing.image) {
+        await tx.cmsPhotoAlbum.updateMany({ where: { coverPhotoId: id }, data: { coverImage: updated.image } });
+      }
+
       if (oldAlbumId !== newAlbumId) {
         if (oldAlbumId) await recomputeAlbumCover(tx, oldAlbumId);
         if (newAlbumId) await recomputeAlbumCover(tx, newAlbumId);
@@ -227,19 +233,42 @@ export const getPublishedPhotos = unstable_cache(
 // Albums
 // ---------------------------------------------------------------------------
 
-async function withPhotoIds(rows: CmsPhotoAlbum[]): Promise<PhotoAlbum[]> {
-  const albums = await Promise.all(
-    rows.map(async (row) => {
-      const photos = await db.cmsPhoto.findMany({ where: { albumId: row.id }, select: { id: true } });
-      return toAlbum(row, photos.map((p) => p.id));
-    })
-  );
-  return sortByFeaturedThenOrder(albums);
+/** Every member of the given albums in one query, grouped by album (oldest first). */
+async function loadAlbumMembers(albumIds: string[]): Promise<Map<string, AlbumMember[]>> {
+  const byAlbum = new Map<string, AlbumMember[]>(albumIds.map((id) => [id, []]));
+  if (albumIds.length === 0) return byAlbum;
+  const photos = await db.cmsPhoto.findMany({
+    where: { albumId: { in: albumIds } },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, image: true, published: true, albumId: true },
+  });
+  for (const { albumId, ...member } of photos) {
+    if (albumId) byAlbum.get(albumId)?.push(member);
+  }
+  return byAlbum;
 }
 
 export async function listAlbums(): Promise<PhotoAlbum[]> {
   const rows = await db.cmsPhotoAlbum.findMany();
-  return withPhotoIds(rows);
+  const members = await loadAlbumMembers(rows.map((r) => r.id));
+  return sortByFeaturedThenOrder(
+    rows.map((row) => toAlbum(row, (members.get(row.id) ?? []).map((m) => m.id)))
+  );
+}
+
+/**
+ * Moves photos into `albumId` and refreshes the cover of every album they
+ * left, so a source album never keeps a cover photo it no longer contains.
+ */
+async function assignPhotosToAlbum(tx: TxClient, photoIds: string[], albumId: string): Promise<void> {
+  if (photoIds.length === 0) return;
+  const sources = await tx.cmsPhoto.findMany({
+    where: { id: { in: photoIds }, albumId: { not: null } },
+    select: { albumId: true },
+  });
+  await tx.cmsPhoto.updateMany({ where: { id: { in: photoIds } }, data: { albumId } });
+  const sourceIds = new Set(sources.map((s) => s.albumId!).filter((id) => id !== albumId));
+  for (const sourceId of sourceIds) await recomputeAlbumCover(tx, sourceId);
 }
 
 async function resolveUniqueSlug(tx: TxClient, desired: string, excludeId?: string): Promise<string> {
@@ -285,9 +314,7 @@ export async function createAlbum(
       },
     });
 
-    if (photoIds.length > 0) {
-      await tx.cmsPhoto.updateMany({ where: { id: { in: photoIds } }, data: { albumId: album.id } });
-    }
+    await assignPhotosToAlbum(tx, photoIds, album.id);
     await recomputeAlbumCover(tx, album.id);
     return fetchAlbumWithPhotoIds(tx, album.id);
   });
@@ -327,9 +354,7 @@ export async function updateAlbum(
           where: { albumId: id, id: { notIn: newIds } },
           data: { albumId: null },
         });
-        if (newIds.length > 0) {
-          await tx.cmsPhoto.updateMany({ where: { id: { in: newIds } }, data: { albumId: id } });
-        }
+        await assignPhotosToAlbum(tx, newIds, id);
       }
 
       await recomputeAlbumCover(tx, id);
@@ -354,7 +379,10 @@ export async function deleteAlbum(id: string): Promise<boolean> {
 export const getPublishedAlbums = unstable_cache(
   async (): Promise<PhotoAlbum[]> => {
     const rows = await db.cmsPhotoAlbum.findMany({ where: { published: true } });
-    return withPhotoIds(rows);
+    const members = await loadAlbumMembers(rows.map((r) => r.id));
+    return sortByFeaturedThenOrder(
+      rows.map((row) => toPublicAlbum(toAlbum(row, []), members.get(row.id) ?? []))
+    );
   },
   ["published-albums"],
   { tags: ["photography"] }
