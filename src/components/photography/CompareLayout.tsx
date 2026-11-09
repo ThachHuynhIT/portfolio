@@ -18,7 +18,7 @@ export default function CompareLayout({ photos, onSelectPhoto }: CompareLayoutPr
 
   if (comparablePhotos.length === 0) {
     return (
-      <div className={cn("portfolio-solid text-center py-20 bg-portfolio-hull border border-portfolio-hairline", "rounded-lg p-8")}>
+      <div className={cn("portfolio-solid portfolio-reveal text-center py-20 bg-portfolio-hull border border-portfolio-hairline", "rounded-lg p-8")}>
         <div className={cn("w-12 h-12", radius.pill, "bg-portfolio-hull text-portfolio-accretion flex items-center justify-center mx-auto mb-4")}>
           <Icon name="compare" size={24} />
         </div>
@@ -57,7 +57,7 @@ export default function CompareLayout({ photos, onSelectPhoto }: CompareLayoutPr
         return (
           <div
             key={photo.id}
-            className={cn("rounded-lg p-6 md:p-8 bg-portfolio-hull border border-portfolio-hairline")}
+            className={cn("portfolio-reveal rounded-lg p-6 md:p-8 bg-portfolio-hull border border-portfolio-hairline")}
           >
             {/* Header info */}
             <div className={cn("flex flex-col md:flex-row md:items-center justify-between", gap.loose, "mb-6")}>

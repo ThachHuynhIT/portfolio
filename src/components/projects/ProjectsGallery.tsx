@@ -85,12 +85,12 @@ export default function ProjectsGallery({ initialProjects }: { initialProjects: 
         <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={locale === "vi" ? "Tìm kiếm dự án, công nghệ..." : "Search projects, tags..."} className="portfolio-input w-full pr-12" />
         {searchQuery && <button type="button" onClick={() => setSearchQuery("")} aria-label={t("projects.closeModal")} className="absolute right-0 top-0 min-w-11 min-h-11 text-portfolio-dust focus-visible:outline-2 focus-visible:outline-portfolio-accretion"><Icon name="close" size={14} /></button>}
       </div>
-      <div className="flex flex-wrap gap-2">{["all", ...allTags].map(tag => <button key={tag} type="button" onClick={() => setSelectedTag(tag)} aria-pressed={selectedTag === tag} className={cn("rounded-lg border bg-portfolio-hull px-4 py-2 min-h-11 text-sm hover:border-portfolio-accretion focus-visible:outline-2 focus-visible:outline-portfolio-accretion", selectedTag === tag ? "border-portfolio-accretion text-portfolio-accretion" : "border-portfolio-control text-portfolio-dust")}>{tag === "all" ? <>{locale === "vi" ? "Tất cả" : "All"} ({initialProjects.length})</> : tag}</button>)}</div>
+      <div className="portfolio-reveal flex flex-wrap gap-2">{["all", ...allTags].map(tag => <button key={tag} type="button" onClick={() => setSelectedTag(tag)} aria-pressed={selectedTag === tag} className={cn("rounded-lg border bg-portfolio-hull px-4 py-2 min-h-11 text-sm hover:border-portfolio-accretion focus-visible:outline-2 focus-visible:outline-portfolio-accretion", selectedTag === tag ? "border-portfolio-accretion text-portfolio-accretion" : "border-portfolio-control text-portfolio-dust")}>{tag === "all" ? <>{locale === "vi" ? "Tất cả" : "All"} ({initialProjects.length})</> : tag}</button>)}</div>
     </div>
     {filteredProjects.length > 0 ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">{filteredProjects.map(project => {
       const cardTitle = locale === "vi" && project.title_vi ? project.title_vi : project.title;
       const cardDesc = locale === "vi" && project.description_vi ? project.description_vi : project.description;
-      return <article key={project.id} className="portfolio-case portfolio-solid min-w-0 flex flex-col">
+      return <article key={project.id} className="portfolio-case portfolio-solid portfolio-reveal min-w-0 flex flex-col">
         {project.image && <div className="relative aspect-[16/10] overflow-hidden mb-4"><Image src={project.image} alt={cardTitle} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" /></div>}
         {project.featured && <span className="text-xs text-portfolio-accretion mb-2">{t("projects.featuredBadge")}</span>}
         <h2 className="text-lg font-bold break-words text-portfolio-ink"><button type="button" aria-haspopup="dialog" onClick={() => setActiveProject(project)} className="portfolio-text-link text-left min-h-11 after:absolute after:inset-0 after:content-['']">{cardTitle}</button></h2>
@@ -98,6 +98,6 @@ export default function ProjectsGallery({ initialProjects }: { initialProjects: 
         <div className="flex flex-wrap gap-2 pt-3 border-t border-portfolio-hairline text-xs text-portfolio-dust">{project.tags.slice(0, 4).map(tag => <span key={tag}>{tag}</span>)}</div>
         <div className="flex flex-wrap gap-4 mt-4 text-sm">{project.liveUrl && <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="portfolio-text-link relative z-10">{t("projects.viewLive")}</a>}{project.githubUrl && <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="portfolio-text-link relative z-10">{t("projects.sourceCode")}</a>}</div>
       </article>;
-    })}</div> : <div className="portfolio-solid py-16 text-center"><p className="text-portfolio-dust">{t("projects.noProjectsFound")}</p></div>}
+    })}</div> : <div className="portfolio-solid portfolio-reveal py-16 text-center"><p className="text-portfolio-dust">{t("projects.noProjectsFound")}</p></div>}
   </div></section>{activeProject && <ProjectDetailModal project={activeProject} onClose={close} />}</div>;
 }

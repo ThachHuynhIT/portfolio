@@ -41,8 +41,8 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
         </div>
         <div className="flex flex-wrap gap-2 mt-4 text-sm text-portfolio-dust">{post.tags.map(tag => <span key={tag} className="rounded border border-portfolio-hairline bg-portfolio-hull px-3 py-1 break-all">#{tag}</span>)}</div>
       </PageHeader>
-      <article className="portfolio-article portfolio-solid min-w-0 p-5 sm:p-8 md:p-12"><div className="max-w-[68ch] mx-auto min-w-0">{renderedContent}</div></article>
-      <div className="portfolio-solid mt-12 p-6">
+      <article className="portfolio-article portfolio-solid portfolio-reveal min-w-0 p-5 sm:p-8 md:p-12"><div className="max-w-[68ch] mx-auto min-w-0">{renderedContent}</div></article>
+      <div className="portfolio-solid portfolio-reveal mt-12 p-6">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 shrink-0 rounded-full border border-portfolio-hairline bg-portfolio-hull text-portfolio-accretion flex items-center justify-center"><Icon name="user" size={28} /></div>
           <div className="min-w-0"><h2 className="text-lg font-semibold text-portfolio-ink">Thach Huynh</h2><p className="text-portfolio-dust text-sm">{isVi ? "Lập trình viên Web Sáng tạo chuyên về các trải nghiệm kỹ thuật số sống động và hiện đại." : "Creative Web Developer specializing in immersive digital experiences."}</p></div>

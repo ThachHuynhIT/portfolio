@@ -209,7 +209,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
         {activeTab === "photos" && (
           <div className="space-y-8">
             {/* Controls Toolbar (Categories, Search & Layout Switcher) */}
-            <section className="portfolio-solid space-y-5">
+            <section className="portfolio-solid portfolio-reveal space-y-5">
               <div className={cn("flex flex-col md:flex-row md:items-center justify-between", gap.loose)}>
                 {/* Search Input */}
                 <div className="relative w-full md:w-80">
@@ -334,7 +334,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
             {/* Active Layout Display */}
             <section>
               {filteredPhotos.length === 0 ? (
-                <div className={cn("portfolio-solid text-center py-20 bg-portfolio-hull border border-portfolio-hairline", "rounded-lg p-8")}>
+                <div className={cn("portfolio-solid portfolio-reveal text-center py-20 bg-portfolio-hull border border-portfolio-hairline", "rounded-lg p-8")}>
                   <div className={cn("w-12 h-12", radius.pill, "bg-portfolio-hull text-portfolio-dust flex items-center justify-center mx-auto mb-3")}>
                     <Icon name="search" size={20} />
                   </div>
@@ -395,7 +395,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
         {activeTab === "albums" && (
           <section className="space-y-8">
             {/* Search Bar for Albums */}
-            <div className={cn("portfolio-solid flex flex-col sm:flex-row sm:items-center justify-between", gap.loose)}>
+            <div className={cn("portfolio-solid portfolio-reveal flex flex-col sm:flex-row sm:items-center justify-between", gap.loose)}>
               <div className="relative w-full sm:w-80">
                 <Icon
                   name="search"
@@ -427,7 +427,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
 
             {/* Albums Grid */}
             {filteredAlbums.length === 0 ? (
-              <div className={cn("portfolio-solid text-center py-20 bg-portfolio-hull border border-portfolio-hairline", "rounded-lg p-8")}>
+              <div className={cn("portfolio-solid portfolio-reveal text-center py-20 bg-portfolio-hull border border-portfolio-hairline", "rounded-lg p-8")}>
                 <div className={cn("w-12 h-12", radius.pill, "bg-portfolio-hull text-portfolio-dust flex items-center justify-center mx-auto mb-3")}>
                   <Icon name="grid" size={20} />
                 </div>
@@ -464,7 +464,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     <Link
                       key={album.id}
                       href={`/photography/album/${album.slug}`}
-                      className={cn("group relative", "rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion", "transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portfolio-accretion)] focus-visible:outline-offset-2", "flex flex-col")}
+                      className={cn("portfolio-reveal group relative", "rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion", "transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portfolio-accretion)] focus-visible:outline-offset-2", "flex flex-col")}
                     >
                       {/* Cover Photo */}
                       <div className="relative aspect-[16/10] w-full bg-portfolio-hull overflow-hidden">

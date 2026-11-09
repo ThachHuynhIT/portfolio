@@ -95,7 +95,7 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
           </div>
         )}
         {/* ── Controls Toolbar (Layout Switcher) ── */}
-        <section className={cn("flex flex-col sm:flex-row sm:items-center justify-between", gap.loose, "portfolio-solid mb-8")}>
+        <section className={cn("flex flex-col sm:flex-row sm:items-center justify-between", gap.loose, "portfolio-solid portfolio-reveal mb-8")}>
           <h2 className={cn("text-lg font-bold text-portfolio-ink flex items-center", gap.tight)}>
             <span>{t("photography.worksInCollection") || "Tác phẩm trong bộ sưu tập"}</span>
             <span className={cn("text-xs px-2 py-0.5", radius.pill, "bg-portfolio-hull text-portfolio-accretion font-mono")}>
@@ -145,7 +145,7 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
         {/* ── Photos Layout View ── */}
         <section className="mb-20">
           {photos.length === 0 ? (
-            <div className={cn("portfolio-solid text-center py-20 bg-portfolio-hull border border-portfolio-hairline", "rounded-lg p-8")}>
+            <div className={cn("portfolio-solid portfolio-reveal text-center py-20 bg-portfolio-hull border border-portfolio-hairline", "rounded-lg p-8")}>
               <Icon name="image" size={32} className="text-portfolio-dust mx-auto mb-3" />
               <h3 className="text-lg font-semibold text-portfolio-ink mb-1">
                 {locale === "vi" ? "Chưa có tác phẩm nào trong Album này" : "No artworks in this album yet"}
@@ -206,7 +206,7 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
                   <Link
                     key={item.id}
                     href={`/photography/album/${item.slug}`}
-                    className={cn("group", "rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portfolio-accretion)] focus-visible:outline-offset-2 transition-all flex flex-col")}
+                    className={cn("portfolio-reveal group", "rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portfolio-accretion)] focus-visible:outline-offset-2 transition-all flex flex-col")}
                   >
                     <div className="relative aspect-[16/10] w-full bg-portfolio-hull overflow-hidden">
                       {item.coverImage && (

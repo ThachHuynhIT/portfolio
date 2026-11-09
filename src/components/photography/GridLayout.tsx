@@ -38,7 +38,7 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
         return (
           <div
             key={photo.id}
-            className={cn("group relative min-w-0", "rounded-lg bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion", "transition-colors", "cursor-pointer flex flex-col")}
+            className={cn("portfolio-reveal group relative min-w-0", "rounded-lg bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion", "transition-colors", "cursor-pointer flex flex-col")}
           >
               <button
                 type="button"

@@ -107,6 +107,7 @@ export const viewport: Viewport = {
 };
 
 import GlobalBackground, { PortfolioScope } from "@/components/layout/GlobalBackground";
+import RevealObserver from "@/components/layout/RevealObserver";
 import MotionProvider from "@/components/layout/MotionProvider";
 
 // THEME_INIT_SCRIPT (src/lib/theme-init.ts) runs before hydration to set
@@ -144,6 +145,7 @@ export default async function RootLayout({
                   <Footer navLinks={navLinks} socialLinks={socialLinks} siteConfig={siteConfig} />
                 </PortfolioScope>
                 <GlobalMusicPlayer />
+                <RevealObserver />
               </MusicProvider>
             </LanguageProvider>
           </MotionProvider>

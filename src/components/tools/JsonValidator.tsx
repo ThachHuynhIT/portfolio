@@ -214,7 +214,7 @@ export default function JsonValidator() {
 
       {/* Drag & Drop Zone */}
       <div
-        className={cn("portfolio-solid rounded-lg p-5 sm:p-8 !border-2 !border-dashed", isDragging ? "!border-portfolio-accretion" : "!border-portfolio-control hover:!border-portfolio-accretion")}
+        className={cn("portfolio-solid portfolio-reveal rounded-lg p-5 sm:p-8 !border-2 !border-dashed", isDragging ? "!border-portfolio-accretion" : "!border-portfolio-control hover:!border-portfolio-accretion")}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -267,7 +267,7 @@ export default function JsonValidator() {
       {/* File List */}
       {files.length > 0 && (
         <div
-          className="portfolio-solid rounded-lg p-6 border border-portfolio-hairline"
+          className="portfolio-solid portfolio-reveal rounded-lg p-6 border border-portfolio-hairline"
         >
           <h3 className="text-xl font-bold text-portfolio-ink mb-4">
             Selected {files.length} file(s):
@@ -292,7 +292,7 @@ export default function JsonValidator() {
             {groupFilesBySuffix(files).map((group, index) => (
               <div
                 key={index}
-                className="portfolio-solid p-4 mb-3 font-mono break-all"
+                className="portfolio-solid portfolio-reveal p-4 mb-3 font-mono break-all"
               >
                 <div className="flex flex-wrap items-center text-portfolio-dust gap-2 mb-2">
                   <span className="px-3 py-1 rounded-full bg-portfolio-hull border border-portfolio-hairline text-portfolio-ink font-mono break-all text-sm font-bold">
@@ -335,7 +335,7 @@ export default function JsonValidator() {
       {/* Error Display */}
       {error && (
         <div
-          role="alert" className="portfolio-solid rounded-lg p-4"
+          role="alert" className="portfolio-solid portfolio-reveal rounded-lg p-4"
         >
           <p className="text-portfolio-ink font-semibold flex items-center gap-2">
             <Icon name="xCircle" size={16} /> Error: {error}
@@ -350,7 +350,7 @@ export default function JsonValidator() {
             className="space-y-6 min-w-0 text-portfolio-dust"
           >
             {/* Summary */}
-            <div className="portfolio-solid rounded-lg p-6 border border-portfolio-hairline">
+            <div className="portfolio-solid portfolio-reveal rounded-lg p-6 border border-portfolio-hairline">
               <h2 className="text-2xl font-bold text-portfolio-ink mb-4 flex items-center gap-2">
                 <Icon name="activity" size={20} /> Results Summary
               </h2>
@@ -378,7 +378,7 @@ export default function JsonValidator() {
             {results.map((result, index) => (
               <div
                 key={index}
-                className="portfolio-solid rounded-lg p-6 border border-portfolio-hairline"
+                className="portfolio-solid portfolio-reveal rounded-lg p-6 border border-portfolio-hairline"
               >
                 <div className="flex flex-wrap items-center gap-3 mb-4">
                   <span className="px-4 py-2 rounded-full bg-portfolio-hull border border-portfolio-hairline text-portfolio-ink font-mono break-all text-lg font-bold">
@@ -434,7 +434,7 @@ export default function JsonValidator() {
                     </div>
                   </div>
                 ) : (
-                  <div className="portfolio-solid rounded-lg p-4">
+                  <div className="portfolio-solid portfolio-reveal rounded-lg p-4">
                     <p className="text-portfolio-ink font-semibold text-center flex items-center justify-center gap-2">
                       <Icon name="checkCircle" size={16} /> All IDs are valid!
                     </p>

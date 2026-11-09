@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils";
 export default function PageHeader({ title, intro, children, className }: { title: ReactNode; intro?: ReactNode; children?: ReactNode; className?: string }) {
   return (
     <div className={cn("portfolio-page-header", className)}>
-      <SectionHeading as="h1">{title}</SectionHeading>
-      {intro != null && <p className="portfolio-page-intro text-portfolio-dust">{intro}</p>}
-      {children}
+      <SectionHeading as="h1" className="portfolio-reveal">{title}</SectionHeading>
+      {intro != null && <p className="portfolio-page-intro portfolio-reveal text-portfolio-dust">{intro}</p>}
+      {children != null && <div className="portfolio-reveal">{children}</div>}
     </div>
   );
 }
