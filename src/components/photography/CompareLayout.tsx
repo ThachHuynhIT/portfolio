@@ -57,7 +57,7 @@ export default function CompareLayout({ photos, onSelectPhoto }: CompareLayoutPr
         return (
           <div
             key={photo.id}
-            className={cn("portfolio-reveal rounded-lg p-6 md:p-8 bg-portfolio-hull border border-portfolio-hairline")}
+            className={cn("portfolio-reveal portfolio-reveal--lens rounded-lg p-6 md:p-8 bg-portfolio-hull border border-portfolio-hairline")}
           >
             {/* Header info */}
             <div className={cn("flex flex-col md:flex-row md:items-center justify-between", gap.loose, "mb-6")}>

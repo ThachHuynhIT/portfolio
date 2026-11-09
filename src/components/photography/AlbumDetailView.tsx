@@ -206,7 +206,7 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
                   <Link
                     key={item.id}
                     href={`/photography/album/${item.slug}`}
-                    className={cn("portfolio-reveal group", "rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portfolio-accretion)] focus-visible:outline-offset-2 transition-all flex flex-col")}
+                    className={cn("portfolio-reveal portfolio-reveal--lens group", "rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portfolio-accretion)] focus-visible:outline-offset-2 transition-all flex flex-col")}
                   >
                     <div className="relative aspect-[16/10] w-full bg-portfolio-hull overflow-hidden">
                       {item.coverImage && (

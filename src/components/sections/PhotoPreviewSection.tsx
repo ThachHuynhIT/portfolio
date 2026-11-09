@@ -35,10 +35,10 @@ export default function PhotoPreviewSection({ photography }: PhotoPreviewSection
   }, [reduced, photography]);
   if (!photos.length) return null;
   return <section id="photos" className="portfolio-section"><div className="portfolio-column">
-    <div className="portfolio-reveal text-center mb-10"><SectionHeading>{t("photoPreview.titlePrefix")}{t("photoPreview.titleHighlight")}</SectionHeading><p className="text-portfolio-dust">{t("photoPreview.subtitle")}</p></div>
+    <div className="portfolio-reveal portfolio-reveal--sweep text-center mb-10"><SectionHeading>{t("photoPreview.titlePrefix")}{t("photoPreview.titleHighlight")}</SectionHeading><p className="text-portfolio-dust">{t("photoPreview.subtitle")}</p></div>
     <div ref={strip} className="portfolio-photo-strip">{photos.map((photo, i) => {
       const title = pickLocalized(locale, photo.title, photo.title_vi) || `${t("photoPreview.photoLabel")} ${i + 1}`;
-      return <Link key={photo.id} href="/photography" className="portfolio-reveal relative block aspect-[4/5] overflow-hidden snap-start" aria-label={title}>
+      return <Link key={photo.id} href="/photography" className="portfolio-reveal portfolio-reveal--iris relative block aspect-[4/5] overflow-hidden snap-start" aria-label={title}>
         <div data-photo-parallax className="absolute -inset-y-6 inset-x-0"><Image src={photo.image} alt={title} fill sizes="(max-width: 639px) 78vw, (max-width: 1120px) 25vw, 268px" className="object-cover" /></div>
       </Link>;
     })}</div>

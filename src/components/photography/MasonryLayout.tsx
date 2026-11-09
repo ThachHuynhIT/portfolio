@@ -53,7 +53,7 @@ export default function MasonryLayout({ photos, onSelectPhoto }: MasonryLayoutPr
             return (
               <article
                 key={photo.id}
-                className={cn("portfolio-reveal group relative min-w-0", "rounded-lg bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion", "transition-colors", "cursor-pointer")}
+                className={cn("portfolio-reveal portfolio-reveal--iris group relative min-w-0", "rounded-lg bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion", "transition-colors", "cursor-pointer")}
           >
               <button
                 type="button"

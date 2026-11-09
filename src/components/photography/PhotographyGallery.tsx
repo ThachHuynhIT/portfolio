@@ -464,7 +464,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     <Link
                       key={album.id}
                       href={`/photography/album/${album.slug}`}
-                      className={cn("portfolio-reveal group relative", "rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion", "transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portfolio-accretion)] focus-visible:outline-offset-2", "flex flex-col")}
+                      className={cn("portfolio-reveal portfolio-reveal--lens group relative", "rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion", "transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portfolio-accretion)] focus-visible:outline-offset-2", "flex flex-col")}
                     >
                       {/* Cover Photo */}
                       <div className="relative aspect-[16/10] w-full bg-portfolio-hull overflow-hidden">

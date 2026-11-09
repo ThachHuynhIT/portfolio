@@ -90,7 +90,7 @@ export default function ProjectsGallery({ initialProjects }: { initialProjects: 
     {filteredProjects.length > 0 ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">{filteredProjects.map(project => {
       const cardTitle = locale === "vi" && project.title_vi ? project.title_vi : project.title;
       const cardDesc = locale === "vi" && project.description_vi ? project.description_vi : project.description;
-      return <article key={project.id} className="portfolio-case portfolio-solid portfolio-reveal min-w-0 flex flex-col">
+      return <article key={project.id} className="portfolio-case portfolio-solid portfolio-reveal portfolio-reveal--lens min-w-0 flex flex-col">
         {project.image && <div className="relative aspect-[16/10] overflow-hidden mb-4"><Image src={project.image} alt={cardTitle} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" /></div>}
         {project.featured && <span className="text-xs text-portfolio-accretion mb-2">{t("projects.featuredBadge")}</span>}
         <h2 className="text-lg font-bold break-words text-portfolio-ink"><button type="button" aria-haspopup="dialog" onClick={() => setActiveProject(project)} className="portfolio-text-link text-left min-h-11 after:absolute after:inset-0 after:content-['']">{cardTitle}</button></h2>

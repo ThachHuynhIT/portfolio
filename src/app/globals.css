@@ -937,11 +937,89 @@ body {
     animation-delay: 4s; animation-fill-mode: forwards;
   }
   .portfolio-reveal[data-revealed] {
+    --reveal-delay: calc(min(var(--reveal-i, 0), 10) * 150ms);
     animation-name: portfolio-reveal-in; animation-duration: 950ms;
     animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
     animation-fill-mode: backwards;
-    animation-delay: calc(min(var(--reveal-i, 0), 10) * 150ms);
+    animation-delay: var(--reveal-delay);
   }
+
+  /* Themed variants (one-shot; transform/opacity/clip-path, brief blur).
+     Pseudo-element accents reuse --reveal-delay and end at opacity 0. */
+  /* Lens: cards tilt up out of a blur, border flares with accretion light. */
+  .portfolio-reveal--lens[data-revealed] { animation-name: portfolio-fx-lens; animation-duration: 1150ms; }
+  .portfolio-reveal--lens[data-revealed]::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 1;
+    border: 1px solid var(--portfolio-accretion);
+    box-shadow: inset 0 0 28px color-mix(in srgb, var(--portfolio-accretion) 22%, transparent);
+    opacity: 0;
+    animation-name: portfolio-fx-flare; animation-duration: 1700ms; animation-timing-function: ease-out;
+    animation-fill-mode: backwards; animation-delay: calc(var(--reveal-delay) + 250ms);
+  }
+  /* Iris: photos open from the center like a camera aperture. */
+  .portfolio-reveal--iris[data-revealed] {
+    animation-name: portfolio-fx-iris; animation-duration: 1250ms;
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  /* Sweep: headings are wiped in left to right behind a band of light. */
+  .portfolio-reveal--sweep[data-revealed] {
+    animation-name: portfolio-fx-sweep; animation-duration: 1100ms;
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .portfolio-reveal--sweep[data-revealed]::after {
+    content: ""; position: absolute; top: 12%; bottom: 12%; left: 0; width: 7%; pointer-events: none;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--portfolio-accretion) 55%, transparent), transparent);
+    filter: blur(3px); opacity: 0;
+    animation-name: portfolio-fx-glint; animation-duration: 1300ms; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+    animation-fill-mode: backwards; animation-delay: var(--reveal-delay);
+  }
+  /* Focus: text pulls from blurred to sharp. */
+  .portfolio-reveal--focus[data-revealed] { animation-name: portfolio-fx-focus; animation-duration: 1100ms; }
+  /* Trail: rows slide in while a shooting-star streak crosses their base. */
+  .portfolio-reveal--trail[data-revealed] { animation-name: portfolio-fx-trail; animation-duration: 900ms; }
+  .portfolio-reveal--trail[data-revealed]::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; pointer-events: none;
+    background: linear-gradient(90deg, transparent, var(--portfolio-accretion) 70%, color-mix(in srgb, var(--portfolio-accretion) 30%, white));
+    transform-origin: left; opacity: 0;
+    animation-name: portfolio-fx-streak; animation-duration: 1200ms; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-fill-mode: backwards; animation-delay: calc(var(--reveal-delay) + 120ms);
+  }
+}
+/* Variants anchor their accent pseudo-elements. */
+.portfolio-reveal--lens, .portfolio-reveal--sweep, .portfolio-reveal--trail { position: relative; }
+@keyframes portfolio-fx-lens {
+  from { opacity: 0; transform: perspective(1000px) translate3d(0, 48px, 0) rotateX(16deg) scale(0.93); filter: blur(8px); }
+  55% { opacity: 1; filter: blur(0); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes portfolio-fx-flare { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes portfolio-fx-iris {
+  from { opacity: 0.25; clip-path: circle(0% at 50% 45%); transform: scale(1.06); }
+  to { opacity: 1; clip-path: circle(75% at 50% 45%); transform: scale(1); }
+}
+@keyframes portfolio-fx-sweep {
+  from { clip-path: inset(0 100% 0 0); opacity: 0.4; }
+  to { clip-path: inset(0 0 0 0); opacity: 1; }
+}
+@keyframes portfolio-fx-glint {
+  from { opacity: 0; transform: translateX(0) skewX(-20deg); }
+  20% { opacity: 0.9; }
+  80% { opacity: 0.9; }
+  to { opacity: 0; transform: translateX(1400%) skewX(-20deg); }
+}
+@keyframes portfolio-fx-focus {
+  from { opacity: 0; filter: blur(12px); transform: scale(1.04); }
+  to { opacity: 1; filter: none; transform: none; }
+}
+@keyframes portfolio-fx-trail {
+  from { opacity: 0; transform: translate3d(-56px, 0, 0); }
+  60% { opacity: 1; }
+  to { opacity: 1; transform: none; }
+}
+@keyframes portfolio-fx-streak {
+  from { opacity: 1; transform: scaleX(0); }
+  70% { opacity: 1; transform: scaleX(1); }
+  to { opacity: 0; transform: scaleX(1); }
 }
 @keyframes portfolio-reveal-in {
   from { opacity: 0; transform: translate3d(0, 32px, 0); }
