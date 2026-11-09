@@ -3,6 +3,7 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
+import PageHeader from "@/components/ui/PageHeader";
 import type { EngineStats } from "@/components/3d/blackhole/engine";
 
 const BlackHoleCanvas = dynamic(
@@ -25,7 +26,7 @@ function HudMetrics({ stats }: { stats: EngineStats | null }) {
   ];
 
   return (
-    <div className="text-right pointer-events-none" aria-hidden="true">
+    <div className="rounded-lg bg-portfolio-hull border border-portfolio-hairline p-3 text-right pointer-events-none" aria-hidden="true">
       <table className="ml-auto border-separate" style={{ borderSpacing: "0 1px" }}>
         <tbody>
           {rows.map(([label, value]) => (
@@ -33,21 +34,21 @@ function HudMetrics({ stats }: { stats: EngineStats | null }) {
               <td
                 className="pr-6 text-right"
                 style={{
-                  fontFamily: "var(--font-mono, monospace)",
+                  fontFamily: "inherit",
                   fontSize: "10px",
                   letterSpacing: "0.12em",
                   textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.38)",
+                  color: "var(--portfolio-dust)",
                 }}
               >
                 {label}
               </td>
               <td
                 style={{
-                  fontFamily: "var(--font-mono, monospace)",
+                  fontFamily: "inherit",
                   fontSize: "10px",
                   letterSpacing: "0.12em",
-                  color: "rgba(255,255,255,0.75)",
+                  color: "var(--portfolio-ink)",
                 }}
               >
                 {value}
@@ -69,12 +70,13 @@ function SoundToggle() {
     <button
       onClick={() => setOn((v) => !v)}
       aria-label={on ? "Mute sound" : "Unmute sound"}
+      className="min-w-11 min-h-11 focus-visible:outline-2 focus-visible:outline-portfolio-accretion"
       style={{
-        fontFamily: "var(--font-mono, monospace)",
+        fontFamily: "inherit",
         fontSize: "10px",
         letterSpacing: "0.18em",
         textTransform: "uppercase",
-        color: on ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.45)",
+        color: on ? "var(--portfolio-ink)" : "var(--portfolio-dust)",
         background: "transparent",
         border: "none",
         cursor: "pointer",
@@ -82,8 +84,8 @@ function SoundToggle() {
         transition: "color 0.2s",
         whiteSpace: "nowrap",
       }}
-      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.85)"; }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = on ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.45)"; }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--portfolio-ink)"; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = on ? "var(--portfolio-ink)" : "var(--portfolio-dust)"; }}
     >
       ■ {on ? "SOUND ON" : "SOUND OFF"}
     </button>
@@ -119,8 +121,9 @@ export default function NotFound() {
   const [stats, setStats] = useState<EngineStats | null>(null);
 
   return (
-    <section
-      className="relative overflow-hidden bg-black"
+    <div
+      className="portfolio-theme portfolio-page overflow-hidden bg-portfolio-void"
+      data-portfolio-dark="true"
       style={{ width: "100vw", height: "100dvh", position: "fixed", top: 0, left: 0, zIndex: 9999 }}
     >
       {/* ── Fullscreen raymarched black hole ── */}
@@ -142,17 +145,17 @@ export default function NotFound() {
 
       {/* ── Top-left: signal lost badge ── */}
       <div
-        className="absolute top-0 left-0 pointer-events-none"
+        className="absolute top-0 left-0 pointer-events-none max-w-[40%]"
         style={{ padding: "clamp(14px, 2.5vw, 28px)", zIndex: 10 }}
         aria-hidden="true"
       >
         <span
           style={{
-            fontFamily: "var(--font-mono, monospace)",
+            fontFamily: "inherit",
             fontSize: "10px",
             letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.45)",
+            color: "var(--portfolio-dust)",
           }}
         >
           ■ SIGNAL LOST — HTTP 404
@@ -161,17 +164,17 @@ export default function NotFound() {
 
       {/* ── Top-right: orbit hint + sound toggle ── */}
       <div
-        className="absolute top-0 right-0 flex items-center gap-5"
+        className="absolute top-0 right-0 flex flex-wrap justify-end items-center gap-3 max-w-[60%]"
         style={{ padding: "clamp(14px, 2.5vw, 28px)", zIndex: 10 }}
       >
         <span
           aria-hidden="true"
           style={{
-            fontFamily: "var(--font-mono, monospace)",
+            fontFamily: "inherit",
             fontSize: "10px",
             letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.38)",
+            color: "var(--portfolio-dust)",
           }}
         >
           DRAG TO ORBIT · SCROLL TO APPROACH
@@ -180,76 +183,23 @@ export default function NotFound() {
       </div>
 
       {/* ── Bottom-left: 404 heading + copy + CTA ── */}
-      <div
-        className="absolute bottom-0 left-0 pointer-events-none"
+      <section
+        className="portfolio-section absolute bottom-0 left-0 pointer-events-none max-w-full"
         style={{ padding: "clamp(20px, 4vw, 52px)", zIndex: 10 }}
       >
-        <h1
-          aria-label="404"
-          style={{
-            fontFamily: "var(--font-sans, system-ui, sans-serif)",
-            fontSize: "clamp(7rem, 16vw, 15rem)",
-            fontWeight: 200,
-            lineHeight: 1,
-            color: "rgba(255,255,255,0.92)",
-            letterSpacing: "-0.02em",
-            margin: 0,
-          }}
-        >
-          404
-        </h1>
-        <p
-          style={{
-            fontFamily: "var(--font-sans, system-ui, sans-serif)",
-            fontSize: "clamp(0.8rem, 1.2vw, 1rem)",
-            color: "rgba(255,255,255,0.55)",
-            marginTop: "0.5rem",
-            maxWidth: "360px",
-          }}
-        >
-          The page you&apos;re looking for fell past the event horizon.
-        </p>
-        <Link
-          href="/"
-          className="pointer-events-auto"
-          style={{
-            display: "inline-block",
-            marginTop: "1.5rem",
-            padding: "0.6rem 1.4rem",
-            fontFamily: "var(--font-mono, monospace)",
-            fontSize: "11px",
-            letterSpacing: "0.2em",
-            textTransform: "uppercase",
-            color: "rgba(255,255,255,0.85)",
-            border: "1px solid rgba(255,255,255,0.25)",
-            background: "transparent",
-            textDecoration: "none",
-            transition: "background 0.2s, color 0.2s, border-color 0.2s",
-          }}
-          onMouseEnter={(e) => {
-            const el = e.currentTarget as HTMLElement;
-            el.style.background  = "rgba(255,255,255,1)";
-            el.style.color       = "#000000";
-            el.style.borderColor = "rgba(255,255,255,1)";
-          }}
-          onMouseLeave={(e) => {
-            const el = e.currentTarget as HTMLElement;
-            el.style.background  = "transparent";
-            el.style.color       = "rgba(255,255,255,0.85)";
-            el.style.borderColor = "rgba(255,255,255,0.25)";
-          }}
-        >
-          ← RETURN HOME
-        </Link>
-      </div>
+        <div className="portfolio-column">
+          <PageHeader className="[&_h1]:text-portfolio-accretion [&_h1]:text-[clamp(7rem,16vw,15rem)] [&_h1]:font-extralight [&_h1]:leading-none [&_.portfolio-page-intro]:text-portfolio-ink [&_.portfolio-page-intro]:font-medium" title="404" intro={<>The page you&apos;re looking for fell past the event horizon.</>} />
+          <Link href="/" className="portfolio-action portfolio-action-primary pointer-events-auto mt-6">← RETURN HOME</Link>
+        </div>
+      </section>
 
       {/* ── Bottom-right: physics HUD ── */}
       <div
-        className="absolute bottom-0 right-0"
+        className="absolute top-24 sm:top-auto sm:bottom-0 right-0"
         style={{ padding: "clamp(20px, 4vw, 52px)", zIndex: 10 }}
       >
         <HudMetrics stats={stats} />
       </div>
-    </section>
+    </div>
   );
 }

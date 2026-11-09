@@ -2,14 +2,12 @@
 
 import React from "react";
 import Link from "next/link";
-import { GlassCard } from "@/components/ui";
+import PageHeader from "@/components/ui/PageHeader";
 import { useTranslation } from "@/context/LanguageContext";
 import FlagIcon from "@/components/ui/FlagIcon";
 import Icon from "@/components/ui/Icon";
 import type { BlogPostViewMeta } from "@/lib/blog-list";
 import { translateBlogCategory, translateReadTime } from "@/lib/content-overrides";
-import { cn } from "@/lib/utils";
-import { brand, gap, radius, text } from "@/lib/design-tokens";
 
 interface BlogPostViewProps {
   post: BlogPostViewMeta;
@@ -25,119 +23,31 @@ export default function BlogPostView({ post, contentEn, contentVi }: BlogPostVie
   const excerpt = isVi && post.excerpt_vi ? post.excerpt_vi : post.excerpt;
   const renderedContent = isVi && post.hasVi && contentVi ? contentVi : contentEn;
 
-  return (
-    <article className="min-h-screen pt-32 pb-20">
-      {/* Background */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-radial from-purple-500/10 via-transparent to-transparent" />
-      </div>
-
-      <div className="container mx-auto px-6 max-w-3xl">
-        {/* Back Link */}
-        <div className="flex items-center justify-between mb-8">
-          <Link
-            href="/blog"
-            className={cn("inline-flex items-center", gap.tight, "text-white/60 hover:text-white transition-colors light:text-neutral-600 light:hover:text-neutral-900")}
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            <span>{isVi ? "Quay lại Blog" : "Back to Blog"}</span>
-          </Link>
-
-          {/* Translation Availability Indicator */}
-          <div className={cn("flex items-center", gap.tight, "text-xs text-white/50 bg-white/[0.03] px-3 py-1.5", radius.pill, "border border-white/8 light:text-neutral-500 light:bg-neutral-900/[0.04] light:border-neutral-900/10")}>
-            <span className={cn("text-[11px] uppercase tracking-wider", text.subtle)}>
-              {isVi ? "Ngôn ngữ:" : "Language:"}
-            </span>
-            <span className="inline-flex items-center gap-1 text-white/80 font-medium light:text-neutral-800">
-              <FlagIcon code={isVi ? "vi" : "en"} size={14} />
-              {isVi ? "Tiếng Việt" : "English"}
-            </span>
-            {isVi && !post.hasVi && (
-              <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 light:text-amber-700">
-                (Đang hiển thị bản gốc EN)
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Header */}
-        <header className="mb-12">
-          <div className={cn("flex items-center", gap.base, "mb-4")}>
-            <span className={cn("px-3 py-1 text-xs font-medium text-purple-400 bg-purple-500/10", radius.pill, "light:text-purple-700")}>
-              {translateBlogCategory(post.category, locale)}
-            </span>
-            <span className="text-white/40 text-sm light:text-neutral-500">
-              {translateReadTime(post.readTime, locale, t("blog.minRead"))}
-            </span>
-          </div>
-
-          <h1 className={cn("text-4xl md:text-5xl font-bold", text.primary, "mb-6")}>
-            {title}
-          </h1>
-
-          <p className={cn("text-xl", text.muted, "mb-6")}>{excerpt}</p>
-
-          <div className={cn("flex items-center", gap.loose, "text-sm", text.subtle)}>
-            <time dateTime={post.date}>
-              {new Date(post.date).toLocaleDateString(isVi ? "vi-VN" : "en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </time>
-          </div>
-
-          {/* Tags */}
-          <div className={cn("flex flex-wrap", gap.tight, "mt-6")}>
-            {post.tags.map((tag) => (
-              <span
-                key={tag}
-                className={cn("px-3 py-1 text-sm text-white/60 bg-white/5 border border-white/10", radius.pill, "light:text-neutral-600 light:bg-neutral-900/[0.04] light:border-neutral-900/10")}
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-        </header>
-
-        {/* Content */}
-        <GlassCard className="p-8 md:p-12">
-          <div className="prose prose-invert max-w-none">
-            {renderedContent}
-          </div>
-        </GlassCard>
-
-        {/* Author */}
-        <div className="mt-12">
-          <GlassCard className="p-6">
-            <div className={cn("flex items-center", gap.loose)}>
-              <div className={cn("w-16 h-16", radius.pill, brand.gradient, "flex items-center justify-center text-white")}>
-                <Icon name="user" size={28} />
-              </div>
-              <div>
-                <h3 className={cn("text-lg font-semibold", text.primary)}>Thach Huynh</h3>
-                <p className="text-white/60 text-sm light:text-neutral-600">
-                  {isVi
-                    ? "Lập trình viên Web Sáng tạo chuyên về các trải nghiệm kỹ thuật số sống động và hiện đại."
-                    : "Creative Web Developer specializing in immersive digital experiences."}
-                </p>
-              </div>
-            </div>
-          </GlassCard>
+  return <div className="portfolio-page"><section className="portfolio-section"><div className="portfolio-column">
+    <div className="portfolio-reading !bg-none mx-auto min-w-0 max-w-[80ch]">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <Link href="/blog" className="portfolio-text-link inline-flex items-center gap-2"><span aria-hidden="true">←</span>{isVi ? "Quay lại Blog" : "Back to Blog"}</Link>
+        <div className="flex flex-wrap items-center gap-2 text-xs text-portfolio-dust bg-portfolio-hull border border-portfolio-hairline rounded-lg px-3 py-2">
+          <span>{isVi ? "Ngôn ngữ:" : "Language:"}</span>
+          <span className="inline-flex items-center gap-1 text-portfolio-ink"><FlagIcon code={isVi ? "vi" : "en"} size={14} />{isVi ? "Tiếng Việt" : "English"}</span>
+          {isVi && !post.hasVi && <span className="text-portfolio-accretion">(Đang hiển thị bản gốc EN)</span>}
         </div>
       </div>
-    </article>
-  );
+      <PageHeader title={title} intro={excerpt}>
+        <div className="flex flex-wrap gap-4 items-center text-sm text-portfolio-dust">
+          <span className="rounded border border-portfolio-hairline bg-portfolio-hull px-3 py-1">{translateBlogCategory(post.category, locale)}</span>
+          <span>{translateReadTime(post.readTime, locale, t("blog.minRead"))}</span>
+          <time dateTime={post.date}>{new Date(post.date).toLocaleDateString(isVi ? "vi-VN" : "en-US", { month: "long", day: "numeric", year: "numeric" })}</time>
+        </div>
+        <div className="flex flex-wrap gap-2 mt-4 text-sm text-portfolio-dust">{post.tags.map(tag => <span key={tag} className="rounded border border-portfolio-hairline bg-portfolio-hull px-3 py-1 break-all">#{tag}</span>)}</div>
+      </PageHeader>
+      <article className="portfolio-article portfolio-solid min-w-0 p-5 sm:p-8 md:p-12"><div className="max-w-[68ch] mx-auto min-w-0">{renderedContent}</div></article>
+      <div className="portfolio-solid mt-12 p-6">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 shrink-0 rounded-full border border-portfolio-hairline bg-portfolio-hull text-portfolio-accretion flex items-center justify-center"><Icon name="user" size={28} /></div>
+          <div className="min-w-0"><h2 className="text-lg font-semibold text-portfolio-ink">Thach Huynh</h2><p className="text-portfolio-dust text-sm">{isVi ? "Lập trình viên Web Sáng tạo chuyên về các trải nghiệm kỹ thuật số sống động và hiện đại." : "Creative Web Developer specializing in immersive digital experiences."}</p></div>
+        </div>
+      </div>
+    </div>
+  </div></section></div>;
 }
