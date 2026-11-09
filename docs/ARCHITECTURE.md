@@ -59,7 +59,7 @@ portfolio/
 │   │   ├── api/               # admin/**, contact, couple, music/{tracks,upload}
 │   │   └── blog/, projects/, photography/ (+ album/[slug]), music/, couple/, tools/json-validator/
 │   ├── components/
-│   │   ├── 3d/                # SceneContainer, StarryBackground3D, blackhole/ (BlackHoleCanvas + engine)
+│   │   ├── 3d/                # SceneContainer, blackhole/ (BlackHoleCanvas + engine)
 │   │   ├── admin/, blog/, music/, photography/, projects/, sections/, tools/, layout/ (GlobalBackground)
 │   │   └── ui/                # Button, GlassCard, TiltCard, AnimatedSection, Navigation, Footer, Skeleton, ImageWithSkeleton, ThemeToggle, LanguageSwitcher, Icon,...
 │   ├── context/               # LanguageContext, MusicContext, ThemeContext, ToastContext
@@ -89,7 +89,7 @@ Phân hệ 3D được xây dựng dựa trên `@react-three/fiber` (R3F), `@rea
    - Quản lý khởi tạo `<Canvas>` của Three.js với cấu hình camera tối ưu.
    - **Tự động nhận diện `prefers-reduced-motion`**: Nếu người dùng bật chế độ giảm chuyển động trong hệ điều hành, hệ thống sẽ render Fallback CSS gradient thay vì khởi động WebGL context để tiết kiệm GPU và bảo vệ trải nghiệm người dùng.
    - **`SceneErrorBoundary`**: Bọc toàn bộ 3D scene trong một Error Boundary cấp component. Khi WebGL bị crash hoặc driver GPU không hỗ trợ, màn hình sẽ fallback an toàn mà không làm sập toàn bộ trang web.
-   - Dùng cho `StarryBackground3D` (nền sao toàn site qua `GlobalBackground`). `ParticleField` đã bị xoá trong đợt overhaul 11/2026; nền Contact là CSS shooting stars (`.portfolio-contact-stars`, dừng bằng IntersectionObserver).
+   - Hiện không trang nào mount scene R3F: nền sao 3D `StarryBackground3D` cũ đã được thay (11/2026) bằng nền sao CSS tĩnh `.portfolio-stars` do `GlobalBackground` render trên mọi trang public trừ `/` (trang chủ có `HomeBlackHole`), `/admin` và `/couple`; `/music` dùng bản ghim tối (`data-portfolio-dark`). `ParticleField` đã bị xoá trong đợt overhaul 11/2026; nền Contact là CSS shooting stars (`.portfolio-contact-stars`, dừng bằng IntersectionObserver).
 
 2. **Hố đen trang chủ (`sections/HomeBlackHole.tsx` → `blackhole/BlackHoleCanvas.tsx`)** — ngoại lệ không đi qua `SceneContainer`:
    - Engine raymarching Schwarzschild tự quản lý `THREE.WebGLRenderer` + vòng lặp riêng (không phải R3F), tự co giãn theo phần tử cha (`ResizeObserver`).

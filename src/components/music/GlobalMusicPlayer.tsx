@@ -4,12 +4,18 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion, type Variants } from "framer-motion";
 import { useMusic } from "@/context/MusicContext";
 import { useTranslation } from "@/context/LanguageContext";
 import Icon from "@/components/ui/Icon";
 
+const miniPlayerReveal: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+};
+
 export default function GlobalMusicPlayer() {
+  const reducedMotion = useReducedMotion();
   const pathname = usePathname();
   const { t } = useTranslation();
   const {
@@ -48,27 +54,25 @@ export default function GlobalMusicPlayer() {
       <div aria-hidden="true" className="h-28 sm:h-0" />
       <AnimatePresence>
         <motion.div
-          initial={{ y: 50, opacity: 0, scale: 0.9 }}
-          animate={{ y: 0, opacity: 1, scale: 1 }}
-          exit={{ y: 50, opacity: 0, scale: 0.9 }}
-          transition={{ type: "spring", stiffness: 350, damping: 25 }}
-          className="fixed z-50 max-w-sm ml-auto left-[max(1rem,env(safe-area-inset-left))] right-[max(1rem,env(safe-area-inset-right))] bottom-[max(1rem,env(safe-area-inset-bottom))] sm:left-auto sm:right-6 sm:bottom-6"
+          variants={reducedMotion ? undefined : miniPlayerReveal}
+          initial={reducedMotion ? false : "hidden"}
+          animate="visible"
+          exit={reducedMotion ? undefined : "hidden"}
+          className="portfolio-theme fixed z-50 max-w-sm ml-auto left-[max(1rem,env(safe-area-inset-left))] right-[max(1rem,env(safe-area-inset-right))] bottom-[max(1rem,env(safe-area-inset-bottom))] sm:left-auto sm:right-6 sm:bottom-6 [&_button]:rounded-lg [&_button]:hover:text-portfolio-accretion [&_a]:hover:text-portfolio-accretion [&_button:focus-visible]:outline-2 [&_button:focus-visible]:outline-portfolio-accretion [&_button:focus-visible]:outline-offset-2 [&_a:focus-visible]:outline-2 [&_a:focus-visible]:outline-portfolio-accretion [&_a:focus-visible]:outline-offset-2"
         >
-          <div className="relative group overflow-hidden rounded-2xl bg-black/80 light:bg-white/90 backdrop-blur-2xl border border-white/15 light:border-neutral-900/15 p-3 shadow-2xl shadow-purple-950/40 text-white light:text-neutral-900 flex items-center gap-3">
+          <div className="relative group overflow-hidden rounded-2xl bg-portfolio-hull border border-portfolio-hairline  p-3 shadow-sm text-portfolio-ink  flex items-center gap-2">
             {/* Progress bar line at top */}
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-white/10 light:bg-neutral-900/[0.06] overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-portfolio-hull  overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-purple-500 via-cyan-400 to-pink-500 transition-all duration-200"
+                className="h-full bg-portfolio-accretion text-portfolio-on-accretion transition-all duration-200 motion-reduce:transition-none"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-  
+
             {/* Vinyl / Cover Art */}
             <Link href="/music" className="relative flex-shrink-0 group/art">
               <div
-                className={`w-12 h-12 rounded-xl overflow-hidden bg-white/10 light:bg-neutral-900/[0.06] border border-white/15 light:border-neutral-900/15 relative shadow-md transition-transform duration-300 group-hover/art:scale-105 ${
-                  isPlaying ? "animate-[spin_8s_linear_infinite]" : ""
-                }`}
+                className="w-12 h-12 rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline relative"
               >
                 {currentTrack.thumbnailUrl ? (
                   <Image
@@ -79,40 +83,37 @@ export default function GlobalMusicPlayer() {
                     className="object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-950">
+                  <div className="w-full h-full flex items-center justify-center bg-portfolio-accretion text-portfolio-on-accretion">
                     <Icon name="music" size={16} />
                   </div>
                 )}
               </div>
-  
+
               {/* Reactive center dot */}
               {isPlaying && (
                 <span
-                  className="absolute inset-0 rounded-xl pointer-events-none border border-cyan-400/60"
-                  style={{
-                    boxShadow: `0 0 ${8 + audioMetrics.bass * 12}px rgba(6, 182, 212, ${0.4 + audioMetrics.bass * 0.4})`,
-                  }}
+                  className="absolute inset-0 rounded-xl pointer-events-none border border-portfolio-accretion"
                 />
               )}
             </Link>
-  
+
             {/* Track Info */}
             <div className="flex-1 min-w-0 pr-1">
               <Link
                 href="/music"
-                className="block text-xs font-semibold text-white light:text-neutral-900 hover:text-cyan-300 transition-colors truncate"
+                className="block text-xs font-semibold text-portfolio-ink  hover:text-portfolio-accretion transition-colors truncate"
                 title={currentTrack.title}
               >
                 {currentTrack.title}
               </Link>
-              <div className="text-[11px] text-white/50 light:text-neutral-500 truncate">
+              <div className="text-[11px] text-portfolio-dust  truncate">
                 {currentTrack.artist}
               </div>
-  
+
               {/* Mini real-time reactive sound wave */}
               <div className="flex items-center gap-[2px] h-2 mt-1">
                 {[0.4, 0.9, 0.6, 0.3, 0.8].map((factor, i) => {
-                  const height = isPlaying
+                  const height = isPlaying && !reducedMotion
                     ? Math.max(
                         2,
                         Math.min(
@@ -124,23 +125,23 @@ export default function GlobalMusicPlayer() {
                   return (
                     <span
                       key={i}
-                      className="w-[2px] rounded-full bg-cyan-400/80 transition-all duration-75"
+                      className="w-[2px] rounded-full bg-portfolio-accretion transition-all duration-75 motion-reduce:transition-none"
                       style={{ height: `${height}px` }}
                     />
                   );
                 })}
-                <span className="text-[9px] text-purple-400/90 font-medium ml-1">
+                <span className="text-[9px] text-portfolio-accretion font-medium ml-1">
                   {t("music.globalMini.loungeActive", "Lounge Active")}
                 </span>
               </div>
             </div>
-  
+
             {/* Controls */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0">
               <button
                 onClick={togglePlay}
                 aria-label={isPlaying ? t("music.playerBar.pauseTooltip", "Pause") : t("music.playerBar.playTooltip", "Play")}
-                className="w-10 h-10 sm:w-8 sm:h-8 rounded-full bg-white/10 light:bg-neutral-900/[0.06] hover:bg-white/20 light:hover:bg-neutral-900/10 active:scale-95 flex items-center justify-center text-white light:text-neutral-900 transition-all shadow-sm"
+                className="w-11 h-11 rounded-lg bg-portfolio-hull  hover:bg-portfolio-hull  active:scale-95 flex items-center justify-center text-portfolio-ink hover:text-portfolio-accretion transition-all motion-reduce:transition-none shadow-sm"
                 title={isPlaying ? t("music.playerBar.pauseTooltip", "Pause") : t("music.playerBar.playTooltip", "Play")}
               >
                 {isPlaying ? (
@@ -153,31 +154,31 @@ export default function GlobalMusicPlayer() {
                   </svg>
                 )}
               </button>
-  
+
               <button
                 onClick={nextTrack}
                 aria-label={t("music.playerBar.nextTooltip", "Next Track")}
-                className="w-10 h-10 sm:w-7 sm:h-7 rounded-full hover:bg-white/10 light:hover:bg-neutral-900/[0.06] active:scale-95 flex items-center justify-center text-white/70 light:text-neutral-600 hover:text-white light:hover:text-neutral-900 transition-all"
+                className="w-11 h-11 rounded-lg hover:bg-portfolio-hull  active:scale-95 flex items-center justify-center text-portfolio-dust  hover:text-portfolio-ink hover:text-portfolio-accretion transition-all motion-reduce:transition-none"
                 title={t("music.playerBar.nextTooltip", "Next Track")}
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
                   <path d="M6 18l8.5-6L6 6v12zm2.5-6 6-4.35v8.7L8.5 12zM16 6h2v12h-2z" />
                 </svg>
               </button>
-  
+
               <Link
                 href="/music"
                 aria-label={t("music.globalMini.openStudio", "Open Full Music Studio")}
-                className="w-10 h-10 sm:w-7 sm:h-7 rounded-full hover:bg-purple-500/20 text-purple-300 hover:text-purple-200 flex items-center justify-center transition-all text-xs"
+                className="w-11 h-11 rounded-lg hover:bg-portfolio-hull text-portfolio-accretion hover:text-portfolio-accretion flex items-center justify-center transition-all text-xs"
                 title={t("music.globalMini.openStudio", "Open Full Music Studio")}
               >
                 <Icon name="externalLink" size={13} />
               </Link>
-  
+
               <button
                 onClick={() => setIsDismissed(true)}
                 aria-label={t("music.globalMini.hideWidget", "Hide Mini Widget")}
-                className="w-10 h-10 sm:w-6 sm:h-6 rounded-full text-white/30 light:text-neutral-400 hover:text-white/70 light:hover:text-neutral-600 hover:bg-white/5 light:hover:bg-neutral-900/[0.04] flex items-center justify-center text-xs transition-colors ml-0.5"
+                className="w-11 h-11 rounded-lg text-portfolio-dust  hover:text-portfolio-accretion hover:bg-portfolio-hull  flex items-center justify-center text-xs transition-colors ml-0.5"
                 title={t("music.globalMini.hideWidget", "Hide Mini Widget")}
               >
                 <Icon name="close" size={13} />

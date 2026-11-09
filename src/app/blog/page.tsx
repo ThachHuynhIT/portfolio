@@ -11,17 +11,5 @@ export const metadata = buildMetadata({
 export default async function BlogPage() {
   const [posts, categories] = await Promise.all([getPostSummaries(), getAllCategories()]);
 
-  return (
-    <div className="min-h-screen pt-32 pb-20">
-      {/* Background */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-radial from-purple-500/10 via-transparent to-transparent" />
-        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-radial from-cyan-500/10 via-transparent to-transparent" />
-      </div>
-
-      <div className="container mx-auto px-6">
-        <BlogList posts={posts} categories={categories} />
-      </div>
-    </div>
-  );
+  return <div className="portfolio-page"><section className="portfolio-section"><div className="portfolio-column"><BlogList posts={posts} categories={categories} /></div></section></div>;
 }

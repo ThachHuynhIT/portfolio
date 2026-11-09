@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import ImageWithSkeleton from "@/components/ui/ImageWithSkeleton";
 import { cn } from "@/lib/utils";
-import { elevation, radius } from "@/lib/design-tokens";
+import { radius } from "@/lib/design-tokens";
 
 interface BeforeAfterSliderProps {
   beforeImage: string;
@@ -88,7 +88,7 @@ export default function BeforeAfterSlider({
   return (
     <div
       ref={containerRef}
-      className={`relative select-none overflow-hidden rounded-2xl bg-black/40 light:bg-slate-100 border border-white/10 light:border-neutral-900/10 shadow-2xl cursor-ew-resize group ${aspectClass} ${className}`}
+      className={cn("relative select-none overflow-hidden rounded-lg bg-portfolio-hull border border-portfolio-hairline cursor-ew-resize group focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--portfolio-accretion)] ", aspectClass, className)}
       onMouseDown={onMouseDown}
       onTouchStart={() => setIsDragging(true)}
       role="slider"
@@ -104,7 +104,7 @@ export default function BeforeAfterSlider({
     >
       {/* ── After Image (Base layer - full width) ── */}
       <div className="absolute inset-0 w-full h-full">
-        <ImageWithSkeleton
+        <ImageWithSkeleton containerClassName="photography-media"
           src={afterImage}
           alt={`${alt} - ${afterLabel}`}
           fill
@@ -113,7 +113,7 @@ export default function BeforeAfterSlider({
           priority={false}
         />
         {/* After Badge */}
-        <span className={cn("absolute top-4 right-4 z-10 px-3 py-1", radius.pill, "text-xs font-semibold tracking-wider uppercase bg-black/60 text-cyan-300", elevation.blur, "border border-cyan-500/30 shadow-md")}>
+        <span className={cn("absolute top-4 right-4 z-10 px-3 py-1", radius.pill, "text-xs font-semibold tracking-wider uppercase bg-portfolio-hull text-portfolio-accretion", "border border-portfolio-hairline")}>
           {afterLabel}
         </span>
       </div>
@@ -125,7 +125,7 @@ export default function BeforeAfterSlider({
           clipPath: `inset(0 ${100 - sliderPos}% 0 0)`,
         }}
       >
-        <ImageWithSkeleton
+        <ImageWithSkeleton containerClassName="photography-media"
           src={beforeImage}
           alt={`${alt} - ${beforeLabel}`}
           fill
@@ -134,17 +134,17 @@ export default function BeforeAfterSlider({
           priority={false}
         />
         {/* Before Badge */}
-        <span className={cn("absolute top-4 left-4 z-10 px-3 py-1", radius.pill, "text-xs font-semibold tracking-wider uppercase bg-black/60 text-purple-300", elevation.blur, "border border-purple-500/30 shadow-md")}>
+        <span className={cn("absolute top-4 left-4 z-10 px-3 py-1", radius.pill, "text-xs font-semibold tracking-wider uppercase bg-portfolio-hull text-portfolio-accretion", "border border-portfolio-hairline")}>
           {beforeLabel}
         </span>
       </div>
 
       {/* ── Divider Bar with Handle ── */}
       <div
-        className="absolute top-0 bottom-0 z-20 w-0.5 bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] pointer-events-none transition-transform"
+        className="absolute top-0 bottom-0 z-20 w-0.5 bg-portfolio-accretion pointer-events-none transition-transform"
         style={{ left: `${sliderPos}%` }}
       >
-        <div className={cn("absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9", radius.pill, "bg-slate-900/90 border-2 border-white text-white flex items-center justify-center shadow-xl", elevation.blur, "group-hover:scale-110 transition-transform")}>
+        <div className={cn("absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9", radius.pill, "bg-portfolio-hull border-2 border-portfolio-accretion text-portfolio-ink flex items-center justify-center", " transition-transform")}>
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -152,7 +152,7 @@ export default function BeforeAfterSlider({
             strokeWidth={2.5}
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="w-4 h-4 text-white"
+            className="w-4 h-4 text-portfolio-ink"
           >
             <polyline points="8 7 3 12 8 17" />
             <polyline points="16 7 21 12 16 17" />
@@ -162,7 +162,7 @@ export default function BeforeAfterSlider({
 
       {/* Instruction hint banner */}
       <div className="absolute bottom-3 inset-x-0 flex justify-center pointer-events-none z-10">
-        <span className={cn("px-3 py-1 text-[11px] font-medium text-white/80 bg-black/50", elevation.blur, radius.pill, "border border-white/10 opacity-75 group-hover:opacity-100 transition-opacity")}>
+        <span className={cn("px-3 py-1 text-[11px] font-medium text-white/90 bg-black/70", radius.pill, "border border-portfolio-hairline opacity-75 group-hover:opacity-100 transition-opacity")}>
           Drag slider to compare RAW & Retouched
         </span>
       </div>

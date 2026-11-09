@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import { useReducedMotion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { useMusic } from "@/context/MusicContext";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -8,42 +10,34 @@ import { useMusic } from "@/context/MusicContext";
 // ─────────────────────────────────────────────────────────────────────────────
 export function SpectrumBarsVisualizer() {
   const { isPlaying, audioFrequencyData } = useMusic();
+  const reducedMotion = useReducedMotion();
 
   return (
     <div className="music-spectrum-bars" aria-hidden="true">
       {audioFrequencyData.map((val, i) => {
         // Minimum height 6% so bars look sleek even when low, scaling up to 100%
-        const height = isPlaying ? Math.max(6, Math.min(100, val)) : 6;
+        const height = isPlaying && !reducedMotion ? Math.max(6, Math.min(100, val)) : 6;
 
         return (
           <div
             key={i}
-            className={`music-spectrum-bar ${isPlaying ? "music-spectrum-bar--live" : ""}`}
+            className={cn("music-spectrum-bar bg-portfolio-accretion", isPlaying && !reducedMotion && "music-spectrum-bar--live")}
             style={
               {
                 "--idx": i,
                 height: `${height}%`,
-                background:
-                  height > 75
-                    ? "linear-gradient(to top, #06b6d4, #a855f7 60%, #ec4899)"
-                    : height > 40
-                    ? "linear-gradient(to top, #8b5cf6, #06b6d4)"
-                    : "linear-gradient(to top, rgba(139, 92, 246, 0.4), #8b5cf6)",
-                boxShadow:
-                  height > 60
-                    ? "0 0 12px rgba(168, 85, 247, 0.6), 0 0 24px rgba(6, 182, 212, 0.4)"
-                    : "none",
+                opacity: Math.max(0.35, height / 100),
                 transition: "height 0.08s ease-out, background 0.15s ease",
               } as React.CSSProperties
             }
           >
             {/* Peak indicator dot */}
-            {height > 15 && isPlaying && (
+            {height > 15 && isPlaying && !reducedMotion && (
               <span
                 className="music-bar-peak"
                 style={{
                   opacity: Math.min(1, height / 70),
-                  background: height > 75 ? "#ec4899" : "#38bdf8",
+                  background: "var(--portfolio-dust)",
                 }}
               />
             )}
@@ -55,11 +49,14 @@ export function SpectrumBarsVisualizer() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. NEON WAVE VISUALIZER (Real-time Canvas Waveform responding to Bass & Mids)
+// 2. WAVE VISUALIZER (Real-time Canvas Waveform responding to Bass & Mids)
 // ─────────────────────────────────────────────────────────────────────────────
 export function WaveVisualizer() {
   const { isPlaying, audioMetrics } = useMusic();
+  const reducedMotion = useReducedMotion();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const playbackRef = useRef({ isPlaying, audioMetrics });
+  playbackRef.current = { isPlaying, audioMetrics };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -67,11 +64,16 @@ export function WaveVisualizer() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animId: number;
+    const colors = getComputedStyle(canvas);
+    const accretion = colors.getPropertyValue("--portfolio-accretion").trim();
+    const dust = colors.getPropertyValue("--portfolio-dust").trim();
+    let animId: number | undefined;
     let phase = 0;
 
     const render = () => {
-      animId = requestAnimationFrame(render);
+      if (!reducedMotion) animId = requestAnimationFrame(render);
+      const { isPlaying: playing, audioMetrics } = playbackRef.current;
+      const isPlaying = playing && !reducedMotion;
 
       const dpr = window.devicePixelRatio || 1;
       const width = canvas.clientWidth;
@@ -93,19 +95,10 @@ export function WaveVisualizer() {
 
       phase += isPlaying ? 0.04 + audioMetrics.avgVolume * 0.05 : 0.01;
 
-      // Wave 1: Neon Purple / Cyan Primary Wave (Bass-driven)
+      // Wave 1: Accretion Primary Wave (Bass-driven)
       ctx.beginPath();
       ctx.lineWidth = 3.5;
-      const grad1 = ctx.createLinearGradient(0, 0, width, 0);
-      grad1.addColorStop(0, "rgba(168, 85, 247, 0)");
-      grad1.addColorStop(0.2, "#a855f7");
-      grad1.addColorStop(0.5, "#06b6d4");
-      grad1.addColorStop(0.8, "#ec4899");
-      grad1.addColorStop(1, "rgba(236, 72, 153, 0)");
-
-      ctx.strokeStyle = grad1;
-      ctx.shadowColor = "#06b6d4";
-      ctx.shadowBlur = isPlaying ? 16 + audioMetrics.bass * 16 : 4;
+      ctx.strokeStyle = accretion;
 
       for (let x = 0; x < width; x += 3) {
         // Sine wave modulated by audio harmonics
@@ -121,18 +114,10 @@ export function WaveVisualizer() {
       }
       ctx.stroke();
 
-      // Wave 2: Secondary Cyan Harmonic Wave
+      // Wave 2: Dust Harmonic Wave
       ctx.beginPath();
       ctx.lineWidth = 2;
-      const grad2 = ctx.createLinearGradient(0, 0, width, 0);
-      grad2.addColorStop(0, "rgba(6, 182, 212, 0)");
-      grad2.addColorStop(0.3, "rgba(6, 182, 212, 0.8)");
-      grad2.addColorStop(0.7, "rgba(168, 85, 247, 0.8)");
-      grad2.addColorStop(1, "rgba(168, 85, 247, 0)");
-
-      ctx.strokeStyle = grad2;
-      ctx.shadowColor = "#a855f7";
-      ctx.shadowBlur = isPlaying ? 10 : 2;
+      ctx.strokeStyle = dust;
 
       for (let x = 0; x < width; x += 4) {
         const angle = x * (trebleFreq * 1.3) - phase * 1.2;
@@ -147,12 +132,12 @@ export function WaveVisualizer() {
       }
       ctx.stroke();
 
-      // Wave 3: Background glow mesh
+      // Wave 3: Background harmonic mesh
       if (isPlaying && audioMetrics.avgVolume > 0.05) {
         ctx.beginPath();
         ctx.lineWidth = 1;
-        ctx.strokeStyle = `rgba(236, 72, 153, ${Math.min(0.4, audioMetrics.treble * 0.6)})`;
-        ctx.shadowBlur = 0;
+        ctx.strokeStyle = dust;
+        ctx.globalAlpha = Math.min(0.4, audioMetrics.treble * 0.6);
 
         for (let x = 0; x < width; x += 6) {
           const angle = x * 0.03 + phase * 1.8;
@@ -168,9 +153,9 @@ export function WaveVisualizer() {
       ctx.restore();
     };
 
-    animId = requestAnimationFrame(render);
-    return () => cancelAnimationFrame(animId);
-  }, [isPlaying, audioMetrics]);
+    render();
+    return () => { if (animId !== undefined) cancelAnimationFrame(animId); };
+  }, [reducedMotion]);
 
   return (
     <div className="music-wave-container" aria-hidden="true">
@@ -180,31 +165,31 @@ export function WaveVisualizer() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. PULSAR VISUALIZER (Real-time Bass Reactive Glowing Concentric Rings)
+// 3. PULSAR VISUALIZER (Real-time Bass Reactive Concentric Rings)
 // ─────────────────────────────────────────────────────────────────────────────
 export function PulsarVisualizer() {
   const { isPlaying, audioMetrics } = useMusic();
+  const reducedMotion = useReducedMotion();
 
-  const bassScale1 = isPlaying ? 1 + audioMetrics.bass * 0.45 : 1;
-  const bassScale2 = isPlaying ? 1 + audioMetrics.bass * 0.75 : 1;
-  const bassScale3 = isPlaying ? 1 + audioMetrics.bass * 1.1 : 1;
+  const bassScale1 = isPlaying && !reducedMotion ? 1 + audioMetrics.bass * 0.45 : 1;
+  const bassScale2 = isPlaying && !reducedMotion ? 1 + audioMetrics.bass * 0.75 : 1;
+  const bassScale3 = isPlaying && !reducedMotion ? 1 + audioMetrics.bass * 1.1 : 1;
 
-  const glowOpacity = isPlaying ? 0.4 + audioMetrics.avgVolume * 0.6 : 0.2;
-  const coreScale = isPlaying ? 1 + audioMetrics.bass * 0.3 : 1;
+  const glowOpacity = isPlaying && !reducedMotion ? 0.4 + audioMetrics.avgVolume * 0.6 : 0.2;
+  const coreScale = isPlaying && !reducedMotion ? 1 + audioMetrics.bass * 0.3 : 1;
 
   return (
     <div
-      className={`music-pulsar-wrap ${isPlaying ? "music-pulsar--live" : ""}`}
+      className={cn("music-pulsar-wrap", isPlaying && !reducedMotion && "music-pulsar--live")}
       aria-hidden="true"
     >
-      {/* Central Pulsing Core */}
+      {/* Central Reactive Core */}
       <div
-        className="music-pulsar-core"
+        className="music-pulsar-core bg-portfolio-accretion"
         style={{
           transform: `scale(${coreScale})`,
           opacity: glowOpacity,
-          boxShadow: `0 0 ${20 + audioMetrics.bass * 40}px rgba(168, 85, 247, ${0.6 + audioMetrics.bass * 0.4}), 0 0 ${40 + audioMetrics.bass * 60}px rgba(6, 182, 212, 0.4)`,
-          transition: "transform 0.08s ease-out, box-shadow 0.08s ease-out",
+          transition: "transform 0.08s ease-out, opacity 0.08s ease-out",
         }}
       />
 
@@ -213,30 +198,30 @@ export function PulsarVisualizer() {
         className="music-pulsar-ring ring-1"
         style={{
           transform: `scale(${bassScale1})`,
-          borderColor: `rgba(168, 85, 247, ${0.5 + audioMetrics.bass * 0.5})`,
-          boxShadow: `0 0 ${15 + audioMetrics.bass * 25}px rgba(168, 85, 247, 0.5)`,
+          borderColor: "var(--portfolio-accretion)",
+          opacity: isPlaying && !reducedMotion ? 0.5 + audioMetrics.bass * 0.5 : 0.5,
           transition: "transform 0.08s ease-out, border-color 0.08s ease-out",
         }}
       />
 
-      {/* Ring 2 - Mid Cyan Ring */}
+      {/* Ring 2 - Mid Dust Ring */}
       <div
         className="music-pulsar-ring ring-2"
         style={{
           transform: `scale(${bassScale2})`,
-          borderColor: `rgba(6, 182, 212, ${0.4 + audioMetrics.mid * 0.5})`,
-          boxShadow: `0 0 ${20 + audioMetrics.mid * 30}px rgba(6, 182, 212, 0.4)`,
+          borderColor: "var(--portfolio-dust)",
+          opacity: isPlaying && !reducedMotion ? 0.4 + audioMetrics.mid * 0.5 : 0.4,
           transition: "transform 0.1s ease-out, border-color 0.1s ease-out",
         }}
       />
 
-      {/* Ring 3 - Outer Treble / Glow Halo */}
+      {/* Ring 3 - Outer Treble Ring */}
       <div
         className="music-pulsar-ring ring-3"
         style={{
           transform: `scale(${bassScale3})`,
-          borderColor: `rgba(236, 72, 153, ${0.3 + audioMetrics.treble * 0.5})`,
-          boxShadow: `0 0 ${30 + audioMetrics.bass * 40}px rgba(236, 72, 153, 0.3)`,
+          borderColor: "var(--portfolio-accretion)",
+          opacity: isPlaying && !reducedMotion ? 0.3 + audioMetrics.treble * 0.5 : 0.3,
           transition: "transform 0.12s ease-out, border-color 0.12s ease-out",
         }}
       />

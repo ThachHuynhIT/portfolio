@@ -22,11 +22,11 @@ export default function SkillsSection({ skills, siteConfig }: SkillsSectionProps
   };
   const title = resolveSectionText(locale, copy?.titlePrefix, copy?.titlePrefix_vi, t("skills.titlePrefix")) + resolveSectionText(locale, copy?.titleHighlight, copy?.titleHighlight_vi, t("skills.titleHighlight"));
   return <section id="skills" className="portfolio-section"><div className="portfolio-column">
-    {title && <div className="text-center mb-10"><SectionHeading>{title}</SectionHeading></div>}
+    {title && <div className="portfolio-reveal portfolio-reveal--sweep text-center mb-10"><SectionHeading>{title}</SectionHeading></div>}
     <div ref={root} className="portfolio-constellation-grid" data-groups={groups.length}>
       {groups.map(({ category, group }) => {
         const layout = layoutConstellation(group);
-        return <div key={category} className="portfolio-constellation portfolio-solid">
+        return <div key={category} className="portfolio-constellation portfolio-solid portfolio-reveal portfolio-reveal--lens">
           <h3 className="text-lg font-semibold mb-4">{resolveRequiredText(locale, copy?.categories?.[category], copy?.categories?.[`${category}_vi`], t(`skills.categories.${category}`))}</h3>
           <div className="portfolio-constellation-map relative" style={{ "--constellation-height": `${Math.max(140, Math.ceil(layout.nodes.length / 2) * 84)}px` } as import("react").CSSProperties}>
             <svg aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none" className="portfolio-constellation-lines">

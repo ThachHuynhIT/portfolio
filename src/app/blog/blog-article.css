@@ -1,0 +1,28 @@
+.portfolio-article {
+  --code-keyword: #F2B45A;
+  --code-string: #B8D8A0;
+  --code-title: #E8C98F;
+  --code-number: #F0A27A;
+  --code-comment: #7A8090;
+  --code-variable: #ECE9E4;
+  color: var(--portfolio-ink);
+  overflow-wrap: anywhere;
+}
+.portfolio-article a { overflow-wrap: anywhere; }
+.portfolio-article pre,
+.portfolio-article pre code,
+.portfolio-article pre code.hljs {
+  background: #0C1018;
+  color: #ECE9E4;
+}
+.portfolio-article pre { max-width: 100%; overflow-x: auto; overflow-wrap: normal; }
+.portfolio-article pre code { padding: 0; border: 0; white-space: pre; }
+.portfolio-article :not(pre) > code { overflow-wrap: anywhere; }
+.portfolio-article img { max-width: 100%; height: auto; }
+.portfolio-article table { display: block; max-width: 100%; overflow-x: auto; }
+/* Code stays monospace: the portfolio scope's sans font would otherwise
+   reach <pre>/<code> through inheritance. */
+.portfolio-article pre,
+.portfolio-article code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}

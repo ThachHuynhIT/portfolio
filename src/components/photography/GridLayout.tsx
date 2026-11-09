@@ -1,12 +1,12 @@
 "use client";
 
 import ImageWithSkeleton from "@/components/ui/ImageWithSkeleton";
-import { motion } from "framer-motion";
+
 import type { PhotoItem } from "@/lib/types";
 import Icon from "@/components/ui/Icon";
 import { useTranslation } from "@/context/LanguageContext";
 import { cn } from "@/lib/utils";
-import { elevation, gap, motion as motionTokens, radius } from "@/lib/design-tokens";
+import { gap, radius } from "@/lib/design-tokens";
 
 interface GridLayoutProps {
   photos: PhotoItem[];
@@ -18,7 +18,7 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
 
   return (
     <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3", gap.grid)}>
-      {photos.map((photo, index) => {
+      {photos.map((photo) => {
         const title = locale === "vi" && photo.title_vi ? photo.title_vi : photo.title;
         const desc = locale === "vi" && photo.description_vi ? photo.description_vi : photo.description;
         const location = locale === "vi" && photo.location_vi ? photo.location_vi : photo.location;
@@ -36,38 +36,42 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
         );
 
         return (
-          <motion.div
+          <div
             key={photo.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.04, duration: 0.35 }}
-            className={cn("group", radius.card, "overflow-hidden bg-slate-900/50 border border-white/10 hover:border-cyan-500/40 hover:shadow-2xl hover:shadow-cyan-500/10", motionTokens.base, "cursor-pointer flex flex-col light:bg-white light:border-neutral-900/10 light:shadow-neutral-400/10")}
-            onClick={() => onSelectPhoto(photo)}
+            className={cn("portfolio-reveal portfolio-reveal--iris group relative min-w-0", "rounded-lg bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion", "transition-colors", "cursor-pointer flex flex-col")}
           >
+              <button
+                type="button"
+                aria-label={title}
+                onClick={() => onSelectPhoto(photo)}
+                className="absolute inset-0 z-20 rounded-lg cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--portfolio-accretion)]">
+                <span className="sr-only">{title}</span>
+              </button>
+              <div className="overflow-hidden rounded-lg h-full">
             {/* Card Image */}
-            <div className="relative w-full aspect-[4/3] overflow-hidden bg-black/40 light:bg-slate-100">
-              <ImageWithSkeleton
+            <div className="relative w-full aspect-[4/3] overflow-hidden bg-portfolio-hull">
+              <ImageWithSkeleton containerClassName="photography-media"
                 src={photo.image}
                 alt={title}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                className="object-cover transition-transform duration-500"
               />
 
               {/* Category badge */}
-              <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
+              <div className="absolute top-3 left-3 right-3 z-10 flex flex-wrap items-center gap-1.5">
                 {photo.featured && (
-                  <span className={cn("px-2 py-0.5", radius.pill, "text-[10px] font-bold bg-amber-400 text-black shadow-md flex items-center gap-1")}>
+                  <span className={cn("px-2 py-0.5", radius.pill, "whitespace-nowrap text-[10px] font-bold bg-portfolio-hull text-portfolio-ink flex items-center gap-1")}>
                     <Icon name="star" size={10} /> {t("photography.featured", "Featured")}
                   </span>
                 )}
                 {photo.category && (
-                  <span className={cn("px-2.5 py-1", radius.pill, "text-[11px] font-medium bg-black/60 text-white/90", elevation.blur, "border border-white/15")}>
+                  <span className={cn("px-2.5 py-1", radius.pill, "whitespace-nowrap text-[11px] font-medium bg-portfolio-hull text-portfolio-dust", "border border-portfolio-hairline")}>
                     {photo.category}
                   </span>
                 )}
                 {isVideo && (
-                  <span className={cn("px-2 py-0.5", radius.pill, "text-[10px] font-bold uppercase tracking-wider bg-cyan-500/90 text-black shadow flex items-center gap-1")}>
+                  <span className={cn("px-2 py-0.5", radius.pill, "whitespace-nowrap text-[10px] font-bold uppercase tracking-wider bg-portfolio-hull text-portfolio-ink flex items-center gap-1")}>
                     <Icon name="play" size={10} />
                     <span>Video</span>
                   </span>
@@ -77,7 +81,7 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
               {/* Before/After tag */}
               {!isVideo && photo.beforeImage && (
                 <div className="absolute top-3 right-3 z-10">
-                  <span className={cn("px-2 py-0.5", radius.pill, "text-[10px] font-semibold uppercase tracking-wider bg-purple-500/90 text-white", elevation.blur, "shadow flex items-center gap-1")}>
+                  <span className={cn("px-2 py-0.5", radius.pill, "whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider bg-portfolio-hull text-portfolio-ink", "flex items-center gap-1")}>
                     <Icon name="compare" size={11} />
                     <span>Retouch</span>
                   </span>
@@ -87,8 +91,8 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
               {/* Video Play Overlay */}
               {isVideo && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className={cn("w-12 h-12", radius.pill, "bg-black/60", elevation.blur, "border border-white/30 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-xl")}>
-                    <Icon name="play" size={18} className="text-cyan-400 translate-x-0.5" />
+                  <div className={cn("w-12 h-12", radius.pill, "bg-portfolio-hull", "border border-portfolio-hairline text-portfolio-ink flex items-center justify-center  transition-transform")}>
+                    <Icon name="play" size={18} className="text-portfolio-accretion translate-x-0.5" />
                   </div>
                 </div>
               )}
@@ -97,17 +101,17 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
             {/* Card Body */}
             <div className="p-5 flex-1 flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between text-xs text-slate-400 mb-2 light:text-neutral-500">
+                <div className="flex items-center justify-between text-xs text-portfolio-dust mb-2">
                   <span>{photo.date}</span>
                   {location && location.trim() !== "" && (
                     <span className="truncate max-w-[140px]">{location}</span>
                   )}
                 </div>
-                <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1 mb-2 light:text-neutral-900">
+                <h3 className="text-base font-bold text-portfolio-ink group-hover:text-portfolio-accretion group-focus-within:text-portfolio-accretion transition-colors break-words mb-2">
                   {title}
                 </h3>
                 {desc && desc.trim() !== "" && (
-                  <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-4 light:text-neutral-500">
+                  <p className="text-xs text-portfolio-dust line-clamp-2 leading-relaxed mb-4">
                     {desc}
                   </p>
                 )}
@@ -115,8 +119,8 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
 
               {/* Camera Exif bottom pill - only render if info exists */}
               {hasCameraInfo && (
-                <div className="pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-500 light:border-neutral-900/10 light:text-neutral-400">
-                  <span className="font-mono text-cyan-400/90">
+                <div className="pt-3 border-t border-portfolio-hairline flex items-center justify-between text-[11px] text-portfolio-dust">
+                  <span className="font-mono text-portfolio-accretion">
                     {photo.camera?.model || photo.camera?.make}
                   </span>
                   <span>
@@ -131,7 +135,8 @@ export default function GridLayout({ photos, onSelectPhoto }: GridLayoutProps) {
                 </div>
               )}
             </div>
-          </motion.div>
+            </div>
+          </div>
         );
       })}
     </div>
