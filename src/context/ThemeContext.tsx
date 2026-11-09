@@ -71,9 +71,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const resolvedTheme: Theme = isExcludedRoute(pathname) ? "dark" : theme;
 
+  // Wait until the stored preference has been read: the first render always
+  // has the "dark" placeholder, and writing it would flash light-theme users
+  // dark until the next commit (THEME_INIT_SCRIPT already set the right value
+  // before hydration).
   useEffect(() => {
+    if (!isMounted) return;
     document.documentElement.setAttribute("data-theme", resolvedTheme);
-  }, [resolvedTheme]);
+  }, [resolvedTheme, isMounted]);
 
   const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
