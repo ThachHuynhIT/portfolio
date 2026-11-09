@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 
 /**
- * Staggered scroll reveal for `.portfolio-reveal` elements (non-home pages).
+ * Staggered scroll reveal for `.portfolio-reveal` elements (homepage sections
+ * below the hero and every non-home page).
  *
  * CSS hides unrevealed elements only when scripting is enabled (and motion is
  * allowed), so content still renders without JS. This observer marks each
@@ -28,8 +29,14 @@ export default function RevealObserver() {
           io.unobserve(element);
         });
       },
-      { rootMargin: "0px 0px -6% 0px", threshold: 0.08 }
+      // threshold 0: any part crossing the 88% line counts, so elements taller
+      // than the viewport (long articles) still reveal.
+      { rootMargin: "0px 0px -12% 0px", threshold: 0 }
     );
+
+    // Tells the CSS failsafe that reveals are handled here (it only fires
+    // when this never ran, e.g. a failed hydration).
+    document.documentElement.dataset.revealReady = "";
 
     const observeWithin = (root: ParentNode) => {
       root.querySelectorAll<HTMLElement>(".portfolio-reveal:not([data-revealed])").forEach((element) => io.observe(element));

@@ -925,24 +925,25 @@ body {
 /* Staggered scroll reveal for non-home pages (RevealObserver marks
    [data-revealed]; --reveal-i is the element's order within its batch).
    Hidden only when scripting is enabled and motion is allowed, so content
-   renders without JS and with reduced motion. The failsafe shows anything
-   still unrevealed after 4s (e.g. if hydration failed). Fill mode is
+   renders without JS and with reduced motion. If RevealObserver never starts
+   (no html[data-reveal-ready], e.g. failed hydration) the failsafe shows
+   everything after 4s. Fill mode is
    "backwards" so the animation never pins transform/opacity afterwards and
    hover transitions keep working. */
 @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
-  .portfolio-reveal:not([data-revealed]) {
-    opacity: 0;
+  .portfolio-reveal:not([data-revealed]) { opacity: 0; }
+  html:not([data-reveal-ready]) .portfolio-reveal:not([data-revealed]) {
     animation-name: portfolio-reveal-failsafe; animation-duration: 1ms;
     animation-delay: 4s; animation-fill-mode: forwards;
   }
   .portfolio-reveal[data-revealed] {
-    animation-name: portfolio-reveal-in; animation-duration: 700ms;
+    animation-name: portfolio-reveal-in; animation-duration: 950ms;
     animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
     animation-fill-mode: backwards;
-    animation-delay: calc(min(var(--reveal-i, 0), 10) * 110ms);
+    animation-delay: calc(min(var(--reveal-i, 0), 10) * 150ms);
   }
 }
 @keyframes portfolio-reveal-in {
-  from { opacity: 0; transform: translate3d(0, 22px, 0); }
+  from { opacity: 0; transform: translate3d(0, 32px, 0); }
 }
 @keyframes portfolio-reveal-failsafe { to { opacity: 1; } }

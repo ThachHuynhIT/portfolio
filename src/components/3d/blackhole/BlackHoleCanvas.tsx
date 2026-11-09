@@ -208,7 +208,9 @@ export default function BlackHoleCanvas({
     <div
       ref={mountRef}
       className={className}
-      style={deferStart ? { transition: "opacity 1.2s ease-out" } : undefined}
+      // Slow, symmetric fade: an ease-out did most of the change in the first
+      // frames and read as a flash when the bright disk appeared.
+      style={deferStart ? { transition: "opacity 2.8s cubic-bezier(0.45, 0, 0.25, 1)" } : undefined}
       aria-hidden="true"
     />
   );

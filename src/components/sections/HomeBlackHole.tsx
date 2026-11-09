@@ -15,7 +15,7 @@ export default function HomeBlackHole() {
   // "Settled" once the canvas has faded in over the silhouette (or WebGL is
   // unavailable): the silhouette's breathing pauses, since nothing shows it.
   const [settled, setSettled] = useState(false);
-  const onReady = useCallback(() => { window.setTimeout(() => setSettled(true), 1300); }, []);
+  const onReady = useCallback(() => { window.setTimeout(() => setSettled(true), 3000); }, []);
   const onUnavailable = useCallback(() => setSettled(true), []);
 
   useEffect(() => {

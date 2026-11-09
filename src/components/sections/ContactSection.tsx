@@ -14,10 +14,10 @@ export default function ContactSection({ siteConfig }: ContactSectionProps) {
   const subtitle = resolveSectionText(locale, copy?.subtitle, copy?.subtitle_vi, t("contact.subtitle"));
   const email = siteConfig.author.email;
   return <section id="contact" className="portfolio-section"><div className="portfolio-column">
-    <div className="text-center mb-10">{title && <SectionHeading>{title}</SectionHeading>}</div>
+    <div className="portfolio-reveal text-center mb-10">{title && <SectionHeading>{title}</SectionHeading>}</div>
     <div className="grid md:grid-cols-2 gap-10 items-start">
-      <div className="portfolio-contact-intro portfolio-reading space-y-5 text-left">{email && <><a className="portfolio-text-link text-2xl sm:text-3xl font-semibold break-words block" href={`mailto:${email}`}>{email}</a>{subtitle && <p className="text-portfolio-dust">{subtitle}</p>}<CopyEmailButton email={email} label={t("contact.copyEmail")} copied={t("contact.copiedEmail")} failed={t("contact.copyFailed")} /></>}{!email && subtitle && <p className="text-portfolio-dust">{subtitle}</p>}</div>
-      <ContactForm contact={copy} email={email} />
+      <div className="portfolio-contact-intro portfolio-reading portfolio-reveal space-y-5 text-left">{email && <><a className="portfolio-text-link text-2xl sm:text-3xl font-semibold break-words block" href={`mailto:${email}`}>{email}</a>{subtitle && <p className="text-portfolio-dust">{subtitle}</p>}<CopyEmailButton email={email} label={t("contact.copyEmail")} copied={t("contact.copiedEmail")} failed={t("contact.copyFailed")} /></>}{!email && subtitle && <p className="text-portfolio-dust">{subtitle}</p>}</div>
+      <div className="portfolio-reveal"><ContactForm contact={copy} email={email} /></div>
     </div>
   </div></section>;
 }
