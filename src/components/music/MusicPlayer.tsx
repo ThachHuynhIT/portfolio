@@ -3,11 +3,11 @@
 import React, { useEffect, useRef, useState, useMemo, Suspense } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useMusic, Track, EqPreset } from "@/context/MusicContext";
 import MusicSidebar from "./MusicSidebar";
 import { cn } from "@/lib/utils";
-import { border, elevation, gap, motion as motionTokens, radius, surface, text } from "@/lib/design-tokens";
+import { gap, motion as motionTokens, radius } from "@/lib/design-tokens";
 
 // Split out of the initial /music bundle — only needed once the user
 // switches into lyrics mode.
@@ -34,6 +34,7 @@ function formatTime(seconds: number): string {
 
 function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
   const { t } = useTranslation();
+  const reducedMotion = useReducedMotion();
   const {
     tracks,
     setTracks,
@@ -272,10 +273,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
           <MusicSidebar />
           <div className="music-stage-wrapper">
             <main className="music-main-stage flex items-center justify-center min-h-[70vh]">
-              <div className={cn("music-empty-card text-center p-8", radius.panel, surface.cardDark, border.subtleDark, "max-w-md")}>
-                <div className={cn("flex justify-center mb-4", text.mutedDark)}><Icon name="headphones" size={44} /></div>
-                <h2 className={cn("text-xl font-bold", text.primaryDark, "mb-2")}>No Tracks Found</h2>
-                <p className="text-white/50 text-sm mb-6">
+              <div className={cn("music-empty-card text-center p-8", radius.panel, "bg-portfolio-hull", "border border-portfolio-hairline", "max-w-md")}>
+                <div className={cn("flex justify-center mb-4", "text-portfolio-dust")}><Icon name="headphones" size={44} /></div>
+                <h2 className={cn("text-xl font-bold", "text-portfolio-ink", "mb-2")}>No Tracks Found</h2>
+                <p className="text-portfolio-dust text-sm mb-6">
                   The sound library is currently empty. Add tracks from the Admin Manager.
                 </p>
               </div>
@@ -300,7 +301,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
         className="music-ambient-glow"
         style={{
           opacity: isPlaying ? 0.6 + audioMetrics.bass * 0.4 : 0.35,
-          transform: `scale(${isPlaying ? 1 + audioMetrics.bass * 0.15 : 1})`,
+          transform: `scale(${isPlaying && !reducedMotion ? 1 + audioMetrics.bass * 0.15 : 1})`,
         }}
         aria-hidden="true"
       />
@@ -360,21 +361,17 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 <AnimatePresence>
                   {isSearchFocused && (
                     <motion.div
-                      initial={{ opacity: 0, y: 6, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 6, scale: 0.98 }}
-                      transition={{ duration: 0.15 }}
                       className="music-search-dropdown"
                     >
                       <div className="music-search-dropdown-header">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-white/50">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-portfolio-dust">
                           {searchQuery.trim()
                             ? `${t("music.search.results", "Search Results")} (${searchResults.length})`
                             : t("music.search.trending", "Trending Suggestions")}
                         </span>
                         <button
                           onClick={() => setIsSearchFocused(false)}
-                          className={cn("text-[10px]", text.subtleDark, "hover:text-white inline-flex items-center gap-1")}
+                          className={cn("text-[10px]", "text-portfolio-dust", "hover:text-portfolio-ink inline-flex items-center gap-1")}
                         >
                           {t("music.search.close", "Close")} <Icon name="close" size={10} />
                         </button>
@@ -384,10 +381,10 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         {searchResults.length === 0 ? (
                           <div className="music-search-empty">
                             <Icon name="search" size={18} />
-                            <div className="text-xs text-white/70">
+                            <div className="text-xs text-portfolio-dust">
                               {t("music.search.emptyTitle", "No tracks found for")} &quot;{searchQuery}&quot;
                             </div>
-                            <div className={cn("text-[11px]", text.subtleDark)}>
+                            <div className={cn("text-[11px]", "text-portfolio-dust")}>
                               {t("music.search.emptyDesc", "Try searching by artist, track title, or genre")}
                             </div>
                           </div>
@@ -403,9 +400,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                 onClick={() => {
                                   playTrackById(track.id);
                                 }}
-                                className={`music-search-item group ${
+                                className={cn(`music-search-item group ${
                                   isCurrent ? "music-search-item--active" : ""
-                                }`}
+                                }`)}
                               >
                                 {/* Thumbnail with hover play overlay */}
                                 <div className="music-search-item-thumb">
@@ -423,14 +420,14 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                     </div>
                                   )}
                                   <div
-                                    className={`music-search-item-play-overlay ${
+                                    className={cn(`music-search-item-play-overlay ${
                                       isThisPlaying ? "!opacity-100" : ""
-                                    }`}
+                                    }`)}
                                   >
                                     {isThisPlaying ? (
-                                      <span className={cn("w-2.5 h-2.5 bg-[#1db954]", radius.pill, "animate-ping")} />
+                                      <span className={cn("w-2.5 h-2.5 bg-portfolio-accretion", radius.pill)} />
                                     ) : (
-                                      <Icon name="play" size={12} className={cn(text.primaryDark)} />
+                                      <Icon name="play" size={12} className={cn("text-portfolio-ink")} />
                                     )}
                                   </div>
                                 </div>
@@ -438,18 +435,18 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                 {/* Track Info */}
                                 <div className="flex-1 min-w-0">
                                   <div
-                                    className={`text-xs font-semibold truncate ${
-                                      isCurrent ? "text-[#1db954]" : "text-white group-hover:text-white"
-                                    }`}
+                                    className={cn(`text-xs font-semibold truncate ${
+                                      isCurrent ? "text-portfolio-accretion" : "text-portfolio-ink group-hover:text-portfolio-ink"
+                                    }`)}
                                   >
                                     {track.title}
                                   </div>
-                                  <div className="text-[11px] text-white/50 truncate flex items-center gap-1.5">
+                                  <div className="text-[11px] text-portfolio-dust truncate flex items-center gap-1.5">
                                     <span>{track.artist}</span>
                                     {track.genre && (
                                       <>
                                         <span>•</span>
-                                        <span className="text-purple-400/80">{track.genre}</span>
+                                        <span className="text-portfolio-accretion">{track.genre}</span>
                                       </>
                                     )}
                                   </div>
@@ -462,16 +459,16 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                       e.stopPropagation();
                                       toggleLike(track.id);
                                     }}
-                                    className={`text-xs transition-transform active:scale-125 ${
+                                    className={cn(`text-xs transition-transform active:scale-125 ${
                                       isLiked
-                                        ? "text-rose-400"
-                                        : "text-white/20 hover:text-white/70"
-                                    }`}
+                                        ? "text-portfolio-accretion"
+                                        : "text-portfolio-dust hover:text-portfolio-dust"
+                                    }`)}
                                     title={isLiked ? t("music.favorites.removeTooltip", "Unlike") : t("music.playerBar.likeTrack", "Like")}
                                   >
                                     <Icon name="heart" size={13} filled={isLiked} />
                                   </button>
-                                  <span className={cn("text-[11px] font-mono", text.subtleDark, "tabular-nums")}>
+                                  <span className={cn("text-[11px] font-mono", "text-portfolio-dust", "tabular-nums")}>
                                     {formatTime(track.duration)}
                                   </span>
                                 </div>
@@ -489,7 +486,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   something useful instead of empty air, hidden below xl since
                   the header gets tight there. */}
               <div className="music-header-now-playing hidden xl:flex" title={t("music.header.nowPlaying", "Now Playing")}>
-                <div className={`music-header-now-thumb ${isPlaying ? "music-header-now-thumb--spinning" : ""}`}>
+                <div className={cn(`music-header-now-thumb ${isPlaying ? "music-header-now-thumb--spinning" : ""}`)}>
                   {currentTrack.thumbnailUrl ? (
                     <Image src={currentTrack.thumbnailUrl} alt="" fill sizes="30px" />
                   ) : (
@@ -510,7 +507,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     setActiveTab("player");
                     setShowOnlyLiked(false);
                   }}
-                  className={`music-quick-pill ${activeTab === "player" ? "music-quick-pill--active" : ""}`}
+                  className={cn(`music-quick-pill ${activeTab === "player" ? "music-quick-pill--active" : ""}`)}
                 >
                   <Icon name="slider" size={14} />
                   <span className="hidden sm:inline">{t("music.quickPills.player", "Player")}</span>
@@ -520,7 +517,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     setActiveTab("charts");
                     setShowOnlyLiked(false);
                   }}
-                  className={`music-quick-pill ${activeTab === "charts" ? "music-quick-pill--active" : ""}`}
+                  className={cn(`music-quick-pill ${activeTab === "charts" ? "music-quick-pill--active" : ""}`)}
                 >
                   <Icon name="trophy" size={14} />
                   <span className="hidden sm:inline">{t("music.quickPills.charts", "Top Charts")}</span>
@@ -530,7 +527,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     setActiveTab("favorites");
                     setShowOnlyLiked(true);
                   }}
-                  className={`music-quick-pill ${activeTab === "favorites" ? "music-quick-pill--active music-quick-pill--liked" : ""}`}
+                  className={cn(`music-quick-pill ${activeTab === "favorites" ? "music-quick-pill--active music-quick-pill--liked" : ""}`)}
                 >
                   <Icon name="heart" size={14} />
                   <span className="hidden sm:inline">{t("music.quickPills.favorites", "Favorites")}</span>
@@ -543,7 +540,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     setActiveTab("queue");
                     setShowOnlyLiked(false);
                   }}
-                  className={`music-quick-pill ${activeTab === "queue" ? "music-quick-pill--active" : ""}`}
+                  className={cn(`music-quick-pill ${activeTab === "queue" ? "music-quick-pill--active" : ""}`)}
                 >
                   <Icon name="listMusic" size={14} />
                   <span className="hidden sm:inline">{t("music.quickPills.queue", "Queue")}</span>
@@ -557,27 +554,27 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
             {activeTab === "player" && (
               <section className="music-deck-section">
                 {/* ── TRACK CONTROLS TOOLBAR (Chỉ ảnh hưởng bài hát hiện tại) ── */}
-                <div className={cn("w-full flex flex-wrap items-center justify-between", gap.base, "p-2.5 sm:p-3", radius.card, "bg-white/[0.03]", border.subtleDark, elevation.blur)}>
+                <div className={cn("w-full flex flex-wrap items-center justify-between", gap.base, "p-2.5 sm:p-3", radius.card, "bg-portfolio-hull", "border border-portfolio-hairline")}>
                   {/* Deck Mode Toggle: Đĩa Than vs Lời Bài Hát (Karaoke) */}
-                  <div className={cn("flex items-center gap-1.5 p-1 bg-black/40", radius.control, border.subtleDark)}>
+                  <div className={cn("flex items-center gap-1.5 p-1 bg-portfolio-hull", radius.control, "border border-portfolio-hairline")}>
                     <button
                       onClick={() => setDeckMode("vinyl")}
-                      className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                      className={cn(`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                         deckMode === "vinyl"
-                          ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/30"
-                          : "text-white/60 hover:text-white"
-                      }`}
+                          ? "bg-portfolio-accretion text-portfolio-on-accretion shadow-lg shadow-none"
+                          : "text-portfolio-dust hover:text-portfolio-ink"
+                      }`)}
                     >
                       <Icon name="disc" size={14} />
                       <span>{t("music.deck.vinyl", "Vinyl & Studio")}</span>
                     </button>
                     <button
                       onClick={() => setDeckMode("lyrics")}
-                      className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                      className={cn(`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                         deckMode === "lyrics"
-                          ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30"
-                          : "text-white/60 hover:text-white"
-                      }`}
+                          ? "bg-portfolio-accretion text-portfolio-on-accretion shadow-lg shadow-none"
+                          : "text-portfolio-dust hover:text-portfolio-ink"
+                      }`)}
                     >
                       <Icon name="mic" size={14} />
                       <span>{t("music.deck.lyrics", "Live Lyrics (Karaoke)")}</span>
@@ -589,9 +586,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   /* ── IN-DECK KARAOKE LIVE SYNCED LYRICS ── */
                   <div className={cn("w-full max-w-3xl mx-auto flex flex-col", gap.loose)}>
                     {/* Compact Playing Track Bar at the top of Lyrics */}
-                    <div className={cn("flex items-center justify-between", gap.loose, "p-4", radius.card, "bg-white/[0.04]", border.subtleDark, elevation.blur)}>
+                    <div className={cn("flex items-center justify-between", gap.loose, "p-4", radius.card, "bg-portfolio-hull", "border border-portfolio-hairline")}>
                       <div className="flex items-center gap-3.5 min-w-0">
-                        <div className={cn("w-12 h-12", radius.control, "overflow-hidden flex-shrink-0", surface.raisedDark, border.subtleDark, "relative group")}>
+                        <div className={cn("w-12 h-12", radius.control, "overflow-hidden flex-shrink-0", "bg-portfolio-hull", "border border-portfolio-hairline", "relative group")}>
                           {currentTrack.thumbnailUrl ? (
                             <Image
                               src={currentTrack.thumbnailUrl}
@@ -604,26 +601,26 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                             <div className="w-full h-full flex items-center justify-center"><Icon name="music" size={16} /></div>
                           )}
                           {isPlaying && (
-                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                              <span className={cn("w-2.5 h-2.5", radius.pill, "bg-cyan-400 animate-ping")} />
+                            <div className="absolute inset-0 bg-portfolio-hull flex items-center justify-center">
+                              <span className={cn("w-2.5 h-2.5", radius.pill, "bg-portfolio-hull ")} />
                             </div>
                           )}
                         </div>
 
                         <div className="min-w-0">
                           <div className={cn("flex items-center", gap.tight)}>
-                            <h2 className={cn("text-base font-bold", text.primaryDark, "truncate")}>
+                            <h2 className={cn("text-base font-bold", "text-portfolio-ink", "truncate")}>
                               {currentTrack.title}
                             </h2>
                             <button
                               onClick={() => toggleLike(currentTrack.id)}
-                              className={`text-sm ${isCurrentLiked ? "text-red-500" : "text-white/40 hover:text-white"} cursor-pointer`}
+                              className={cn(`text-sm ${isCurrentLiked ? "text-portfolio-accretion" : "text-portfolio-dust hover:text-portfolio-ink"} cursor-pointer`)}
                               title={isCurrentLiked ? t("music.favorites.removeTooltip", "Unlike") : t("music.playerBar.likeTrack", "Like")}
                             >
                               <Icon name="heart" size={14} filled={isCurrentLiked} />
                             </button>
                           </div>
-                          <p className={cn("text-xs", text.mutedDark, "truncate")}>
+                          <p className={cn("text-xs", "text-portfolio-dust", "truncate")}>
                             {currentTrack.artist} {currentTrack.album ? `• ${currentTrack.album}` : ""}
                           </p>
                         </div>
@@ -631,24 +628,24 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                       <div className={cn("flex items-center", gap.tight, "flex-shrink-0")}>
                         {/* Audio pulse bars visual feedback */}
-                        <div className={cn("hidden sm:flex items-center gap-1 h-6 px-2.5 py-1", radius.chip, "bg-black/40", border.subtleDark)}>
+                        <div className={cn("hidden sm:flex items-center gap-1 h-6 px-2.5 py-1", radius.chip, "bg-portfolio-hull", "border border-portfolio-hairline")}>
                           <span
-                            className={cn("w-1 bg-cyan-400", radius.pill, "transition-all duration-75")}
-                            style={{ height: isPlaying ? `${Math.max(4, audioMetrics.bass * 20)}px` : "4px" }}
+                            className={cn("w-1 bg-portfolio-hull", radius.pill, "transition-all duration-75")}
+                            style={{ height: isPlaying && !reducedMotion ? `${Math.max(4, audioMetrics.bass * 20)}px` : "4px" }}
                           />
                           <span
-                            className={cn("w-1 bg-purple-400", radius.pill, "transition-all duration-75")}
-                            style={{ height: isPlaying ? `${Math.max(4, audioMetrics.mid * 20)}px` : "8px" }}
+                            className={cn("w-1 bg-portfolio-hull", radius.pill, "transition-all duration-75")}
+                            style={{ height: isPlaying && !reducedMotion ? `${Math.max(4, audioMetrics.mid * 20)}px` : "8px" }}
                           />
                           <span
-                            className={cn("w-1 bg-pink-400", radius.pill, "transition-all duration-75")}
-                            style={{ height: isPlaying ? `${Math.max(4, audioMetrics.treble * 20)}px` : "6px" }}
+                            className={cn("w-1 bg-portfolio-hull", radius.pill, "transition-all duration-75")}
+                            style={{ height: isPlaying && !reducedMotion ? `${Math.max(4, audioMetrics.treble * 20)}px` : "6px" }}
                           />
                         </div>
 
                         <button
                           onClick={() => setDeckMode("vinyl")}
-                          className={cn("px-3 py-1.5", radius.control, surface.raisedDark, "hover:bg-white/15 text-xs font-semibold text-white/80 hover:text-white", border.subtleDark, "transition-all flex items-center gap-1.5 cursor-pointer")}
+                          className={cn("px-3 py-1.5", radius.control, "bg-portfolio-hull", "hover:bg-portfolio-hull text-xs font-semibold text-portfolio-dust hover:text-portfolio-ink", "border border-portfolio-hairline", "transition-all flex items-center gap-1.5 cursor-pointer")}
                           title={t("music.deck.backToVinyl", "Back to Vinyl")}
                         >
                           <Icon name="disc" size={14} />
@@ -666,13 +663,11 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     <div className="music-turntable-wrapper">
                       {/* Vinyl Record */}
                       <div
-                        className={`music-vinyl ${isPlaying ? "music-vinyl--spinning" : ""}`}
+                        className={cn(`music-vinyl ${isPlaying ? "music-vinyl--spinning" : ""}`)}
                         style={{
                           animationPlayState: isPlaying ? "running" : "paused",
-                          transform: `scale(${isPlaying ? 1 + audioMetrics.bass * 0.03 : 1})`,
-                          boxShadow: isPlaying
-                            ? `0 0 ${20 + audioMetrics.bass * 40}px rgba(168, 85, 247, 0.4), 0 20px 50px rgba(0,0,0,0.8)`
-                            : "0 20px 50px rgba(0,0,0,0.8)",
+                          transform: `scale(${isPlaying && !reducedMotion ? 1 + audioMetrics.bass * 0.03 : 1})`,
+                          boxShadow: "none",
                         }}
                       >
                         <div className="music-vinyl-grooves" />
@@ -695,8 +690,6 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       {/* 3D Cover Card */}
                       <motion.div
                         className="music-cover-card"
-                        whileHover={{ scale: 1.02, rotateY: 5 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
                       >
                         {currentTrack.thumbnailUrl ? (
                           <Image
@@ -726,7 +719,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                       {/* Real Tonearm with playing rotation */}
                       <div
-                        className={`music-tonearm ${isPlaying ? "music-tonearm--playing" : ""}`}
+                        className={cn(`music-tonearm ${isPlaying ? "music-tonearm--playing" : ""}`)}
                         aria-hidden="true"
                       >
                         <div className="music-tonearm-base" />
@@ -741,7 +734,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         <h1 className="music-stage-title">{currentTrack.title}</h1>
                         <button
                           onClick={() => toggleLike(currentTrack.id)}
-                          className={`music-main-heart-btn ${isCurrentLiked ? "music-main-heart-btn--liked" : ""}`}
+                          className={cn(`music-main-heart-btn ${isCurrentLiked ? "music-main-heart-btn--liked" : ""}`)}
                           title={isCurrentLiked ? t("music.playerBar.unlikeTrack", "Liked!") : t("music.playerBar.likeTrack", "Add to Liked Songs (L)")}
                         >
                           <Icon name="heart" size={16} filled={isCurrentLiked} />
@@ -764,7 +757,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         </span>
                         <button
                           onClick={() => setDeckMode("lyrics")}
-                          className="music-pill-meta hover:bg-white/10 text-cyan-300 border-cyan-500/30 cursor-pointer inline-flex items-center gap-1"
+                          className="music-pill-meta hover:bg-portfolio-hull text-portfolio-accretion border-portfolio-accretion cursor-pointer inline-flex items-center gap-1"
                         >
                           <Icon name="mic" size={12} /> {t("music.deck.viewLyrics", "View Lyrics")}
                         </button>
@@ -774,39 +767,39 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     {/* Real-Time Web Audio Visualizer */}
                     <div className="flex items-center justify-between px-2 mb-2 w-full max-w-3xl">
                       <div className={cn("flex items-center", gap.tight)}>
-                        <span className="text-xs font-bold uppercase tracking-wider text-white/70">
+                        <span className="text-xs font-bold uppercase tracking-wider text-portfolio-dust">
                           {t("music.deck.visualizerTitle", "Audio Visualizer")}
                         </span>
-                        {isPlaying && <span className={cn("w-2 h-2", radius.pill, "bg-emerald-400 animate-pulse")} />}
+                        {isPlaying && <span className={cn("w-2 h-2", radius.pill, "bg-portfolio-hull ")} />}
                       </div>
-                      <div className={cn("flex items-center gap-1 bg-white/[0.04] p-1", radius.control, border.subtleDark, "text-xs")}>
+                      <div className={cn("flex items-center gap-1 bg-portfolio-hull p-1", radius.control, "border border-portfolio-hairline", "text-xs")}>
                         <button
                           onClick={() => setVisualizerStyle("bars")}
-                          className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                          className={cn(`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                             visualizerStyle === "bars"
-                              ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-bold shadow"
-                              : "text-white/60 hover:text-white"
-                          }`}
+                              ? "bg-portfolio-accretion text-portfolio-on-accretion font-bold shadow"
+                              : "text-portfolio-dust hover:text-portfolio-ink"
+                          }`)}
                         >
                           {t("music.deck.bars", "Bars")}
                         </button>
                         <button
                           onClick={() => setVisualizerStyle("wave")}
-                          className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                          className={cn(`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                             visualizerStyle === "wave"
-                              ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-bold shadow"
-                              : "text-white/60 hover:text-white"
-                          }`}
+                              ? "bg-portfolio-accretion text-portfolio-on-accretion font-bold shadow"
+                              : "text-portfolio-dust hover:text-portfolio-ink"
+                          }`)}
                         >
                           {t("music.deck.wave", "Wave")}
                         </button>
                         <button
                           onClick={() => setVisualizerStyle("pulsar")}
-                          className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                          className={cn(`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                             visualizerStyle === "pulsar"
-                              ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-bold shadow"
-                              : "text-white/60 hover:text-white"
-                          }`}
+                              ? "bg-portfolio-accretion text-portfolio-on-accretion font-bold shadow"
+                              : "text-portfolio-dust hover:text-portfolio-ink"
+                          }`)}
                         >
                           {t("music.deck.pulsar", "Pulsar")}
                         </button>
@@ -823,12 +816,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                 {/* Quick Track Grid / Playlist Preview */}
                 <div className="music-quick-library w-full">
-                  <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between", gap.base, "mb-4 pb-3 border-b border-white/10")}>
+                  <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between", gap.base, "mb-4 pb-3 border-b border-portfolio-hairline")}>
                     <div className={cn("flex items-center", gap.base, "flex-wrap")}>
-                      <h3 className={cn("text-sm font-bold text-white/90 uppercase tracking-wider flex items-center", gap.tight)}>
+                      <h3 className={cn("text-sm font-bold text-portfolio-dust uppercase tracking-wider flex items-center", gap.tight)}>
                         <Icon name="music" size={14} />
                         <span>{t("music.collection.title", "Soundtrack Collection")}</span>
-                        <span className={cn("text-xs px-2.5 py-0.5", radius.pill, surface.raisedDark, text.mutedDark, "font-mono font-normal")}>
+                        <span className={cn("text-xs px-2.5 py-0.5", radius.pill, "bg-portfolio-hull", "text-portfolio-dust", "font-mono font-normal")}>
                           {filteredTracks.length} {t("music.collection.tracksCount", "tracks")}
                         </span>
                       </h3>
@@ -853,11 +846,11 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     <div className="flex items-center gap-2.5 self-start sm:self-auto">
                       <button
                         onClick={() => setShowOnlyLiked(!showOnlyLiked)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 cursor-pointer ${
+                        className={cn(`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 cursor-pointer ${
                           showOnlyLiked
-                            ? "bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-sm shadow-rose-500/20"
-                            : "bg-white/5 text-white/70 hover:text-white border-white/10"
-                        }`}
+                            ? "bg-portfolio-hull text-portfolio-accretion border-portfolio-accretion shadow-sm shadow-none"
+                            : "bg-portfolio-hull text-portfolio-dust hover:text-portfolio-ink border-portfolio-hairline"
+                        }`)}
                         title={t("music.collection.likedFilter", "Only show liked tracks in list")}
                       >
                         <Icon name="heart" size={13} filled={showOnlyLiked} />
@@ -865,20 +858,20 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       </button>
 
                       {/* Sort dropdown */}
-                      <div className={cn("flex items-center gap-1.5", surface.cardDark, border.subtleDark, radius.control, "px-2.5 py-1")}>
-                        <span className={cn("text-xs", text.subtleDark)}>⇅</span>
+                      <div className={cn("flex items-center gap-1.5", "bg-portfolio-hull", "border border-portfolio-hairline", radius.control, "px-2.5 py-1")}>
+                        <span className={cn("text-xs", "text-portfolio-dust")}>⇅</span>
                         <select
                           value={sortBy}
                           onChange={(e) =>
                             setSortBy(e.target.value as "default" | "title" | "plays" | "duration")
                           }
-                          className="bg-transparent text-xs text-white/90 focus:outline-none cursor-pointer pr-1 py-0.5"
+                          className="bg-transparent text-xs text-portfolio-dust focus:outline-none cursor-pointer pr-1 py-0.5"
                           aria-label={t("music.collection.sort.label", "Sort:")}
                         >
-                          <option value="default" className={cn("bg-[#121212]", text.primaryDark)}>{t("music.collection.sort.default", "Sort: Default")}</option>
-                          <option value="plays" className={cn("bg-[#121212]", text.primaryDark)}>{t("music.collection.sort.plays", "Sort: Most Played")}</option>
-                          <option value="title" className={cn("bg-[#121212]", text.primaryDark)}>{t("music.collection.sort.title", "Sort: Track Title")}</option>
-                          <option value="duration" className={cn("bg-[#121212]", text.primaryDark)}>{t("music.collection.sort.duration", "Sort: Duration")}</option>
+                          <option value="default" className={cn("bg-portfolio-hull", "text-portfolio-ink")}>{t("music.collection.sort.default", "Sort: Default")}</option>
+                          <option value="plays" className={cn("bg-portfolio-hull", "text-portfolio-ink")}>{t("music.collection.sort.plays", "Sort: Most Played")}</option>
+                          <option value="title" className={cn("bg-portfolio-hull", "text-portfolio-ink")}>{t("music.collection.sort.title", "Sort: Track Title")}</option>
+                          <option value="duration" className={cn("bg-portfolio-hull", "text-portfolio-ink")}>{t("music.collection.sort.duration", "Sort: Duration")}</option>
                         </select>
                       </div>
                     </div>
@@ -894,7 +887,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         <div
                           key={t.id}
                           onClick={() => playTrackByIndex(originalIdx)}
-                          className={`music-grid-card ${isSelected ? "music-grid-card--active" : ""}`}
+                          className={cn(`music-grid-card ${isSelected ? "music-grid-card--active" : ""}`)}
                         >
                           <div className="music-grid-thumb">
                             {t.thumbnailUrl ? (
@@ -925,11 +918,11 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                 e.stopPropagation();
                                 toggleLike(t.id);
                               }}
-                              className={`text-xs ${isLiked ? "text-red-400" : "text-white/30 hover:text-white"}`}
+                              className={cn(`text-xs ${isLiked ? "text-portfolio-accretion" : "text-portfolio-dust hover:text-portfolio-ink"}`)}
                             >
                               <Icon name="heart" size={13} filled={isLiked} />
                             </button>
-                            <span className={cn("text-[11px]", text.subtleDark, "tabular-nums")}>
+                            <span className={cn("text-[11px]", "text-portfolio-dust", "tabular-nums")}>
                               {formatTime(t.duration)}
                             </span>
                           </div>
@@ -949,35 +942,34 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   <div className="spotify-charts-hero-backdrop" />
                   <div className={cn("relative z-10 flex flex-col md:flex-row items-start md:items-end", gap.grid, "p-6 sm:p-8")}>
                     {/* Big Chart Cover Artwork / Badge */}
-                    <div className={cn("w-36 h-36 sm:w-44 sm:h-44", radius.card, "shadow-2xl flex-shrink-0 bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-950 flex flex-col items-center justify-center", text.primaryDark, "border border-emerald-400/30 relative overflow-hidden group")}>
-                      <div className="absolute inset-0 bg-black/20" />
+                    <div className={cn("w-36 h-36 sm:w-44 sm:h-44", radius.card, "shadow-2xl flex-shrink-0 bg-portfolio-accretion text-portfolio-on-accretion flex flex-col items-center justify-center", "text-portfolio-on-accretion", "border border-portfolio-accretion relative overflow-hidden group")}>
+
                       <span className="mb-1 relative z-10"><Icon name="trophy" size={48} /></span>
-                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-emerald-300 relative z-10">
+                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-portfolio-on-accretion relative z-10">
                         TOP CHARTS
                       </span>
-                      <div className={cn("absolute -bottom-6 -right-6 w-24 h-24 bg-emerald-400/20", radius.pill, "blur-xl")} />
                     </div>
 
                     {/* Chart Meta */}
                     <div className="flex-1 min-w-0">
                       <div className={cn("flex items-center", gap.tight, "mb-2")}>
-                        <span className={cn("text-[11px] font-extrabold uppercase tracking-widest text-emerald-400 px-2.5 py-0.5", radius.pill, "bg-emerald-500/10 border border-emerald-500/30")}>
+                        <span className={cn("text-[11px] font-extrabold uppercase tracking-widest text-portfolio-accretion px-2.5 py-0.5", radius.pill, "bg-portfolio-hull border border-portfolio-accretion")}>
                           {t("music.charts.badge", "TRENDING LEADERBOARD")}
                         </span>
-                        <span className={cn("text-[11px]", text.subtleDark, "font-mono")}>{t("music.charts.edition", "SPOTIFY EDITION")}</span>
+                        <span className={cn("text-[11px]", "text-portfolio-dust", "font-mono")}>{t("music.charts.edition", "SPOTIFY EDITION")}</span>
                       </div>
 
-                      <h1 className={cn("text-2xl sm:text-3xl md:text-5xl font-black", text.primaryDark, "tracking-tight mb-3")}>
+                      <h1 className={cn("text-2xl sm:text-3xl md:text-5xl font-black", "text-portfolio-ink", "tracking-tight mb-3")}>
                         {t("music.charts.title", "Most Played Soundtracks")}
                       </h1>
 
-                      <p className="text-sm text-white/70 max-w-2xl mb-4 font-light leading-relaxed">
+                      <p className="text-sm text-portfolio-dust max-w-2xl mb-4 font-light leading-relaxed">
                         {t("music.charts.desc", "A curated collection of the most enjoyed chillout, lofi, and synthwave melodies on Vibe Lounge. Ranked by actual play counts.")}
                       </p>
 
-                      <div className={cn("flex flex-wrap items-center", gap.base, "text-xs text-white/80 font-medium")}>
+                      <div className={cn("flex flex-wrap items-center", gap.base, "text-xs text-portfolio-dust font-medium")}>
                         <div className="flex items-center gap-1.5">
-                          <span className={cn("w-5 h-5", radius.pill, "bg-gradient-to-tr from-purple-500 to-cyan-400 flex items-center justify-center text-[10px] font-bold", text.primaryDark)}>
+                          <span className={cn("w-5 h-5", radius.pill, "bg-portfolio-accretion text-portfolio-on-accretion flex items-center justify-center text-[10px] font-bold", "text-portfolio-on-accretion")}>
                             TH
                           </span>
                           <span>{t("music.charts.curatedBy", "Curated by")} <strong>Thạch Huỳnh</strong></span>
@@ -987,56 +979,56 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         <span>•</span>
                         <span>{totalPlays.toLocaleString()} {t("music.charts.plays", "plays")}</span>
                         <span>•</span>
-                        <span className="text-emerald-400 font-mono">{t("music.charts.lossless", "Lossless Hi-Res")}</span>
+                        <span className="text-portfolio-accretion font-mono">{t("music.charts.lossless", "Lossless Hi-Res")}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Top 3 Quick Podium Badges */}
                   {chartTracks.length >= 3 && (
-                    <div className={cn("px-6 sm:px-8 pb-4 grid grid-cols-1 sm:grid-cols-3", gap.base, "border-t border-white/10 pt-4 relative z-10")}>
+                    <div className={cn("px-6 sm:px-8 pb-4 grid grid-cols-1 sm:grid-cols-3", gap.base, "border-t border-portfolio-hairline pt-4 relative z-10")}>
                       {chartTracks.slice(0, 3).map((topT, idx) => {
                         const medals = [
                           t("music.charts.top1", "Top 1 Trending"),
                           t("music.charts.top2", "Top 2 Favorite"),
                           t("music.charts.top3", "Top 3 Featured"),
                         ];
-                        const medalColors = ["text-amber-300", "text-slate-300", "text-orange-400"];
+                        const medalColors = ["text-portfolio-accretion", "text-portfolio-dust", "text-portfolio-accretion"];
                         const isThisPlaying = isPlaying && currentTrack?.id === topT.id;
                         return (
                           <div
                             key={topT.id}
                             onClick={() => playTrackById(topT.id)}
-                            className={`flex items-center gap-3 p-2.5 rounded-xl bg-black/40 border transition-all cursor-pointer ${
+                            className={cn(`flex items-center gap-3 p-2.5 rounded-xl bg-portfolio-hull border transition-all cursor-pointer ${
                               isThisPlaying
-                                ? "border-emerald-500/60 bg-emerald-500/10 shadow-lg shadow-emerald-500/10"
-                                : "border-white/10 hover:border-white/20 hover:bg-white/5"
-                            }`}
+                                ? "border-portfolio-accretion bg-portfolio-hull shadow-lg shadow-none"
+                                : "border-portfolio-hairline hover:border-portfolio-hairline hover:bg-portfolio-hull"
+                            }`)}
                           >
-                            <div className={cn("w-10 h-10", radius.chip, "overflow-hidden flex-shrink-0 relative", surface.raisedDark)}>
+                            <div className={cn("w-10 h-10", radius.chip, "overflow-hidden flex-shrink-0 relative", "bg-portfolio-hull")}>
                               {topT.thumbnailUrl ? (
                                 <Image src={topT.thumbnailUrl} alt={topT.title} fill sizes="40px" className="object-cover" />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center"><Icon name="music" size={14} /></div>
                               )}
                               {isThisPlaying && (
-                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                  <span className={cn("w-2 h-2", radius.pill, "bg-emerald-400 animate-ping")} />
+                                <div className="absolute inset-0 bg-portfolio-hull flex items-center justify-center">
+                                  <span className={cn("w-2 h-2", radius.pill, "bg-portfolio-hull ")} />
                                 </div>
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <span className={`text-[10px] font-bold ${medalColors[idx]} flex items-center gap-1`}>
+                              <span className={cn(`text-[10px] font-bold ${medalColors[idx]} flex items-center gap-1`)}>
                                 <Icon name="medal" size={11} /> {medals[idx]}
                               </span>
-                              <div className={cn("text-xs font-bold", text.primaryDark, "truncate")}>{topT.title}</div>
-                              <span className="text-[11px] text-white/50 truncate block">{topT.artist}</span>
+                              <div className={cn("text-xs font-bold", "text-portfolio-ink", "truncate")}>{topT.title}</div>
+                              <span className="text-[11px] text-portfolio-dust truncate block">{topT.artist}</span>
                             </div>
                             <div className="text-right">
-                              <span className="text-[10px] text-emerald-400 font-mono font-bold block">
+                              <span className="text-[10px] text-portfolio-accretion font-mono font-bold block">
                                 {(topT.playCount ?? 0).toLocaleString()}
                               </span>
-                              <span className={cn("text-[9px]", text.subtleDark, "block")}>{t("music.charts.plays", "plays")}</span>
+                              <span className={cn("text-[9px]", "text-portfolio-dust", "block")}>{t("music.charts.plays", "plays")}</span>
                             </div>
                           </div>
                         );
@@ -1051,7 +1043,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     {/* Spotify Iconic Circular Big Green Play Button */}
                     <button
                       onClick={handlePlayChartFromStart}
-                      className={cn("w-14 h-14", radius.pill, "bg-[#1db954] hover:bg-[#1ed760] text-black flex items-center justify-center shadow-xl shadow-[#1db954]/30 hover:scale-105", motionTokens.press, "transition-all")}
+                      className={cn("w-14 h-14", radius.pill, "bg-portfolio-accretion hover:bg-portfolio-accretion text-portfolio-on-accretion flex items-center justify-center shadow-xl shadow-none hover:scale-105", motionTokens.press, "transition-all")}
                       title={t("music.charts.playAll", "Play all from #1")}
                     >
                       <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28" className="translate-x-0.5">
@@ -1062,52 +1054,52 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     {/* Shuffle Play Button */}
                     <button
                       onClick={handleShufflePlayCharts}
-                      className={`p-3 rounded-full border transition-all ${
+                      className={cn(`p-3 rounded-full border transition-all ${
                         isShuffle
-                          ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
-                          : "bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border-white/10"
-                      }`}
+                          ? "bg-portfolio-hull text-portfolio-accretion border-portfolio-accretion"
+                          : "bg-portfolio-hull hover:bg-portfolio-hull text-portfolio-dust hover:text-portfolio-ink border-portfolio-hairline"
+                      }`)}
                       title={t("music.charts.shuffle", "Shuffle play charts")}
                     >
                       <ShuffleIcon />
                     </button>
 
-                    <div className={cn("h-6 w-px", surface.raisedDark)} />
+                    <div className={cn("h-6 w-px", "bg-portfolio-hull")} />
 
-                    <span className={cn("text-xs", text.mutedDark)}>
+                    <span className={cn("text-xs", "text-portfolio-dust")}>
                       {t("music.charts.showing", "Showing")} <strong>{chartTracks.length}</strong> {t("music.charts.tracks", "tracks")}
                     </span>
                   </div>
 
                   {/* Chart Sorting Tabs */}
-                  <div className={cn("flex items-center gap-1.5 p-1 bg-white/[0.04]", radius.control, border.subtleDark, "self-start sm:self-auto")}>
+                  <div className={cn("flex items-center gap-1.5 p-1 bg-portfolio-hull", radius.control, "border border-portfolio-hairline", "self-start sm:self-auto")}>
                     <button
                       onClick={() => setChartFilter("plays")}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      className={cn(`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                         chartFilter === "plays"
-                          ? "bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40"
-                          : "text-white/60 hover:text-white"
-                      }`}
+                          ? "bg-portfolio-hull text-portfolio-accretion font-bold border border-portfolio-accretion"
+                          : "text-portfolio-dust hover:text-portfolio-ink"
+                      }`)}
                     >
                       <Icon name="flame" size={12} className="inline mr-1" /> {t("music.charts.topPlays", "Top Played")}
                     </button>
                     <button
                       onClick={() => setChartFilter("liked")}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      className={cn(`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                         chartFilter === "liked"
-                          ? "bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40"
-                          : "text-white/60 hover:text-white"
-                      }`}
+                          ? "bg-portfolio-hull text-portfolio-accretion font-bold border border-portfolio-accretion"
+                          : "text-portfolio-dust hover:text-portfolio-ink"
+                      }`)}
                     >
                       <Icon name="heart" size={12} className="inline mr-1" /> {t("music.charts.topLiked", "Most Liked")}
                     </button>
                     <button
                       onClick={() => setChartFilter("recent")}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      className={cn(`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                         chartFilter === "recent"
-                          ? "bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40"
-                          : "text-white/60 hover:text-white"
-                      }`}
+                          ? "bg-portfolio-hull text-portfolio-accretion font-bold border border-portfolio-accretion"
+                          : "text-portfolio-dust hover:text-portfolio-ink"
+                      }`)}
                     >
                       <Icon name="sparkles" size={12} className="inline mr-1" /> {t("music.charts.topRecent", "Recently Added")}
                     </button>
@@ -1142,9 +1134,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                             onMouseEnter={() => setHoveredTrackId(track.id)}
                             onMouseLeave={() => setHoveredTrackId(null)}
                             onClick={() => playTrackById(track.id)}
-                            className={`spotify-table-row group ${
+                            className={cn(`spotify-table-row group ${
                               isCurrent ? "spotify-table-row--active" : ""
-                            }`}
+                            }`)}
                           >
                             {/* Rank / Play Icon Col */}
                             <div className="w-10 text-center flex items-center justify-center flex-shrink-0">
@@ -1158,7 +1150,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                       playTrackById(track.id);
                                     }
                                   }}
-                                  className={cn("w-7 h-7", radius.pill, "bg-[#1db954] text-black flex items-center justify-center shadow hover:scale-110 transition-transform")}
+                                  className={cn("w-7 h-7", radius.pill, "bg-portfolio-accretion text-portfolio-on-accretion flex items-center justify-center shadow hover:scale-110 transition-transform")}
                                   title={isThisPlaying ? t("music.charts.pause", "Pause") : t("music.charts.play", "Play Track")}
                                 >
                                   {isThisPlaying ? (
@@ -1173,24 +1165,24 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                 </button>
                               ) : isThisPlaying ? (
                                 <div className="music-mini-bars">
-                                  <span style={{ backgroundColor: "#1db954" }} />
-                                  <span style={{ backgroundColor: "#1db954" }} />
-                                  <span style={{ backgroundColor: "#1db954" }} />
+                                  <span style={{ backgroundColor: "var(--portfolio-accretion)" }} />
+                                  <span style={{ backgroundColor: "var(--portfolio-accretion)" }} />
+                                  <span style={{ backgroundColor: "var(--portfolio-accretion)" }} />
                                 </div>
                               ) : rank === 1 ? (
-                                <Icon name="medal" size={16} className="text-amber-300" />
+                                <Icon name="medal" size={16} className="text-portfolio-accretion" />
                               ) : rank === 2 ? (
-                                <Icon name="medal" size={16} className="text-slate-300" />
+                                <Icon name="medal" size={16} className="text-portfolio-dust" />
                               ) : rank === 3 ? (
-                                <Icon name="medal" size={16} className="text-orange-400" />
+                                <Icon name="medal" size={16} className="text-portfolio-accretion" />
                               ) : (
-                                <span className="text-xs font-mono text-white/50">{rank}</span>
+                                <span className="text-xs font-mono text-portfolio-dust">{rank}</span>
                               )}
                             </div>
 
                             {/* Title & Artist & Thumbnail Col */}
                             <div className={cn("flex-1 min-w-0 flex items-center", gap.base, "pr-2")}>
-                              <div className={cn("w-11 h-11", radius.chip, "overflow-hidden", surface.raisedDark, "flex-shrink-0 shadow relative")}>
+                              <div className={cn("w-11 h-11", radius.chip, "overflow-hidden", "bg-portfolio-hull", "flex-shrink-0 shadow relative")}>
                                 {track.thumbnailUrl ? (
                                   <Image src={track.thumbnailUrl} alt={track.title} fill sizes="44px" className="object-cover" />
                                 ) : (
@@ -1198,14 +1190,14 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                 )}
                               </div>
                               <div className="min-w-0">
-                                <div className={`text-sm font-semibold truncate transition-colors ${
-                                  isCurrent ? "text-[#1db954] font-bold" : "text-white group-hover:text-white"
-                                }`}>
+                                <div className={cn(`text-sm font-semibold truncate transition-colors ${
+                                  isCurrent ? "text-portfolio-accretion font-bold" : "text-portfolio-ink group-hover:text-portfolio-ink"
+                                }`)}>
                                   {track.title}
                                 </div>
-                                <div className={cn("text-xs text-white/50 truncate flex items-center", gap.tight)}>
+                                <div className={cn("text-xs text-portfolio-dust truncate flex items-center", gap.tight)}>
                                   <span>{track.artist}</span>
-                                  <span className={cn("text-[9px] px-1.5 py-0.2 rounded", surface.raisedDark, "text-white/70 font-mono uppercase")}>
+                                  <span className={cn("text-[9px] px-1.5 py-0.2 rounded", "bg-portfolio-hull", "text-portfolio-dust font-mono uppercase")}>
                                     Lossless
                                   </span>
                                 </div>
@@ -1213,18 +1205,18 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                             </div>
 
                             {/* Album / Genre Col */}
-                            <div className={cn("hidden md:block w-48 text-xs", text.mutedDark, "truncate pr-4")}>
+                            <div className={cn("hidden md:block w-48 text-xs", "text-portfolio-dust", "truncate pr-4")}>
                               {track.album || track.genre || t("music.infoView.singleRelease", "Single Release")}
                             </div>
 
                             {/* Plays count & popularity bar Col */}
                             <div className="hidden sm:flex flex-col items-end justify-center w-36 pr-4">
-                              <span className="text-xs font-mono font-medium text-white/80 tabular-nums">
+                              <span className="text-xs font-mono font-medium text-portfolio-dust tabular-nums">
                                 {(track.playCount ?? 0).toLocaleString()} {t("music.charts.plays", "plays")}
                               </span>
-                              <div className={cn("w-20 h-1", radius.pill, surface.raisedDark, "mt-1 overflow-hidden")}>
+                              <div className={cn("w-20 h-1", radius.pill, "bg-portfolio-hull", "mt-1 overflow-hidden")}>
                                 <div
-                                  className={cn("h-full bg-gradient-to-r from-emerald-500 to-[#1db954]", radius.pill)}
+                                  className={cn("h-full bg-portfolio-accretion text-portfolio-on-accretion", radius.pill)}
                                   style={{ width: `${Math.max(5, playPercent)}%` }}
                                 />
                               </div>
@@ -1237,14 +1229,14 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                   e.stopPropagation();
                                   toggleLike(track.id);
                                 }}
-                                className={`text-sm transition-transform active:scale-125 ${
-                                  isLiked ? "text-emerald-400" : "text-white/20 hover:text-white/80"
-                                }`}
+                                className={cn(`text-sm transition-transform active:scale-125 ${
+                                  isLiked ? "text-portfolio-accretion" : "text-portfolio-dust hover:text-portfolio-dust"
+                                }`)}
                                 title={isLiked ? t("music.favorites.removeTooltip", "Unlike") : t("music.playerBar.likeTrack", "Like")}
                               >
                                 <Icon name="heart" size={14} filled={isLiked} />
                               </button>
-                              <span className="text-xs font-mono text-white/50 tabular-nums">
+                              <span className="text-xs font-mono text-portfolio-dust tabular-nums">
                                 {formatTime(track.duration)}
                               </span>
                             </div>
@@ -1261,47 +1253,46 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
             {activeTab === "favorites" && (
               <section className="spotify-charts-container">
                 {/* 1. Hero Billboard Banner */}
-                <div className="spotify-charts-hero !from-rose-950/40 !via-pink-950/30">
+                <div className="spotify-charts-hero">
                   <div
                     className="spotify-charts-hero-backdrop"
                     style={{
                       background:
-                        "radial-gradient(circle at top left, rgba(244, 63, 94, 0.25) 0%, transparent 70%)",
+                        "none",
                     }}
                   />
                   <div className={cn("relative z-10 flex flex-col md:flex-row items-start md:items-end", gap.grid, "p-6 sm:p-8")}>
                     {/* Big Heart Cover Artwork */}
-                    <div className={cn("w-36 h-36 sm:w-44 sm:h-44", radius.card, "shadow-2xl flex-shrink-0 bg-gradient-to-br from-rose-600 via-pink-600 to-purple-900 flex flex-col items-center justify-center", text.primaryDark, "border border-rose-400/40 relative overflow-hidden group shadow-rose-900/40")}>
-                      <div className="absolute inset-0 bg-black/15" />
+                    <div className={cn("w-36 h-36 sm:w-44 sm:h-44", radius.card, "shadow-2xl flex-shrink-0 bg-portfolio-accretion text-portfolio-on-accretion flex flex-col items-center justify-center", "text-portfolio-on-accretion", "border border-portfolio-accretion relative overflow-hidden group shadow-none")}>
+
                       <span className="mb-1 relative z-10 drop-shadow-md">
                         <Icon name="heart" size={48} filled />
                       </span>
-                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-rose-200 relative z-10">
+                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-portfolio-on-accretion relative z-10">
                         FAVORITES
                       </span>
-                      <div className={cn("absolute -bottom-6 -right-6 w-24 h-24 bg-rose-400/30", radius.pill, "blur-xl")} />
                     </div>
 
                     {/* Meta */}
                     <div className="flex-1 min-w-0">
                       <div className={cn("flex items-center", gap.tight, "mb-2")}>
-                        <span className={cn("text-[11px] font-extrabold uppercase tracking-widest text-rose-400 px-2.5 py-0.5", radius.pill, "bg-rose-500/15 border border-rose-500/30")}>
+                        <span className={cn("text-[11px] font-extrabold uppercase tracking-widest text-portfolio-accretion px-2.5 py-0.5", radius.pill, "bg-portfolio-hull border border-portfolio-accretion")}>
                           {t("music.favorites.badge", "FAVORITE COLLECTION")}
                         </span>
-                        <span className={cn("text-[11px]", text.subtleDark, "font-mono")}>{t("music.favorites.edition", "SPOTIFY EDITION")}</span>
+                        <span className={cn("text-[11px]", "text-portfolio-dust", "font-mono")}>{t("music.favorites.edition", "SPOTIFY EDITION")}</span>
                       </div>
 
-                      <h1 className={cn("text-2xl sm:text-3xl md:text-5xl font-black", text.primaryDark, "tracking-tight mb-3")}>
+                      <h1 className={cn("text-2xl sm:text-3xl md:text-5xl font-black", "text-portfolio-ink", "tracking-tight mb-3")}>
                         {t("music.favorites.title", "Favorite Tracks")}
                       </h1>
 
-                      <p className="text-sm text-white/70 max-w-2xl mb-4 font-light leading-relaxed">
+                      <p className="text-sm text-portfolio-dust max-w-2xl mb-4 font-light leading-relaxed">
                         {t("music.favorites.desc", "All your saved and loved melodies on Vibe Lounge. Automatically synced and stored in your browser.")}
                       </p>
 
-                      <div className={cn("flex flex-wrap items-center", gap.base, "text-xs text-white/80 font-medium")}>
+                      <div className={cn("flex flex-wrap items-center", gap.base, "text-xs text-portfolio-dust font-medium")}>
                         <div className="flex items-center gap-1.5">
-                          <span className={cn("w-5 h-5", radius.pill, "bg-gradient-to-tr from-rose-500 to-pink-500 flex items-center justify-center", text.primaryDark)}>
+                          <span className={cn("w-5 h-5", radius.pill, "bg-portfolio-accretion text-portfolio-on-accretion flex items-center justify-center", "text-portfolio-on-accretion")}>
                             <Icon name="heart" size={10} filled />
                           </span>
                           <span>
@@ -1311,7 +1302,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         <span>•</span>
                         <span>{formatTime(totalLikedDuration)} {t("music.favorites.totalDuration", "total duration")}</span>
                         <span>•</span>
-                        <span className="text-rose-400 font-mono">{t("music.favorites.lossless", "Lossless Hi-Res")}</span>
+                        <span className="text-portfolio-accretion font-mono">{t("music.favorites.lossless", "Lossless Hi-Res")}</span>
                       </div>
                     </div>
                   </div>
@@ -1328,11 +1319,11 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         }
                       }}
                       disabled={likedTracks.length === 0}
-                      className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${
+                      className={cn(`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${
                         likedTracks.length > 0
-                          ? "bg-gradient-to-tr from-rose-500 to-pink-500 text-white hover:scale-105 active:scale-95 shadow-rose-500/30 cursor-pointer"
-                          : "bg-white/10 text-white/30 cursor-not-allowed"
-                      }`}
+                          ? "bg-portfolio-accretion text-portfolio-on-accretion hover:scale-105 active:scale-95 shadow-none cursor-pointer"
+                          : "bg-portfolio-hull text-portfolio-dust cursor-not-allowed"
+                      }`)}
                       title={likedTracks.length > 0 ? t("music.favorites.title", "Play all favorites") : t("music.favorites.emptyTitle", "No tracks")}
                     >
                       <svg
@@ -1354,7 +1345,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           const rand = Math.floor(Math.random() * likedTracks.length);
                           playTrackById(likedTracks[rand].id);
                         }}
-                        className={cn("p-3", radius.pill, surface.cardDark, "hover:bg-white/10 text-white/70 hover:text-white", border.subtleDark, "transition-all")}
+                        className={cn("p-3", radius.pill, "bg-portfolio-hull", "hover:bg-portfolio-hull text-portfolio-dust hover:text-portfolio-ink", "border border-portfolio-hairline", "transition-all")}
                         title={t("music.charts.shuffle", "Shuffle play favorites")}
                       >
                         <Icon name="shuffle" size={16} />
@@ -1362,7 +1353,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     )}
                   </div>
 
-                  <div className={cn("text-xs", text.subtleDark, "inline-flex items-center gap-1")}>
+                  <div className={cn("text-xs", "text-portfolio-dust", "inline-flex items-center gap-1")}>
                     {t("music.favorites.removeTooltip", "Click")} <Icon name="heart" size={11} filled /> {t("music.favorites.removeTooltipSuffix", "to remove from favorites")}
                   </div>
                 </div>
@@ -1370,14 +1361,14 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 {/* 3. Table of Liked Tracks */}
                 <div className="px-4 sm:px-8 pb-12">
                   {likedTracks.length === 0 ? (
-                    <div className={cn("p-12 text-center", radius.card, "bg-white/[0.02] border border-dashed border-white/10 flex flex-col items-center justify-center max-w-md mx-auto my-8")}>
-                      <div className={cn("w-16 h-16", radius.pill, "bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-4 text-rose-400")}>
+                    <div className={cn("p-12 text-center", radius.card, "bg-portfolio-hull border border-dashed border-portfolio-hairline flex flex-col items-center justify-center max-w-md mx-auto my-8")}>
+                      <div className={cn("w-16 h-16", radius.pill, "bg-portfolio-hull border border-portfolio-accretion flex items-center justify-center mb-4 text-portfolio-accretion")}>
                         <Icon name="heartCrack" size={28} />
                       </div>
-                      <h3 className={cn("text-base font-bold", text.primaryDark, "mb-2")}>
+                      <h3 className={cn("text-base font-bold", "text-portfolio-ink", "mb-2")}>
                         {t("music.favorites.emptyTitle", "No favorite tracks yet")}
                       </h3>
-                      <p className="text-xs text-white/50 mb-6 leading-relaxed">
+                      <p className="text-xs text-portfolio-dust mb-6 leading-relaxed">
                         {t("music.favorites.emptyDesc", "Click the heart icon on any track to save it here for quick access.")}
                       </p>
                       <button
@@ -1385,16 +1376,16 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           setActiveTab("charts");
                           setShowOnlyLiked(false);
                         }}
-                        className={cn("px-5 py-2.5", radius.pill, "bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center", gap.tight, "cursor-pointer")}
+                        className={cn("px-5 py-2.5", radius.pill, "bg-portfolio-accretion hover:bg-portfolio-accretion text-portfolio-on-accretion text-xs font-bold transition-all shadow-lg shadow-none flex items-center", gap.tight, "cursor-pointer")}
                       >
                         <Icon name="trophy" size={13} />
                         <span>{t("music.favorites.exploreBtn", "Explore Soundtracks")}</span>
                       </button>
                     </div>
                   ) : (
-                    <div className={cn(radius.card, border.subtleDark, "bg-black/30", elevation.blur, "overflow-hidden shadow-2xl")}>
+                    <div className={cn(radius.card, "border border-portfolio-hairline", "bg-portfolio-hull", "", "overflow-hidden shadow-2xl")}>
                       {/* Table Header */}
-                      <div className={cn("flex items-center px-4 py-3 text-[11px] font-bold", text.subtleDark, "uppercase tracking-wider border-b border-white/10")}>
+                      <div className={cn("flex items-center px-4 py-3 text-[11px] font-bold", "text-portfolio-dust", "uppercase tracking-wider border-b border-portfolio-hairline")}>
                         <div className="w-10 text-center">{t("music.charts.table.rank", "#")}</div>
                         <div className="flex-1 min-w-0 pr-2">{t("music.charts.table.title", "TITLE & ARTIST")}</div>
                         <div className="hidden md:block w-48 pr-4">{t("music.charts.table.albumGenre", "ALBUM / GENRE")}</div>
@@ -1412,31 +1403,31 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                             <div
                               key={track.id}
                               onClick={() => playTrackById(track.id)}
-                              className={`flex items-center px-4 py-3 cursor-pointer group transition-colors ${
-                                isCurrent ? "bg-rose-500/10" : "hover:bg-white/5"
-                              }`}
+                              className={cn(`flex items-center px-4 py-3 cursor-pointer group transition-colors ${
+                                isCurrent ? "bg-portfolio-hull" : "hover:bg-portfolio-hull"
+                              }`)}
                             >
                               {/* # Col */}
                               <div className="w-10 text-center flex items-center justify-center flex-shrink-0">
                                 {isThisPlaying ? (
                                   <div className="music-mini-bars">
-                                    <span style={{ backgroundColor: "#f43f5e" }} />
-                                    <span style={{ backgroundColor: "#f43f5e" }} />
-                                    <span style={{ backgroundColor: "#f43f5e" }} />
+                                    <span style={{ backgroundColor: "var(--portfolio-accretion)" }} />
+                                    <span style={{ backgroundColor: "var(--portfolio-accretion)" }} />
+                                    <span style={{ backgroundColor: "var(--portfolio-accretion)" }} />
                                   </div>
                                 ) : (
-                                  <span className={cn("text-xs font-mono", text.subtleDark, "group-hover:hidden")}>
+                                  <span className={cn("text-xs font-mono", "text-portfolio-dust", "group-hover:hidden")}>
                                     {idx + 1}
                                   </span>
                                 )}
-                                <span className={cn("hidden group-hover:inline-block", text.primaryDark)}>
+                                <span className={cn("hidden group-hover:inline-block", "text-portfolio-ink")}>
                                   <Icon name="play" size={12} />
                                 </span>
                               </div>
 
                               {/* Title, Artist, Thumb */}
                               <div className={cn("flex-1 min-w-0 flex items-center", gap.base, "pr-2")}>
-                                <div className={cn("w-10 h-10", radius.chip, "overflow-hidden", surface.raisedDark, "flex-shrink-0 shadow relative")}>
+                                <div className={cn("w-10 h-10", radius.chip, "overflow-hidden", "bg-portfolio-hull", "flex-shrink-0 shadow relative")}>
                                   {track.thumbnailUrl ? (
                                     <Image
                                       src={track.thumbnailUrl}
@@ -1453,25 +1444,25 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                 </div>
                                 <div className="min-w-0">
                                   <div
-                                    className={`text-sm font-semibold truncate ${
-                                      isCurrent ? "text-rose-400 font-bold" : "text-white"
-                                    }`}
+                                    className={cn(`text-sm font-semibold truncate ${
+                                      isCurrent ? "text-portfolio-accretion font-bold" : "text-portfolio-ink"
+                                    }`)}
                                   >
                                     {track.title}
                                   </div>
-                                  <div className={cn("text-xs text-white/50 truncate flex items-center", gap.tight)}>
+                                  <div className={cn("text-xs text-portfolio-dust truncate flex items-center", gap.tight)}>
                                     <span>{track.artist}</span>
                                   </div>
                                 </div>
                               </div>
 
                               {/* Album / Genre */}
-                              <div className={cn("hidden md:block w-48 text-xs", text.mutedDark, "truncate pr-4")}>
+                              <div className={cn("hidden md:block w-48 text-xs", "text-portfolio-dust", "truncate pr-4")}>
                                 {track.album || track.genre || t("music.infoView.singleRelease", "Single Release")}
                               </div>
 
                               {/* Plays count */}
-                              <div className="hidden sm:block w-28 text-right text-xs font-mono text-white/70 pr-4">
+                              <div className="hidden sm:block w-28 text-right text-xs font-mono text-portfolio-dust pr-4">
                                 {(track.playCount ?? 0).toLocaleString()}
                               </div>
 
@@ -1482,12 +1473,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                     e.stopPropagation();
                                     toggleLike(track.id);
                                   }}
-                                  className="text-rose-400 hover:scale-125 transition-transform"
+                                  className="text-portfolio-accretion hover:scale-125 transition-transform"
                                   title={t("music.favorites.removeTooltip", "Remove from favorites")}
                                 >
                                   <Icon name="heart" size={14} filled />
                                 </button>
-                                <span className="text-xs font-mono text-white/50 tabular-nums">
+                                <span className="text-xs font-mono text-portfolio-dust tabular-nums">
                                   {formatTime(track.duration)}
                                 </span>
                               </div>
@@ -1506,8 +1497,8 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
               <section className="music-queue-view">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h2 className={cn("text-xl font-bold", text.primaryDark)}>{t("music.queueView.title", "Up Next Queue")}</h2>
-                    <p className="text-xs text-white/50">
+                    <h2 className={cn("text-xl font-bold", "text-portfolio-ink")}>{t("music.queueView.title", "Up Next Queue")}</h2>
+                    <p className="text-xs text-portfolio-dust">
                       {tracks.length} {t("music.queueView.desc", "tracks queued for continuous playback")}
                     </p>
                   </div>
@@ -1522,9 +1513,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       <div
                         key={track.id}
                         onClick={() => playTrackByIndex(i)}
-                        className={`music-queue-item ${isSelected ? "music-queue-item--active" : ""}`}
+                        className={cn(`music-queue-item ${isSelected ? "music-queue-item--active" : ""}`)}
                       >
-                        <div className={cn("w-8 text-center text-xs", text.subtleDark, "font-mono")}>
+                        <div className={cn("w-8 text-center text-xs", "text-portfolio-dust", "font-mono")}>
                           {isSelected && isPlaying ? (
                             <div className="music-mini-bars">
                               <span />
@@ -1536,7 +1527,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           )}
                         </div>
 
-                        <div className={cn("relative w-11 h-11", radius.control, "overflow-hidden flex-shrink-0", surface.raisedDark, border.subtleDark)}>
+                        <div className={cn("relative w-11 h-11", radius.control, "overflow-hidden flex-shrink-0", "bg-portfolio-hull", "border border-portfolio-hairline")}>
                           {track.thumbnailUrl ? (
                             <Image
                               src={track.thumbnailUrl}
@@ -1553,15 +1544,15 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className={cn("text-sm font-semibold", text.primaryDark, "truncate")}>
+                          <div className={cn("text-sm font-semibold", isSelected ? "text-portfolio-accretion" : "text-portfolio-ink", "truncate")}>
                             {track.title}
                           </div>
-                          <div className="text-xs text-white/50 truncate flex items-center gap-1.5">
+                          <div className="text-xs text-portfolio-dust truncate flex items-center gap-1.5">
                             <span>{track.artist}</span>
                             {track.genre && (
                               <>
                                 <span>•</span>
-                                <span className="text-purple-400">{track.genre}</span>
+                                <span className="text-portfolio-accretion">{track.genre}</span>
                               </>
                             )}
                           </div>
@@ -1573,12 +1564,12 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               e.stopPropagation();
                               toggleLike(track.id);
                             }}
-                            className={isLiked ? "text-red-400" : "text-white/30 hover:text-white"}
+                            className={cn(isLiked ? "text-portfolio-accretion" : "text-portfolio-dust hover:text-portfolio-ink")}
                             title={isLiked ? t("music.favorites.removeTooltip", "Unlike") : t("music.playerBar.likeTrack", "Like track")}
                           >
                             <Icon name="heart" size={13} filled={isLiked} />
                           </button>
-                          <div className={cn("text-xs", text.subtleDark, "tabular-nums")}>
+                          <div className={cn("text-xs", "text-portfolio-dust", "tabular-nums")}>
                             {formatTime(track.duration)}
                           </div>
                         </div>
@@ -1593,14 +1584,14 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
             {activeTab === "info" && (
               <section className="music-info-view">
                 <div className="music-info-card">
-                  <h3 className={cn("text-lg font-bold", text.primaryDark, "mb-4 flex items-center", gap.tight)}>
+                  <h3 className={cn("text-lg font-bold", "text-portfolio-ink", "mb-4 flex items-center", gap.tight)}>
                     <span>ℹ️</span>
                     <span>{t("music.infoView.title", "Audio Specifications & Analog VU Studio")}</span>
                   </h3>
 
                   {/* Dual Stereo Analog VU Meters */}
-                  <div className={cn("p-4", radius.card, "bg-black/40", border.subtleDark, "mb-6")}>
-                    <div className={cn("text-xs font-bold", text.mutedDark, "uppercase tracking-wider mb-3 text-center")}>
+                  <div className={cn("p-4", radius.card, "bg-portfolio-hull", "border border-portfolio-hairline", "mb-6")}>
+                    <div className={cn("text-xs font-bold", "text-portfolio-dust", "uppercase tracking-wider mb-3 text-center")}>
                       {t("music.infoView.stereoVu", "STEREO ANALOG VU METERS (REAL-TIME dB)")}
                     </div>
                     <div className={cn("grid grid-cols-2", gap.loose)}>
@@ -1611,7 +1602,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           <span>-10</span>
                           <span>-5</span>
                           <span>0</span>
-                          <span className="text-red-400">+3</span>
+                          <span className="text-portfolio-accretion">+3</span>
                         </div>
                         <div className="music-vu-dial">
                           <div
@@ -1620,7 +1611,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           />
                           <div className="music-vu-center-pin" />
                         </div>
-                        <div className="text-[11px] font-bold text-cyan-400 text-center mt-1 font-mono">
+                        <div className="text-[11px] font-bold text-portfolio-accretion text-center mt-1 font-mono">
                           {t("music.infoView.ch1", "CH 1 (L)")}
                         </div>
                       </div>
@@ -1632,7 +1623,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           <span>-10</span>
                           <span>-5</span>
                           <span>0</span>
-                          <span className="text-red-400">+3</span>
+                          <span className="text-portfolio-accretion">+3</span>
                         </div>
                         <div className="music-vu-dial">
                           <div
@@ -1641,7 +1632,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           />
                           <div className="music-vu-center-pin" />
                         </div>
-                        <div className="text-[11px] font-bold text-purple-400 text-center mt-1 font-mono">
+                        <div className="text-[11px] font-bold text-portfolio-accretion text-center mt-1 font-mono">
                           {t("music.infoView.ch2", "CH 2 (R)")}
                         </div>
                       </div>
@@ -1650,45 +1641,45 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                   <div className={cn("grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3", gap.loose, "text-sm mb-8")}>
                     <div className="music-info-field">
-                      <span className={cn(text.subtleDark, "text-xs block")}>{t("music.infoView.trackTitle", "TRACK TITLE")}</span>
-                      <span className={cn(text.primaryDark, "font-medium")}>{currentTrack.title}</span>
+                      <span className={cn("text-portfolio-dust", "text-xs block")}>{t("music.infoView.trackTitle", "TRACK TITLE")}</span>
+                      <span className={cn("text-portfolio-ink", "font-medium")}>{currentTrack.title}</span>
                     </div>
                     <div className="music-info-field">
-                      <span className={cn(text.subtleDark, "text-xs block")}>{t("music.infoView.artist", "ARTIST")}</span>
-                      <span className={cn(text.primaryDark, "font-medium")}>{currentTrack.artist}</span>
+                      <span className={cn("text-portfolio-dust", "text-xs block")}>{t("music.infoView.artist", "ARTIST")}</span>
+                      <span className={cn("text-portfolio-ink", "font-medium")}>{currentTrack.artist}</span>
                     </div>
                     <div className="music-info-field">
-                      <span className={cn(text.subtleDark, "text-xs block")}>{t("music.infoView.album", "ALBUM")}</span>
-                      <span className={cn(text.primaryDark, "font-medium")}>
+                      <span className={cn("text-portfolio-dust", "text-xs block")}>{t("music.infoView.album", "ALBUM")}</span>
+                      <span className={cn("text-portfolio-ink", "font-medium")}>
                         {currentTrack.album || t("music.infoView.singleRelease", "Single Release")}
                       </span>
                     </div>
                     <div className="music-info-field">
-                      <span className={cn(text.subtleDark, "text-xs block")}>{t("music.infoView.genreMood", "GENRE & MOOD")}</span>
-                      <span className={cn(text.primaryDark, "font-medium")}>
+                      <span className={cn("text-portfolio-dust", "text-xs block")}>{t("music.infoView.genreMood", "GENRE & MOOD")}</span>
+                      <span className={cn("text-portfolio-ink", "font-medium")}>
                         {currentTrack.genre || t("music.infoView.uncategorized", "Uncategorized")}
                       </span>
                     </div>
                     <div className="music-info-field">
-                      <span className={cn(text.subtleDark, "text-xs block")}>{t("music.infoView.activeEq", "ACTIVE EQUALIZER")}</span>
-                      <span className="text-purple-400 font-medium capitalize">
+                      <span className={cn("text-portfolio-dust", "text-xs block")}>{t("music.infoView.activeEq", "ACTIVE EQUALIZER")}</span>
+                      <span className="text-portfolio-accretion font-medium capitalize">
                         {eqPreset.replace("_", " ")} Preset
                       </span>
                     </div>
                     <div className="music-info-field">
-                      <span className={cn(text.subtleDark, "text-xs block")}>{t("music.infoView.streamEngine", "STREAM ENGINE")}</span>
-                      <span className="text-cyan-400 font-medium">
+                      <span className={cn("text-portfolio-dust", "text-xs block")}>{t("music.infoView.streamEngine", "STREAM ENGINE")}</span>
+                      <span className="text-portfolio-accretion font-medium">
                         {t("music.infoView.engineDesc", "Web Audio API (5-Band EQ / 64 Bins)")}
                       </span>
                     </div>
                   </div>
 
                   {/* Keyboard Shortcuts Cheat Sheet */}
-                  <div className="pt-6 border-t border-white/10">
-                    <h4 className={cn("text-xs font-bold", text.mutedDark, "uppercase tracking-wider mb-4")}>
+                  <div className="pt-6 border-t border-portfolio-hairline">
+                    <h4 className={cn("text-xs font-bold", "text-portfolio-dust", "uppercase tracking-wider mb-4")}>
                       {t("music.infoView.shortcutsTitle", "Studio Keyboard Shortcuts")}
                     </h4>
-                    <div className={cn("grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4", gap.base, "text-xs text-white/70")}>
+                    <div className={cn("grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4", gap.base, "text-xs text-portfolio-dust")}>
                       <div>
                         <kbd className="music-kbd">Space</kbd> {t("music.infoView.shortcuts.playPause", "Play / Pause")}
                       </div>
@@ -1725,15 +1716,11 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
             /* ── COLLAPSED MINI FLOATING DOCK ── */
             <motion.div
               key="collapsed-player"
-              initial={{ y: 80, opacity: 0, scale: 0.95 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 80, opacity: 0, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 350, damping: 25 }}
               className="music-collapsed-dock"
             >
               {/* Mini cover art */}
               <div
-                className={`music-dock-art ${isPlaying ? "animate-[spin_6s_linear_infinite]" : ""}`}
+                className="music-dock-art"
               >
                 {currentTrack.thumbnailUrl ? (
                   <Image src={currentTrack.thumbnailUrl} alt="" fill sizes="38px" />
@@ -1750,9 +1737,9 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
               {/* Mini live pulse */}
               <div className="music-mini-bars">
-                <span style={{ height: isPlaying ? `${Math.max(4, audioMetrics.bass * 14)}px` : "3px" }} />
-                <span style={{ height: isPlaying ? `${Math.max(4, audioMetrics.mid * 14)}px` : "3px" }} />
-                <span style={{ height: isPlaying ? `${Math.max(4, audioMetrics.treble * 14)}px` : "3px" }} />
+                <span style={{ height: isPlaying && !reducedMotion ? `${Math.max(4, audioMetrics.bass * 14)}px` : "3px" }} />
+                <span style={{ height: isPlaying && !reducedMotion ? `${Math.max(4, audioMetrics.mid * 14)}px` : "3px" }} />
+                <span style={{ height: isPlaying && !reducedMotion ? `${Math.max(4, audioMetrics.treble * 14)}px` : "3px" }} />
               </div>
 
               {/* Mini controls */}
@@ -1787,10 +1774,6 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
             /* ── EXPANDED FULL PRO STUDIO BAR ── */
             <motion.footer
               key="expanded-player"
-              initial={{ y: 100, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 100, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 350, damping: 30 }}
               className="music-bottom-bar"
             >
               {/* Left: Track preview */}
@@ -1807,8 +1790,8 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     <span className="music-bar-title">{currentTrack.title}</span>
                     <button
                       onClick={() => toggleLike(currentTrack.id)}
-                      className={`transition-colors ${isCurrentLiked ? "text-red-400" : "text-white/30 hover:text-white"
-                        }`}
+                      className={cn(`transition-colors ${isCurrentLiked ? "text-portfolio-accretion" : "text-portfolio-dust hover:text-portfolio-ink"
+                        }`)}
                       title={isCurrentLiked ? t("music.playerBar.unlikeTrack", "Liked!") : t("music.playerBar.likeTrack", "Like track")}
                     >
                       <Icon name="heart" size={13} filled={isCurrentLiked} />
@@ -1825,7 +1808,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   <button
                     id="music-shuffle-btn"
                     onClick={() => setIsShuffle((s) => !s)}
-                    className={`music-ctrl-btn ${isShuffle ? "music-ctrl-btn--active" : ""}`}
+                    className={cn(`music-ctrl-btn ${isShuffle ? "music-ctrl-btn--active" : ""}`)}
                     aria-label="Shuffle"
                     title={isShuffle ? t("music.playerBar.shuffleOn", "Shuffle On") : t("music.playerBar.shuffleOff", "Shuffle Off")}
                   >
@@ -1872,7 +1855,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   <button
                     id="music-repeat-btn"
                     onClick={cycleRepeat}
-                    className={`music-ctrl-btn ${repeatMode !== "none" ? "music-ctrl-btn--active" : ""}`}
+                    className={cn(`music-ctrl-btn ${repeatMode !== "none" ? "music-ctrl-btn--active" : ""}`)}
                     aria-label={`Repeat: ${repeatMode}`}
                     title={`${t("music.playerBar.repeatMode", "Repeat")}: ${repeatMode}`}
                   >
@@ -1928,11 +1911,11 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     setActiveTab("player");
                     setDeckMode(deckMode === "lyrics" && activeTab === "player" ? "vinyl" : "lyrics");
                   }}
-                  className={`music-ctrl-btn music-ctrl-btn--sm ${
+                  className={cn(`music-ctrl-btn music-ctrl-btn--sm ${
                     deckMode === "lyrics" && activeTab === "player"
-                      ? "!text-cyan-300 !border-cyan-500/40 !bg-cyan-500/20"
-                      : "text-white/60 hover:text-white"
-                  }`}
+                      ? "!text-portfolio-accretion !border-portfolio-accretion !bg-portfolio-hull"
+                      : "text-portfolio-dust hover:text-portfolio-ink"
+                  }`)}
                   title={
                     deckMode === "lyrics" && activeTab === "player"
                       ? t("music.playerBar.karaokeClose", "Close Lyrics (Back to Vinyl)")
@@ -1967,7 +1950,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     else if (v === "end") setSleepTimerMinutes(0);
                     else setSleepTimerMinutes(Number(v));
                   }}
-                  className={`music-sort-select !text-xs hidden md:block ${sleepTimer.minutes !== null ? "!border-cyan-400 !text-cyan-300" : ""}`}
+                  className={cn(`music-sort-select !text-xs hidden md:block ${sleepTimer.minutes !== null ? "!border-portfolio-accretion !text-portfolio-accretion" : ""}`)}
                   title={t("music.sleepTimer.title", "Sleep Timer")}
                   aria-label={t("music.sleepTimer.title", "Sleep Timer")}
                 >
@@ -1979,7 +1962,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   <option value="end">{t("music.sleepTimer.endTrack", "Timer: End of Track")}</option>
                 </select>
                 {sleepTimer.remainingSeconds !== null && (
-                  <span className={cn("text-[10px] font-mono font-bold text-cyan-300 bg-cyan-500/20 px-2 py-1", radius.pill, "border border-cyan-500/40 hidden lg:inline-flex items-center gap-1")}>
+                  <span className={cn("text-[10px] font-mono font-bold text-portfolio-accretion bg-portfolio-hull px-2 py-1", radius.pill, "border border-portfolio-accretion hidden lg:inline-flex items-center gap-1")}>
                     <Icon name="clock" size={10} /> {Math.floor(sleepTimer.remainingSeconds / 60)}:
                     {(sleepTimer.remainingSeconds % 60).toString().padStart(2, "0")}
                   </span>
@@ -2049,7 +2032,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
 export default function MusicPlayer(props: MusicPlayerProps) {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+    <Suspense fallback={<div className="min-h-screen bg-portfolio-hull" />}>
       <MusicPlayerContent initialTracks={props.tracks} />
     </Suspense>
   );
@@ -2119,7 +2102,7 @@ const MuteIcon = () => (
 );
 
 const LoadingSpinner = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" className="animate-spin">
+  <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" className="">
     <path d="M12 4V2A10 10 0 0 0 2 12h2a8 8 0 0 1 8-8z" />
   </svg>
 );

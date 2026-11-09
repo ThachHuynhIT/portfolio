@@ -46,7 +46,7 @@ export default async function MusicPage() {
   }
 
   return (
-    <div className="music-page-root">
+    <div className="music-page-root portfolio-theme" data-portfolio-dark="true">
       <MusicPlayer tracks={tracks} />
     </div>
   );
