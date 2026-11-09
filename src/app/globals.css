@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+/* Photography placeholders stay neutral without changing shared skeletons. */
+.portfolio-page .photography-media > div,
+.portfolio-page .photography-media > div > .relative {
+  background: var(--portfolio-hull);
+  color: var(--portfolio-dust);
+  border-color: var(--portfolio-hairline);
+}
+.portfolio-page .photography-media :is(.animate-shimmer, .animate-twinkle) {
+  display: none;
+}
+
 /*
  * Additive light-mode variant: the site defaults to its original dark
  * styling (unprefixed classes), and `light:` classes layer on top when
@@ -865,8 +876,12 @@ body {
 @media (min-width: 640px) { .portfolio-photo-strip { grid-auto-columns: calc((100% - 3rem) / 4); } }
 .portfolio-theme .portfolio-contact-card { background: var(--portfolio-hull); box-shadow: none; }
 .portfolio-contact-card .bg-stars { animation: none; }
-.portfolio-input { width: 100%; padding: .75rem 1rem; border: 1px solid var(--portfolio-control); border-radius: 8px; background: var(--portfolio-hull); color: var(--portfolio-ink); }
-.portfolio-input:focus { outline: 2px solid var(--portfolio-accretion); outline-offset: 2px; }
+/* Components layer so utilities on the same element (e.g. pl-10 for a
+   leading search icon) can override the base padding. */
+@layer components {
+  .portfolio-input { width: 100%; padding: .75rem 1rem; border: 1px solid var(--portfolio-control); border-radius: 8px; background: var(--portfolio-hull); color: var(--portfolio-ink); }
+  .portfolio-input:focus { outline: 2px solid var(--portfolio-accretion); outline-offset: 2px; }
+}
 .portfolio-signal-ring { display: none; pointer-events: none; position: absolute; inset: -5px; border: 1px solid var(--portfolio-accretion); border-radius: 9999px; opacity: 0; }
 [data-signal="pending"] .portfolio-signal-ring { display: block; animation: portfolio-signal-pulse 1.2s ease-out infinite; }
 [data-stars-active="false"] .portfolio-signal-ring { animation-play-state: paused; }
