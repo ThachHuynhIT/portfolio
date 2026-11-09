@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { PhotoItem } from "@/lib/types";
 import Icon from "@/components/ui/Icon";
 import { Skeleton, TwinklingStars } from "@/components/ui/Skeleton";
+import { cn } from "@/lib/utils";
 import { useTranslation } from "@/context/LanguageContext";
 
 interface PhotoLightboxModalProps {
@@ -110,7 +111,7 @@ export default function PhotoLightboxModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div data-legacy-typography className="fixed inset-0 z-50 flex items-center justify-center select-none">
+        <div data-legacy-typography data-portfolio-dark="true" className="portfolio-theme fixed inset-0 z-50 flex items-center justify-center select-none">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -124,11 +125,11 @@ export default function PhotoLightboxModal({
           <header className="absolute top-0 inset-x-0 h-16 px-6 flex items-center justify-between z-50 bg-gradient-to-b from-black/80 to-transparent">
             {/* Title & Counter */}
             <div className="flex items-center gap-3 min-w-0">
-              <span className="text-xs font-mono text-cyan-400 bg-cyan-950/60 border border-cyan-500/30 px-2.5 py-1 rounded-full">
+              <span className="text-xs font-mono text-portfolio-accretion bg-portfolio-accretion/10 border border-portfolio-accretion px-2.5 py-1 rounded-full">
                 {currentIndex + 1} / {photos.length}
               </span>
               <h3 className="text-sm md:text-base font-semibold text-white truncate max-w-xs md:max-w-md flex items-center gap-2">
-                {isVideo && <Icon name="video" size={15} className="text-cyan-400" />}
+                {isVideo && <Icon name="video" size={15} className="text-portfolio-accretion" />}
                 <span>{photo.title}</span>
               </h3>
             </div>
@@ -140,11 +141,9 @@ export default function PhotoLightboxModal({
                 <button
                   type="button"
                   onClick={() => setShowBefore(!showBefore)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-all flex items-center gap-1.5 border ${
-                    showBefore
-                      ? "bg-purple-500 text-white border-purple-400 shadow-lg shadow-purple-500/30"
-                      : "bg-white/10 text-white/90 border-white/20 hover:bg-white/20"
-                  }`}
+                  className={cn("px-3 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-all flex items-center gap-1.5 border ", showBefore
+                      ? "bg-portfolio-accretion text-portfolio-on-accretion border-portfolio-accretion shadow-lg "
+                      : "bg-white/10 text-white/90 border-white/20 hover:bg-white/20")}
                   title="Press B to toggle"
                 >
                   <Icon name="compare" size={13} />
@@ -157,11 +156,9 @@ export default function PhotoLightboxModal({
                 <button
                   type="button"
                   onClick={() => setIsZoomed(!isZoomed)}
-                  className={`p-2 rounded-full border transition-all text-white ${
-                    isZoomed
-                      ? "bg-cyan-500 text-black border-cyan-400"
-                      : "bg-white/10 border-white/15 hover:bg-white/20"
-                  }`}
+                  className={cn("p-2 rounded-full border transition-all text-white ", isZoomed
+                      ? "bg-portfolio-accretion text-portfolio-on-accretion border-portfolio-accretion"
+                      : "bg-white/10 border-white/15 hover:bg-white/20")}
                   title="Zoom in / out"
                 >
                   <Icon name="maximize" size={16} />
@@ -172,11 +169,9 @@ export default function PhotoLightboxModal({
               <button
                 type="button"
                 onClick={() => setShowInfo(!showInfo)}
-                className={`p-2 rounded-full border transition-all ${
-                  showInfo
-                    ? "bg-purple-500/20 text-purple-300 border-purple-500/40"
-                    : "bg-white/10 text-white/70 border-white/15 hover:bg-white/20"
-                }`}
+                className={cn("p-2 rounded-full border transition-all ", showInfo
+                    ? "bg-portfolio-accretion/10 text-portfolio-accretion border-portfolio-accretion"
+                    : "bg-white/10 text-white/70 border-white/15 hover:bg-white/20")}
                 title="Toggle info panel (Key: I)"
               >
                 <Icon name="aperture" size={16} />
@@ -199,7 +194,7 @@ export default function PhotoLightboxModal({
             <button
               type="button"
               onClick={handlePrev}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/15 hover:border-cyan-400/50 backdrop-blur-md transition-all shadow-xl active:scale-95"
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/15 hover:border-portfolio-accretion backdrop-blur-md transition-all shadow-xl active:scale-95"
               aria-label="Previous photo"
             >
               <Icon name="chevronLeft" size={20} />
@@ -209,9 +204,7 @@ export default function PhotoLightboxModal({
             <button
               type="button"
               onClick={handleNext}
-              className={`absolute top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/15 hover:border-cyan-400/50 backdrop-blur-md transition-all shadow-xl active:scale-95 ${
-                showInfo ? "right-4 md:right-[25rem]" : "right-4"
-              }`}
+              className={cn("absolute top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/15 hover:border-portfolio-accretion backdrop-blur-md transition-all shadow-xl active:scale-95 ", showInfo ? "right-4 md:right-[25rem]" : "right-4")}
               aria-label="Next photo"
             >
               <Icon name="chevronRight" size={20} />
@@ -220,9 +213,7 @@ export default function PhotoLightboxModal({
 
           {/* Main Media Canvas (Image or Video) */}
           <div
-            className={`relative z-30 w-full h-full p-4 md:p-14 flex items-center justify-center transition-all ${
-              showInfo ? "md:pr-96" : ""
-            }`}
+            className={cn("relative z-30 w-full h-full p-4 md:p-14 flex items-center justify-center transition-all ", showInfo ? "md:pr-96" : "")}
           >
             {isVideo ? (
               <div className="relative max-w-full max-h-[82dvh] flex items-center justify-center">
@@ -242,9 +233,7 @@ export default function PhotoLightboxModal({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.96 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className={`relative max-w-full max-h-full flex items-center justify-center transition-transform duration-300 ${
-                  isZoomed ? "cursor-zoom-out scale-125" : "cursor-zoom-in"
-                }`}
+                className={cn("relative max-w-full max-h-full flex items-center justify-center transition-transform duration-300 ", isZoomed ? "cursor-zoom-out scale-125" : "cursor-zoom-in")}
                 onClick={() => setIsZoomed(!isZoomed)}
               >
                 {!isImageLoaded && (
@@ -260,15 +249,13 @@ export default function PhotoLightboxModal({
                   width={1920}
                   height={1280}
                   sizes="(max-width: 768px) 100vw, 90vw"
-                  className={`max-h-[82dvh] w-auto max-w-full object-contain rounded-lg shadow-2xl transition-opacity duration-500 ${
-                    isImageLoaded ? "opacity-100" : "opacity-0"
-                  }`}
+                  className={cn("max-h-[82dvh] w-auto max-w-full object-contain rounded-lg shadow-2xl transition-opacity duration-500 ", isImageLoaded ? "opacity-100" : "opacity-0")}
                   priority
                   onLoad={() => setIsImageLoaded(true)}
                 />
 
                 {showBefore && (
-                  <div className="absolute top-4 left-4 bg-purple-600/90 text-white text-xs font-bold px-3 py-1 rounded-md backdrop-blur-md uppercase tracking-wider shadow-lg">
+                  <div className="absolute top-4 left-4 bg-portfolio-accretion text-portfolio-on-accretion text-xs font-bold px-3 py-1 rounded-md backdrop-blur-md uppercase tracking-wider shadow-lg">
                     Original RAW Preview
                   </div>
                 )}
@@ -290,12 +277,12 @@ export default function PhotoLightboxModal({
                 <div className="flex items-center justify-between text-xs text-slate-400 pb-3 border-b border-white/10">
                   <div className="flex items-center gap-2">
                     {photo.category && (
-                      <span className="px-2.5 py-1 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/30 font-medium">
+                      <span className="px-2.5 py-1 rounded-full bg-portfolio-accretion/10 text-portfolio-accretion border border-portfolio-accretion font-medium">
                         {photo.category}
                       </span>
                     )}
                     {isVideo && (
-                      <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold uppercase tracking-wider">
+                      <span className="px-2 py-0.5 rounded-full bg-portfolio-accretion/10 text-portfolio-accretion border border-portfolio-accretion text-[10px] font-bold uppercase tracking-wider">
                         Video
                       </span>
                     )}
@@ -315,7 +302,7 @@ export default function PhotoLightboxModal({
                   )}
                   {(locale === "vi" && photo.location_vi ? photo.location_vi : photo.location) && (
                     <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-2.5">
-                      <Icon name="globe" size={13} className="text-cyan-400" />
+                      <Icon name="globe" size={13} className="text-portfolio-accretion" />
                       <span>{locale === "vi" && photo.location_vi ? photo.location_vi : photo.location}</span>
                     </div>
                   )}
@@ -324,7 +311,7 @@ export default function PhotoLightboxModal({
                 {/* Camera EXIF Details: ONLY render if at least one property exists */}
                 {hasCameraInfo && (
                   <div className="rounded-xl bg-white/[0.03] border border-white/10 p-4 space-y-3">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-cyan-400 uppercase tracking-wider">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-portfolio-accretion uppercase tracking-wider">
                       <Icon name="camera" size={14} />
                       <span>Camera Settings (EXIF)</span>
                     </div>
@@ -374,8 +361,8 @@ export default function PhotoLightboxModal({
 
                 {/* Retouching & Editing notes: ONLY render if at least one property exists */}
                 {hasEditingInfo && (
-                  <div className="rounded-xl bg-purple-500/[0.04] border border-purple-500/20 p-4 space-y-2.5">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-purple-400 uppercase tracking-wider">
+                  <div className="rounded-xl bg-portfolio-accretion/10 border border-portfolio-accretion p-4 space-y-2.5">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-portfolio-accretion uppercase tracking-wider">
                       <Icon name="compare" size={14} />
                       <span>Post-Processing & Grading</span>
                     </div>

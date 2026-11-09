@@ -2,12 +2,11 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { GlassCard } from "@/components/ui";
+import PageHeader from "@/components/ui/PageHeader";
 import type { BlogPostListItem } from "@/lib/types";
 import { useTranslation } from "@/context/LanguageContext";
 import { translateBlogCategory, translateReadTime } from "@/lib/content-overrides";
 import { cn } from "@/lib/utils";
-import { brand, gap, radius, text } from "@/lib/design-tokens";
 
 interface BlogListProps {
   posts: BlogPostListItem[];
@@ -26,116 +25,17 @@ export default function BlogList({ posts, categories }: BlogListProps) {
     [posts, selectedCategory]
   );
 
-  if (!posts.length) return <div className="py-16 text-center text-portfolio-dust">{t("blog.empty")}</div>;
-
-  return (
-    <>
-      {/* Header */}
-      <div className="text-center mb-16">
-        <span className="text-sm text-purple-500 light:text-purple-700 font-medium tracking-wider uppercase mb-4 block">
-          {t("blog.badge")}
-        </span>
-        <h1 className={cn("text-4xl md:text-5xl font-bold", text.primary, "mb-6")}>
-          {t("blog.titlePrefix")}
-          <span className={cn(brand.gradient, "bg-clip-text text-transparent")}>
-            {t("blog.titleHighlight")}
-          </span>
-        </h1>
-        <p className={cn(text.muted, "max-w-2xl mx-auto")}>
-          {t("blog.subtitle")}
-        </p>
+  return <>
+    <PageHeader title={<>{t("blog.titlePrefix")}{t("blog.titleHighlight")}</>} intro={t("blog.subtitle")}><span className="text-xs text-portfolio-dust uppercase tracking-widest">{t("blog.badge")}</span></PageHeader>
+    {categories.length > 0 && <div className="portfolio-reveal flex flex-wrap gap-2 mb-8">{[null, ...categories].map(category => <button key={category ?? "all"} type="button" onClick={() => setSelectedCategory(category)} aria-pressed={selectedCategory === category} className={cn("min-h-11 px-4 py-2 rounded-lg border bg-portfolio-hull text-sm hover:border-portfolio-accretion focus-visible:outline-2 focus-visible:outline-portfolio-accretion", selectedCategory === category ? "border-portfolio-accretion text-portfolio-accretion" : "border-portfolio-control text-portfolio-dust")}>{category === null ? t("blog.all") : translateBlogCategory(category, locale)}</button>)}</div>}
+    {filteredPosts.length > 0 ? <ul className="portfolio-solid">{filteredPosts.map(post => <li key={post.slug} className="portfolio-reveal portfolio-reveal--trail grid sm:grid-cols-[9rem_minmax(0,1fr)_auto] gap-3 py-6 border-b border-portfolio-hairline last:border-0 items-baseline">
+      <time dateTime={post.date} className="text-sm text-portfolio-dust">{new Date(post.date).toLocaleDateString(locale === "vi" ? "vi-VN" : "en-US", { month: "short", day: "numeric", year: "numeric" })}</time>
+      <h2 className="text-xl font-semibold text-portfolio-ink break-words"><Link className="portfolio-text-link !text-portfolio-ink" href={`/blog/${post.slug}`}>{locale === "vi" && post.title_vi ? post.title_vi : post.title}</Link></h2>
+      <span className="text-sm text-portfolio-dust">{translateReadTime(post.readTime, locale, t("blog.minRead"))}</span>
+      <div className="sm:col-start-2 sm:col-span-2 min-w-0 text-portfolio-dust">
+        <p className="text-sm leading-relaxed mb-3">{locale === "vi" && post.excerpt_vi ? post.excerpt_vi : post.excerpt}</p>
+        <div className="flex flex-wrap gap-2 text-xs"><span className="rounded border border-portfolio-hairline bg-portfolio-hull px-2 py-1">{translateBlogCategory(post.category, locale)}</span>{post.tags.slice(0, 3).map(tag => <span key={tag} className="py-1 break-words">#{tag}</span>)}</div>
       </div>
-
-      {categories.length > 0 && (
-        <div className={cn("flex flex-wrap justify-center", gap.base, "mb-12")}>
-          <button
-            type="button"
-            onClick={() => setSelectedCategory(null)}
-            aria-pressed={selectedCategory === null}
-            className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
-              selectedCategory === null
-                ? "text-white bg-gradient-to-r from-purple-500 to-cyan-500 shadow-md shadow-purple-500/20"
-                : "text-white/70 bg-white/5 border border-white/10 hover:text-white hover:bg-white/10 light:text-neutral-700 light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06]"
-            }`}
-          >
-            {t("blog.all")}
-          </button>
-          {categories.map((category) => (
-            <button
-              key={category}
-              type="button"
-              onClick={() => setSelectedCategory(category)}
-              aria-pressed={selectedCategory === category}
-              className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
-                selectedCategory === category
-                  ? "text-white bg-gradient-to-r from-purple-500 to-cyan-500 shadow-md shadow-purple-500/20"
-                  : "text-white/70 bg-white/5 border border-white/10 hover:text-white hover:bg-white/10 light:text-neutral-700 light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06]"
-              }`}
-            >
-              {translateBlogCategory(category, locale)}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {filteredPosts.length > 0 ? (
-        <div className={cn("grid md:grid-cols-2 lg:grid-cols-3", gap.grid)}>
-          {filteredPosts.map((post) => (
-            <Link key={post.slug} href={`/blog/${post.slug}`}>
-              <GlassCard className="h-full p-6 group cursor-pointer">
-                <span className={cn("inline-block px-3 py-1 text-xs font-medium text-purple-400 bg-purple-500/10", radius.pill, "mb-4 light:text-purple-700")}>
-                  {translateBlogCategory(post.category, locale)}
-                </span>
-
-                <h2 className={cn("text-xl font-semibold", text.primary, "mb-3 group-hover:text-purple-400 transition-colors")}>
-                  {locale === "vi" && post.title_vi ? post.title_vi : post.title}
-                </h2>
-
-                <p className={cn(text.muted, "text-sm mb-4 line-clamp-2")}>
-                  {locale === "vi" && post.excerpt_vi ? post.excerpt_vi : post.excerpt}
-                </p>
-
-                <div className={cn("flex items-center justify-between text-sm", text.subtle)}>
-                  <span>
-                    {new Date(post.date).toLocaleDateString(
-                      locale === "vi" ? "vi-VN" : "en-US",
-                      {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      }
-                    )}
-                  </span>
-                  <span>{translateReadTime(post.readTime, locale, t("blog.minRead"))}</span>
-                </div>
-
-                <div className={cn("flex flex-wrap", gap.tight, "mt-4")}>
-                  {post.tags.slice(0, 3).map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2 py-1 text-xs text-white/50 bg-white/5 rounded light:text-neutral-500 light:bg-neutral-900/[0.04]"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              </GlassCard>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-20">
-          <p className={cn(text.muted, "text-lg")}>
-            {posts.length === 0
-              ? locale === "vi"
-                ? "Chưa có bài viết nào. Hãy quay lại sau nhé!"
-                : "No blog posts yet. Check back soon!"
-              : locale === "vi"
-              ? "Chưa có bài viết nào thuộc danh mục này."
-              : "No posts in this category yet."}
-          </p>
-        </div>
-      )}
-    </>
-  );
+    </li>)}</ul> : <div className="portfolio-solid portfolio-reveal py-16 text-center"><p className="text-portfolio-dust">{!posts.length ? t("blog.empty") : locale === "vi" ? "Chưa có bài viết nào thuộc danh mục này." : "No posts in this category yet."}</p></div>}
+  </>;
 }

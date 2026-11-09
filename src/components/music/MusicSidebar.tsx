@@ -8,7 +8,7 @@ import { useTranslation } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import Icon from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
-import { gap, radius, surface, text } from "@/lib/design-tokens";
+import { gap, radius } from "@/lib/design-tokens";
 
 export default function MusicSidebar() {
   const { t } = useTranslation();
@@ -25,7 +25,6 @@ export default function MusicSidebar() {
     isMobileSidebarOpen,
     setIsMobileSidebarOpen,
     isPlaying,
-    audioMetrics,
   } = useMusic();
 
   const handleTabClick = (tab: TabView) => {
@@ -56,15 +55,6 @@ export default function MusicSidebar() {
           >
             <div className="music-sidebar-logo-icon">
               <Icon name="headphones" size={16} />
-              {isPlaying && (
-                <span
-                  className="music-logo-pulse"
-                  style={{
-                    transform: `scale(${1 + audioMetrics.bass * 0.4})`,
-                    opacity: 0.6 + audioMetrics.bass * 0.4,
-                  }}
-                />
-              )}
             </div>
             <div>
               <h2 className="music-sidebar-title">{t("music.title")}</h2>
@@ -77,7 +67,7 @@ export default function MusicSidebar() {
             {/* Close button for mobile drawer */}
             <button
               onClick={() => setIsMobileSidebarOpen(false)}
-              className={cn("md:hidden p-2", text.mutedDark, "hover:text-white", radius.chip, surface.cardDark)}
+              className={cn("md:hidden p-2", "text-portfolio-dust", "hover:text-portfolio-ink", radius.chip, "bg-portfolio-hull")}
               aria-label="Close sidebar"
             >
               <Icon name="close" size={14} />
@@ -104,7 +94,7 @@ export default function MusicSidebar() {
         <nav className="music-sidebar-nav">
           <button
             onClick={() => handleTabClick("player")}
-            className={`music-nav-item ${activeTab === "player" ? "music-nav-item--active" : ""}`}
+            className={cn(`music-nav-item ${activeTab === "player" ? "music-nav-item--active" : ""}`)}
           >
             <span className="music-nav-icon"><Icon name="slider" size={16} /></span>
             <span className="flex-1 text-left font-medium">
@@ -117,7 +107,7 @@ export default function MusicSidebar() {
 
           <button
             onClick={() => handleTabClick("queue")}
-            className={`music-nav-item ${activeTab === "queue" ? "music-nav-item--active" : ""}`}
+            className={cn(`music-nav-item ${activeTab === "queue" ? "music-nav-item--active" : ""}`)}
           >
             <span className="music-nav-icon"><Icon name="listMusic" size={16} /></span>
             <span className="flex-1 text-left font-medium">
@@ -128,7 +118,7 @@ export default function MusicSidebar() {
 
           <button
             onClick={() => handleTabClick("info")}
-            className={`music-nav-item ${activeTab === "info" ? "music-nav-item--active" : ""}`}
+            className={cn(`music-nav-item ${activeTab === "info" ? "music-nav-item--active" : ""}`)}
           >
             <span className="music-nav-icon">ℹ️</span>
             <span className="flex-1 text-left font-medium">
@@ -145,18 +135,18 @@ export default function MusicSidebar() {
         <nav className="music-sidebar-nav">
           <button
             onClick={() => handleTabClick("charts")}
-            className={`music-nav-item ${activeTab === "charts" ? "music-nav-item--active" : ""}`}
+            className={cn(`music-nav-item ${activeTab === "charts" ? "music-nav-item--active" : ""}`)}
           >
             <span className="music-nav-icon"><Icon name="trophy" size={16} /></span>
             <span className="flex-1 text-left font-medium">
               {t("music.tabs.charts")}
             </span>
-            <span className="music-nav-badge text-emerald-400 font-bold bg-emerald-500/15 border border-emerald-500/30">Top</span>
+            <span className="music-nav-badge text-portfolio-accretion font-bold bg-portfolio-hull border border-portfolio-accretion">Top</span>
           </button>
 
           <button
             onClick={handleLikedClick}
-            className={`music-nav-item ${activeTab === "favorites" ? "music-nav-item--active music-nav-item--liked" : ""}`}
+            className={cn(`music-nav-item ${activeTab === "favorites" ? "music-nav-item--active music-nav-item--liked" : ""}`)}
           >
             <span className="music-nav-icon"><Icon name="heart" size={16} /></span>
             <span className="flex-1 text-left font-medium">
@@ -178,7 +168,7 @@ export default function MusicSidebar() {
           {selectedGenre !== "All" && (
             <button
               onClick={() => setSelectedGenre("All")}
-              className="text-[11px] text-purple-400 hover:text-purple-300 underline"
+              className="text-[11px] text-portfolio-accretion hover:text-portfolio-accretion underline"
             >
               {t("music.clearFilter")}
             </button>
@@ -196,7 +186,7 @@ export default function MusicSidebar() {
               <button
                 key={g}
                 onClick={() => handleGenreClick(g)}
-                className={`music-genre-chip ${isSelected ? "music-genre-chip--active" : ""}`}
+                className={cn(`music-genre-chip ${isSelected ? "music-genre-chip--active" : ""}`)}
               >
                 <span className="music-genre-bullet" />
                 <span className="truncate">
@@ -215,11 +205,11 @@ export default function MusicSidebar() {
         <div className={cn("flex items-center", gap.tight)}>
           <div className="music-status-dot-wrap">
             <span className="music-status-dot" />
-            {isPlaying && <span className="music-status-dot-ping" />}
+
           </div>
           <div className="text-[11px] leading-tight">
-            <div className="text-white/80 font-medium">Web Audio Engine</div>
-            <div className={cn(text.subtleDark)}>24-bit Lossless Stream</div>
+            <div className="text-portfolio-dust font-medium">Web Audio Engine</div>
+            <div className={cn("text-portfolio-dust")}>24-bit Lossless Stream</div>
           </div>
         </div>
       </div>
@@ -238,17 +228,10 @@ export default function MusicSidebar() {
         {isMobileSidebarOpen && (
           <>
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
               onClick={() => setIsMobileSidebarOpen(false)}
               className="music-sidebar-backdrop md:hidden"
             />
             <motion.aside
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
               className="music-sidebar-drawer md:hidden"
             >
               {sidebarContent}

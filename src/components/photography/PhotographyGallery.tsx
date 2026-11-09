@@ -1,9 +1,10 @@
 "use client";
 
+import PageHeader from "@/components/ui/PageHeader";
 import { useState, useMemo } from "react";
 import ImageWithSkeleton from "@/components/ui/ImageWithSkeleton";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+
 import type { PhotoItem, PhotoAlbum } from "@/lib/types";
 import MasonryLayout from "./MasonryLayout";
 import GridLayout from "./GridLayout";
@@ -13,7 +14,7 @@ import PhotoLightboxModal from "./PhotoLightboxModal";
 import Icon from "@/components/ui/Icon";
 import { useTranslation } from "@/context/LanguageContext";
 import { cn } from "@/lib/utils";
-import { border, elevation, gap, layout, motion as motionTokens, radius, text } from "@/lib/design-tokens";
+import { gap, radius } from "@/lib/design-tokens";
 
 type LayoutMode = "masonry" | "grid" | "compare" | "story";
 
@@ -140,67 +141,19 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
   };
 
   return (
-    <div className={cn("min-h-screen pt-28 pb-24", text.primary)}>
-      {/* Background ambient lighting */}
-      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-        <div className={cn("absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-tr from-purple-600/10 via-indigo-600/10 to-cyan-500/10 blur-[130px]", radius.pill)} />
-        <div className={cn("absolute bottom-10 right-10 w-[500px] h-[500px] bg-cyan-600/5 blur-[120px]", radius.pill)} />
-      </div>
-
-      <div className={cn(layout.container)}>
-        {/* ── Hero Header ──
-            NOTE: this banner sits on a fixed background photo with a dark
-            gradient overlay for text legibility ("theater" style, same
-            rationale as the lightbox) — its internal overlay/text stays
-            dark-only in both themes; only the outer card border gets a
-            light: counterpart so it remains visible against a light page. */}
-        <section className={cn("relative overflow-hidden", radius.panel, border.subtle, "mb-10 shadow-2xl bg-slate-950")}>
-          <div className="absolute inset-0 z-0">
-            <ImageWithSkeleton
-              src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2000&q=85"
-              alt="Photography Hero Background"
-              fill
-              priority
-              className="object-cover object-center opacity-40"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/50 backdrop-blur-[1.5px]" />
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-transparent to-slate-950/80" />
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="relative z-10 text-center max-w-3xl mx-auto px-6 py-14 sm:py-20"
-          >
-            <span className={cn("inline-flex items-center", gap.tight, "px-3.5 py-1.5", radius.pill, "text-xs font-semibold uppercase tracking-widest bg-black/60 text-cyan-300 border border-cyan-500/30", elevation.blur, "mb-5 shadow-sm")}>
-              <Icon name="camera" size={14} />
-              <span>{t("photography.badge")}</span>
-            </span>
-
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-6 text-white drop-shadow-lg">
-              {t("photography.titlePrefix")}
-              <span className="bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">
-                {t("photography.titleHighlight")}
-              </span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto font-light drop-shadow">
-              {t("photography.subtitle")}
-            </p>
-
+    <div className="portfolio-page">
+      <section className="portfolio-section">
+        <div className="portfolio-column min-w-0">
+        <PageHeader title={<>{t("photography.titlePrefix")}{t("photography.titleHighlight")}</>} intro={t("photography.subtitle")}>
+          <span className="text-xs text-portfolio-accretion">{t("photography.badge")}</span>
             {/* Quick Stats Badges */}
             <div className={cn("flex flex-wrap items-center justify-center", gap.base, "sm:gap-4 mt-8 text-xs font-mono")}>
               <button
                 type="button"
                 onClick={() => setActiveTab("photos")}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border backdrop-blur-md transition-all cursor-pointer shadow-md ${
-                  activeTab === "photos"
-                    ? "bg-purple-600/30 border-purple-400/50 text-white"
-                    : "bg-black/60 border-white/15 text-slate-300 hover:text-white"
-                }`}
+                aria-pressed={activeTab === "photos"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", activeTab === "photos" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
               >
-                <span className={cn("w-2 h-2", radius.pill, "bg-purple-400 animate-pulse")} />
+                <span className={cn("w-2 h-2", radius.pill, "bg-portfolio-hull")} />
                 <span><strong>{stats.total}</strong> {t("photography.totalPhotos")}</span>
               </button>
 
@@ -208,11 +161,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                 <button
                   type="button"
                   onClick={() => setActiveTab("albums")}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border backdrop-blur-md transition-all cursor-pointer shadow-md ${
-                    activeTab === "albums"
-                      ? "bg-cyan-500/30 border-cyan-400/50 text-white"
-                      : "bg-cyan-500/10 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20"
-                  }`}
+                  aria-pressed={activeTab === "albums"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", activeTab === "albums" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                 >
                   <Icon name="folder" size={13} />
                   <span><strong>{stats.albumsCount}</strong> {t("photography.albumsCount") || "Albums"}</span>
@@ -220,33 +169,27 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
               )}
 
               {stats.featuredCount > 0 && (
-                <div className={cn("flex items-center", gap.tight, "px-3.5 py-1.5", radius.pill, "bg-amber-500/10 border border-amber-500/30", elevation.blur, "text-amber-300 shadow-md")}>
-                  <Icon name="star" size={13} className="text-amber-400" />
+                <div className={cn("flex items-center", gap.tight, "px-3.5 py-1.5", radius.pill, "bg-portfolio-hull border border-portfolio-hairline", "text-portfolio-accretion")}>
+                  <Icon name="star" size={13} className="text-portfolio-accretion" />
                   <span><strong>{stats.featuredCount}</strong> {t("photography.featured")}</span>
                 </div>
               )}
-              <div className={cn("flex items-center", gap.tight, "px-3.5 py-1.5", radius.pill, "bg-black/60 border border-white/15", elevation.blur, "text-slate-300 shadow-md")}>
-                <span className={cn("w-2 h-2", radius.pill, "bg-cyan-400")} />
+              <div className={cn("flex items-center", gap.tight, "px-3.5 py-1.5", radius.pill, "bg-portfolio-hull border border-portfolio-hairline", "text-portfolio-dust")}>
+                <span className={cn("w-2 h-2", radius.pill, "bg-portfolio-hull")} />
                 <span><strong>{stats.catsCount}</strong> {t("photography.categoriesCount")}</span>
               </div>
-              <div className={cn("flex items-center", gap.tight, "px-3.5 py-1.5", radius.pill, "bg-black/60 border border-white/15", elevation.blur, "text-slate-300 shadow-md")}>
-                <span className={cn("w-2 h-2", radius.pill, "bg-emerald-400")} />
+              <div className={cn("flex items-center", gap.tight, "px-3.5 py-1.5", radius.pill, "bg-portfolio-hull border border-portfolio-hairline", "text-portfolio-dust")}>
+                <span className={cn("w-2 h-2", radius.pill, "bg-portfolio-hull")} />
                 <span><strong>{stats.withBeforeAfter}</strong> {t("photography.beforeAfterCount")}</span>
               </div>
             </div>
-          </motion.div>
-        </section>
-
+        </PageHeader>
         {/* ── Main View Switcher: All Photos vs Albums ── */}
-        <div className={cn("flex items-center justify-center sm:justify-start", gap.tight, "p-1.5", radius.card, "bg-white/[0.04] light:bg-neutral-900/[0.04]", border.subtle, "w-fit mb-8 shadow-inner")}>
+        <div className={cn("flex items-center justify-center sm:justify-start", gap.tight, "p-1.5", "rounded-lg bg-portfolio-hull", "border border-portfolio-hairline", "max-w-full flex-wrap mb-8")}>
           <button
             type="button"
             onClick={() => setActiveTab("photos")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-              activeTab === "photos"
-                ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/25"
-                : "text-slate-400 hover:text-white hover:bg-white/5 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.04]"
-            }`}
+            aria-pressed={activeTab === "photos"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", activeTab === "photos" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
           >
             <Icon name="camera" size={15} />
             <span>{t("photography.tabAllPhotos") || "Tất cả tác phẩm"} ({initialPhotos.length})</span>
@@ -255,11 +198,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
           <button
             type="button"
             onClick={() => setActiveTab("albums")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-              activeTab === "albums"
-                ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25"
-                : "text-slate-400 hover:text-white hover:bg-white/5 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.04]"
-            }`}
+            aria-pressed={activeTab === "albums"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", activeTab === "albums" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
           >
             <Icon name="grid" size={15} />
             <span>{t("photography.tabAlbums") || "Bộ sưu tập (Albums)"} ({filteredAlbums.length})</span>
@@ -270,28 +209,28 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
         {activeTab === "photos" && (
           <div className="space-y-8">
             {/* Controls Toolbar (Categories, Search & Layout Switcher) */}
-            <section className="space-y-5">
+            <section className="portfolio-solid portfolio-reveal space-y-5">
               <div className={cn("flex flex-col md:flex-row md:items-center justify-between", gap.loose)}>
                 {/* Search Input */}
                 <div className="relative w-full md:w-80">
                   <Icon
                     name="search"
                     size={16}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 light:text-neutral-500"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-portfolio-dust"
                   />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={t("photography.searchPlaceholder")}
-                    className={cn("w-full pl-10 pr-9 py-2.5", radius.control, "bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 transition-all light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-900 light:placeholder-neutral-400")}
+                    className={cn("portfolio-input w-full pl-10 pr-12 py-2.5", radius.control, "bg-portfolio-hull border border-portfolio-hairline text-sm text-portfolio-ink placeholder:text-portfolio-dust focus:outline-none focus:border-portfolio-accretion focus:ring-2 focus:ring-portfolio-accretion transition-all")}
                   />
                   {searchQuery && (
                     <button
                       type="button"
                       onClick={() => setSearchQuery("")}
                       aria-label={t("photography.clearSearch", "Clear search")}
-                      className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white light:text-neutral-500 light:hover:text-neutral-900"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-portfolio-dust focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portfolio-accretion)] hover:text-portfolio-ink"
                     >
                       <Icon name="close" size={14} />
                     </button>
@@ -299,16 +238,12 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                 </div>
 
                 {/* Layout Mode Switcher */}
-                <div className={cn("flex items-center gap-1.5 p-1", radius.control, "bg-white/[0.04] border border-white/10 light:bg-neutral-900/[0.04] light:border-neutral-900/10 self-start md:self-auto")}>
+                <div className={cn("flex flex-wrap items-center gap-1.5 p-1 max-w-full", radius.control, "bg-portfolio-hull border border-portfolio-hairline self-start md:self-auto")}>
                   <button
                     type="button"
                     onClick={() => setLayoutMode("masonry")}
                     title="Masonry Layout"
-                    className={`flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      layoutMode === "masonry"
-                        ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white shadow-md shadow-purple-500/20 font-semibold"
-                        : "text-slate-400 hover:text-white hover:bg-white/5 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.04]"
-                    }`}
+                    aria-pressed={layoutMode === "masonry"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "masonry" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                   >
                     <Icon name="masonry" size={14} />
                     <span className="hidden sm:inline">{t("photography.layouts.masonry")}</span>
@@ -318,11 +253,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     type="button"
                     onClick={() => setLayoutMode("grid")}
                     title="Grid Layout"
-                    className={`flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      layoutMode === "grid"
-                        ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white shadow-md shadow-purple-500/20 font-semibold"
-                        : "text-slate-400 hover:text-white hover:bg-white/5 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.04]"
-                    }`}
+                    aria-pressed={layoutMode === "grid"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "grid" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                   >
                     <Icon name="grid" size={14} />
                     <span className="hidden sm:inline">{t("photography.layouts.grid")}</span>
@@ -332,11 +263,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     type="button"
                     onClick={() => setLayoutMode("compare")}
                     title="Before & After Retouch Comparison"
-                    className={`flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      layoutMode === "compare"
-                        ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white shadow-md shadow-purple-500/20 font-semibold"
-                        : "text-slate-400 hover:text-white hover:bg-white/5 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.04]"
-                    }`}
+                    aria-pressed={layoutMode === "compare"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "compare" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                   >
                     <Icon name="compare" size={14} />
                     <span className="hidden sm:inline">{t("photography.layouts.compare")}</span>
@@ -346,11 +273,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     type="button"
                     onClick={() => setLayoutMode("story")}
                     title="Editorial Story Layout"
-                    className={`flex items-center justify-center gap-1.5 min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      layoutMode === "story"
-                        ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white shadow-md shadow-purple-500/20 font-semibold"
-                        : "text-slate-400 hover:text-white hover:bg-white/5 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.04]"
-                    }`}
+                    aria-pressed={layoutMode === "story"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "story" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                   >
                     <Icon name="image" size={14} />
                     <span className="hidden sm:inline">{t("photography.layouts.story")}</span>
@@ -359,15 +282,11 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
               </div>
 
               {/* Categories Horizontal Pills */}
-              <div className={cn("flex items-center", gap.tight, "overflow-x-auto pb-2 scrollbar-none")}>
+              <div className={cn("flex items-center", gap.tight, "min-w-0 max-w-full overflow-x-auto pb-2 scrollbar-none")}>
                 <button
                   type="button"
                   onClick={() => setSelectedCategory("all")}
-                  className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${
-                    selectedCategory === "all"
-                      ? "bg-white text-black font-semibold shadow-lg shadow-white/10 light:bg-neutral-900 light:text-white light:shadow-neutral-400/20"
-                      : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5 light:bg-neutral-900/[0.04] light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06] light:border-neutral-900/10"
-                  }`}
+                  aria-pressed={selectedCategory === "all"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", selectedCategory === "all" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                 >
                   {t("photography.all")} ({initialPhotos.length})
                 </button>
@@ -376,19 +295,13 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                   <button
                     type="button"
                     onClick={() => setSelectedCategory("featured")}
-                    className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 flex items-center gap-1.5 ${
-                      selectedCategory === "featured"
-                        ? "bg-gradient-to-r from-amber-400 to-amber-500 text-black font-bold shadow-lg shadow-amber-500/20"
-                        : "bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/30 light:text-amber-700"
-                    }`}
+                    aria-pressed={selectedCategory === "featured"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", selectedCategory === "featured" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                   >
                     <Icon name="star" size={12} /> {t("photography.featured")}
                     <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                        selectedCategory === "featured"
-                          ? "bg-black/20 text-black font-extrabold light:bg-white/30"
-                          : "bg-amber-400/20 text-amber-200 light:text-amber-800"
-                      }`}
+                      className={cn("text-[10px] px-1.5 py-0.2 rounded-full ", selectedCategory === "featured"
+                          ? "bg-portfolio-hull text-portfolio-ink font-extrabold"
+                          : "bg-portfolio-hull text-portfolio-accretion")}
                     >
                       {stats.featuredCount}
                     </span>
@@ -404,17 +317,11 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                       key={cat}
                       type="button"
                       onClick={() => setSelectedCategory(cat)}
-                      className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 flex items-center gap-1.5 ${
-                        isActive
-                          ? "bg-white text-black font-semibold shadow-lg shadow-white/10 light:bg-neutral-900 light:text-white light:shadow-neutral-400/20"
-                          : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5 light:bg-neutral-900/[0.04] light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06] light:border-neutral-900/10"
-                      }`}
+                      aria-pressed={isActive} className={cn("portfolio-action flex shrink-0 items-center gap-1.5 px-3 py-2 text-xs border rounded-lg", isActive ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                     >
                       <span>{cat}</span>
                       <span
-                        className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                          isActive ? "bg-black/10 text-black font-bold light:bg-white/10 light:text-white" : "bg-white/10 text-slate-400 light:bg-neutral-900/[0.06] light:text-neutral-500"
-                        }`}
+                        className={cn("text-[10px] px-1.5 py-0.2 rounded-full ", isActive ? "bg-portfolio-hull text-portfolio-ink font-bold" : "bg-portfolio-hull text-portfolio-dust")}
                       >
                         {count}
                       </span>
@@ -427,14 +334,14 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
             {/* Active Layout Display */}
             <section>
               {filteredPhotos.length === 0 ? (
-                <div className={cn("text-center py-20 bg-white/[0.02] border border-white/5", radius.panel, "p-8 light:bg-neutral-900/[0.03] light:border-neutral-900/10")}>
-                  <div className={cn("w-12 h-12", radius.pill, "bg-white/5 text-slate-400 flex items-center justify-center mx-auto mb-3 light:bg-neutral-900/[0.04] light:text-neutral-500")}>
+                <div className={cn("portfolio-solid portfolio-reveal text-center py-20 bg-portfolio-hull border border-portfolio-hairline", "rounded-lg p-8")}>
+                  <div className={cn("w-12 h-12", radius.pill, "bg-portfolio-hull text-portfolio-dust flex items-center justify-center mx-auto mb-3")}>
                     <Icon name="search" size={20} />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-1 light:text-neutral-900">
+                  <h3 className="text-lg font-semibold text-portfolio-ink mb-1">
                     No matching artworks found
                   </h3>
-                  <p className="text-sm text-slate-400 max-w-sm mx-auto mb-4 light:text-neutral-500">
+                  <p className="text-sm text-portfolio-dust max-w-sm mx-auto mb-4">
                     Try searching with different keywords or reset filters to display all artworks.
                   </p>
                   <button
@@ -443,19 +350,15 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                       setSelectedCategory("all");
                       setSearchQuery("");
                     }}
-                    className={cn("px-4 py-2", radius.control, "bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors light:bg-neutral-900/[0.06] light:hover:bg-neutral-900/10 light:text-neutral-900")}
+                    className={cn("portfolio-action portfolio-action-secondary px-4 py-2", radius.control, "bg-portfolio-hull hover:bg-portfolio-hull text-portfolio-ink text-xs font-medium transition-colors")}
                   >
                     Reset Filters
                   </button>
                 </div>
               ) : (
-                <AnimatePresence mode="wait">
-                  <motion.div
+                  <div
                     key={`${layoutMode}-${selectedCategory}`}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -15 }}
-                    transition={{ duration: 0.3 }}
+
                   >
                     {layoutMode === "masonry" && (
                       <MasonryLayout
@@ -481,8 +384,8 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                         onSelectPhoto={handleOpenLightbox}
                       />
                     )}
-                  </motion.div>
-                </AnimatePresence>
+                  </div>
+
               )}
             </section>
           </div>
@@ -492,52 +395,52 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
         {activeTab === "albums" && (
           <section className="space-y-8">
             {/* Search Bar for Albums */}
-            <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between", gap.loose)}>
+            <div className={cn("portfolio-solid portfolio-reveal flex flex-col sm:flex-row sm:items-center justify-between", gap.loose)}>
               <div className="relative w-full sm:w-80">
                 <Icon
                   name="search"
                   size={16}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 light:text-neutral-500"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-portfolio-dust"
                 />
                 <input
                   type="text"
                   value={albumSearchQuery}
                   onChange={(e) => setAlbumSearchQuery(e.target.value)}
                   placeholder={t("photography.searchAlbumsPlaceholder") || "Tìm kiếm album..."}
-                  className={cn("w-full pl-10 pr-4 py-2.5", radius.control, "bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-500/20 transition-all light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-900 light:placeholder-neutral-400")}
+                  className={cn("portfolio-input w-full pl-10 pr-12 py-2.5", radius.control, "bg-portfolio-hull border border-portfolio-hairline text-sm text-portfolio-ink placeholder:text-portfolio-dust focus:outline-none focus:border-portfolio-accretion focus:ring-2 focus:ring-portfolio-accretion transition-all")}
                 />
                 {albumSearchQuery && (
                   <button
                     type="button"
                     onClick={() => setAlbumSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white light:text-neutral-500 light:hover:text-neutral-900"
+                    aria-label={t("photography.clearSearch", "Clear search")} className="absolute right-0 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-portfolio-dust focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portfolio-accretion)]"
                   >
                     <Icon name="close" size={14} />
                   </button>
                 )}
               </div>
 
-              <div className="text-xs text-slate-400 font-mono light:text-neutral-500">
+              <div className="text-xs text-portfolio-dust font-mono">
                 {t("photography.albumsCount") || "Albums"}: <strong>{filteredAlbums.length}</strong>
               </div>
             </div>
 
             {/* Albums Grid */}
             {filteredAlbums.length === 0 ? (
-              <div className={cn("text-center py-20 bg-white/[0.02] border border-white/5", radius.panel, "p-8 light:bg-neutral-900/[0.03] light:border-neutral-900/10")}>
-                <div className={cn("w-12 h-12", radius.pill, "bg-white/5 text-slate-400 flex items-center justify-center mx-auto mb-3 light:bg-neutral-900/[0.04] light:text-neutral-500")}>
+              <div className={cn("portfolio-solid portfolio-reveal text-center py-20 bg-portfolio-hull border border-portfolio-hairline", "rounded-lg p-8")}>
+                <div className={cn("w-12 h-12", radius.pill, "bg-portfolio-hull text-portfolio-dust flex items-center justify-center mx-auto mb-3")}>
                   <Icon name="grid" size={20} />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-1 light:text-neutral-900">
+                <h3 className="text-lg font-semibold text-portfolio-ink mb-1">
                   {t("photography.noAlbumsFound") || "Không tìm thấy Album nào"}
                 </h3>
-                <p className="text-sm text-slate-400 max-w-sm mx-auto mb-4 light:text-neutral-500">
+                <p className="text-sm text-portfolio-dust max-w-sm mx-auto mb-4">
                   {t("photography.noAlbumsDesc") || "Thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc để hiển thị toàn bộ album."}
                 </p>
                 <button
                   type="button"
                   onClick={() => setAlbumSearchQuery("")}
-                  className={cn("px-4 py-2", radius.control, "bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors light:bg-neutral-900/[0.06] light:hover:bg-neutral-900/10 light:text-neutral-900")}
+                  className={cn("portfolio-action portfolio-action-secondary px-4 py-2", radius.control, "bg-portfolio-hull hover:bg-portfolio-hull text-portfolio-ink text-xs font-medium transition-colors")}
                 >
                   {t("photography.resetAlbumSearch") || "Đặt lại tìm kiếm"}
                 </button>
@@ -561,24 +464,24 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     <Link
                       key={album.id}
                       href={`/photography/album/${album.slug}`}
-                      className={cn("group relative", radius.panel, "overflow-hidden bg-slate-900/60 border border-white/10 hover:border-cyan-500/40 shadow-xl hover:shadow-2xl hover:shadow-cyan-500/10", motionTokens.base, "flex flex-col light:bg-white light:border-neutral-900/10 light:shadow-neutral-400/10")}
+                      className={cn("portfolio-reveal portfolio-reveal--lens group relative", "rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion", "transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portfolio-accretion)] focus-visible:outline-offset-2", "flex flex-col")}
                     >
                       {/* Cover Photo */}
-                      <div className="relative aspect-[16/10] w-full bg-slate-950 overflow-hidden light:bg-slate-100">
+                      <div className="relative aspect-[16/10] w-full bg-portfolio-hull overflow-hidden">
                         {coverUrl && (
-                          <ImageWithSkeleton
+                          <ImageWithSkeleton containerClassName="photography-media"
                             src={coverUrl}
                             alt={title}
                             fill
                             sizes="(max-width: 768px) 100vw, 33vw"
-                            className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                            className="object-cover transition-transform duration-700 ease-out"
                           />
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/25 to-transparent opacity-85 group-hover:opacity-60 transition-opacity" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/25 to-transparent opacity-85 group-hover:opacity-60 transition-opacity" />
 
                         {/* Top Badges */}
                         <div className={cn("absolute top-3.5 left-3.5 flex items-center", gap.tight, "z-10")}>
-                          <span className={cn("px-3 py-1", radius.pill, "text-xs font-bold bg-black/70 text-cyan-300", elevation.blur, "border border-white/15 shadow flex items-center gap-1.5")}>
+                          <span className={cn("px-3 py-1", radius.pill, "text-xs font-bold bg-portfolio-hull text-portfolio-accretion", "border border-portfolio-hairline flex items-center gap-1.5")}>
                             <Icon name="image" size={12} />
                             <span>{photoCount} {t("photography.photosInAlbum") || "tác phẩm"}</span>
                           </span>
@@ -586,7 +489,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
 
                         {album.featured && (
                           <div className="absolute top-3.5 right-3.5 z-10">
-                            <span className={cn("px-2.5 py-1", radius.pill, "text-xs font-bold bg-amber-500/90 text-black shadow-lg flex items-center gap-1")}>
+                            <span className={cn("px-2.5 py-1", radius.pill, "text-xs font-bold bg-portfolio-hull text-portfolio-ink flex items-center gap-1")}>
                               <Icon name="star" size={12} /> {t("photography.featured")}
                             </span>
                           </div>
@@ -596,26 +499,26 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                       {/* Album Body */}
                       <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                         <div>
-                          <h3 className="text-xl font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1 mb-2 light:text-neutral-900">
+                          <h3 className="text-xl font-bold text-portfolio-ink group-hover:text-portfolio-accretion group-focus-within:text-portfolio-accretion transition-colors break-words mb-2">
                             {title}
                           </h3>
                           {desc && (
-                            <p className="text-xs text-slate-300/80 line-clamp-2 leading-relaxed font-light light:text-neutral-600">
+                            <p className="text-xs text-portfolio-dust line-clamp-2 leading-relaxed font-light">
                               {desc}
                             </p>
                           )}
                         </div>
 
                         {/* Miniature Avatars + CTA */}
-                        <div className="pt-4 border-t border-white/5 flex items-center justify-between light:border-neutral-900/10">
+                        <div className="pt-4 border-t border-portfolio-hairline flex flex-wrap gap-3 items-center justify-between">
                           <div className="flex items-center -space-x-2">
                             {previewPhotos.map((p, idx) => (
                               <div
                                 key={p.id}
-                                className={cn("relative w-7 h-7", radius.pill, "overflow-hidden border-2 border-slate-900 bg-slate-800 light:border-white light:bg-neutral-100")}
+                                className={cn("relative w-7 h-7", radius.pill, "overflow-hidden border-2 border-portfolio-hairline bg-portfolio-hull")}
                                 style={{ zIndex: 3 - idx }}
                               >
-                                <ImageWithSkeleton
+                                <ImageWithSkeleton containerClassName="photography-media"
                                   src={p.image}
                                   alt={p.title}
                                   fill
@@ -625,13 +528,13 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                               </div>
                             ))}
                             {photoCount > 3 && (
-                              <div className={cn("w-7 h-7", radius.pill, "bg-white/10 border-2 border-slate-900 flex items-center justify-center text-[10px] font-bold text-slate-300 light:bg-neutral-900/10 light:border-white light:text-neutral-600")}>
+                              <div className={cn("w-7 h-7", radius.pill, "bg-portfolio-hull border-2 border-portfolio-hairline flex items-center justify-center text-[10px] font-bold text-portfolio-dust")}>
                                 +{photoCount - 3}
                               </div>
                             )}
                           </div>
 
-                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-400 group-hover:text-cyan-300 group-hover:translate-x-1 transition-all">
+                          <span className="portfolio-text-link inline-flex items-center gap-1.5 text-xs font-semibold text-portfolio-accretion group-hover:text-portfolio-accretion group-focus-within:text-portfolio-accretion  transition-all">
                             <span>{t("photography.viewAlbum") || "Khám phá Album"}</span>
                             <Icon name="arrowRight" size={12} />
                           </span>
@@ -644,9 +547,9 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
             )}
           </section>
         )}
-      </div>
-
-      {/* ── Lightbox Modal ── */}
+        </div>
+      </section>
+      {/* Lightbox Modal */}
       <PhotoLightboxModal
         photo={activePhoto}
         photos={filteredPhotos}

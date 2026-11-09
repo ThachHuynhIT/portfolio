@@ -1,38 +1,20 @@
 "use client";
-
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { GlassCard, TiltCard, Button, Icon } from "@/components/ui";
+import Icon from "@/components/ui/Icon";
+import PageHeader from "@/components/ui/PageHeader";
 import { useTranslation } from "@/context/LanguageContext";
 import type { Project } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { brand, gap, layout, radius, text } from "@/lib/design-tokens";
 
-interface ProjectsGalleryProps {
-  initialProjects: Project[];
-}
-
-function ProjectDetailModal({
-  project,
-  onClose,
-}: {
-  project: Project | null;
-  onClose: () => void;
-}) {
+function ProjectDetailModal({ project, onClose }: { project: Project; onClose: () => void }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
-
   useEffect(() => {
-    if (!project) return;
     previouslyFocused.current = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
     dialogRef.current?.focus();
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-
+    const handleKeyDown = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
@@ -40,118 +22,33 @@ function ProjectDetailModal({
       previouslyFocused.current?.focus();
     };
   }, [project, onClose]);
-
   const { t, locale } = useTranslation();
-  if (!project) return null;
-
   const displayTitle = locale === "vi" && project.title_vi ? project.title_vi : project.title;
   const displayDesc = locale === "vi" && project.description_vi ? project.description_vi : project.description;
-  const displayLongDesc =
-    locale === "vi" && project.longDescription_vi
-      ? project.longDescription_vi
-      : project.longDescription || displayDesc;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-    >
-      <div
-        onClick={onClose}
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm light:bg-white/80"
-      />
-      <motion.div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={displayTitle}
-        tabIndex={-1}
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative z-10 w-full max-w-2xl focus:outline-none"
-      >
-        <GlassCard className="p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
-          <button
-            onClick={onClose}
-            aria-label={t("projects.closeModal")}
-            className={cn("absolute top-4 right-4 w-9 h-9", radius.pill, "bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all z-20 light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06]")}
-          >
-            <Icon name="close" size={16} />
-          </button>
-
-          <div className={cn("relative aspect-video", radius.control, "overflow-hidden mb-6 bg-slate-950 border border-white/10 shadow-lg light:bg-slate-100 light:border-neutral-900/10")}>
-            {project.image ? (
-              <Image
-                src={project.image}
-                alt={displayTitle}
-                fill
-                sizes="(max-width: 640px) 100vw, 672px"
-                priority
-                className="object-cover"
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-cyan-500/20 text-purple-300">
-                <Icon name="rocket" size={48} />
-              </div>
-            )}
-            {project.featured && (
-              <div className={cn("absolute top-3 left-3 px-3 py-1 text-xs font-semibold text-white", brand.gradient, radius.pill, "shadow-md")}>
-                {t("projects.featuredBadge")}
-              </div>
-            )}
-          </div>
-
-          <h3 className="text-2xl font-bold text-white mb-3 light:text-neutral-900">{displayTitle}</h3>
-          <p className="text-white/70 text-sm sm:text-base mb-6 leading-relaxed light:text-neutral-600">{displayLongDesc}</p>
-
-          <div className={cn("flex flex-wrap", gap.tight, "mb-6")}>
-            {project.tags.map((tag) => (
-              <span
-                key={tag}
-                className={cn("px-3 py-1 text-xs font-medium text-white/80 bg-white/5 border border-white/10", radius.pill, "light:text-neutral-700 light:bg-neutral-900/[0.04] light:border-neutral-900/10")}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-
-          <div className={cn("flex", gap.loose)}>
-            {project.liveUrl && (
-              <Button
-                variant="primary"
-                onClick={() =>
-                  window.open(project.liveUrl, "_blank", "noopener,noreferrer")
-                }
-              >
-                {t("projects.viewLive")}
-              </Button>
-            )}
-            {project.githubUrl && (
-              <Button
-                variant="outline"
-                onClick={() =>
-                  window.open(project.githubUrl, "_blank", "noopener,noreferrer")
-                }
-              >
-                {t("projects.sourceCode")}
-              </Button>
-            )}
-          </div>
-        </GlassCard>
-      </motion.div>
-    </motion.div>
-  );
+  const displayLongDesc = locale === "vi" && project.longDescription_vi ? project.longDescription_vi : project.longDescription || displayDesc;
+  return <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div onClick={onClose} className="absolute inset-0 bg-black/60" />
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={displayTitle} tabIndex={-1} className="portfolio-solid relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-portfolio-hull border border-portfolio-hairline p-6 sm:p-8 focus:outline-none">
+      <div className="flex justify-end mb-4"><button onClick={onClose} aria-label={t("projects.closeModal")} className="portfolio-action portfolio-action-secondary min-w-11 min-h-11"><Icon name="close" size={16} /></button></div>
+      {project.image && <div className="relative aspect-video overflow-hidden mb-6"><Image src={project.image} alt={displayTitle} fill sizes="(max-width: 640px) 100vw, 672px" priority className="object-cover" /></div>}
+      {project.featured && <span className="text-xs text-portfolio-accretion">{t("projects.featuredBadge")}</span>}
+      <h2 className="text-2xl font-bold text-portfolio-ink mb-3 break-words">{displayTitle}</h2>
+      <p className="text-portfolio-dust mb-6 leading-relaxed">{displayLongDesc}</p>
+      <div className="flex flex-wrap gap-2 mb-6 text-xs text-portfolio-dust">{project.tags.map(tag => <span key={tag}>{tag}</span>)}</div>
+      <div className="flex flex-wrap gap-4">
+        {project.liveUrl && <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="portfolio-text-link relative z-10">{t("projects.viewLive")}</a>}
+        {project.githubUrl && <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="portfolio-text-link relative z-10">{t("projects.sourceCode")}</a>}
+      </div>
+    </div>
+  </div>;
 }
 
-export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProps) {
+export default function ProjectsGallery({ initialProjects }: { initialProjects: Project[] }) {
   const { t, locale } = useTranslation();
   const [selectedTag, setSelectedTag] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeProject, setActiveProject] = useState<Project | null>(null);
-
+  const close = useCallback(() => setActiveProject(null), []);
   // Extract all unique tags
   const allTags = useMemo(() => {
     const set = new Set<string>();
@@ -181,149 +78,26 @@ export default function ProjectsGallery({ initialProjects }: ProjectsGalleryProp
     });
   }, [initialProjects, selectedTag, searchQuery, locale]);
 
-  return (
-    <div className={cn("min-h-screen pt-32 pb-24", text.primary)}>
-      <div className={cn(layout.container)}>
-
-        {/* Page Header */}
-        <div className="text-center mb-14">
-          <span className="text-xs text-purple-400 light:text-purple-700 font-semibold tracking-widest uppercase mb-3 block">
-            {t("projects.badge")}
-          </span>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-tight light:text-neutral-900">
-            {t("projects.allProjectsTitle")}
-          </h1>
-          <p className="text-white/60 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed light:text-neutral-600">
-            {t("projects.allProjectsSubtitle")}
-          </p>
-        </div>
-
-        {/* Search & Tag Filters Bar */}
-        <div className={cn("flex flex-col sm:flex-row items-center justify-between", gap.loose, "mb-10")}>
-          {/* Search Input */}
-          <div className="relative w-full sm:w-80">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={locale === "vi" ? "Tìm kiếm dự án, công nghệ..." : "Search projects, tags..."}
-              className={cn("w-full px-4 py-2.5", radius.control, "bg-white/[0.04] border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-all light:bg-neutral-900/[0.04] light:border-neutral-900/10 light:text-neutral-900 light:placeholder-neutral-400")}
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white light:text-neutral-500 light:hover:text-neutral-900"
-              >
-                <Icon name="close" size={14} />
-              </button>
-            )}
-          </div>
-
-          {/* Tags Pills */}
-          <div className={cn("flex items-center", gap.tight, "overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0 scrollbar-none")}>
-            <button
-              type="button"
-              onClick={() => setSelectedTag("all")}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedTag === "all"
-                  ? "bg-white text-black font-semibold shadow-md light:bg-neutral-900 light:text-white light:shadow-neutral-400/20"
-                  : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5 light:bg-neutral-900/[0.04] light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06] light:border-neutral-900/10"
-                }`}
-            >
-              {locale === "vi" ? "Tất cả" : "All"} ({initialProjects.length})
-            </button>
-            {allTags.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => setSelectedTag(tag)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 ${selectedTag === tag
-                    ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-semibold shadow-md shadow-purple-500/20"
-                    : "bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/10 border border-white/5 light:bg-neutral-900/[0.04] light:text-neutral-500 light:hover:text-neutral-900 light:hover:bg-neutral-900/[0.06] light:border-neutral-900/10"
-                  }`}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Projects Grid */}
-        {filteredProjects.length > 0 ? (
-          <div className={cn("grid sm:grid-cols-2 lg:grid-cols-3", gap.grid)}>
-            {filteredProjects.map((project) => {
-              const cardTitle = locale === "vi" && project.title_vi ? project.title_vi : project.title;
-              const cardDesc = locale === "vi" && project.description_vi ? project.description_vi : project.description;
-
-              return (
-                <TiltCard
-                  key={project.id}
-                  className="h-full group cursor-pointer"
-                  onClick={() => setActiveProject(project)}
-                >
-                  <div className="p-5 flex flex-col h-full">
-                    {/* Project Thumbnail Image */}
-                    <div className={cn("relative aspect-[16/10]", radius.control, "overflow-hidden mb-4 bg-slate-950 border border-white/10 shadow-sm light:bg-slate-100 light:border-neutral-900/10")}>
-                      {project.image ? (
-                        <Image
-                          src={project.image}
-                          alt={cardTitle}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-cyan-500/20 text-purple-300">
-                          <Icon name="rocket" size={32} />
-                        </div>
-                      )}
-                      {project.featured && (
-                        <div className={cn("absolute top-2.5 right-2.5 px-2.5 py-0.5 text-[11px] font-semibold text-white", brand.gradient, radius.pill, "shadow-md shadow-purple-500/30")}>
-                          {t("projects.featuredBadge")}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Project Info */}
-                    <h3 className="text-lg font-bold text-white mb-2 line-clamp-1 group-hover:text-purple-300 transition-colors light:text-neutral-900">
-                      {cardTitle}
-                    </h3>
-                    <p className="text-white/60 text-xs sm:text-sm mb-4 line-clamp-2 leading-relaxed flex-grow light:text-neutral-600">
-                      {cardDesc}
-                    </p>
-
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-1.5 pt-3 border-t border-white/5 light:border-neutral-900/10">
-                      {project.tags.slice(0, 4).map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-0.5 text-[11px] font-medium text-white/70 bg-white/5 border border-white/10 rounded-md light:text-neutral-600 light:bg-neutral-900/[0.04] light:border-neutral-900/10"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </TiltCard>
-              );
-            })}
-          </div>
-        ) : (
-          <div className={cn("text-center py-24", radius.card, "bg-white/[0.02] border border-white/5 light:bg-neutral-900/[0.03] light:border-neutral-900/10")}>
-            <p className="text-white/60 text-base light:text-neutral-600">{t("projects.noProjectsFound")}</p>
-          </div>
-        )}
+  return <div className="portfolio-page"><section className="portfolio-section"><div className="portfolio-column">
+    <PageHeader title={t("projects.allProjectsTitle")} intro={t("projects.allProjectsSubtitle")}><span className="text-xs text-portfolio-dust uppercase tracking-widest">{t("projects.badge")}</span></PageHeader>
+    <div className="flex flex-col gap-4 mb-10">
+      <div className="relative w-full sm:max-w-sm">
+        <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={locale === "vi" ? "Tìm kiếm dự án, công nghệ..." : "Search projects, tags..."} className="portfolio-input w-full pr-12" />
+        {searchQuery && <button type="button" onClick={() => setSearchQuery("")} aria-label={t("projects.closeModal")} className="absolute right-0 top-0 min-w-11 min-h-11 text-portfolio-dust focus-visible:outline-2 focus-visible:outline-portfolio-accretion"><Icon name="close" size={14} /></button>}
       </div>
-
-      {/* Modal Detail */}
-      <AnimatePresence>
-        {activeProject && (
-          <ProjectDetailModal
-            project={activeProject}
-            onClose={() => setActiveProject(null)}
-          />
-        )}
-      </AnimatePresence>
+      <div className="portfolio-reveal flex flex-wrap gap-2">{["all", ...allTags].map(tag => <button key={tag} type="button" onClick={() => setSelectedTag(tag)} aria-pressed={selectedTag === tag} className={cn("rounded-lg border bg-portfolio-hull px-4 py-2 min-h-11 text-sm hover:border-portfolio-accretion focus-visible:outline-2 focus-visible:outline-portfolio-accretion", selectedTag === tag ? "border-portfolio-accretion text-portfolio-accretion" : "border-portfolio-control text-portfolio-dust")}>{tag === "all" ? <>{locale === "vi" ? "Tất cả" : "All"} ({initialProjects.length})</> : tag}</button>)}</div>
     </div>
-  );
+    {filteredProjects.length > 0 ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">{filteredProjects.map(project => {
+      const cardTitle = locale === "vi" && project.title_vi ? project.title_vi : project.title;
+      const cardDesc = locale === "vi" && project.description_vi ? project.description_vi : project.description;
+      return <article key={project.id} className="portfolio-case portfolio-solid portfolio-reveal portfolio-reveal--lens min-w-0 flex flex-col">
+        {project.image && <div className="relative aspect-[16/10] overflow-hidden mb-4"><Image src={project.image} alt={cardTitle} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" /></div>}
+        {project.featured && <span className="text-xs text-portfolio-accretion mb-2">{t("projects.featuredBadge")}</span>}
+        <h2 className="text-lg font-bold break-words text-portfolio-ink"><button type="button" aria-haspopup="dialog" onClick={() => setActiveProject(project)} className="portfolio-text-link text-left min-h-11 after:absolute after:inset-0 after:content-['']">{cardTitle}</button></h2>
+        <p className="text-portfolio-dust text-sm my-4 leading-relaxed flex-grow">{cardDesc}</p>
+        <div className="flex flex-wrap gap-2 pt-3 border-t border-portfolio-hairline text-xs text-portfolio-dust">{project.tags.slice(0, 4).map(tag => <span key={tag}>{tag}</span>)}</div>
+        <div className="flex flex-wrap gap-4 mt-4 text-sm">{project.liveUrl && <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="portfolio-text-link relative z-10">{t("projects.viewLive")}</a>}{project.githubUrl && <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="portfolio-text-link relative z-10">{t("projects.sourceCode")}</a>}</div>
+      </article>;
+    })}</div> : <div className="portfolio-solid portfolio-reveal py-16 text-center"><p className="text-portfolio-dust">{t("projects.noProjectsFound")}</p></div>}
+  </div></section>{activeProject && <ProjectDetailModal project={activeProject} onClose={close} />}</div>;
 }

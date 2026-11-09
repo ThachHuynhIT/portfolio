@@ -18,6 +18,10 @@ export const headingRise: Variants = {
   // Horizontal settling suggests tracking without animating text layout.
   visible: { opacity: [0.5, 1], y: [10, 0], scaleX: [1.025, 1], transition: { duration: 0.5, delay: 0.12 } },
 };
+export const headingUnderline: Variants = {
+  hidden: { scaleX: 0 },
+  visible: { scaleX: [0, 1], transition: { duration: 0.6, delay: 0.2 } },
+};
 
 // Only decorative geometry is hidden; headings and other text stay in SSR.
 export const starIgnition: Variants = {

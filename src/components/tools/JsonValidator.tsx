@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+
 import Icon from '@/components/ui/Icon';
 import { cn } from "@/lib/utils";
-import { border, gap, radius, surface, text } from "@/lib/design-tokens";
 
 interface ValidationResult {
   suffix: string;
@@ -202,58 +201,52 @@ export default function JsonValidator() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0 text-portfolio-dust">
       {/* Load Sample Button */}
       <div className="flex justify-center">
         <button
           onClick={loadSampleData}
-          className={cn("px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white", radius.chip, "transition-colors")}
+          className="portfolio-action portfolio-action-secondary px-6 py-2 rounded-lg transition-colors"
         >
           Load Sample Data
         </button>
       </div>
 
       {/* Drag & Drop Zone */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`bg-white/10 light:bg-neutral-900/[0.06] backdrop-blur-lg rounded-xl p-8 border-2 border-dashed transition-all ${
-          isDragging
-            ? 'border-purple-500 bg-purple-500/20'
-            : 'border-white/20 hover:border-white/40 light:border-neutral-900/15 light:hover:border-neutral-900/30'
-        }`}
+      <div
+        className={cn("portfolio-solid portfolio-reveal rounded-lg p-5 sm:p-8 !border-2 !border-dashed", isDragging ? "!border-portfolio-accretion" : "!border-portfolio-control hover:!border-portfolio-accretion")}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <div className="text-center space-y-4">
-          <div className="flex justify-center text-white/70 light:text-neutral-700">
+          <div className="flex justify-center">
             <Icon name="folder" size={56} />
           </div>
-          <h2 className={cn("text-2xl font-bold", text.primary)}>
+          <h2 className="text-2xl font-bold text-portfolio-ink">
             Drag and drop files or folder here
           </h2>
-          <p className="text-gray-300 light:text-neutral-600">
+          <p className="text-portfolio-dust">
             Supports multiple JSON files at once. Automatically pairs files based on filename suffix.
           </p>
 
-          <div className={cn("flex flex-col sm:flex-row", gap.loose, "justify-center pt-4")}>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             {/* Multiple File Upload */}
-            <label className="cursor-pointer">
+            <label className="cursor-pointer rounded-lg focus-within:outline-2 focus-within:outline-offset-4 focus-within:outline-portfolio-accretion">
               <input
                 type="file"
                 accept=".json"
                 multiple
                 onChange={handleFileSelect}
-                className="hidden"
+                className="sr-only"
               />
-              <div className={cn("px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white", radius.chip, "transition-colors inline-flex items-center", gap.tight)}>
+              <div className="portfolio-action portfolio-action-secondary px-6 py-3 rounded-lg transition-colors inline-flex items-center gap-2">
                 <Icon name="fileText" size={16} /> Choose Files
               </div>
             </label>
 
             {/* Folder Upload */}
-            <label className="cursor-pointer">
+            <label className="cursor-pointer rounded-lg focus-within:outline-2 focus-within:outline-offset-4 focus-within:outline-portfolio-accretion">
               <input
                 type="file"
                 accept=".json"
@@ -261,31 +254,29 @@ export default function JsonValidator() {
                 webkitdirectory="true"
                 directory="true"
                 onChange={handleFileSelect}
-                className="hidden"
+                className="sr-only"
               />
-              <div className={cn("px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white", radius.chip, "transition-colors inline-flex items-center", gap.tight)}>
+              <div className="portfolio-action portfolio-action-secondary px-6 py-3 rounded-lg transition-colors inline-flex items-center gap-2">
                 <Icon name="folderOpen" size={16} /> Choose Folder
               </div>
             </label>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* File List */}
       {files.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={cn(surface.raised, "backdrop-blur-lg", radius.control, "p-6", border.strong)}
+        <div
+          className="portfolio-solid portfolio-reveal rounded-lg p-6 border border-portfolio-hairline"
         >
-          <h3 className={cn("text-xl font-bold", text.primary, "mb-4")}>
+          <h3 className="text-xl font-bold text-portfolio-ink mb-4">
             Selected {files.length} file(s):
           </h3>
-          <div className={cn("grid md:grid-cols-2 lg:grid-cols-3", gap.tight, "max-h-64 overflow-y-auto")}>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 min-w-0 gap-2 max-h-64 overflow-y-auto">
             {files.map((file, index) => (
               <div
                 key={index}
-                className="bg-gray-900/50 light:bg-neutral-100 rounded px-3 py-2 text-gray-300 light:text-neutral-600 text-sm truncate flex items-center gap-1.5"
+                className="bg-portfolio-hull border border-portfolio-hairline rounded px-3 py-2 text-portfolio-dust text-sm font-mono break-all min-w-0 flex items-center gap-1.5"
                 title={file.name}
               >
                 <Icon name="fileText" size={13} className="shrink-0" /> {file.name}
@@ -295,25 +286,25 @@ export default function JsonValidator() {
 
           {/* File Groups Preview */}
           <div className="mt-6">
-            <h4 className={cn("text-lg font-bold", text.primary, "mb-3")}>
+            <h4 className="text-lg font-bold text-portfolio-ink mb-3">
               Mapped File Pairs:
             </h4>
             {groupFilesBySuffix(files).map((group, index) => (
               <div
                 key={index}
-                className={cn("bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 light:border-purple-500/40", radius.chip, "p-4 mb-3")}
+                className="portfolio-solid portfolio-reveal p-4 mb-3 font-mono break-all"
               >
-                <div className={cn("flex items-center", gap.tight, "mb-2")}>
-                  <span className={cn("px-3 py-1 bg-purple-600 text-white", radius.pill, "text-sm font-bold")}>
+                <div className="flex flex-wrap items-center text-portfolio-dust gap-2 mb-2">
+                  <span className="px-3 py-1 rounded-full bg-portfolio-hull border border-portfolio-hairline text-portfolio-ink font-mono break-all text-sm font-bold">
                     {group.suffix}
                   </span>
                 </div>
-                <div className={cn("grid md:grid-cols-2", gap.tight, "text-sm")}>
-                  <div className={cn("text-red-300 light:text-red-700 flex items-center", gap.tight)}>
-                    <span className={cn("w-2 h-2", radius.pill, "bg-red-400 shrink-0")} /> {group.exceptionFile?.name}
+                <div className="grid md:grid-cols-2 gap-2 text-sm break-all">
+                  <div className="flex flex-wrap items-center text-portfolio-dust gap-2">
+                    <span className="w-2 h-2 rounded-full shrink-0" /> {group.exceptionFile?.name}
                   </div>
-                  <div className={cn("text-green-300 light:text-green-700 flex items-center", gap.tight)}>
-                    <span className={cn("w-2 h-2", radius.pill, "bg-green-400 shrink-0")} /> {group.parameterFile?.name}
+                  <div className="flex flex-wrap items-center text-portfolio-dust gap-2">
+                    <span className="w-2 h-2 rounded-full shrink-0" /> {group.parameterFile?.name}
                   </div>
                 </div>
               </div>
@@ -325,11 +316,11 @@ export default function JsonValidator() {
             <button
               onClick={validateAllFiles}
               disabled={loading}
-              className={cn("px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold", radius.chip, "disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 inline-flex items-center", gap.tight)}
+              className="portfolio-action portfolio-action-primary px-8 py-3 font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
             >
               {loading ? (
                 <>
-                  <Icon name="loader" size={16} className="animate-spin" /> Validating...
+                  <Icon name="loader" size={16} /> Validating...
                 </>
               ) : (
                 <>
@@ -338,50 +329,45 @@ export default function JsonValidator() {
               )}
             </button>
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Error Display */}
       {error && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className={cn("bg-red-500/20 border border-red-500", radius.chip, "p-4")}
+        <div
+          role="alert" className="portfolio-solid portfolio-reveal rounded-lg p-4"
         >
-          <p className={cn("text-red-300 light:text-red-700 font-semibold flex items-center", gap.tight)}>
+          <p className="text-portfolio-ink font-semibold flex items-center gap-2">
             <Icon name="xCircle" size={16} /> Error: {error}
           </p>
-        </motion.div>
+        </div>
       )}
 
       {/* Results Display */}
-      <AnimatePresence>
+      <>
         {results.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="space-y-6"
+          <div
+            className="space-y-6 min-w-0 text-portfolio-dust"
           >
             {/* Summary */}
-            <div className={cn(surface.raised, "backdrop-blur-lg", radius.control, "p-6", border.strong)}>
-              <h2 className={cn("text-2xl font-bold", text.primary, "mb-4 flex items-center", gap.tight)}>
+            <div className="portfolio-solid portfolio-reveal rounded-lg p-6 border border-portfolio-hairline">
+              <h2 className="text-2xl font-bold text-portfolio-ink mb-4 flex items-center gap-2">
                 <Icon name="activity" size={20} /> Results Summary
               </h2>
-              <div className={cn("grid md:grid-cols-3", gap.loose)}>
-                <div className={cn("bg-blue-500/20", radius.chip, "p-4 border border-blue-500/30 light:border-blue-500/35")}>
-                  <p className="text-blue-300 light:text-blue-700 text-sm">Total Pairs</p>
-                  <p className={cn(text.primary, "text-3xl font-bold")}>{results.length}</p>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="rounded-lg bg-portfolio-hull border border-portfolio-hairline p-4">
+                  <p className="text-sm text-portfolio-dust">Total Pairs</p>
+                  <p className="text-portfolio-ink text-3xl font-bold">{results.length}</p>
                 </div>
-                <div className={cn("bg-green-500/20", radius.chip, "p-4 border border-green-500/30 light:border-green-500/35")}>
-                  <p className="text-green-300 light:text-green-700 text-sm">Valid Pairs</p>
-                  <p className={cn(text.primary, "text-3xl font-bold")}>
+                <div className="rounded-lg bg-portfolio-hull border border-portfolio-hairline p-4">
+                  <p className="text-sm text-portfolio-dust">Valid Pairs</p>
+                  <p className="text-portfolio-ink text-3xl font-bold">
                     {results.filter((r) => r.missingIds.length === 0).length}
                   </p>
                 </div>
-                <div className={cn("bg-red-500/20", radius.chip, "p-4 border border-red-500/30 light:border-red-500/35")}>
-                  <p className="text-red-300 light:text-red-700 text-sm">Pairs with Errors</p>
-                  <p className={cn(text.primary, "text-3xl font-bold")}>
+                <div className="rounded-lg bg-portfolio-hull border border-portfolio-hairline p-4">
+                  <p className="text-sm text-portfolio-dust">Pairs with Errors</p>
+                  <p className="text-portfolio-ink text-3xl font-bold">
                     {results.filter((r) => r.missingIds.length > 0).length}
                   </p>
                 </div>
@@ -390,59 +376,56 @@ export default function JsonValidator() {
 
             {/* Detailed Results */}
             {results.map((result, index) => (
-              <motion.div
+              <div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className={cn(surface.raised, "backdrop-blur-lg", radius.control, "p-6", border.strong)}
+                className="portfolio-solid portfolio-reveal rounded-lg p-6 border border-portfolio-hairline"
               >
-                <div className={cn("flex items-center", gap.base, "mb-4")}>
-                  <span className={cn("px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white", radius.pill, "text-lg font-bold")}>
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <span className="px-4 py-2 rounded-full bg-portfolio-hull border border-portfolio-hairline text-portfolio-ink font-mono break-all text-lg font-bold">
                     {result.suffix}
                   </span>
                   {result.missingIds.length === 0 ? (
-                    <Icon name="checkCircle" size={22} className="text-green-400" />
+                    <Icon name="checkCircle" size={22} className="text-portfolio-dust" />
                   ) : (
-                    <Icon name="alertTriangle" size={22} className="text-red-400" />
+                    <Icon name="alertTriangle" size={22} className="text-portfolio-dust" />
                   )}
                 </div>
 
                 <div className="space-y-2 mb-4 text-sm">
-                  <p className={cn("text-red-300 light:text-red-700 flex items-center", gap.tight)}>
-                    <span className={cn("w-2 h-2", radius.pill, "bg-red-400 shrink-0")} /> Exception: <span className="font-mono">{result.exceptionFile}</span>
+                  <p className="flex flex-wrap items-center text-portfolio-dust gap-2">
+                    <span className="w-2 h-2 rounded-full shrink-0" /> Exception: <span className="font-mono break-all">{result.exceptionFile}</span>
                   </p>
-                  <p className={cn("text-green-300 light:text-green-700 flex items-center", gap.tight)}>
-                    <span className={cn("w-2 h-2", radius.pill, "bg-green-400 shrink-0")} /> Parameter: <span className="font-mono">{result.parameterFile}</span>
+                  <p className="flex flex-wrap items-center text-portfolio-dust gap-2">
+                    <span className="w-2 h-2 rounded-full shrink-0" /> Parameter: <span className="font-mono break-all">{result.parameterFile}</span>
                   </p>
                 </div>
 
-                <div className={cn("grid md:grid-cols-3", gap.loose, "mb-4")}>
-                  <div className={cn("bg-blue-500/20", radius.chip, "p-3 border border-blue-500/30 light:border-blue-500/35")}>
-                    <p className="text-blue-300 light:text-blue-700 text-xs">Checked IDs</p>
-                    <p className={cn(text.primary, "text-2xl font-bold")}>{result.totalChecked}</p>
+                <div className="grid md:grid-cols-3 gap-4 mb-4">
+                  <div className="rounded-lg bg-portfolio-hull border border-portfolio-hairline p-3">
+                    <p className="text-xs text-portfolio-dust">Checked IDs</p>
+                    <p className="text-portfolio-ink text-2xl font-bold">{result.totalChecked}</p>
                   </div>
-                  <div className={cn("bg-green-500/20", radius.chip, "p-3 border border-green-500/30 light:border-green-500/35")}>
-                    <p className="text-green-300 light:text-green-700 text-xs">Valid IDs</p>
-                    <p className={cn(text.primary, "text-2xl font-bold")}>{result.totalAvailable}</p>
+                  <div className="rounded-lg bg-portfolio-hull border border-portfolio-hairline p-3">
+                    <p className="text-xs text-portfolio-dust">Valid IDs</p>
+                    <p className="text-portfolio-ink text-2xl font-bold">{result.totalAvailable}</p>
                   </div>
-                  <div className={cn("bg-red-500/20", radius.chip, "p-3 border border-red-500/30 light:border-red-500/35")}>
-                    <p className="text-red-300 light:text-red-700 text-xs">Missing IDs</p>
-                    <p className={cn(text.primary, "text-2xl font-bold")}>{result.missingIds.length}</p>
+                  <div className="rounded-lg bg-portfolio-hull border border-portfolio-hairline p-3">
+                    <p className="text-xs text-portfolio-dust">Missing IDs</p>
+                    <p className="text-portfolio-ink text-2xl font-bold">{result.missingIds.length}</p>
                   </div>
                 </div>
 
                 {result.missingIds.length > 0 ? (
                   <div>
-                    <h3 className={cn("text-lg font-bold text-red-300 light:text-red-700 mb-3 flex items-center", gap.tight)}>
+                    <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
                       <Icon name="alertTriangle" size={18} /> Missing IDs:
                     </h3>
-                    <div className={cn("bg-gray-900/50 light:bg-neutral-100", radius.chip, "p-4 max-h-64 overflow-y-auto")}>
-                      <div className={cn("grid grid-cols-2 md:grid-cols-4", gap.tight)}>
+                    <div className="rounded-lg bg-portfolio-hull border border-portfolio-hairline p-4 max-h-64 overflow-y-auto">
+                      <div className="grid grid-cols-2 md:grid-cols-4 min-w-0 gap-2">
                         {result.missingIds.map((id) => (
                           <div
                             key={id}
-                            className="bg-red-500/20 border border-red-500/30 light:border-red-500/35 rounded px-3 py-2 text-red-300 light:text-red-700 font-mono text-sm"
+                            className="bg-portfolio-hull border border-portfolio-hairline rounded px-3 py-2 text-portfolio-ink font-mono break-all text-sm"
                           >
                             {id}
                           </div>
@@ -451,17 +434,17 @@ export default function JsonValidator() {
                     </div>
                   </div>
                 ) : (
-                  <div className={cn("bg-green-500/20 border border-green-500", radius.chip, "p-4")}>
-                    <p className={cn("text-green-300 light:text-green-700 font-semibold text-center flex items-center justify-center", gap.tight)}>
+                  <div className="portfolio-solid portfolio-reveal rounded-lg p-4">
+                    <p className="text-portfolio-ink font-semibold text-center flex items-center justify-center gap-2">
                       <Icon name="checkCircle" size={16} /> All IDs are valid!
                     </p>
                   </div>
                 )}
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </>
     </div>
   );
 }
