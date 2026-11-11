@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { COLLAPSE_LIFE, cometSpawn, createStars, gravityInfluence, implosionInfluence, infallPoint, parallaxOffset, pointerInfluence, rippleInfluence, stepSpring } from "@/lib/starfield";
+import { COLLAPSE_LIFE, cometPath, cometSpawn, createStars, gravityInfluence, implosionInfluence, infallToRim, parallaxOffset, pointerInfluence, rippleInfluence, stepSpring } from "@/lib/starfield";
 
 /**
  * Canvas starfield behind public pages; not mounted under reduced motion (the
@@ -10,8 +10,8 @@ import { COLLAPSE_LIFE, cometSpawn, createStars, gravityInfluence, implosionInfl
  *   constellations; clicks send out a ring. Twinkles while visible.
  * - "home": the pointer is a gravity well that pulls stars into a swirl. Every
  *   second a star leaves the cursor (or, with no mouse on the page, the
- *   left/top/bottom edge) and spirals into the black hole
- *   (`.portfolio-hero-canvas`); a click on the background makes a
+ *   left/top/bottom edge) and spirals onto the rim of the black
+ *   hole (`.portfolio-hero-canvas`); a click on the background makes a
  *   small collapse (a ring shrinks onto the point, nearby stars are pulled in
  *   and let go, then a flash). No twinkle; the frame loop only runs while
  *   something moves.
@@ -20,6 +20,9 @@ type Variant = "page" | "home";
 const INTERACTIVE = "a, button, input, textarea, select, label, summary, [role='button'], [contenteditable]";
 const COMET_LIFE = 2.4;
 const COMET_EVERY = 1000;
+// The hole's shadow inside `.portfolio-hero-canvas`, as fractions of that box
+// (measured against the rendered black hole at 1280, 1920 and 375px wide).
+const HOLE = { cx: .515, cy: .37, rx: .17, ry: .19 };
 
 export default function InteractiveStarfield({ variant = "page" }: { variant?: Variant }) {
   const [enabled, setEnabled] = useState(false);
@@ -42,7 +45,7 @@ function StarCanvas({ variant }: { variant: Variant }) {
     stars: createStars(1, 1, 71).map(s => ({ ...s, dx: 0, dy: 0, vx: 0, vy: 0 })),
     scroll: 0, easedScroll: 0,
     ripples: [] as { x: number; y: number; time: number }[],
-    comets: [] as { x: number; y: number; time: number; trail: { x: number; y: number }[] }[],
+    comets: [] as { x: number; y: number; time: number; rEnd: number; turn: number; trail: { x: number; y: number }[] }[],
     collapses: [] as { x: number; y: number; time: number }[],
   });
   useEffect(() => {
@@ -169,12 +172,12 @@ function StarCanvas({ variant }: { variant: Variant }) {
       // Home: automatic comets spiral into the black hole, trailing Accretion.
       if (state.comets.length) {
         const target = document.querySelector(".portfolio-hero-canvas")?.getBoundingClientRect();
-        // The hole sits at the canvas mask centre (55% 45%, see globals.css).
-        const centre = target ? { x: target.left + target.width * .55, y: target.top + target.height * .45 } : { x: width / 2, y: height / 2 };
+        const centre = target ? { x: target.left + target.width * HOLE.cx, y: target.top + target.height * HOLE.cy } : { x: width / 2, y: height / 2 };
+        const radii = target ? { rx: target.width * HOLE.rx, ry: target.height * HOLE.ry } : { rx: width * .15, ry: height * .15 };
         state.comets = state.comets.filter(c => now - c.time < COMET_LIFE * 1000);
         fx.lineCap = "round"; fx.strokeStyle = accent;
         for (const c of state.comets) {
-          const t = (now - c.time) / 1000 / COMET_LIFE, head = infallPoint(c, centre, t);
+          const t = (now - c.time) / 1000 / COMET_LIFE, head = infallToRim(c, centre, radii, t, c.rEnd, c.turn);
           c.trail = [...c.trail.slice(-27), head];
           const fade = t < .85 ? 1 : (1 - t) / .15;
           for (let k = 1; k < c.trail.length; k++) {
@@ -203,7 +206,7 @@ function StarCanvas({ variant }: { variant: Variant }) {
       cometTimer = setTimeout(() => {
         if (!document.hidden) {
           const start = pointer.active && fine.matches ? { x: pointer.x, y: pointer.y } : cometSpawn(cometSeed++, width, height);
-          state.comets = [...state.comets.slice(-2), { ...start, time: performance.now(), trail: [] }];
+          state.comets = [...state.comets.slice(-2), { ...start, ...cometPath(cometSeed++), time: performance.now(), trail: [] }];
           kick();
         }
         scheduleComet(COMET_EVERY);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createStars, parallaxOffset, pointerInfluence, stepSpring, rippleInfluence, gravityInfluence, infallPoint, implosionInfluence, cometSpawn } from "./starfield";
+import { createStars, parallaxOffset, pointerInfluence, stepSpring, rippleInfluence, gravityInfluence, infallToRim, cometPath, implosionInfluence, cometSpawn } from "./starfield";
 
 describe("starfield", () => {
   it("is deterministic and clamps counts", () => {
@@ -51,15 +51,28 @@ describe("starfield", () => {
     const close = gravityInfluence(5, 0, 0, 0);
     expect(Math.abs(close.pull.x)).toBeLessThanOrEqual(5 * .6 + 1e-9);
   });
-  it("spirals an infalling star from its start into the centre", () => {
-    const start = { x: 300, y: 100 }, centre = { x: 100, y: 100 };
-    expect(infallPoint(start, centre, 0).x).toBeCloseTo(300);
-    expect(infallPoint(start, centre, 0).y).toBeCloseTo(100);
-    const end = infallPoint(start, centre, 1);
-    expect(end.x).toBeCloseTo(100); expect(end.y).toBeCloseTo(100);
-    const radii = [0, .25, .5, .75, 1].map(t => { const p = infallPoint(start, centre, t); return Math.hypot(p.x - 100, p.y - 100); });
-    for (let i = 1; i < radii.length; i++) expect(radii[i]).toBeLessThan(radii[i - 1]);
-    expect(infallPoint(start, centre, 2)).toEqual(end);
+  it("flies a star from its start onto the rim, not the centre", () => {
+    const start = { x: 0, y: 300 }, centre = { x: 600, y: 300 }, radii = { rx: 200, ry: 100 };
+    const norm = (p: { x: number; y: number }) => Math.hypot((p.x - centre.x) / radii.rx, (p.y - centre.y) / radii.ry);
+    const first = infallToRim(start, centre, radii, 0, 1.1, .8);
+    expect(first.x).toBeCloseTo(0); expect(first.y).toBeCloseTo(300);
+    const end = infallToRim(start, centre, radii, 1, 1.1, .8);
+    expect(norm(end)).toBeCloseTo(1.1);
+    expect(Math.hypot(end.x - centre.x, end.y - centre.y)).toBeGreaterThan(100);
+    const radiiAlong = [0, .25, .5, .75, 1].map(t => norm(infallToRim(start, centre, radii, t, 1.1, .8)));
+    for (let i = 1; i < radiiAlong.length; i++) expect(radiiAlong[i]).toBeLessThan(radiiAlong[i - 1]);
+    expect(infallToRim(start, centre, radii, 2, 1.1, .8)).toEqual(end);
+  });
+  it("varies where comets land on the rim and which way they curve", () => {
+    expect(cometPath(3)).toEqual(cometPath(3));
+    const paths = Array.from({ length: 40 }, (_, seed) => cometPath(seed));
+    for (const p of paths) {
+      expect(p.rEnd).toBeGreaterThanOrEqual(.95); expect(p.rEnd).toBeLessThanOrEqual(1.2);
+      expect(Math.abs(p.turn)).toBeGreaterThanOrEqual(.15 * Math.PI - 1e-9);
+      expect(Math.abs(p.turn)).toBeLessThanOrEqual(.35 * Math.PI + 1e-9);
+    }
+    expect(paths.some(p => p.turn > 0)).toBe(true);
+    expect(paths.some(p => p.turn < 0)).toBe(true);
   });
   it("pulls stars into a click collapse, then lets go", () => {
     expect(implosionInfluence(400, 0, 0, 0, .3)).toBe(0);
