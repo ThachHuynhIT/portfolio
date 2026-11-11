@@ -9,8 +9,9 @@ import { COLLAPSE_LIFE, cometSpawn, createStars, gravityInfluence, implosionInfl
  * - "page": the pointer pushes stars away and links nearby ones into
  *   constellations; clicks send out a ring. Twinkles while visible.
  * - "home": the pointer is a gravity well that pulls stars into a swirl. Every
- *   7–11s a star flies in from the left/top/bottom edge and spirals into the
- *   black hole (`.portfolio-hero-canvas`); a click on the background makes a
+ *   second a star leaves the cursor (or, with no mouse on the page, the
+ *   left/top/bottom edge) and spirals into the black hole
+ *   (`.portfolio-hero-canvas`); a click on the background makes a
  *   small collapse (a ring shrinks onto the point, nearby stars are pulled in
  *   and let go, then a flash). No twinkle; the frame loop only runs while
  *   something moves.
@@ -18,6 +19,7 @@ import { COLLAPSE_LIFE, cometSpawn, createStars, gravityInfluence, implosionInfl
 type Variant = "page" | "home";
 const INTERACTIVE = "a, button, input, textarea, select, label, summary, [role='button'], [contenteditable]";
 const COMET_LIFE = 2.4;
+const COMET_EVERY = 1000;
 
 export default function InteractiveStarfield({ variant = "page" }: { variant?: Variant }) {
   const [enabled, setEnabled] = useState(false);
@@ -195,18 +197,19 @@ function StarCanvas({ variant }: { variant: Variant }) {
     const visibility = () => {
       cancelAnimationFrame(frame); frame = 0; settled = false; kick();
     };
-    // Home: one comet every 7–11s (first after ~2.5s); skipped while hidden.
+    // Home: one comet a second from the cursor (edge when there is no mouse
+    // on the page); skipped while hidden.
     const scheduleComet = (delay: number) => {
       cometTimer = setTimeout(() => {
         if (!document.hidden) {
-          const start = cometSpawn(cometSeed++, width, height);
+          const start = pointer.active && fine.matches ? { x: pointer.x, y: pointer.y } : cometSpawn(cometSeed++, width, height);
           state.comets = [...state.comets.slice(-2), { ...start, time: performance.now(), trail: [] }];
           kick();
         }
-        scheduleComet(7000 + (Math.imul(cometSeed, 2654435761) >>> 0) % 4000);
+        scheduleComet(COMET_EVERY);
       }, delay);
     };
-    if (home) scheduleComet(2500);
+    if (home) scheduleComet(COMET_EVERY);
     colors(); resize(); wrapper.dataset.starfield = "live";
     const observer = new MutationObserver(() => { colors(); settled = false; kick(); });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
