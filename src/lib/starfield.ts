@@ -60,25 +60,24 @@ export function gravityInfluence(starX: number, starY: number, px: number, py: n
 
 type Point = { x: number; y: number };
 
-// Position of a star falling onto the black hole's rim. Works in coordinates
-// normalised by the hole's elliptical radii, so the hole edge is radius 1:
-// the star eases from its start radius to `rEnd` (just outside the edge)
-// while turning `turn` radians around the centre. t is clamped to [0, 1].
-export function infallToRim(start: Point, centre: Point, radii: { rx: number; ry: number }, t: number, rEnd: number, turn: number) {
+// Position of a star falling into the black hole's centre. Works in
+// coordinates normalised by the hole's elliptical radii, so the swirl follows
+// the hole's shape. The radius eases to 0 while the angle advances with
+// eased^6: the path is nearly straight at first and turns `turn` radians in a
+// small swirl close to the centre. t is clamped to [0, 1].
+export function infallSpiral(start: Point, centre: Point, radii: { rx: number; ry: number }, t: number, turn: number) {
   const k = Math.max(0, Math.min(1, t)), eased = k * k * (3 - 2 * k);
   const nx = (start.x - centre.x) / radii.rx, ny = (start.y - centre.y) / radii.ry;
-  const r = Math.hypot(nx, ny) + (rEnd - Math.hypot(nx, ny)) * eased;
-  const angle = Math.atan2(ny, nx) + turn * eased;
+  const r = Math.hypot(nx, ny) * (1 - eased), angle = Math.atan2(ny, nx) + turn * eased ** 6;
   return { x: centre.x + Math.cos(angle) * r * radii.rx, y: centre.y + Math.sin(angle) * r * radii.ry };
 }
 
-// Per-comet variety: where it lands (0.95–1.2 × the hole radius) and how far,
-// and which way, it curves on the way in (0.15π–0.35π either direction, so arcs stay on screen).
+// Per-comet variety: which way it swirls and how far (π–1.4π).
 export function cometPath(seed: number) {
   let t = (Math.imul(seed + 1, 0x85ebca6b) ^ 0x27d4eb2f) >>> 0;
   const next = () => { t = Math.imul(t ^ (t >>> 15), 1 | t); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-  const rEnd = .95 + next() * .25, sign = next() < .5 ? -1 : 1;
-  return { rEnd, turn: sign * (.15 + next() * .2) * Math.PI };
+  const sign = next() < .5 ? -1 : 1;
+  return { turn: sign * (1 + next() * .4) * Math.PI };
 }
 
 export const COLLAPSE_LIFE = .9;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { COLLAPSE_LIFE, cometPath, cometSpawn, createStars, gravityInfluence, implosionInfluence, infallToRim, parallaxOffset, pointerInfluence, rippleInfluence, stepSpring } from "@/lib/starfield";
+import { COLLAPSE_LIFE, cometPath, cometSpawn, createStars, gravityInfluence, implosionInfluence, infallSpiral, parallaxOffset, pointerInfluence, rippleInfluence, stepSpring } from "@/lib/starfield";
 
 /**
  * Canvas starfield behind public pages; not mounted under reduced motion (the
@@ -10,8 +10,8 @@ import { COLLAPSE_LIFE, cometPath, cometSpawn, createStars, gravityInfluence, im
  *   constellations; clicks send out a ring. Twinkles while visible.
  * - "home": the pointer is a gravity well that pulls stars into a swirl. Every
  *   second a star leaves the cursor (or, with no mouse on the page, the
- *   left/top/bottom edge) and spirals onto the rim of the black
- *   hole (`.portfolio-hero-canvas`); a click on the background makes a
+ *   left/top/bottom edge) and flies into the centre of the black
+ *   hole (`.portfolio-hero-canvas`), swirling only near the end; a click on the background makes a
  *   small collapse (a ring shrinks onto the point, nearby stars are pulled in
  *   and let go, then a flash). No twinkle; the frame loop only runs while
  *   something moves.
@@ -45,7 +45,7 @@ function StarCanvas({ variant }: { variant: Variant }) {
     stars: createStars(1, 1, 71).map(s => ({ ...s, dx: 0, dy: 0, vx: 0, vy: 0 })),
     scroll: 0, easedScroll: 0,
     ripples: [] as { x: number; y: number; time: number }[],
-    comets: [] as { x: number; y: number; time: number; rEnd: number; turn: number; trail: { x: number; y: number }[] }[],
+    comets: [] as { x: number; y: number; time: number; turn: number; trail: { x: number; y: number }[] }[],
     collapses: [] as { x: number; y: number; time: number }[],
   });
   useEffect(() => {
@@ -177,7 +177,7 @@ function StarCanvas({ variant }: { variant: Variant }) {
         state.comets = state.comets.filter(c => now - c.time < COMET_LIFE * 1000);
         fx.lineCap = "round"; fx.strokeStyle = accent;
         for (const c of state.comets) {
-          const t = (now - c.time) / 1000 / COMET_LIFE, head = infallToRim(c, centre, radii, t, c.rEnd, c.turn);
+          const t = (now - c.time) / 1000 / COMET_LIFE, head = infallSpiral(c, centre, radii, t, c.turn);
           c.trail = [...c.trail.slice(-27), head];
           const fade = t < .85 ? 1 : (1 - t) / .15;
           for (let k = 1; k < c.trail.length; k++) {
