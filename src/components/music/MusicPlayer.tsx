@@ -318,7 +318,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
               <div className={cn("flex items-center", gap.tight, "md:hidden")}>
                 <button
                   onClick={() => setIsMobileSidebarOpen(true)}
-                  className="music-mobile-menu-btn"
+                  className="portfolio-fx-ripple music-mobile-menu-btn"
                   aria-label={t("music.studioNav", "Open Music Navigation")}
                 >
                   <Icon name="menu" size={16} />
@@ -350,7 +350,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     onClick={() => {
                       setSearchQuery("");
                     }}
-                    className="music-search-clear-btn"
+                    className="portfolio-fx-ripple music-search-clear-btn"
                     title={t("music.clearFilter", "Clear")}
                   >
                     <Icon name="close" size={13} />
@@ -507,7 +507,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     setActiveTab("player");
                     setShowOnlyLiked(false);
                   }}
-                  className={cn(`music-quick-pill ${activeTab === "player" ? "music-quick-pill--active" : ""}`)}
+                  className={cn("portfolio-chip", `music-quick-pill ${activeTab === "player" ? "music-quick-pill--active" : ""}`)}
                 >
                   <Icon name="slider" size={14} />
                   <span className="hidden sm:inline">{t("music.quickPills.player", "Player")}</span>
@@ -517,7 +517,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     setActiveTab("charts");
                     setShowOnlyLiked(false);
                   }}
-                  className={cn(`music-quick-pill ${activeTab === "charts" ? "music-quick-pill--active" : ""}`)}
+                  className={cn("portfolio-chip", `music-quick-pill ${activeTab === "charts" ? "music-quick-pill--active" : ""}`)}
                 >
                   <Icon name="trophy" size={14} />
                   <span className="hidden sm:inline">{t("music.quickPills.charts", "Top Charts")}</span>
@@ -527,7 +527,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     setActiveTab("favorites");
                     setShowOnlyLiked(true);
                   }}
-                  className={cn(`music-quick-pill ${activeTab === "favorites" ? "music-quick-pill--active music-quick-pill--liked" : ""}`)}
+                  className={cn("portfolio-chip", `music-quick-pill ${activeTab === "favorites" ? "music-quick-pill--active music-quick-pill--liked" : ""}`)}
                 >
                   <Icon name="heart" size={14} />
                   <span className="hidden sm:inline">{t("music.quickPills.favorites", "Favorites")}</span>
@@ -540,7 +540,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     setActiveTab("queue");
                     setShowOnlyLiked(false);
                   }}
-                  className={cn(`music-quick-pill ${activeTab === "queue" ? "music-quick-pill--active" : ""}`)}
+                  className={cn("portfolio-chip", `music-quick-pill ${activeTab === "queue" ? "music-quick-pill--active" : ""}`)}
                 >
                   <Icon name="listMusic" size={14} />
                   <span className="hidden sm:inline">{t("music.quickPills.queue", "Queue")}</span>
@@ -559,7 +559,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   <div className={cn("flex items-center gap-1.5 p-1 bg-portfolio-hull", radius.control, "border border-portfolio-hairline")}>
                     <button
                       onClick={() => setDeckMode("vinyl")}
-                      className={cn(`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                      className={cn("portfolio-chip", `px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                         deckMode === "vinyl"
                           ? "bg-portfolio-accretion text-portfolio-on-accretion shadow-lg shadow-none"
                           : "text-portfolio-dust hover:text-portfolio-ink"
@@ -570,7 +570,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     </button>
                     <button
                       onClick={() => setDeckMode("lyrics")}
-                      className={cn(`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                      className={cn("portfolio-chip", `px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                         deckMode === "lyrics"
                           ? "bg-portfolio-accretion text-portfolio-on-accretion shadow-lg shadow-none"
                           : "text-portfolio-dust hover:text-portfolio-ink"
@@ -645,7 +645,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                         <button
                           onClick={() => setDeckMode("vinyl")}
-                          className={cn("px-3 py-1.5", radius.control, "bg-portfolio-hull", "hover:bg-portfolio-hull text-xs font-semibold text-portfolio-dust hover:text-portfolio-ink", "border border-portfolio-hairline", "transition-all flex items-center gap-1.5 cursor-pointer")}
+                          className={cn("portfolio-fx-ripple", "px-3 py-1.5", radius.control, "bg-portfolio-hull", "hover:bg-portfolio-hull text-xs font-semibold text-portfolio-dust hover:text-portfolio-ink", "border border-portfolio-hairline", "transition-all flex items-center gap-1.5 cursor-pointer")}
                           title={t("music.deck.backToVinyl", "Back to Vinyl")}
                         >
                           <Icon name="disc" size={14} />
@@ -757,7 +757,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         </span>
                         <button
                           onClick={() => setDeckMode("lyrics")}
-                          className="music-pill-meta hover:bg-portfolio-hull text-portfolio-accretion border-portfolio-accretion cursor-pointer inline-flex items-center gap-1"
+                          className="portfolio-fx-ripple music-pill-meta hover:bg-portfolio-hull text-portfolio-accretion border-portfolio-accretion cursor-pointer inline-flex items-center gap-1"
                         >
                           <Icon name="mic" size={12} /> {t("music.deck.viewLyrics", "View Lyrics")}
                         </button>
@@ -775,7 +775,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                       <div className={cn("flex items-center gap-1 bg-portfolio-hull p-1", radius.control, "border border-portfolio-hairline", "text-xs")}>
                         <button
                           onClick={() => setVisualizerStyle("bars")}
-                          className={cn(`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                          className={cn("portfolio-chip", `px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                             visualizerStyle === "bars"
                               ? "bg-portfolio-accretion text-portfolio-on-accretion font-bold shadow"
                               : "text-portfolio-dust hover:text-portfolio-ink"
@@ -785,7 +785,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         </button>
                         <button
                           onClick={() => setVisualizerStyle("wave")}
-                          className={cn(`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                          className={cn("portfolio-chip", `px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                             visualizerStyle === "wave"
                               ? "bg-portfolio-accretion text-portfolio-on-accretion font-bold shadow"
                               : "text-portfolio-dust hover:text-portfolio-ink"
@@ -795,7 +795,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         </button>
                         <button
                           onClick={() => setVisualizerStyle("pulsar")}
-                          className={cn(`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                          className={cn("portfolio-chip", `px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                             visualizerStyle === "pulsar"
                               ? "bg-portfolio-accretion text-portfolio-on-accretion font-bold shadow"
                               : "text-portfolio-dust hover:text-portfolio-ink"
@@ -846,7 +846,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     <div className="flex items-center gap-2.5 self-start sm:self-auto">
                       <button
                         onClick={() => setShowOnlyLiked(!showOnlyLiked)}
-                        className={cn(`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 cursor-pointer ${
+                        className={cn("portfolio-chip", `px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 cursor-pointer ${
                           showOnlyLiked
                             ? "bg-portfolio-hull text-portfolio-accretion border-portfolio-accretion shadow-sm shadow-none"
                             : "bg-portfolio-hull text-portfolio-dust hover:text-portfolio-ink border-portfolio-hairline"
@@ -918,7 +918,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                 e.stopPropagation();
                                 toggleLike(t.id);
                               }}
-                              className={cn(`text-xs ${isLiked ? "text-portfolio-accretion" : "text-portfolio-dust hover:text-portfolio-ink"}`)}
+                              className={cn("portfolio-chip", `text-xs ${isLiked ? "text-portfolio-accretion" : "text-portfolio-dust hover:text-portfolio-ink"}`)}
                             >
                               <Icon name="heart" size={13} filled={isLiked} />
                             </button>
@@ -1043,7 +1043,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     {/* Spotify Iconic Circular Big Green Play Button */}
                     <button
                       onClick={handlePlayChartFromStart}
-                      className={cn("w-14 h-14", radius.pill, "bg-portfolio-accretion hover:bg-portfolio-accretion text-portfolio-on-accretion flex items-center justify-center shadow-xl shadow-none hover:scale-105", motionTokens.press, "transition-all")}
+                      className={cn("portfolio-fx-ripple", "w-14 h-14", radius.pill, "bg-portfolio-accretion hover:bg-portfolio-accretion text-portfolio-on-accretion flex items-center justify-center shadow-xl shadow-none hover:scale-105", motionTokens.press, "transition-all")}
                       title={t("music.charts.playAll", "Play all from #1")}
                     >
                       <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28" className="translate-x-0.5">
@@ -1054,7 +1054,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     {/* Shuffle Play Button */}
                     <button
                       onClick={handleShufflePlayCharts}
-                      className={cn(`p-3 rounded-full border transition-all ${
+                      className={cn("portfolio-fx-ripple", `p-3 rounded-full border transition-all ${
                         isShuffle
                           ? "bg-portfolio-hull text-portfolio-accretion border-portfolio-accretion"
                           : "bg-portfolio-hull hover:bg-portfolio-hull text-portfolio-dust hover:text-portfolio-ink border-portfolio-hairline"
@@ -1075,7 +1075,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   <div className={cn("flex items-center gap-1.5 p-1 bg-portfolio-hull", radius.control, "border border-portfolio-hairline", "self-start sm:self-auto")}>
                     <button
                       onClick={() => setChartFilter("plays")}
-                      className={cn(`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      className={cn("portfolio-chip", `px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                         chartFilter === "plays"
                           ? "bg-portfolio-hull text-portfolio-accretion font-bold border border-portfolio-accretion"
                           : "text-portfolio-dust hover:text-portfolio-ink"
@@ -1085,7 +1085,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     </button>
                     <button
                       onClick={() => setChartFilter("liked")}
-                      className={cn(`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      className={cn("portfolio-chip", `px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                         chartFilter === "liked"
                           ? "bg-portfolio-hull text-portfolio-accretion font-bold border border-portfolio-accretion"
                           : "text-portfolio-dust hover:text-portfolio-ink"
@@ -1095,7 +1095,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     </button>
                     <button
                       onClick={() => setChartFilter("recent")}
-                      className={cn(`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      className={cn("portfolio-chip", `px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                         chartFilter === "recent"
                           ? "bg-portfolio-hull text-portfolio-accretion font-bold border border-portfolio-accretion"
                           : "text-portfolio-dust hover:text-portfolio-ink"
@@ -1150,7 +1150,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                       playTrackById(track.id);
                                     }
                                   }}
-                                  className={cn("w-7 h-7", radius.pill, "bg-portfolio-accretion text-portfolio-on-accretion flex items-center justify-center shadow hover:scale-110 transition-transform")}
+                                  className={cn("portfolio-fx-ripple", "w-7 h-7", radius.pill, "bg-portfolio-accretion text-portfolio-on-accretion flex items-center justify-center shadow hover:scale-110 transition-transform")}
                                   title={isThisPlaying ? t("music.charts.pause", "Pause") : t("music.charts.play", "Play Track")}
                                 >
                                   {isThisPlaying ? (
@@ -1229,7 +1229,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                   e.stopPropagation();
                                   toggleLike(track.id);
                                 }}
-                                className={cn(`text-sm transition-transform active:scale-125 ${
+                                className={cn("portfolio-chip", `text-sm transition-transform active:scale-125 ${
                                   isLiked ? "text-portfolio-accretion" : "text-portfolio-dust hover:text-portfolio-dust"
                                 }`)}
                                 title={isLiked ? t("music.favorites.removeTooltip", "Unlike") : t("music.playerBar.likeTrack", "Like")}
@@ -1319,7 +1319,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                         }
                       }}
                       disabled={likedTracks.length === 0}
-                      className={cn(`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${
+                      className={cn("portfolio-fx-ripple", `w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${
                         likedTracks.length > 0
                           ? "bg-portfolio-accretion text-portfolio-on-accretion hover:scale-105 active:scale-95 shadow-none cursor-pointer"
                           : "bg-portfolio-hull text-portfolio-dust cursor-not-allowed"
@@ -1345,7 +1345,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           const rand = Math.floor(Math.random() * likedTracks.length);
                           playTrackById(likedTracks[rand].id);
                         }}
-                        className={cn("p-3", radius.pill, "bg-portfolio-hull", "hover:bg-portfolio-hull text-portfolio-dust hover:text-portfolio-ink", "border border-portfolio-hairline", "transition-all")}
+                        className={cn("portfolio-fx-ripple", "p-3", radius.pill, "bg-portfolio-hull", "hover:bg-portfolio-hull text-portfolio-dust hover:text-portfolio-ink", "border border-portfolio-hairline", "transition-all")}
                         title={t("music.charts.shuffle", "Shuffle play favorites")}
                       >
                         <Icon name="shuffle" size={16} />
@@ -1376,7 +1376,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                           setActiveTab("charts");
                           setShowOnlyLiked(false);
                         }}
-                        className={cn("px-5 py-2.5", radius.pill, "bg-portfolio-accretion hover:bg-portfolio-accretion text-portfolio-on-accretion text-xs font-bold transition-all shadow-lg shadow-none flex items-center", gap.tight, "cursor-pointer")}
+                        className={cn("portfolio-fx-ripple", "px-5 py-2.5", radius.pill, "bg-portfolio-accretion hover:bg-portfolio-accretion text-portfolio-on-accretion text-xs font-bold transition-all shadow-lg shadow-none flex items-center", gap.tight, "cursor-pointer")}
                       >
                         <Icon name="trophy" size={13} />
                         <span>{t("music.favorites.exploreBtn", "Explore Soundtracks")}</span>
@@ -1473,7 +1473,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                                     e.stopPropagation();
                                     toggleLike(track.id);
                                   }}
-                                  className="text-portfolio-accretion hover:scale-125 transition-transform"
+                                  className="portfolio-chip text-portfolio-accretion hover:scale-125 transition-transform"
                                   title={t("music.favorites.removeTooltip", "Remove from favorites")}
                                 >
                                   <Icon name="heart" size={14} filled />
@@ -1564,7 +1564,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                               e.stopPropagation();
                               toggleLike(track.id);
                             }}
-                            className={cn(isLiked ? "text-portfolio-accretion" : "text-portfolio-dust hover:text-portfolio-ink")}
+                            className={cn("portfolio-chip", isLiked ? "text-portfolio-accretion" : "text-portfolio-dust hover:text-portfolio-ink")}
                             title={isLiked ? t("music.favorites.removeTooltip", "Unlike") : t("music.playerBar.likeTrack", "Like track")}
                           >
                             <Icon name="heart" size={13} filled={isLiked} />
@@ -1746,7 +1746,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
               <div className="flex items-center gap-1">
                 <button
                   onClick={togglePlay}
-                  className="music-dock-btn music-dock-btn--play"
+                  className="portfolio-fx-ripple music-dock-btn music-dock-btn--play"
                   title={isPlaying ? t("music.playerBar.pauseTooltip", "Pause (Space)") : t("music.playerBar.playTooltip", "Play (Space)")}
                 >
                   {isPlaying ? <PauseIcon /> : <PlayIcon />}
@@ -1754,7 +1754,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
 
                 <button
                   onClick={nextTrack}
-                  className="music-dock-btn"
+                  className="portfolio-fx-ripple music-dock-btn"
                   title={t("music.playerBar.nextTooltip", "Next Track")}
                 >
                   <NextIcon />
@@ -1763,7 +1763,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 {/* Expand Button */}
                 <button
                   onClick={togglePlayerCollapsed}
-                  className="music-dock-btn music-dock-btn--expand"
+                  className="portfolio-fx-ripple music-dock-btn music-dock-btn--expand"
                   title={t("music.playerBar.expandTooltip", "Expand Player Bar (C)")}
                 >
                   <Icon name="arrowUp" size={12} />
@@ -1790,7 +1790,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     <span className="music-bar-title">{currentTrack.title}</span>
                     <button
                       onClick={() => toggleLike(currentTrack.id)}
-                      className={cn(`transition-colors ${isCurrentLiked ? "text-portfolio-accretion" : "text-portfolio-dust hover:text-portfolio-ink"
+                      className={cn("portfolio-chip", `transition-colors ${isCurrentLiked ? "text-portfolio-accretion" : "text-portfolio-dust hover:text-portfolio-ink"
                         }`)}
                       title={isCurrentLiked ? t("music.playerBar.unlikeTrack", "Liked!") : t("music.playerBar.likeTrack", "Like track")}
                     >
@@ -1808,7 +1808,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   <button
                     id="music-shuffle-btn"
                     onClick={() => setIsShuffle((s) => !s)}
-                    className={cn(`music-ctrl-btn ${isShuffle ? "music-ctrl-btn--active" : ""}`)}
+                    className={cn("portfolio-fx-ripple", `music-ctrl-btn ${isShuffle ? "music-ctrl-btn--active" : ""}`)}
                     aria-label="Shuffle"
                     title={isShuffle ? t("music.playerBar.shuffleOn", "Shuffle On") : t("music.playerBar.shuffleOff", "Shuffle Off")}
                   >
@@ -1818,7 +1818,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   <button
                     id="music-prev-btn"
                     onClick={prevTrack}
-                    className="music-ctrl-btn music-ctrl-btn--skip"
+                    className="portfolio-fx-ripple music-ctrl-btn music-ctrl-btn--skip"
                     aria-label="Previous Track"
                     title={t("music.playerBar.prevTooltip", "Previous Track (Shift+Left)")}
                   >
@@ -1828,7 +1828,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   <button
                     id="music-play-btn"
                     onClick={togglePlay}
-                    className="music-ctrl-btn music-ctrl-btn--play-main"
+                    className="portfolio-fx-ripple music-ctrl-btn music-ctrl-btn--play-main"
                     aria-label={isPlaying ? "Pause" : "Play"}
                     disabled={isLoading}
                     title={isPlaying ? t("music.playerBar.pauseTooltip", "Pause (Space)") : t("music.playerBar.playTooltip", "Play (Space)")}
@@ -1845,7 +1845,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   <button
                     id="music-next-btn"
                     onClick={nextTrack}
-                    className="music-ctrl-btn music-ctrl-btn--skip"
+                    className="portfolio-fx-ripple music-ctrl-btn music-ctrl-btn--skip"
                     aria-label="Next Track"
                     title={t("music.playerBar.nextTooltip", "Next Track (Shift+Right)")}
                   >
@@ -1855,7 +1855,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   <button
                     id="music-repeat-btn"
                     onClick={cycleRepeat}
-                    className={cn(`music-ctrl-btn ${repeatMode !== "none" ? "music-ctrl-btn--active" : ""}`)}
+                    className={cn("portfolio-fx-ripple", `music-ctrl-btn ${repeatMode !== "none" ? "music-ctrl-btn--active" : ""}`)}
                     aria-label={`Repeat: ${repeatMode}`}
                     title={`${t("music.playerBar.repeatMode", "Repeat")}: ${repeatMode}`}
                   >
@@ -1911,7 +1911,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                     setActiveTab("player");
                     setDeckMode(deckMode === "lyrics" && activeTab === "player" ? "vinyl" : "lyrics");
                   }}
-                  className={cn(`music-ctrl-btn music-ctrl-btn--sm ${
+                  className={cn("portfolio-fx-ripple", `music-ctrl-btn music-ctrl-btn--sm ${
                     deckMode === "lyrics" && activeTab === "player"
                       ? "!text-portfolio-accretion !border-portfolio-accretion !bg-portfolio-hull"
                       : "text-portfolio-dust hover:text-portfolio-ink"
@@ -1971,7 +1971,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 {/* Playback speed */}
                 <button
                   onClick={cycleSpeed}
-                  className="music-speed-badge"
+                  className="portfolio-chip music-speed-badge"
                   title={t("music.playerBar.speed", "Playback Speed")}
                 >
                   {playbackRate}x
@@ -1982,7 +1982,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                   <button
                     id="music-mute-btn"
                     onClick={toggleMute}
-                    className="music-ctrl-btn music-ctrl-btn--sm"
+                    className="portfolio-fx-ripple music-ctrl-btn music-ctrl-btn--sm"
                     aria-label={isMuted ? "Unmute" : "Mute"}
                     title={t("music.playerBar.muteTooltip", "Mute / Unmute (M)")}
                   >
@@ -2014,7 +2014,7 @@ function MusicPlayerContent({ initialTracks }: { initialTracks?: Track[] }) {
                 {/* Collapse Player Button */}
                 <button
                   onClick={togglePlayerCollapsed}
-                  className="music-collapse-btn"
+                  className="portfolio-fx-ripple music-collapse-btn"
                   title={t("music.playerBar.collapseTooltip", "Collapse Player Bar (Hotkey: C)")}
                 >
                   <Icon name="arrowDown" size={12} />

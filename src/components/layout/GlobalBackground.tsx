@@ -2,6 +2,7 @@
 
 import { type ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import InteractiveStarfield from "./InteractiveStarfield";
 import { isExcludedRoute } from "@/lib/constants";
 
 export function PortfolioScope({ children }: { children: ReactNode }) {
@@ -16,6 +17,7 @@ export default function GlobalBackground() {
   return (
     <div aria-hidden="true" data-portfolio-dark={isMusic ? "true" : undefined} className="portfolio-theme pointer-events-none fixed inset-0 -z-10 bg-portfolio-void">
       <div className="portfolio-stars absolute inset-0" />
+      <InteractiveStarfield key={isMusic ? "music" : "public"} />
     </div>
   );
 }

@@ -42,7 +42,7 @@ export default function StoryLayout({ photos, onSelectPhoto }: StoryLayoutProps)
         return (
           <article
             key={photo.id}
-            className={cn("portfolio-reveal portfolio-reveal--iris group", "rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion", "transition-colors")}
+            className={cn("portfolio-fx-card portfolio-reveal portfolio-reveal--iris group", "rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion", "transition-colors")}
           >
             {/* Main Visual */}
             <div

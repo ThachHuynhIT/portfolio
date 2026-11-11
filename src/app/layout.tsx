@@ -107,6 +107,7 @@ export const viewport: Viewport = {
 };
 
 import GlobalBackground, { PortfolioScope } from "@/components/layout/GlobalBackground";
+import PointerEffects from "@/components/layout/PointerEffects";
 import RevealObserver from "@/components/layout/RevealObserver";
 import MotionProvider from "@/components/layout/MotionProvider";
 
@@ -146,6 +147,7 @@ export default async function RootLayout({
                 </PortfolioScope>
                 <GlobalMusicPlayer />
                 <RevealObserver />
+                <PointerEffects />
               </MusicProvider>
             </LanguageProvider>
           </MotionProvider>
