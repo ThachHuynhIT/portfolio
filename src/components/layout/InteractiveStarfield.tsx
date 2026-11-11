@@ -1,22 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createStars, gravityInfluence, infallPoint, parallaxOffset, pointerInfluence, rippleInfluence, stepSpring } from "@/lib/starfield";
+import { COLLAPSE_LIFE, cometSpawn, createStars, gravityInfluence, implosionInfluence, infallPoint, parallaxOffset, pointerInfluence, rippleInfluence, stepSpring } from "@/lib/starfield";
 
 /**
  * Canvas starfield behind public pages; not mounted under reduced motion (the
  * static CSS `.portfolio-stars` layer stays instead).
  * - "page": the pointer pushes stars away and links nearby ones into
  *   constellations; clicks send out a ring. Twinkles while visible.
- * - "home": the pointer is a gravity well that pulls stars into a swirl, and a
- *   click launches a star that spirals into the black hole
- *   (`.portfolio-hero-canvas`). No twinkle, and the loop stops once
- *   everything settles, so the homepage keeps no idle animation loop besides
- *   the black hole itself.
+ * - "home": the pointer is a gravity well that pulls stars into a swirl. Every
+ *   7–11s a star flies in from the left/top/bottom edge and spirals into the
+ *   black hole (`.portfolio-hero-canvas`); a click on the background makes a
+ *   small collapse (a ring shrinks onto the point, nearby stars are pulled in
+ *   and let go, then a flash). No twinkle; the frame loop only runs while
+ *   something moves.
  */
 type Variant = "page" | "home";
 const INTERACTIVE = "a, button, input, textarea, select, label, summary, [role='button'], [contenteditable]";
-const COMET_LIFE = 1.6;
+const COMET_LIFE = 2.4;
 
 export default function InteractiveStarfield({ variant = "page" }: { variant?: Variant }) {
   const [enabled, setEnabled] = useState(false);
@@ -40,6 +41,7 @@ function StarCanvas({ variant }: { variant: Variant }) {
     scroll: 0, easedScroll: 0,
     ripples: [] as { x: number; y: number; time: number }[],
     comets: [] as { x: number; y: number; time: number; trail: { x: number; y: number }[] }[],
+    collapses: [] as { x: number; y: number; time: number }[],
   });
   useEffect(() => {
     const canvas = ref.current;
@@ -52,9 +54,9 @@ function StarCanvas({ variant }: { variant: Variant }) {
     const state = simulation.current;
     const pointer = state.pointer;
     state.scroll = state.easedScroll = window.scrollY;
-    state.ripples = []; state.comets = [];
+    state.ripples = []; state.comets = []; state.collapses = [];
     const home = variant === "home";
-    let frame = 0, last = 0, resizeTimer: ReturnType<typeof setTimeout>;
+    let frame = 0, last = 0, resizeTimer: ReturnType<typeof setTimeout>, cometTimer: ReturnType<typeof setTimeout> | undefined, cometSeed = 1;
     let settled = false;
     const colors = () => {
       const style = getComputedStyle(canvas);
@@ -79,7 +81,7 @@ function StarCanvas({ variant }: { variant: Variant }) {
     const down = (e: PointerEvent) => {
       if (e.button !== 0 || (e.target instanceof Element && e.target.closest(home ? INTERACTIVE : "input, textarea, select, [contenteditable]"))) return;
       kick();
-      if (home) { state.comets = [...state.comets.slice(-2), { x: e.clientX, y: e.clientY, time: performance.now(), trail: [] }]; return; }
+      if (home) { state.collapses = [...state.collapses.slice(-2), { x: e.clientX, y: e.clientY, time: performance.now() }]; return; }
       state.ripples = [...state.ripples.slice(-2), { x: e.clientX, y: e.clientY, time: performance.now() }];
     };
     const onScroll = () => { state.scroll = window.scrollY; settled = false; kick(); };
@@ -101,6 +103,7 @@ function StarCanvas({ variant }: { variant: Variant }) {
         ctx.globalAlpha = home ? (light ? .1 : .16) : light ? .08 : .12; ctx.fillStyle = halo; ctx.fillRect(0, 0, width, height);
       }
       state.ripples = state.ripples.filter(r => now - r.time < 900);
+      state.collapses = state.collapses.filter(c => now - c.time < COLLAPSE_LIFE * 1000);
       const nearby: { x: number; y: number; glow: number }[] = [];
       state.stars.forEach((s, i) => {
         const offset = parallaxOffset(s.layer, fine.matches ? pointer.ex / width * 2 - 1 : 0, fine.matches ? pointer.ey / height * 2 - 1 : 0, state.easedScroll);
@@ -114,16 +117,22 @@ function StarCanvas({ variant }: { variant: Variant }) {
           const push = rippleInfluence(x, y, r.x, r.y, (now - r.time) / 1000);
           if (d) { tx += (x - r.x) / d * push; ty += (y - r.y) / d * push; }
         }
+        let collapseGlow = 0;
+        for (const c of state.collapses) {
+          const d = Math.hypot(c.x - x, c.y - y), pull = implosionInfluence(x, y, c.x, c.y, (now - c.time) / 1000);
+          if (d && pull) { tx += (c.x - x) / d * pull; ty += (c.y - y) / d * pull; collapseGlow = Math.max(collapseGlow, pull / 30); }
+        }
         const sx = stepSpring(s.dx, tx, s.vx, dt), sy = stepSpring(s.dy, ty, s.vy, dt);
         s.dx = sx.value; s.vx = sx.velocity; s.dy = sy.value; s.vy = sy.velocity;
         if (Math.abs(s.dx - tx) + Math.abs(s.dy - ty) + Math.abs(s.vx) + Math.abs(s.vy) > .1) settled = false;
         const base = light ? .08 + s.layer * .03 : s.baseAlpha;
         const twinkle = !home && i % 5 === 0 ? .85 + .15 * Math.sin(now / 1000 * s.twinkleSpeed + s.twinklePhase) : 1;
-        const alpha = Math.min(.95, base * twinkle + influence.glow * (light ? .35 : .75));
+        const glowAll = Math.min(1, influence.glow + collapseGlow);
+        const alpha = Math.min(.95, base * twinkle + glowAll * (light ? .35 : .75));
         ctx.globalAlpha = alpha; ctx.fillStyle = ink;
-        ctx.beginPath(); ctx.arc(x + s.dx, y + s.dy, s.radius * (1 + 1.6 * influence.glow), 0, Math.PI * 2); ctx.fill();
-        if (influence.glow > 0) {
-          ctx.fillStyle = accent; ctx.globalAlpha = alpha * influence.glow; ctx.fill();
+        ctx.beginPath(); ctx.arc(x + s.dx, y + s.dy, s.radius * (1 + 1.6 * glowAll), 0, Math.PI * 2); ctx.fill();
+        if (glowAll > 0) {
+          ctx.fillStyle = accent; ctx.globalAlpha = alpha * glowAll; ctx.fill();
           if (!home) nearby.push({ x: x + s.dx, y: y + s.dy, glow: influence.glow });
         }
       });
@@ -141,9 +150,21 @@ function StarCanvas({ variant }: { variant: Variant }) {
         ctx.globalAlpha = (light ? .25 : .35) * (1 - age / .9);
         ctx.beginPath(); ctx.arc(r.x, r.y, age * 600, 0, Math.PI * 2); ctx.stroke();
       }
-      // Home clicks: a star spirals into the black hole, trailing Accretion.
       const fx = octx ?? ctx;
       if (octx) octx.clearRect(0, 0, width, height);
+      // Home clicks: a ring shrinks onto the point, then a short flash.
+      for (const c of state.collapses) {
+        const u = (now - c.time) / 1000 / COLLAPSE_LIFE;
+        fx.strokeStyle = accent; fx.lineWidth = 1.2;
+        fx.globalAlpha = (light ? .4 : .55) * Math.sin(Math.PI * Math.min(1, u / .8));
+        fx.beginPath(); fx.arc(c.x, c.y, 2 + 150 * (1 - Math.min(1, u / .8)) ** 1.6, 0, Math.PI * 2); fx.stroke();
+        if (u > .7) {
+          const k = (u - .7) / .3, r = 8 + 34 * k, flash = fx.createRadialGradient(c.x, c.y, 0, c.x, c.y, r);
+          flash.addColorStop(0, accent); flash.addColorStop(1, "transparent");
+          fx.globalAlpha = (light ? .45 : .6) * (1 - k); fx.fillStyle = flash; fx.fillRect(c.x - r, c.y - r, r * 2, r * 2);
+        }
+      }
+      // Home: automatic comets spiral into the black hole, trailing Accretion.
       if (state.comets.length) {
         const target = document.querySelector(".portfolio-hero-canvas")?.getBoundingClientRect();
         // The hole sits at the canvas mask centre (55% 45%, see globals.css).
@@ -166,7 +187,7 @@ function StarCanvas({ variant }: { variant: Variant }) {
         }
       }
       ctx.globalAlpha = 1; fx.globalAlpha = 1;
-      if (home && settled && !state.comets.length) { cancelAnimationFrame(frame); frame = 0; }
+      if (home && settled && !state.comets.length && !state.collapses.length) { cancelAnimationFrame(frame); frame = 0; }
     };
     function kick() {
       if (!frame && !document.hidden) { last = 0; frame = requestAnimationFrame(draw); }
@@ -174,6 +195,18 @@ function StarCanvas({ variant }: { variant: Variant }) {
     const visibility = () => {
       cancelAnimationFrame(frame); frame = 0; settled = false; kick();
     };
+    // Home: one comet every 7–11s (first after ~2.5s); skipped while hidden.
+    const scheduleComet = (delay: number) => {
+      cometTimer = setTimeout(() => {
+        if (!document.hidden) {
+          const start = cometSpawn(cometSeed++, width, height);
+          state.comets = [...state.comets.slice(-2), { ...start, time: performance.now(), trail: [] }];
+          kick();
+        }
+        scheduleComet(7000 + (Math.imul(cometSeed, 2654435761) >>> 0) % 4000);
+      }, delay);
+    };
+    if (home) scheduleComet(2500);
     colors(); resize(); wrapper.dataset.starfield = "live";
     const observer = new MutationObserver(() => { colors(); settled = false; kick(); });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -186,7 +219,7 @@ function StarCanvas({ variant }: { variant: Variant }) {
     document.addEventListener("visibilitychange", visibility);
     visibility();
     return () => {
-      cancelAnimationFrame(frame); clearTimeout(resizeTimer); observer.disconnect(); delete wrapper.dataset.starfield;
+      cancelAnimationFrame(frame); clearTimeout(resizeTimer); clearTimeout(cometTimer); observer.disconnect(); delete wrapper.dataset.starfield;
       window.removeEventListener("pointermove", move); window.removeEventListener("pointerdown", down);
       document.documentElement.removeEventListener("pointerleave", leave); window.removeEventListener("blur", leave);
       window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onResize);

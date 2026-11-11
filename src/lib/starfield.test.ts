@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createStars, parallaxOffset, pointerInfluence, stepSpring, rippleInfluence, gravityInfluence, infallPoint } from "./starfield";
+import { createStars, parallaxOffset, pointerInfluence, stepSpring, rippleInfluence, gravityInfluence, infallPoint, implosionInfluence, cometSpawn } from "./starfield";
 
 describe("starfield", () => {
   it("is deterministic and clamps counts", () => {
@@ -60,5 +60,28 @@ describe("starfield", () => {
     const radii = [0, .25, .5, .75, 1].map(t => { const p = infallPoint(start, centre, t); return Math.hypot(p.x - 100, p.y - 100); });
     for (let i = 1; i < radii.length; i++) expect(radii[i]).toBeLessThan(radii[i - 1]);
     expect(infallPoint(start, centre, 2)).toEqual(end);
+  });
+  it("pulls stars into a click collapse, then lets go", () => {
+    expect(implosionInfluence(400, 0, 0, 0, .3)).toBe(0);
+    expect(implosionInfluence(60, 0, 0, 0, .9)).toBe(0);
+    expect(implosionInfluence(60, 0, 0, 0, -.1)).toBe(0);
+    expect(implosionInfluence(0, 0, 0, 0, .4)).toBe(0);
+    const mid = implosionInfluence(60, 0, 0, 0, .4);
+    expect(mid).toBeGreaterThan(0);
+    expect(mid).toBeLessThanOrEqual(60 * .7);
+    expect(implosionInfluence(60, 0, 0, 0, .05)).toBeLessThan(mid);
+    expect(implosionInfluence(10, 0, 0, 0, .4)).toBeLessThanOrEqual(7 + 1e-9);
+  });
+  it("spawns automatic comets deterministically on the left or top/bottom edge", () => {
+    expect(cometSpawn(5, 1600, 900)).toEqual(cometSpawn(5, 1600, 900));
+    for (let seed = 0; seed < 50; seed++) {
+      const p = cometSpawn(seed, 1600, 900);
+      const onEdge = p.x === 0 || p.y === 0 || p.y === 900;
+      expect(onEdge).toBe(true);
+      expect(p.x).toBeGreaterThanOrEqual(0);
+      expect(p.x).toBeLessThanOrEqual(1600 * .6);
+      expect(p.y).toBeGreaterThanOrEqual(0);
+      expect(p.y).toBeLessThanOrEqual(900);
+    }
   });
 });

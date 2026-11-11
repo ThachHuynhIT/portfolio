@@ -67,3 +67,25 @@ export function infallPoint(start: { x: number; y: number }, centre: { x: number
   const r = r0 * (1 - eased);
   return { x: centre.x + Math.cos(angle) * r, y: centre.y + Math.sin(angle) * r };
 }
+
+export const COLLAPSE_LIFE = .9;
+
+// Homepage click: a brief collapse. Stars within 180px are pulled toward the
+// click (strength rises then falls over COLLAPSE_LIFE, so the spring lets them
+// go again). Never pulls a star more than 70% of the way in.
+export function implosionInfluence(starX: number, starY: number, cx: number, cy: number, age: number) {
+  if (age < 0 || age >= COLLAPSE_LIFE) return 0;
+  const d = Math.hypot(starX - cx, starY - cy);
+  if (!d || d >= 180) return 0;
+  return Math.min(30 * Math.sin(Math.PI * age / COLLAPSE_LIFE) * (1 - d / 180) ** 1.5, d * .7);
+}
+
+// Start point for an automatic comet: on the left edge, or on the top/bottom
+// edge within the left 60% of the viewport, away from the black hole side.
+export function cometSpawn(seed: number, width: number, height: number) {
+  let t = (seed * 0x9e3779b1 + 0x6d2b79f5) >>> 0;
+  const next = () => { t = Math.imul(t ^ (t >>> 15), 1 | t); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const edge = next(), along = next();
+  if (edge < .4) return { x: 0, y: along * height };
+  return { x: along * width * .6, y: edge < .7 ? 0 : height };
+}
