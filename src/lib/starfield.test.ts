@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createStars, parallaxOffset, pointerInfluence, stepSpring, rippleInfluence } from "./starfield";
+import { createStars, parallaxOffset, pointerInfluence, stepSpring, rippleInfluence, gravityInfluence, infallPoint } from "./starfield";
 
 describe("starfield", () => {
   it("is deterministic and clamps counts", () => {
@@ -38,5 +38,27 @@ describe("starfield", () => {
     expect(rippleInfluence(120, 0, 0, 0, .9)).toBe(0);
     expect(rippleInfluence(120, 0, 0, 0, 2)).toBe(0);
     expect(rippleInfluence(500, 0, 0, 0, .2)).toBe(0);
+  });
+  it("pulls stars toward the pointer with a swirl, never past it", () => {
+    expect(gravityInfluence(300, 0, 0, 0)).toEqual({ pull: { x: 0, y: 0 }, glow: 0 });
+    const centre = gravityInfluence(0, 0, 0, 0);
+    expect(centre.glow).toBe(1);
+    expect(Number.isFinite(centre.pull.x + centre.pull.y)).toBe(true);
+    const near = gravityInfluence(80, 0, 0, 0);
+    expect(near.pull.x).toBeLessThan(0);
+    expect(Math.abs(near.pull.x)).toBeLessThan(80);
+    expect(near.pull.y).not.toBe(0);
+    const close = gravityInfluence(5, 0, 0, 0);
+    expect(Math.abs(close.pull.x)).toBeLessThanOrEqual(5 * .6 + 1e-9);
+  });
+  it("spirals an infalling star from its start into the centre", () => {
+    const start = { x: 300, y: 100 }, centre = { x: 100, y: 100 };
+    expect(infallPoint(start, centre, 0).x).toBeCloseTo(300);
+    expect(infallPoint(start, centre, 0).y).toBeCloseTo(100);
+    const end = infallPoint(start, centre, 1);
+    expect(end.x).toBeCloseTo(100); expect(end.y).toBeCloseTo(100);
+    const radii = [0, .25, .5, .75, 1].map(t => { const p = infallPoint(start, centre, t); return Math.hypot(p.x - 100, p.y - 100); });
+    for (let i = 1; i < radii.length; i++) expect(radii[i]).toBeLessThan(radii[i - 1]);
+    expect(infallPoint(start, centre, 2)).toEqual(end);
   });
 });

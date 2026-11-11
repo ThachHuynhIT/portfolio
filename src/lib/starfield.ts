@@ -45,3 +45,25 @@ export function rippleInfluence(starX: number, starY: number, rippleX: number, r
   if (age < 0 || age >= .9) return 0;
   return 28 * Math.max(0, 1 - Math.abs(Math.hypot(starX - rippleX, starY - rippleY) - age * 600) / 60) ** 2 * (1 - age / .9);
 }
+
+// Homepage variant: the pointer is a small gravity well. Stars are pulled
+// toward it with a sideways swirl (a mini accretion vortex) instead of being
+// pushed away. The pull never carries a star past the pointer.
+export function gravityInfluence(starX: number, starY: number, px: number, py: number, radius = 170) {
+  const dx = px - starX, dy = py - starY, d = Math.hypot(dx, dy);
+  const glow = radius > 0 ? Math.max(0, 1 - d / radius) ** 1.5 : 0;
+  if (!d || !glow) return { pull: { x: 0, y: 0 }, glow };
+  const strength = Math.min(24 * glow, d * .6);
+  const ux = dx / d, uy = dy / d;
+  return { pull: { x: (ux - uy * .55) * strength, y: (uy + ux * .55) * strength }, glow };
+}
+
+// Position of a star falling into the black hole: radius shrinks with an
+// ease-in while it turns about a third of an orbit (it stays on screen). t is clamped to [0, 1].
+export function infallPoint(start: { x: number; y: number }, centre: { x: number; y: number }, t: number) {
+  const k = Math.max(0, Math.min(1, t)), eased = k * k * (3 - 2 * k);
+  const r0 = Math.hypot(start.x - centre.x, start.y - centre.y);
+  const angle = Math.atan2(start.y - centre.y, start.x - centre.x) + eased * Math.PI * .6;
+  const r = r0 * (1 - eased);
+  return { x: centre.x + Math.cos(angle) * r, y: centre.y + Math.sin(angle) * r };
+}
