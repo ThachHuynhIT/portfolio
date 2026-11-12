@@ -20,9 +20,11 @@ type Variant = "page" | "home";
 const INTERACTIVE = "a, button, input, textarea, select, label, summary, [role='button'], [contenteditable]";
 const COMET_LIFE = 2.4;
 const COMET_EVERY = 1000;
-// The hole's shadow inside `.portfolio-hero-canvas`, as fractions of that box
-// (measured against the rendered black hole at 1280, 1920 and 375px wide).
-const HOLE = { cx: .515, cy: .37, rx: .17, ry: .19 };
+// The hole's shadow inside `.portfolio-hero-canvas`, as fractions of that box.
+// The engine's camera always looks at the origin, so the shadow's centre is the
+// box centre at every aspect ratio and scroll pose (the dark area seen above the
+// disk sits higher, but that is only its unhidden top half).
+const HOLE = { cx: .5, cy: .5, rx: .17, ry: .19 };
 
 export default function InteractiveStarfield({ variant = "page" }: { variant?: Variant }) {
   const [enabled, setEnabled] = useState(false);
