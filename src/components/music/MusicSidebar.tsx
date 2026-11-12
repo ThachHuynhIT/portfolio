@@ -67,7 +67,7 @@ export default function MusicSidebar() {
             {/* Close button for mobile drawer */}
             <button
               onClick={() => setIsMobileSidebarOpen(false)}
-              className={cn("md:hidden p-2", "text-portfolio-dust", "hover:text-portfolio-ink", radius.chip, "bg-portfolio-hull")}
+              className={cn("portfolio-chip", "md:hidden p-2", "text-portfolio-dust", "hover:text-portfolio-ink", radius.chip, "bg-portfolio-hull")}
               aria-label="Close sidebar"
             >
               <Icon name="close" size={14} />
@@ -94,7 +94,7 @@ export default function MusicSidebar() {
         <nav className="music-sidebar-nav">
           <button
             onClick={() => handleTabClick("player")}
-            className={cn(`music-nav-item ${activeTab === "player" ? "music-nav-item--active" : ""}`)}
+            className={cn("portfolio-chip", `music-nav-item ${activeTab === "player" ? "music-nav-item--active" : ""}`)}
           >
             <span className="music-nav-icon"><Icon name="slider" size={16} /></span>
             <span className="flex-1 text-left font-medium">
@@ -107,7 +107,7 @@ export default function MusicSidebar() {
 
           <button
             onClick={() => handleTabClick("queue")}
-            className={cn(`music-nav-item ${activeTab === "queue" ? "music-nav-item--active" : ""}`)}
+            className={cn("portfolio-chip", `music-nav-item ${activeTab === "queue" ? "music-nav-item--active" : ""}`)}
           >
             <span className="music-nav-icon"><Icon name="listMusic" size={16} /></span>
             <span className="flex-1 text-left font-medium">
@@ -118,7 +118,7 @@ export default function MusicSidebar() {
 
           <button
             onClick={() => handleTabClick("info")}
-            className={cn(`music-nav-item ${activeTab === "info" ? "music-nav-item--active" : ""}`)}
+            className={cn("portfolio-chip", `music-nav-item ${activeTab === "info" ? "music-nav-item--active" : ""}`)}
           >
             <span className="music-nav-icon">ℹ️</span>
             <span className="flex-1 text-left font-medium">
@@ -135,7 +135,7 @@ export default function MusicSidebar() {
         <nav className="music-sidebar-nav">
           <button
             onClick={() => handleTabClick("charts")}
-            className={cn(`music-nav-item ${activeTab === "charts" ? "music-nav-item--active" : ""}`)}
+            className={cn("portfolio-chip", `music-nav-item ${activeTab === "charts" ? "music-nav-item--active" : ""}`)}
           >
             <span className="music-nav-icon"><Icon name="trophy" size={16} /></span>
             <span className="flex-1 text-left font-medium">
@@ -146,7 +146,7 @@ export default function MusicSidebar() {
 
           <button
             onClick={handleLikedClick}
-            className={cn(`music-nav-item ${activeTab === "favorites" ? "music-nav-item--active music-nav-item--liked" : ""}`)}
+            className={cn("portfolio-chip", `music-nav-item ${activeTab === "favorites" ? "music-nav-item--active music-nav-item--liked" : ""}`)}
           >
             <span className="music-nav-icon"><Icon name="heart" size={16} /></span>
             <span className="flex-1 text-left font-medium">
@@ -186,7 +186,7 @@ export default function MusicSidebar() {
               <button
                 key={g}
                 onClick={() => handleGenreClick(g)}
-                className={cn(`music-genre-chip ${isSelected ? "music-genre-chip--active" : ""}`)}
+                className={cn("portfolio-chip", `music-genre-chip ${isSelected ? "music-genre-chip--active" : ""}`)}
               >
                 <span className="music-genre-bullet" />
                 <span className="truncate">

@@ -151,7 +151,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
               <button
                 type="button"
                 onClick={() => setActiveTab("photos")}
-                aria-pressed={activeTab === "photos"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", activeTab === "photos" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
+                aria-pressed={activeTab === "photos"} className={cn("portfolio-chip", "portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", activeTab === "photos" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
               >
                 <span className={cn("w-2 h-2", radius.pill, "bg-portfolio-hull")} />
                 <span><strong>{stats.total}</strong> {t("photography.totalPhotos")}</span>
@@ -161,7 +161,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                 <button
                   type="button"
                   onClick={() => setActiveTab("albums")}
-                  aria-pressed={activeTab === "albums"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", activeTab === "albums" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
+                  aria-pressed={activeTab === "albums"} className={cn("portfolio-chip", "portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", activeTab === "albums" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                 >
                   <Icon name="folder" size={13} />
                   <span><strong>{stats.albumsCount}</strong> {t("photography.albumsCount") || "Albums"}</span>
@@ -189,7 +189,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
           <button
             type="button"
             onClick={() => setActiveTab("photos")}
-            aria-pressed={activeTab === "photos"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", activeTab === "photos" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
+            aria-pressed={activeTab === "photos"} className={cn("portfolio-chip", "portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", activeTab === "photos" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
           >
             <Icon name="camera" size={15} />
             <span>{t("photography.tabAllPhotos") || "Tất cả tác phẩm"} ({initialPhotos.length})</span>
@@ -198,7 +198,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
           <button
             type="button"
             onClick={() => setActiveTab("albums")}
-            aria-pressed={activeTab === "albums"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", activeTab === "albums" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
+            aria-pressed={activeTab === "albums"} className={cn("portfolio-chip", "portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", activeTab === "albums" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
           >
             <Icon name="grid" size={15} />
             <span>{t("photography.tabAlbums") || "Bộ sưu tập (Albums)"} ({filteredAlbums.length})</span>
@@ -243,7 +243,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     type="button"
                     onClick={() => setLayoutMode("masonry")}
                     title="Masonry Layout"
-                    aria-pressed={layoutMode === "masonry"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "masonry" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
+                    aria-pressed={layoutMode === "masonry"} className={cn("portfolio-chip", "portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "masonry" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                   >
                     <Icon name="masonry" size={14} />
                     <span className="hidden sm:inline">{t("photography.layouts.masonry")}</span>
@@ -253,7 +253,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     type="button"
                     onClick={() => setLayoutMode("grid")}
                     title="Grid Layout"
-                    aria-pressed={layoutMode === "grid"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "grid" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
+                    aria-pressed={layoutMode === "grid"} className={cn("portfolio-chip", "portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "grid" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                   >
                     <Icon name="grid" size={14} />
                     <span className="hidden sm:inline">{t("photography.layouts.grid")}</span>
@@ -263,7 +263,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     type="button"
                     onClick={() => setLayoutMode("compare")}
                     title="Before & After Retouch Comparison"
-                    aria-pressed={layoutMode === "compare"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "compare" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
+                    aria-pressed={layoutMode === "compare"} className={cn("portfolio-chip", "portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "compare" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                   >
                     <Icon name="compare" size={14} />
                     <span className="hidden sm:inline">{t("photography.layouts.compare")}</span>
@@ -273,7 +273,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     type="button"
                     onClick={() => setLayoutMode("story")}
                     title="Editorial Story Layout"
-                    aria-pressed={layoutMode === "story"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "story" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
+                    aria-pressed={layoutMode === "story"} className={cn("portfolio-chip", "portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "story" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                   >
                     <Icon name="image" size={14} />
                     <span className="hidden sm:inline">{t("photography.layouts.story")}</span>
@@ -286,7 +286,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                 <button
                   type="button"
                   onClick={() => setSelectedCategory("all")}
-                  aria-pressed={selectedCategory === "all"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", selectedCategory === "all" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
+                  aria-pressed={selectedCategory === "all"} className={cn("portfolio-chip", "portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", selectedCategory === "all" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                 >
                   {t("photography.all")} ({initialPhotos.length})
                 </button>
@@ -295,7 +295,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                   <button
                     type="button"
                     onClick={() => setSelectedCategory("featured")}
-                    aria-pressed={selectedCategory === "featured"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", selectedCategory === "featured" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
+                    aria-pressed={selectedCategory === "featured"} className={cn("portfolio-chip", "portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", selectedCategory === "featured" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                   >
                     <Icon name="star" size={12} /> {t("photography.featured")}
                     <span
@@ -317,7 +317,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                       key={cat}
                       type="button"
                       onClick={() => setSelectedCategory(cat)}
-                      aria-pressed={isActive} className={cn("portfolio-action flex shrink-0 items-center gap-1.5 px-3 py-2 text-xs border rounded-lg", isActive ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
+                      aria-pressed={isActive} className={cn("portfolio-chip", "portfolio-action flex shrink-0 items-center gap-1.5 px-3 py-2 text-xs border rounded-lg", isActive ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
                     >
                       <span>{cat}</span>
                       <span
@@ -464,7 +464,7 @@ export default function PhotographyGallery({ initialPhotos, initialAlbums = [] }
                     <Link
                       key={album.id}
                       href={`/photography/album/${album.slug}`}
-                      className={cn("portfolio-reveal portfolio-reveal--lens group relative", "rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion", "transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portfolio-accretion)] focus-visible:outline-offset-2", "flex flex-col")}
+                      className={cn("portfolio-fx-card portfolio-reveal portfolio-reveal--lens group relative", "rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion", "transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portfolio-accretion)] focus-visible:outline-offset-2", "flex flex-col")}
                     >
                       {/* Cover Photo */}
                       <div className="relative aspect-[16/10] w-full bg-portfolio-hull overflow-hidden">

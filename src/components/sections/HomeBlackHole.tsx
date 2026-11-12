@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { mapHomeBlackHole } from "@/lib/home-black-hole";
+import InteractiveStarfield from "@/components/layout/InteractiveStarfield";
 
 const BlackHoleCanvas = dynamic(() => import("@/components/3d/blackhole/BlackHoleCanvas"), { ssr: false });
 
@@ -62,6 +63,7 @@ export default function HomeBlackHole() {
 
   return <div aria-hidden="true" className="portfolio-home-blackhole pointer-events-none fixed inset-0 -z-10 overflow-hidden">
     <div ref={stars} className="portfolio-stars absolute inset-0" />
+    <InteractiveStarfield variant="home" />
     <div ref={ref} className="portfolio-bh-frame absolute inset-0">
       <div className="portfolio-hero-canvas absolute">
         <div className="portfolio-blackhole-fallback absolute inset-0" data-settled={settled ? "" : undefined}>
