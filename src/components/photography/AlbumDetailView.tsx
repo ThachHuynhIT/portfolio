@@ -107,7 +107,7 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
             <button
               type="button"
               onClick={() => setLayoutMode("masonry")}
-              aria-pressed={layoutMode === "masonry"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "masonry" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
+              aria-pressed={layoutMode === "masonry"} className={cn("portfolio-chip", "portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "masonry" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
             >
               <Icon name="masonry" size={14} />
               <span>{t("photography.layouts.masonry")}</span>
@@ -116,7 +116,7 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
             <button
               type="button"
               onClick={() => setLayoutMode("grid")}
-              aria-pressed={layoutMode === "grid"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "grid" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
+              aria-pressed={layoutMode === "grid"} className={cn("portfolio-chip", "portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "grid" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
             >
               <Icon name="grid" size={14} />
               <span>{t("photography.layouts.grid")}</span>
@@ -125,7 +125,7 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
             <button
               type="button"
               onClick={() => setLayoutMode("compare")}
-              aria-pressed={layoutMode === "compare"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "compare" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
+              aria-pressed={layoutMode === "compare"} className={cn("portfolio-chip", "portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "compare" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
             >
               <Icon name="compare" size={14} />
               <span>{t("photography.layouts.compare")}</span>
@@ -134,7 +134,7 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
             <button
               type="button"
               onClick={() => setLayoutMode("story")}
-              aria-pressed={layoutMode === "story"} className={cn("portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "story" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
+              aria-pressed={layoutMode === "story"} className={cn("portfolio-chip", "portfolio-action flex items-center justify-center gap-1.5 px-3 py-2 text-xs border rounded-lg min-h-11", layoutMode === "story" ? "bg-portfolio-hull border-portfolio-accretion text-portfolio-accretion" : "bg-portfolio-hull border-portfolio-control text-portfolio-dust hover:border-portfolio-accretion")}
             >
               <Icon name="image" size={14} />
               <span>{t("photography.layouts.story")}</span>
@@ -206,7 +206,7 @@ export default function AlbumDetailView({ album, photos, otherAlbums }: AlbumDet
                   <Link
                     key={item.id}
                     href={`/photography/album/${item.slug}`}
-                    className={cn("portfolio-reveal portfolio-reveal--lens group", "rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portfolio-accretion)] focus-visible:outline-offset-2 transition-all flex flex-col")}
+                    className={cn("portfolio-fx-card portfolio-reveal portfolio-reveal--lens group", "rounded-lg overflow-hidden bg-portfolio-hull border border-portfolio-hairline hover:border-portfolio-accretion focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portfolio-accretion)] focus-visible:outline-offset-2 transition-all flex flex-col")}
                   >
                     <div className="relative aspect-[16/10] w-full bg-portfolio-hull overflow-hidden">
                       {item.coverImage && (

@@ -1021,6 +1021,70 @@ body {
   70% { opacity: 1; transform: scaleX(1); }
   to { opacity: 0; transform: scaleX(1); }
 }
+/* Pointer feedback (PointerEffects sets --fx-* on .portfolio-fx-card and adds
+   ripples). Base chip/ripple-host rules sit in @layer components so utilities
+   such as `absolute` or `border-0` still win; hover/active states stay
+   unlayered. The card spotlight uses layered backgrounds, not pseudo-elements,
+   because reveal variants and .portfolio-case already own ::before/::after.
+   Transforms only apply while hovered, so idle cards create no containing
+   block for fixed descendants. */
+[data-starfield="live"] > .portfolio-stars { opacity: 0; }
+@layer components {
+  .portfolio-chip {
+    position: relative; isolation: isolate; overflow: hidden; border-radius: 8px;
+    border: 1px solid var(--portfolio-control);
+    background-image: linear-gradient(var(--portfolio-accretion), var(--portfolio-accretion));
+    background-position: center bottom; background-repeat: no-repeat; background-size: 0% 2px;
+    transition: transform 150ms ease-out, border-color 150ms, color 150ms, background-size 180ms ease-out;
+  }
+  .portfolio-fx-ripple { position: relative; isolation: isolate; }
+}
+.portfolio-fx-card { transition: transform 400ms ease-out, box-shadow 400ms ease-out, border-color 400ms ease-out; }
+.portfolio-fx-card[data-fx-active] { transition-duration: 120ms; }
+.portfolio-fx-card img { transition: transform 600ms ease-out; }
+.portfolio-chip:is([aria-pressed="true"], [aria-selected="true"], [data-active="true"]) {
+  border-color: var(--portfolio-accretion); color: var(--portfolio-accretion); background-size: 55% 2px;
+}
+.portfolio-chip.bg-portfolio-accretion:is([data-active="true"], [data-active="true"]:hover, :hover) { color: var(--portfolio-on-accretion); }
+.portfolio-theme .portfolio-action.portfolio-chip { transition: transform 150ms ease-out, border-color 150ms, color 150ms, background-size 180ms ease-out; }
+.portfolio-ripple-clip { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; z-index: -1; }
+.portfolio-ripple { position: absolute; pointer-events: none; border-radius: 50%; background: color-mix(in srgb, var(--portfolio-accretion) 25%, transparent); animation: portfolio-pointer-ripple 600ms ease-out forwards; }
+@keyframes portfolio-pointer-ripple { from { transform: scale(0); opacity: 1; } to { transform: scale(1); opacity: 0; } }
+.portfolio-theme .portfolio-text-link {
+  text-decoration: none;
+  background-image: linear-gradient(var(--portfolio-accretion), var(--portfolio-accretion));
+  background-size: 0% 1px; background-position: left bottom; background-repeat: no-repeat;
+  transition: background-size 180ms ease-out;
+}
+.portfolio-theme .portfolio-text-link:focus-visible { background-size: 100% 1px; text-decoration: underline; }
+.portfolio-input { transition: border-color 150ms, box-shadow 150ms; }
+.portfolio-input:is(:focus, :focus-visible) { border-color: var(--portfolio-accretion); box-shadow: 0 0 0 3px color-mix(in srgb, var(--portfolio-accretion) 20%, transparent); }
+@media (hover: hover) {
+  .portfolio-theme .portfolio-fx-card:not([data-fx-no-tilt]):hover {
+    transform: perspective(900px) rotateX(var(--fx-rx, 0deg)) rotateY(var(--fx-ry, 0deg)) translateY(-3px);
+    box-shadow: 0 14px 30px color-mix(in srgb, var(--portfolio-void) 45%, transparent);
+    border-color: transparent;
+    background: radial-gradient(260px circle at var(--fx-x, 50%) var(--fx-y, 50%), color-mix(in srgb, var(--portfolio-accretion) 10%, transparent), transparent 70%) padding-box,
+      linear-gradient(var(--portfolio-hull), var(--portfolio-hull)) padding-box,
+      radial-gradient(200px circle at var(--fx-x, 50%) var(--fx-y, 50%), var(--portfolio-accretion), var(--portfolio-hairline) 70%) border-box;
+  }
+  /* Rows inside a list: spotlight only, no border change, no lift. */
+  .portfolio-theme .portfolio-fx-card[data-fx-no-tilt]:hover {
+    background: radial-gradient(360px circle at var(--fx-x, 50%) var(--fx-y, 50%), color-mix(in srgb, var(--portfolio-accretion) 6%, transparent), transparent 75%);
+  }
+  .portfolio-fx-card:hover img { transform: scale(1.05); }
+  .portfolio-chip:hover { border-color: var(--portfolio-accretion); color: var(--portfolio-ink); transform: translateY(-1px); }
+  .portfolio-chip:is([aria-pressed="true"], [aria-selected="true"], [data-active="true"]):hover { color: var(--portfolio-accretion); }
+  .portfolio-theme .portfolio-text-link:hover { text-decoration: none; background-size: 100% 1px; }
+}
+.portfolio-chip:active { transform: scale(.97); }
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-fx-card, .portfolio-fx-card[data-fx-active], .portfolio-chip, .portfolio-fx-card img,
+  .portfolio-theme .portfolio-text-link, .portfolio-theme .portfolio-action.portfolio-chip, .portfolio-input { transition: none; }
+  .portfolio-theme .portfolio-fx-card:hover, .portfolio-chip:hover, .portfolio-chip:active, .portfolio-fx-card:hover img { transform: none !important; }
+  .portfolio-ripple { display: none; animation: none; }
+}
+
 @keyframes portfolio-reveal-in {
   from { opacity: 0; transform: translate3d(0, 32px, 0); }
 }
